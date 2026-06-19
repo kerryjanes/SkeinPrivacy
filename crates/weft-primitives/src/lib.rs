@@ -229,6 +229,69 @@ pub fn vested_amount(
     lump.saturating_add(linear_vested).min(total)
 }
 
+// ---------------------------------------------------------------------------
+// Node registry (`SPEC.md` > Node registry) — M2
+// ---------------------------------------------------------------------------
+
+/// Bits of geohash stored on-chain: 6 base-32 chars x 5 bits ~= 1.2 km cells.
+pub const GEO_BITS: u32 = 30;
+/// Maximum valid packed geo value (low [`GEO_BITS`] bits set).
+pub const GEO_MAX: u32 = (1 << GEO_BITS) - 1;
+
+/// Whether a packed geo value fits the on-chain geohash field.
+pub fn geo_is_valid(geo: u32) -> bool {
+    geo <= GEO_MAX
+}
+
+/// Top `chars` geohash characters of a packed geo (region prefix), for off-chain
+/// demand-coefficient bucketing. `chars` is clamped to `0..=6`.
+pub fn geo_region_prefix(geo: u32, chars: u8) -> u32 {
+    let keep = (chars.min(6) as u32) * 5;
+    let geo = geo & GEO_MAX;
+    if keep >= GEO_BITS {
+        geo
+    } else {
+        geo >> (GEO_BITS - keep)
+    }
+}
+
+/// Node capability bitflags stored in `NodeState.capabilities`.
+pub mod capability {
+    /// Speaks the WireGuard data plane.
+    pub const WIREGUARD: u32 = 1 << 0;
+    /// Relays (intermediate hop) traffic.
+    pub const RELAY: u32 = 1 << 1;
+    /// Acts as an exit node.
+    pub const EXIT: u32 = 1 << 2;
+    /// Supports IPv6.
+    pub const IPV6: u32 = 1 << 3;
+    /// Mobile device node.
+    pub const MOBILE: u32 = 1 << 4;
+    /// Router / OpenWRT node.
+    pub const ROUTER: u32 = 1 << 5;
+}
+
+/// All recognized capability bits.
+pub const CAPABILITIES_MASK: u32 = capability::WIREGUARD
+    | capability::RELAY
+    | capability::EXIT
+    | capability::IPV6
+    | capability::MOBILE
+    | capability::ROUTER;
+
+/// A capability set is valid if it sets at least one known bit and no unknown bits.
+pub fn capabilities_valid(capabilities: u32) -> bool {
+    capabilities != 0 && (capabilities & !CAPABILITIES_MASK) == 0
+}
+
+/// Maximum self-reported availability percentage.
+pub const MAX_AVAILABILITY: u8 = 100;
+
+/// Whether a self-reported availability value is in range.
+pub fn availability_is_valid(availability: u8) -> bool {
+    availability <= MAX_AVAILABILITY
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -469,5 +532,34 @@ mod tests {
             vesting::TEAM_DURATION,
         );
         assert_eq!(at_end, total);
+    }
+
+    #[test]
+    fn geo_validation_and_region_prefix() {
+        assert!(geo_is_valid(0));
+        assert!(geo_is_valid(GEO_MAX));
+        assert!(!geo_is_valid(GEO_MAX + 1));
+
+        let geo = 0b11111_00000_11111_00000_11111_00000;
+        assert_eq!(geo_region_prefix(geo, 1), 0b11111);
+        assert_eq!(geo_region_prefix(geo, 2), 0b11111_00000);
+        assert_eq!(geo_region_prefix(geo, 6), geo & GEO_MAX);
+        assert_eq!(geo_region_prefix(geo, 0), 0);
+    }
+
+    #[test]
+    fn capability_validation() {
+        assert_eq!(CAPABILITIES_MASK, (1 << 6) - 1);
+        assert!(capabilities_valid(capability::WIREGUARD));
+        assert!(capabilities_valid(capability::WIREGUARD | capability::EXIT));
+        assert!(!capabilities_valid(0)); // must set at least one
+        assert!(!capabilities_valid(1 << 30)); // unknown bit
+    }
+
+    #[test]
+    fn availability_bounds() {
+        assert!(availability_is_valid(0));
+        assert!(availability_is_valid(MAX_AVAILABILITY));
+        assert!(!availability_is_valid(101));
     }
 }
