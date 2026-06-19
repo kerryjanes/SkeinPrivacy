@@ -5,10 +5,11 @@ package_manager = "pnpm"
 resolution = true
 skip-lint = false
 
-# Program IDs are registered here as each program is created (M1+).
-[programs.localnet]
-
 [programs.devnet]
+weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
+
+[programs.localnet]
+weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
 
 [provider]
 cluster = "localnet"
