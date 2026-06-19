@@ -11,7 +11,11 @@ dist
 
 # Local validators / test ledgers
 test-ledger
+test-ledger.log
 .surfpool
+
+# Deployment manifests (environment-specific outputs)
+services/genesis/manifests/*.json
 
 # Secrets & local config
 .env

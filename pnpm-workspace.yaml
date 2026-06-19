@@ -2,3 +2,7 @@ packages:
   - 'sdk'
   - 'services/*'
   - 'clients/*'
+
+# esbuild (via tsx/vitest) ships a native binary and needs its install script.
+allowBuilds:
+  esbuild: true

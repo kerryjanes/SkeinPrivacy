@@ -1,0 +1,23 @@
+{
+  "name": "@weft/genesis",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "genesis": "tsx src/cli.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@weft/sdk": "workspace:*",
+    "@solana-program/system": "^0.12.2",
+    "@solana-program/token": "^0.14.0",
+    "@solana/kit": "^6.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}
