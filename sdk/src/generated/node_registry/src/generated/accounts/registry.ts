@@ -61,7 +61,7 @@ export type Registry = {
   activeTree: Address;
   /** Number of tree shards provisioned so far. */
   treeCount: number;
-  /** Total nodes ever registered. */
+  /** Currently registered (active) nodes. */
   nodeCount: bigint;
   /** Program allowed to write `NodeState.reputation` (M3). Defaults to `authority`. */
   reputationAuthority: Address;
@@ -81,7 +81,7 @@ export type RegistryArgs = {
   activeTree: Address;
   /** Number of tree shards provisioned so far. */
   treeCount: number;
-  /** Total nodes ever registered. */
+  /** Currently registered (active) nodes. */
   nodeCount: number | bigint;
   /** Program allowed to write `NodeState.reputation` (M3). Defaults to `authority`. */
   reputationAuthority: Address;

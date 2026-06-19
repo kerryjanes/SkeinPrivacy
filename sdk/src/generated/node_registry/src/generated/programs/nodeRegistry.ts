@@ -45,19 +45,23 @@ import {
   type TreeShardArgs,
 } from '../accounts';
 import {
+  getDeregisterInstructionAsync,
   getInitializeRegistryInstructionAsync,
   getRegisterInstructionAsync,
   getRegisterTreeInstructionAsync,
   getSetAuthorityInstructionAsync,
   getSetPausedInstructionAsync,
   getUpdateInstruction,
+  parseDeregisterInstruction,
   parseInitializeRegistryInstruction,
   parseRegisterInstruction,
   parseRegisterTreeInstruction,
   parseSetAuthorityInstruction,
   parseSetPausedInstruction,
   parseUpdateInstruction,
+  type DeregisterAsyncInput,
   type InitializeRegistryAsyncInput,
+  type ParsedDeregisterInstruction,
   type ParsedInitializeRegistryInstruction,
   type ParsedRegisterInstruction,
   type ParsedRegisterTreeInstruction,
@@ -125,6 +129,7 @@ export function identifyNodeRegistryAccount(
 }
 
 export enum NodeRegistryInstruction {
+  Deregister,
   InitializeRegistry,
   Register,
   RegisterTree,
@@ -137,6 +142,17 @@ export function identifyNodeRegistryInstruction(
   instruction: { data: ReadonlyUint8Array } | ReadonlyUint8Array,
 ): NodeRegistryInstruction {
   const data = 'data' in instruction ? instruction.data : instruction;
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([161, 178, 39, 189, 231, 224, 13, 187]),
+      ),
+      0,
+    )
+  ) {
+    return NodeRegistryInstruction.Deregister;
+  }
   if (
     containsBytes(
       data,
@@ -213,6 +229,9 @@ export type ParsedNodeRegistryInstruction<
   TProgram extends string = '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd',
 > =
   | ({
+      instructionType: NodeRegistryInstruction.Deregister;
+    } & ParsedDeregisterInstruction<TProgram>)
+  | ({
       instructionType: NodeRegistryInstruction.InitializeRegistry;
     } & ParsedInitializeRegistryInstruction<TProgram>)
   | ({ instructionType: NodeRegistryInstruction.Register } & ParsedRegisterInstruction<TProgram>)
@@ -230,6 +249,13 @@ export function parseNodeRegistryInstruction<TProgram extends string>(
 ): ParsedNodeRegistryInstruction<TProgram> {
   const instructionType = identifyNodeRegistryInstruction(instruction);
   switch (instructionType) {
+    case NodeRegistryInstruction.Deregister: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.Deregister,
+        ...parseDeregisterInstruction(instruction),
+      };
+    }
     case NodeRegistryInstruction.InitializeRegistry: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -296,6 +322,9 @@ export type NodeRegistryPluginAccounts = {
 };
 
 export type NodeRegistryPluginInstructions = {
+  deregister: (
+    input: DeregisterAsyncInput,
+  ) => ReturnType<typeof getDeregisterInstructionAsync> & SelfPlanAndSendFunctions;
   initializeRegistry: (
     input: InitializeRegistryAsyncInput,
   ) => ReturnType<typeof getInitializeRegistryInstructionAsync> & SelfPlanAndSendFunctions;
@@ -340,6 +369,8 @@ export function nodeRegistryProgram() {
           treeShard: addSelfFetchFunctions(client, getTreeShardCodec()),
         },
         instructions: {
+          deregister: (input) =>
+            addSelfPlanAndSendFunctions(client, getDeregisterInstructionAsync(input)),
           initializeRegistry: (input) =>
             addSelfPlanAndSendFunctions(client, getInitializeRegistryInstructionAsync(input)),
           register: (input) =>

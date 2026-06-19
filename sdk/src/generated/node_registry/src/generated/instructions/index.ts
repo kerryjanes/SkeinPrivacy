@@ -6,6 +6,7 @@
  * @see https://github.com/codama-idl/codama
  */
 
+export * from './deregister';
 export * from './initializeRegistry';
 export * from './register';
 export * from './registerTree';
