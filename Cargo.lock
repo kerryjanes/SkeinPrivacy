@@ -1749,6 +1749,7 @@ dependencies = [
  "litesvm",
  "mpl-bubblegum",
  "weft-primitives",
+ "solana-account",
  "solana-instruction",
  "solana-keypair",
  "solana-message",

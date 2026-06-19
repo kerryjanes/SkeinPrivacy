@@ -29,6 +29,40 @@ pub mod node_registry {
             .register_tree(index, max_depth, ctx.bumps.tree_shard)
     }
 
+    /// Register a node: mint its Bubblegum V2 cNFT and create its `NodeState`.
+    #[allow(clippy::too_many_arguments)]
+    pub fn register(
+        ctx: Context<Register>,
+        node_id: u64,
+        geo: u32,
+        capabilities: u32,
+        endpoint_hash: [u8; 32],
+        availability: u8,
+        metadata_uri: String,
+    ) -> Result<()> {
+        ctx.accounts.register(
+            node_id,
+            geo,
+            capabilities,
+            endpoint_hash,
+            availability,
+            metadata_uri,
+            ctx.bumps.node,
+        )
+    }
+
+    /// Update a node's mutable on-chain state (operator only).
+    pub fn update(
+        ctx: Context<UpdateNode>,
+        geo: Option<u32>,
+        capabilities: Option<u32>,
+        endpoint_hash: Option<[u8; 32]>,
+        availability: Option<u8>,
+    ) -> Result<()> {
+        ctx.accounts
+            .update(geo, capabilities, endpoint_hash, availability)
+    }
+
     /// Rotate the registry authority.
     pub fn set_authority(ctx: Context<AdminRegistry>, new_authority: Pubkey) -> Result<()> {
         ctx.accounts.set_authority(new_authority)

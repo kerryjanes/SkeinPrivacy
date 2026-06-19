@@ -255,3 +255,259 @@ fn set_authority_and_paused() {
     );
     assert_failed_with(res, "Unauthorized");
 }
+
+// --- register (mintV2) validation + update lifecycle ---
+
+use {anchor_lang::AccountSerialize, solana_account::Account};
+
+const WIREGUARD: u32 = 1; // weft_primitives::capability::WIREGUARD
+fn bubblegum_id() -> Pubkey {
+    Pubkey::from_str_const("BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY")
+}
+
+fn node_pda(operator: &Pubkey, node_id: u64) -> Pubkey {
+    Pubkey::find_program_address(
+        &[
+            node_registry::NODE_SEED,
+            operator.as_ref(),
+            &node_id.to_le_bytes(),
+        ],
+        &node_registry::ID,
+    )
+    .0
+}
+
+#[allow(clippy::too_many_arguments)]
+fn register_ix(
+    operator: &Pubkey,
+    collection: &Pubkey,
+    active_tree: &Pubkey,
+    node_id: u64,
+    geo: u32,
+    capabilities: u32,
+    availability: u8,
+) -> Instruction {
+    let data = node_registry::instruction::Register {
+        node_id,
+        geo,
+        capabilities,
+        endpoint_hash: [0u8; 32],
+        availability,
+        metadata_uri: "https://weft.network/n.json".to_string(),
+    }
+    .data();
+    let metas = node_registry::accounts::Register {
+        operator: *operator,
+        registry: registry_pda(),
+        tree_shard: tree_shard_pda(0),
+        node: node_pda(operator, node_id),
+        tree_config: Pubkey::new_unique(),
+        merkle_tree: *active_tree,
+        core_collection: *collection,
+        mpl_core_cpi_signer: Pubkey::new_unique(),
+        log_wrapper: Pubkey::new_unique(),
+        compression_program: Pubkey::new_unique(),
+        mpl_core_program: Pubkey::new_unique(),
+        bubblegum_program: bubblegum_id(),
+        system_program: anchor_lang::solana_program::system_program::ID,
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(node_registry::ID, &data, metas)
+}
+
+/// Registry + one tree shard, returning (collection, active_tree).
+fn setup_with_tree(svm: &mut LiteSVM, authority: &Keypair) -> (Pubkey, Pubkey) {
+    let (collection, _tree) = init_registry(svm, authority);
+    let merkle = Pubkey::new_unique();
+    send(
+        svm,
+        register_tree_ix(&authority.pubkey(), &merkle, 0, 20),
+        authority,
+    )
+    .unwrap();
+    (collection, merkle)
+}
+
+fn set_node_state(svm: &mut LiteSVM, operator: &Pubkey, node_id: u64, status: u8) -> Pubkey {
+    let pda = node_pda(operator, node_id);
+    let bump = Pubkey::find_program_address(
+        &[
+            node_registry::NODE_SEED,
+            operator.as_ref(),
+            &node_id.to_le_bytes(),
+        ],
+        &node_registry::ID,
+    )
+    .1;
+    let node = node_registry::NodeState {
+        operator: *operator,
+        node_id,
+        asset_id: Pubkey::new_unique(),
+        merkle_tree: Pubkey::new_unique(),
+        leaf_nonce: 0,
+        geo: 100,
+        capabilities: WIREGUARD,
+        endpoint_hash: [0u8; 32],
+        availability: 50,
+        status,
+        registered_at: 1,
+        updated_at: 1,
+        reputation: 0,
+        stake_amount: 0,
+        bump,
+    };
+    let mut data = Vec::new();
+    node.try_serialize(&mut data).unwrap();
+    svm.set_account(
+        pda,
+        Account {
+            lamports: 10_000_000,
+            data,
+            owner: node_registry::ID,
+            executable: false,
+            rent_epoch: 0,
+        },
+    )
+    .unwrap();
+    pda
+}
+
+fn get_node(svm: &LiteSVM, pda: &Pubkey) -> node_registry::NodeState {
+    let acc = svm.get_account(pda).unwrap();
+    node_registry::NodeState::try_deserialize(&mut acc.data.as_slice()).unwrap()
+}
+
+#[test]
+fn register_rejects_invalid_inputs() {
+    let (mut svm, authority) = setup();
+    let (collection, tree) = setup_with_tree(&mut svm, &authority);
+    let op = Keypair::new();
+    svm.airdrop(&op.pubkey(), 100_000_000_000).unwrap();
+
+    // invalid geo (> GEO_MAX = 2^30-1)
+    assert_failed_with(
+        send(
+            &mut svm,
+            register_ix(&op.pubkey(), &collection, &tree, 0, 1 << 30, WIREGUARD, 50),
+            &op,
+        ),
+        "InvalidGeo",
+    );
+    // invalid capabilities (unknown bit)
+    assert_failed_with(
+        send(
+            &mut svm,
+            register_ix(&op.pubkey(), &collection, &tree, 0, 100, 1 << 31, 50),
+            &op,
+        ),
+        "InvalidCapabilities",
+    );
+    // invalid availability (> 100)
+    assert_failed_with(
+        send(
+            &mut svm,
+            register_ix(&op.pubkey(), &collection, &tree, 0, 100, WIREGUARD, 101),
+            &op,
+        ),
+        "InvalidAvailability",
+    );
+}
+
+#[test]
+fn register_rejects_when_paused() {
+    let (mut svm, authority) = setup();
+    let (collection, tree) = setup_with_tree(&mut svm, &authority);
+    // pause
+    let data = node_registry::instruction::SetPaused { paused: true }.data();
+    let metas = node_registry::accounts::AdminRegistry {
+        authority: authority.pubkey(),
+        registry: registry_pda(),
+    }
+    .to_account_metas(None);
+    send(
+        &mut svm,
+        Instruction::new_with_bytes(node_registry::ID, &data, metas),
+        &authority,
+    )
+    .unwrap();
+
+    let op = Keypair::new();
+    svm.airdrop(&op.pubkey(), 100_000_000_000).unwrap();
+    assert_failed_with(
+        send(
+            &mut svm,
+            register_ix(&op.pubkey(), &collection, &tree, 0, 100, WIREGUARD, 50),
+            &op,
+        ),
+        "Paused",
+    );
+}
+
+fn update_ix(
+    operator: &Pubkey,
+    node_id: u64,
+    availability: Option<u8>,
+    geo: Option<u32>,
+) -> Instruction {
+    let data = node_registry::instruction::Update {
+        geo,
+        capabilities: None,
+        endpoint_hash: None,
+        availability,
+    }
+    .data();
+    let metas = node_registry::accounts::UpdateNode {
+        operator: *operator,
+        node: node_pda(operator, node_id),
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(node_registry::ID, &data, metas)
+}
+
+#[test]
+fn update_mutates_active_node() {
+    let (mut svm, _authority) = setup();
+    let op = Keypair::new();
+    svm.airdrop(&op.pubkey(), 100_000_000_000).unwrap();
+    let pda = set_node_state(&mut svm, &op.pubkey(), 7, node_registry::STATUS_ACTIVE);
+
+    send(
+        &mut svm,
+        update_ix(&op.pubkey(), 7, Some(80), Some(2048)),
+        &op,
+    )
+    .unwrap();
+    let n = get_node(&svm, &pda);
+    assert_eq!(n.availability, 80);
+    assert_eq!(n.geo, 2048);
+}
+
+#[test]
+fn update_rejects_non_operator_and_inactive() {
+    let (mut svm, _authority) = setup();
+    let op = Keypair::new();
+    svm.airdrop(&op.pubkey(), 100_000_000_000).unwrap();
+    set_node_state(&mut svm, &op.pubkey(), 7, node_registry::STATUS_ACTIVE);
+
+    // attacker can't update (PDA seeds use their key → different/absent PDA)
+    let attacker = Keypair::new();
+    svm.airdrop(&attacker.pubkey(), 100_000_000_000).unwrap();
+    assert!(send(
+        &mut svm,
+        update_ix(&attacker.pubkey(), 7, Some(80), None),
+        &attacker
+    )
+    .is_err());
+
+    // inactive node rejects update
+    set_node_state(
+        &mut svm,
+        &op.pubkey(),
+        9,
+        node_registry::STATUS_DEREGISTERED,
+    );
+    assert_failed_with(
+        send(&mut svm, update_ix(&op.pubkey(), 9, Some(80), None), &op),
+        "NodeNotActive",
+    );
+}
