@@ -1,0 +1,20 @@
+[toolchain]
+package_manager = "pnpm"
+
+[features]
+resolution = true
+skip-lint = false
+
+# Program IDs are registered here as each program is created (M1+).
+[programs.localnet]
+
+[programs.devnet]
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[scripts]
+test = "cargo test"
+
+[hooks]

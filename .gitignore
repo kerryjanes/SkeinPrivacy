@@ -1,0 +1,24 @@
+# Rust / Anchor
+.anchor
+target
+**/*.rs.bk
+
+# Node / TS
+node_modules
+dist
+.yarn
+*.tsbuildinfo
+
+# Local validators / test ledgers
+test-ledger
+.surfpool
+
+# Secrets & local config
+.env
+.env.*
+!.env.example
+keypairs/*.json
+!keypairs/.gitkeep
+
+# OS
+.DS_Store
