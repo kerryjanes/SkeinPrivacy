@@ -160,6 +160,75 @@ pub fn split_payment(amount: u64) -> PaymentSplit {
     }
 }
 
+// ---------------------------------------------------------------------------
+// Token vesting (`SPEC.md` > Token Distribution)
+// ---------------------------------------------------------------------------
+
+/// Seconds in one vesting month (30 days). Schedule durations are whole months
+/// of this length so the on-chain program and the genesis script agree exactly.
+pub const MONTH_SECONDS: i64 = 30 * 24 * 60 * 60;
+
+/// Cliff and total durations (seconds) for each genesis vesting schedule
+/// (`SPEC.md` token distribution table). Tokens unlock linearly from `start_ts`
+/// to `start_ts + duration`; nothing is claimable until `start_ts + cliff`, at
+/// which point the elapsed share unlocks as a lump.
+pub mod vesting {
+    use super::MONTH_SECONDS;
+
+    /// Team & advisors: 12-month cliff, 36-month total vesting (revocable).
+    pub const TEAM_CLIFF: i64 = 12 * MONTH_SECONDS;
+    /// See [`TEAM_CLIFF`].
+    pub const TEAM_DURATION: i64 = 36 * MONTH_SECONDS;
+
+    /// Public/IDO linear tranche (the 75% not released at TGE): 12 months, no cliff.
+    pub const IDO_LINEAR_CLIFF: i64 = 0;
+    /// See [`IDO_LINEAR_CLIFF`].
+    pub const IDO_LINEAR_DURATION: i64 = 12 * MONTH_SECONDS;
+
+    /// Ecosystem & grants: 36 months, no cliff.
+    pub const ECOSYSTEM_CLIFF: i64 = 0;
+    /// See [`ECOSYSTEM_CLIFF`].
+    pub const ECOSYSTEM_DURATION: i64 = 36 * MONTH_SECONDS;
+
+    /// Marketing & partnerships: 24 months, no cliff.
+    pub const MARKETING_CLIFF: i64 = 0;
+    /// See [`MARKETING_CLIFF`].
+    pub const MARKETING_DURATION: i64 = 24 * MONTH_SECONDS;
+}
+
+/// Cumulative amount (base units) vested by `now` for a cliff + linear schedule.
+///
+/// `cliff_unlock` is an optional lump available at `start_ts` (a TGE portion);
+/// the remaining `total - cliff_unlock` vests linearly across `duration`. Before
+/// `start_ts + cliff_duration` only the lump is available; at or after
+/// `start_ts + duration` the full `total` is returned exactly (no rounding dust).
+///
+/// Integer-only, saturating, and monotonically non-decreasing in `now`, so
+/// subtracting an already-released amount yields a never-negative claimable value.
+pub fn vested_amount(
+    total: u64,
+    cliff_unlock: u64,
+    start_ts: i64,
+    cliff_duration: i64,
+    duration: i64,
+    now: i64,
+) -> u64 {
+    let lump = cliff_unlock.min(total);
+    if now <= start_ts {
+        return lump;
+    }
+    let elapsed = now as i128 - start_ts as i128;
+    if elapsed < cliff_duration as i128 {
+        return lump;
+    }
+    if duration <= 0 || elapsed >= duration as i128 {
+        return total;
+    }
+    let linear_pool = total.saturating_sub(cliff_unlock) as u128;
+    let linear_vested = (linear_pool * elapsed as u128 / duration as u128) as u64;
+    lump.saturating_add(linear_vested).min(total)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -316,5 +385,89 @@ mod tests {
         assert_eq!(s.nodes, 6_999);
         assert_eq!(s.burn, 1_999);
         assert_eq!(s.treasury, 1_001);
+    }
+
+    #[test]
+    fn vesting_before_start_returns_only_lump() {
+        assert_eq!(vested_amount(100, 10, 1_000, 0, 100, 500), 10);
+        assert_eq!(vested_amount(100, 0, 1_000, 0, 100, 500), 0);
+    }
+
+    #[test]
+    fn vesting_no_cliff_linear_midpoint_and_full() {
+        assert_eq!(vested_amount(100, 0, 0, 0, 100, 50), 50);
+        assert_eq!(vested_amount(100, 0, 0, 0, 100, 100), 100);
+        assert_eq!(vested_amount(100, 0, 0, 0, 100, 250), 100);
+    }
+
+    #[test]
+    fn vesting_cliff_lump_unlocks_at_boundary() {
+        // 36 units over 36 "months", 12-month cliff: nothing until month 12,
+        // then the elapsed 1/3 unlocks as a lump and linear continues.
+        assert_eq!(vested_amount(36, 0, 0, 12, 36, 11), 0);
+        assert_eq!(vested_amount(36, 0, 0, 12, 36, 12), 12);
+        assert_eq!(vested_amount(36, 0, 0, 12, 36, 24), 24);
+        assert_eq!(vested_amount(36, 0, 0, 12, 36, 36), 36);
+    }
+
+    #[test]
+    fn vesting_with_tge_lump_then_linear() {
+        // 100 total, 25 at TGE, remaining 75 linear over 12.
+        assert_eq!(vested_amount(100, 25, 0, 0, 12, 0), 25);
+        assert_eq!(vested_amount(100, 25, 0, 0, 12, 6), 25 + 75 * 6 / 12); // 62
+        assert_eq!(vested_amount(100, 25, 0, 0, 12, 12), 100);
+    }
+
+    #[test]
+    fn vesting_full_vest_is_exact_and_rounds_down_midway() {
+        assert_eq!(vested_amount(100, 0, 0, 0, 7, 3), 100 * 3 / 7); // 42, rounds down
+        assert_eq!(vested_amount(100, 0, 0, 0, 7, 7), 100); // exact, no dust stranded
+    }
+
+    #[test]
+    fn vesting_zero_duration_returns_total_without_panic() {
+        assert_eq!(vested_amount(100, 0, 0, 0, 0, 1), 100);
+    }
+
+    #[test]
+    fn vesting_is_monotonic_non_decreasing() {
+        let mut prev = 0;
+        for now in -5..150 {
+            let v = vested_amount(100, 10, 0, 12, 100, now);
+            assert!(v >= prev, "vested decreased at now={now}: {v} < {prev}");
+            assert!(v <= 100);
+            prev = v;
+        }
+    }
+
+    #[test]
+    fn vesting_saturates_on_huge_amounts() {
+        let v = vested_amount(u64::MAX, 0, 0, 0, 1_000, 500);
+        assert!(v > 0 && v < u64::MAX);
+    }
+
+    #[test]
+    fn vesting_team_schedule_matches_spec_at_cliff() {
+        // Team: 150M over 36 months, 12-month cliff → exactly 1/3 (50M) at the cliff.
+        let total = allocation_amount(allocation_bps::TEAM);
+        let at_cliff = vested_amount(
+            total,
+            0,
+            0,
+            vesting::TEAM_CLIFF,
+            vesting::TEAM_DURATION,
+            vesting::TEAM_CLIFF,
+        );
+        assert_eq!(at_cliff, 50_000_000 * ONE_WEFT);
+        // Fully vested at month 36.
+        let at_end = vested_amount(
+            total,
+            0,
+            0,
+            vesting::TEAM_CLIFF,
+            vesting::TEAM_DURATION,
+            vesting::TEAM_DURATION,
+        );
+        assert_eq!(at_end, total);
     }
 }
