@@ -9,6 +9,7 @@ skip-lint = false
 weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
 
 [programs.localnet]
+node-registry = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd"
 weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
 
 [provider]
