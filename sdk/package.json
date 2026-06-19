@@ -1,0 +1,25 @@
+{
+  "name": "@weft/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript client SDK for the Weft on-chain programs (Codama-generated, @solana/kit)",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "generate": "node codegen.mjs",
+    "build": "node codegen.mjs && tsc -p tsconfig.json",
+    "clean": "rm -rf dist src/generated"
+  },
+  "devDependencies": {
+    "@codama/nodes-from-anchor": "^1.5.1",
+    "@codama/renderers-js": "^2.3.0",
+    "codama": "^1.8.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@solana/kit": "^6.10.0"
+  }
+}
