@@ -511,3 +511,32 @@ fn update_rejects_non_operator_and_inactive() {
         "NodeNotActive",
     );
 }
+
+fn deregister_ix(operator: &Pubkey, node_id: u64) -> Instruction {
+    let data = node_registry::instruction::Deregister {}.data();
+    let metas = node_registry::accounts::Deregister {
+        operator: *operator,
+        registry: registry_pda(),
+        node: node_pda(operator, node_id),
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(node_registry::ID, &data, metas)
+}
+
+#[test]
+fn deregister_closes_node_state() {
+    let (mut svm, authority) = setup();
+    init_registry(&mut svm, &authority);
+    let op = Keypair::new();
+    svm.airdrop(&op.pubkey(), 100_000_000_000).unwrap();
+    let pda = set_node_state(&mut svm, &op.pubkey(), 7, node_registry::STATUS_ACTIVE);
+
+    // non-operator cannot deregister (seeds derive a different/empty PDA)
+    let attacker = Keypair::new();
+    svm.airdrop(&attacker.pubkey(), 100_000_000_000).unwrap();
+    assert!(send(&mut svm, deregister_ix(&attacker.pubkey(), 7), &attacker).is_err());
+
+    // operator closes the NodeState (rent reclaimed)
+    send(&mut svm, deregister_ix(&op.pubkey(), 7), &op).unwrap();
+    assert!(svm.get_account(&pda).is_none_or(|a| a.lamports == 0));
+}

@@ -63,6 +63,12 @@ pub mod node_registry {
             .update(geo, capabilities, endpoint_hash, availability)
     }
 
+    /// Deregister a node: remove its authoritative `NodeState` record (rent →
+    /// operator). The operator keeps the cNFT and may burn it independently.
+    pub fn deregister(ctx: Context<Deregister>) -> Result<()> {
+        ctx.accounts.deregister()
+    }
+
     /// Rotate the registry authority.
     pub fn set_authority(ctx: Context<AdminRegistry>, new_authority: Pubkey) -> Result<()> {
         ctx.accounts.set_authority(new_authority)

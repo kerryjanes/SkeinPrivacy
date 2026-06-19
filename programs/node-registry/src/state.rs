@@ -12,7 +12,7 @@ pub struct Registry {
     pub active_tree: Pubkey,
     /// Number of tree shards provisioned so far.
     pub tree_count: u16,
-    /// Total nodes ever registered.
+    /// Currently registered (active) nodes.
     pub node_count: u64,
     /// Program allowed to write `NodeState.reputation` (M3). Defaults to `authority`.
     pub reputation_authority: Pubkey,
