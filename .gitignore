@@ -16,6 +16,7 @@ test-ledger.log
 
 # Deployment manifests (environment-specific outputs)
 services/genesis/manifests/*.json
+services/registry-provision/manifests/*.json
 
 # Secrets & local config
 .env

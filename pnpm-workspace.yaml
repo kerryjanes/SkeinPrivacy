@@ -5,4 +5,9 @@ packages:
 
 # esbuild (via tsx/vitest) ships a native binary and needs its install script.
 allowBuilds:
+  bufferutil: false
   esbuild: true
+  utf-8-validate: false
+
+overrides:
+  '@noble/hashes': 1.8.0

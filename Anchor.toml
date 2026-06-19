@@ -6,6 +6,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
+node-registry = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd"
 weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
 
 [programs.localnet]
