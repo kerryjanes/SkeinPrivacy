@@ -77,7 +77,8 @@ export function filterNodes(nodes: NodeRecord[], q: NodeQuery): NodeRecord[] {
     if (q.minAvailability != null && n.availability < q.minAvailability) return false;
     if (q.minReputation != null && n.reputation < q.minReputation) return false;
     if (q.capability != null && (n.capabilities & q.capability) === 0) return false;
-    if (q.geoPrefix && geoRegionPrefix(n.geo, q.geoPrefix.chars) !== q.geoPrefix.region) return false;
+    if (q.geoPrefix && geoRegionPrefix(n.geo, q.geoPrefix.chars) !== q.geoPrefix.region)
+      return false;
     return true;
   });
 }

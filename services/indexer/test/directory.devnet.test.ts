@@ -18,8 +18,12 @@ describe('node directory (devnet, getProgramAccounts — authoritative, no DAS)'
 
   it('filters by capability and availability', async () => {
     const nodes = await fetchNodes(rpc(rpcUrl));
-    expect(filterNodes(nodes, { capability: 0b100 }).every((n) => (n.capabilities & 0b100) !== 0)).toBe(true);
-    expect(filterNodes(nodes, { minAvailability: 90 }).every((n) => n.availability >= 90)).toBe(true);
+    expect(
+      filterNodes(nodes, { capability: 0b100 }).every((n) => (n.capabilities & 0b100) !== 0),
+    ).toBe(true);
+    expect(filterNodes(nodes, { minAvailability: 90 }).every((n) => n.availability >= 90)).toBe(
+      true,
+    );
   }, 60_000);
 
   it('geoRegionPrefix matches the on-chain packing', () => {

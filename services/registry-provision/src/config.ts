@@ -1,12 +1,7 @@
 // Config: program IDs, env, and kit PDA derivations for the node registry.
 
 import { readFileSync } from 'node:fs';
-import {
-  address,
-  getAddressEncoder,
-  getProgramDerivedAddress,
-  type Address,
-} from '@solana/kit';
+import { address, getAddressEncoder, getProgramDerivedAddress, type Address } from '@solana/kit';
 import { nodeRegistry } from '@weft/sdk';
 
 // Bubblegum V2 stack (resolved from the umi mintV2 defaults).
@@ -47,7 +42,9 @@ export function loadEnv(overrides: Partial<Env> = {}): Env {
     rpcUrl,
     wsUrl: overrides.wsUrl ?? deriveWsUrl(rpcUrl),
     keypairPath:
-      overrides.keypairPath ?? process.env.WEFT_KEYPAIR ?? `${process.env.HOME}/.config/solana/id.json`,
+      overrides.keypairPath ??
+      process.env.WEFT_KEYPAIR ??
+      `${process.env.HOME}/.config/solana/id.json`,
   };
 }
 

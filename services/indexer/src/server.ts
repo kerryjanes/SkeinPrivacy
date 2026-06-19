@@ -29,7 +29,8 @@ export function startServer(rpcUrl: string, port: number): Server {
           if (p.get('availability')) q.minAvailability = Number(p.get('availability'));
           if (p.get('minReputation')) q.minReputation = Number(p.get('minReputation'));
           if (p.get('capability')) q.capability = Number(p.get('capability'));
-          if (p.get('geo')) q.geoPrefix = { region: Number(p.get('geo')), chars: Number(p.get('geoChars') ?? 2) };
+          if (p.get('geo'))
+            q.geoPrefix = { region: Number(p.get('geo')), chars: Number(p.get('geoChars') ?? 2) };
           const result = filterNodes(await nodes(), q);
           res.writeHead(200, { 'content-type': 'application/json' });
           res.end(JSON.stringify({ count: result.length, nodes: result }));

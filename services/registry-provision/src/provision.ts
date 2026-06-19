@@ -19,7 +19,9 @@ import { createUmiClient } from './umi';
 export async function provision(env: Env): Promise<Manifest> {
   const existing = loadManifest(env.cluster);
   if (existing?.complete) {
-    console.log(`[provision] ${env.cluster} already complete (collection ${existing.collection}); skipping.`);
+    console.log(
+      `[provision] ${env.cluster} already complete (collection ${existing.collection}); skipping.`,
+    );
     return existing;
   }
 
