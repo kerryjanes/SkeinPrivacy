@@ -23,7 +23,10 @@ export interface Manifest {
   weftMint: string;
   mintAuthorityRetired: boolean;
   vestingProgramId: string;
-  custody: Record<'treasury' | 'emissions' | 'idoTge', { owner: string; ata: string; amount: string }>;
+  custody: Record<
+    'treasury' | 'emissions' | 'idoTge',
+    { owner: string; ata: string; amount: string }
+  >;
   schedules: Record<string, ScheduleRecord>;
 }
 

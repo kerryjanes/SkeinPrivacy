@@ -68,7 +68,9 @@ export async function runGenesis(
 
   const existing = loadManifest(env.cluster);
   if (existing?.complete) {
-    console.log(`[genesis] ${env.cluster} already complete (mint ${existing.weftMint}); skipping.`);
+    console.log(
+      `[genesis] ${env.cluster} already complete (mint ${existing.weftMint}); skipping.`,
+    );
     return existing;
   }
 
@@ -117,8 +119,7 @@ export async function runGenesis(
   // 3. Route the three liquid custody buckets to their owner ATAs.
   const custody = {} as Manifest['custody'];
   for (const key of CUSTODY_KEYS) {
-    const owner =
-      overrides[key] ?? (await generateKeyPairSigner()).address;
+    const owner = overrides[key] ?? (await generateKeyPairSigner()).address;
     const ata = await ataFor(owner, mint.address);
     const amount = CUSTODY_AMOUNT[key];
     await send(conn, deployer, [
@@ -177,7 +178,9 @@ export async function runGenesis(
   // 5. The working ATA must be fully drained before retiring authority.
   const remaining = await tokenBalance(conn, workingAta);
   if (remaining !== 0n) {
-    throw new Error(`working ATA still holds ${remaining} base units; aborting before authority retirement`);
+    throw new Error(
+      `working ATA still holds ${remaining} base units; aborting before authority retirement`,
+    );
   }
 
   // 6. Retire the mint authority — supply is now provably fixed.
