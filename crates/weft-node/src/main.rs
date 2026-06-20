@@ -11,6 +11,7 @@ use rand::SeedableRng;
 use weft_net::keys::WeftKeypair;
 
 mod daemon;
+mod relay_service;
 use daemon::Daemon;
 
 #[tokio::main]

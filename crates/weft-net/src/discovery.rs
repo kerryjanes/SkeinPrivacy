@@ -37,6 +37,29 @@ pub struct NodeDescriptor {
     pub issued_at: i64,
 }
 
+impl NodeDescriptor {
+    /// Build the selection [`crate::selection::NodeRecord`] for this descriptor, with the
+    /// routing `addr` set to the DHT record key so relays can resolve the next hop. Stake
+    /// and reputation come from the on-chain directory, supplied by the caller.
+    pub fn to_node_record(
+        &self,
+        availability: u8,
+        reputation_bps: u16,
+    ) -> crate::selection::NodeRecord {
+        crate::selection::NodeRecord {
+            operator: self.operator,
+            node_id: self.node_id,
+            onion_pub: self.onion_pub,
+            static_pub: self.noise_static_pub,
+            addr: routing_addr(&self.operator, self.node_id),
+            geo: self.geo,
+            capabilities: self.capabilities,
+            availability,
+            reputation_bps,
+        }
+    }
+}
+
 /// A descriptor plus the operator's signature over its canonical bytes. The sig is a
 /// `Vec<u8>` (serde derives arrays only up to length 32).
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -56,6 +79,12 @@ fn sha256(parts: &[&[u8]]) -> [u8; 32] {
 /// The DHT record key for a node: `sha256(operator ‖ node_id_le)`.
 pub fn record_key(operator: &[u8; 32], node_id: u64) -> RecordKey {
     RecordKey::new(&sha256(&[operator, &node_id.to_le_bytes()]))
+}
+
+/// The 32-byte routing address used in onion hops: the DHT record key as raw bytes, so a
+/// relay can resolve a peeled `next_addr` straight back to a [`NodeDescriptor`].
+pub fn routing_addr(operator: &[u8; 32], node_id: u64) -> [u8; 32] {
+    sha256(&[operator, &node_id.to_le_bytes()])
 }
 
 /// The on-chain `endpoint_hash` commitment: `sha256` over the STABLE identity fields
