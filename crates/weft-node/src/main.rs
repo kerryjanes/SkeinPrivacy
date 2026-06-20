@@ -1,18 +1,23 @@
-//! `weft-node` — the node operator daemon. Generates (or would load) the node
-//! identity, joins the Kademlia DHT over the production tcp+noise+yamux transport,
-//! and publishes its signed descriptor so clients can resolve its live endpoint and
-//! keys. The onion relay/exit engine (`weft_net::node::Relay`) is ready to bind to
-//! the cell transport in M7.
+//! `weft-node` — the node operator daemon. Derives a stable libp2p identity from the
+//! operator key, joins the Kademlia DHT over the production tcp+noise+yamux transport,
+//! publishes its signed descriptor, and then runs the [`relay_service::RelayService`]
+//! event loop so it relays onion cells over the `/weft/cell/1.0.0` transport. Real exit
+//! egress to the internet (OS TUN / socket routing) is the deferred M8 step; this build
+//! delivers an in-protocol ack at the exit.
 
 use std::env;
 
+use libp2p::kad;
 use rand::rngs::StdRng;
 use rand::SeedableRng;
+use weft_net::discovery::{
+    build_swarm, descriptor_signing_bytes, record_key, sign_descriptor, NodeDescriptor,
+};
 use weft_net::keys::WeftKeypair;
 
 mod daemon;
 mod relay_service;
-use daemon::Daemon;
+use relay_service::{Clock, RelayService};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -37,12 +42,46 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         hex::encode(kp.operator_pubkey())
     );
 
-    let mut daemon = Daemon::new(kp, node_id, geo, caps, listen.parse()?, false)?;
-    daemon.listen()?;
-    daemon.publish(0)?;
+    // Build the swarm with the operator-derived libp2p identity, listen, and join the DHT.
+    let mut swarm = build_swarm(kp.libp2p_keypair(), false)?;
+    swarm.listen_on(listen.parse()?)?;
+    swarm.behaviour_mut().kad.set_mode(Some(kad::Mode::Server));
+
+    // Publish the operator-signed node descriptor keyed by sha256(operator‖node_id).
+    let desc = NodeDescriptor {
+        operator: kp.operator_pubkey(),
+        node_id,
+        multiaddr: listen.clone(),
+        peer_id: swarm.local_peer_id().to_base58(),
+        noise_static_pub: kp.static_public(),
+        onion_pub: kp.onion_public(),
+        capabilities: caps,
+        geo,
+        issued_at: 0,
+    };
+    let sig = kp.sign(&descriptor_signing_bytes(&desc));
+    swarm.behaviour_mut().kad.put_record(
+        kad::Record {
+            key: record_key(&kp.operator_pubkey(), node_id),
+            value: sign_descriptor(desc, sig),
+            publisher: None,
+            expires: None,
+        },
+        kad::Quorum::One,
+    )?;
     println!("[weft-node] joined the DHT; serving node {node_id} on {listen}");
 
+    // Exit handler: real OS egress is deferred (M8) — answer with an in-protocol ack so the
+    // circuit's reverse path is exercised end to end.
+    let relay = relay_service::make_relay(&kp, node_id, 0);
+    let exit = Box::new(|_dest: [u8; 32], payload: &[u8]| {
+        let mut r = b"ack:".to_vec();
+        r.extend_from_slice(payload);
+        r
+    });
+    let mut service = RelayService::new(swarm, relay, Clock::System, exit);
+    println!("[weft-node] relaying cells on /weft/cell/1.0.0");
     loop {
-        let _ = daemon.next_event().await;
+        service.step().await;
     }
 }
