@@ -11,6 +11,7 @@
   "scripts": {
     "generate": "node codegen.mjs",
     "build": "node codegen.mjs && tsc -p tsconfig.json",
+    "test": "vitest run",
     "clean": "rm -rf dist src/generated"
   },
   "devDependencies": {
@@ -18,9 +19,11 @@
     "@codama/renderers-js": "^2.3.0",
     "@types/node": "^25.9.3",
     "codama": "^1.8.0",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.9"
   },
   "dependencies": {
+    "@noble/hashes": "1.8.0",
     "@solana/kit": "^6.10.0",
     "@solana/program-client-core": "^6.10.0"
   }

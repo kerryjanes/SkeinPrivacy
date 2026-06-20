@@ -6,8 +6,6 @@
  * @see https://github.com/codama-idl/codama
  */
 
-export * from './initializeConfig';
-export * from './penalize';
-export * from './resync';
-export * from './setOracle';
-export * from './updateMetrics';
+export * from './claimStatus';
+export * from './distributor';
+export * from './epochDistribution';

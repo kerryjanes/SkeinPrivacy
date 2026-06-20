@@ -45,12 +45,14 @@ import {
   getInitializeConfigInstructionAsync,
   getRequestUnstakeInstructionAsync,
   getResyncInstructionAsync,
+  getSetSlashAuthorityInstructionAsync,
   getSlashInstructionAsync,
   getStakeInstructionAsync,
   getWithdrawUnstakedInstructionAsync,
   parseInitializeConfigInstruction,
   parseRequestUnstakeInstruction,
   parseResyncInstruction,
+  parseSetSlashAuthorityInstruction,
   parseSlashInstruction,
   parseStakeInstruction,
   parseWithdrawUnstakedInstruction,
@@ -58,11 +60,13 @@ import {
   type ParsedInitializeConfigInstruction,
   type ParsedRequestUnstakeInstruction,
   type ParsedResyncInstruction,
+  type ParsedSetSlashAuthorityInstruction,
   type ParsedSlashInstruction,
   type ParsedStakeInstruction,
   type ParsedWithdrawUnstakedInstruction,
   type RequestUnstakeAsyncInput,
   type ResyncAsyncInput,
+  type SetSlashAuthorityAsyncInput,
   type SlashAsyncInput,
   type StakeAsyncInput,
   type WithdrawUnstakedAsyncInput,
@@ -113,6 +117,7 @@ export enum StakingInstruction {
   InitializeConfig,
   RequestUnstake,
   Resync,
+  SetSlashAuthority,
   Slash,
   Stake,
   WithdrawUnstaked,
@@ -154,6 +159,17 @@ export function identifyStakingInstruction(
     )
   ) {
     return StakingInstruction.Resync;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([238, 118, 102, 67, 38, 193, 62, 183]),
+      ),
+      0,
+    )
+  ) {
+    return StakingInstruction.SetSlashAuthority;
   }
   if (
     containsBytes(
@@ -204,6 +220,9 @@ export type ParsedStakingInstruction<
       instructionType: StakingInstruction.RequestUnstake;
     } & ParsedRequestUnstakeInstruction<TProgram>)
   | ({ instructionType: StakingInstruction.Resync } & ParsedResyncInstruction<TProgram>)
+  | ({
+      instructionType: StakingInstruction.SetSlashAuthority;
+    } & ParsedSetSlashAuthorityInstruction<TProgram>)
   | ({ instructionType: StakingInstruction.Slash } & ParsedSlashInstruction<TProgram>)
   | ({ instructionType: StakingInstruction.Stake } & ParsedStakeInstruction<TProgram>)
   | ({
@@ -232,6 +251,13 @@ export function parseStakingInstruction<TProgram extends string>(
     case StakingInstruction.Resync: {
       assertIsInstructionWithAccounts(instruction);
       return { instructionType: StakingInstruction.Resync, ...parseResyncInstruction(instruction) };
+    }
+    case StakingInstruction.SetSlashAuthority: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: StakingInstruction.SetSlashAuthority,
+        ...parseSetSlashAuthorityInstruction(instruction),
+      };
     }
     case StakingInstruction.Slash: {
       assertIsInstructionWithAccounts(instruction);
@@ -282,6 +308,9 @@ export type StakingPluginInstructions = {
   resync: (
     input: ResyncAsyncInput,
   ) => ReturnType<typeof getResyncInstructionAsync> & SelfPlanAndSendFunctions;
+  setSlashAuthority: (
+    input: SetSlashAuthorityAsyncInput,
+  ) => ReturnType<typeof getSetSlashAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
   slash: (
     input: SlashAsyncInput,
   ) => ReturnType<typeof getSlashInstructionAsync> & SelfPlanAndSendFunctions;
@@ -320,6 +349,8 @@ export function stakingProgram() {
           requestUnstake: (input) =>
             addSelfPlanAndSendFunctions(client, getRequestUnstakeInstructionAsync(input)),
           resync: (input) => addSelfPlanAndSendFunctions(client, getResyncInstructionAsync(input)),
+          setSlashAuthority: (input) =>
+            addSelfPlanAndSendFunctions(client, getSetSlashAuthorityInstructionAsync(input)),
           slash: (input) => addSelfPlanAndSendFunctions(client, getSlashInstructionAsync(input)),
           stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),
           withdrawUnstaked: (input) =>

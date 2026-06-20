@@ -45,18 +45,22 @@ import {
   getInitializeConfigInstructionAsync,
   getPenalizeInstructionAsync,
   getResyncInstructionAsync,
+  getSetOracleInstructionAsync,
   getUpdateMetricsInstructionAsync,
   parseInitializeConfigInstruction,
   parsePenalizeInstruction,
   parseResyncInstruction,
+  parseSetOracleInstruction,
   parseUpdateMetricsInstruction,
   type InitializeConfigAsyncInput,
   type ParsedInitializeConfigInstruction,
   type ParsedPenalizeInstruction,
   type ParsedResyncInstruction,
+  type ParsedSetOracleInstruction,
   type ParsedUpdateMetricsInstruction,
   type PenalizeAsyncInput,
   type ResyncAsyncInput,
+  type SetOracleAsyncInput,
   type UpdateMetricsAsyncInput,
 } from '../instructions';
 import { findConfigPda, findProgramAuthorityPda, findStatePda } from '../pdas';
@@ -105,6 +109,7 @@ export enum ReputationInstruction {
   InitializeConfig,
   Penalize,
   Resync,
+  SetOracle,
   UpdateMetrics,
 }
 
@@ -149,6 +154,17 @@ export function identifyReputationInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([186, 128, 81, 104, 74, 79, 18, 224]),
+      ),
+      0,
+    )
+  ) {
+    return ReputationInstruction.SetOracle;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([79, 114, 128, 135, 148, 137, 172, 185]),
       ),
       0,
@@ -170,6 +186,7 @@ export type ParsedReputationInstruction<
     } & ParsedInitializeConfigInstruction<TProgram>)
   | ({ instructionType: ReputationInstruction.Penalize } & ParsedPenalizeInstruction<TProgram>)
   | ({ instructionType: ReputationInstruction.Resync } & ParsedResyncInstruction<TProgram>)
+  | ({ instructionType: ReputationInstruction.SetOracle } & ParsedSetOracleInstruction<TProgram>)
   | ({
       instructionType: ReputationInstruction.UpdateMetrics;
     } & ParsedUpdateMetricsInstruction<TProgram>);
@@ -198,6 +215,13 @@ export function parseReputationInstruction<TProgram extends string>(
       return {
         instructionType: ReputationInstruction.Resync,
         ...parseResyncInstruction(instruction),
+      };
+    }
+    case ReputationInstruction.SetOracle: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: ReputationInstruction.SetOracle,
+        ...parseSetOracleInstruction(instruction),
       };
     }
     case ReputationInstruction.UpdateMetrics: {
@@ -241,6 +265,9 @@ export type ReputationPluginInstructions = {
   resync: (
     input: ResyncAsyncInput,
   ) => ReturnType<typeof getResyncInstructionAsync> & SelfPlanAndSendFunctions;
+  setOracle: (
+    input: SetOracleAsyncInput,
+  ) => ReturnType<typeof getSetOracleInstructionAsync> & SelfPlanAndSendFunctions;
   updateMetrics: (
     input: UpdateMetricsAsyncInput,
   ) => ReturnType<typeof getUpdateMetricsInstructionAsync> & SelfPlanAndSendFunctions;
@@ -274,6 +301,8 @@ export function reputationProgram() {
           penalize: (input) =>
             addSelfPlanAndSendFunctions(client, getPenalizeInstructionAsync(input)),
           resync: (input) => addSelfPlanAndSendFunctions(client, getResyncInstructionAsync(input)),
+          setOracle: (input) =>
+            addSelfPlanAndSendFunctions(client, getSetOracleInstructionAsync(input)),
           updateMetrics: (input) =>
             addSelfPlanAndSendFunctions(client, getUpdateMetricsInstructionAsync(input)),
         },

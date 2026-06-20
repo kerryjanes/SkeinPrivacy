@@ -9,6 +9,7 @@
 export * from './initializeConfig';
 export * from './requestUnstake';
 export * from './resync';
+export * from './setSlashAuthority';
 export * from './slash';
 export * from './stake';
 export * from './withdrawUnstaked';

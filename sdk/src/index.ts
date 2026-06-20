@@ -8,7 +8,12 @@ export const SDK_VERSION = '0.1.0';
 // $WEFT vesting program (M1) — flat re-export.
 export * from './generated/weft_vesting/src/generated';
 
-// Node registry (M2), staking + reputation (M3) — namespaced to avoid collisions.
+// Node registry (M2), staking + reputation (M3), settlement (M4) — namespaced
+// to avoid instruction/account name collisions.
 export * as nodeRegistry from './generated/node_registry/src/generated';
 export * as staking from './generated/staking/src/generated';
 export * as reputation from './generated/reputation/src/generated';
+export * as rewardsSettlement from './generated/rewards_settlement/src/generated';
+
+// Off-chain reward/settlement math, byte-identical to the on-chain program.
+export * as math from './math';
