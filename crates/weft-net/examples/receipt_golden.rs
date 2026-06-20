@@ -24,7 +24,9 @@ fn main() {
     let mut rng = StdRng::seed_from_u64(0x5ce1_6601);
 
     // --- parity vectors: deterministic byte inputs → core hex ---
-    let parity: &[([u8; 32], [u8; 32], u64, u64, u64, u64, u64)] = &[
+    // (client, operator, node_id, bytes, window_start, window_end, nonce)
+    type Vector = ([u8; 32], [u8; 32], u64, u64, u64, u64, u64);
+    let parity: &[Vector] = &[
         ([1u8; 32], [2u8; 32], 7, 123_456, 600, 1200, 1),
         ([0u8; 32], [255u8; 32], 0, 1, 0, 600, 0),
         ([9u8; 32], [3u8; 32], u64::MAX, u64::MAX, 600, 601, u64::MAX),
