@@ -91,12 +91,14 @@ impl RelayService {
     }
 
     /// Seed the address book so a peeled `next_addr` (= a DHT record key) resolves to a
-    /// dialable peer without a mid-relay DHT lookup.
+    /// dialable peer without a mid-relay DHT lookup. The address is registered with both
+    /// Kademlia and the swarm (so request_response can dial it).
     pub fn add_route(&mut self, routing_addr: [u8; 32], peer: PeerId, addr: Multiaddr) {
         self.swarm
             .behaviour_mut()
             .kad
             .add_address(&peer, addr.clone());
+        self.swarm.add_peer_address(peer, addr.clone());
         self.addrbook.insert(routing_addr, (peer, addr));
     }
 
@@ -241,10 +243,7 @@ pub async fn send_cell(
     first_addr: Multiaddr,
     cell: Cell,
 ) -> CellResponse {
-    swarm
-        .behaviour_mut()
-        .kad
-        .add_address(&first_peer, first_addr);
+    swarm.add_peer_address(first_peer, first_addr);
     let req_id = swarm.behaviour_mut().cell.send_request(&first_peer, cell);
     loop {
         if let SwarmEvent::Behaviour(WeftBehaviourEvent::Cell(ev)) = swarm.select_next_some().await

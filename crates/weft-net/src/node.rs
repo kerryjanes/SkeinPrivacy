@@ -99,6 +99,16 @@ impl Relay {
         self.meters.get(client).map(|m| m.bytes()).unwrap_or(0)
     }
 
+    /// Total bytes metered across all upstream clients this window.
+    pub fn metered_total(&self) -> u64 {
+        self.meters.values().map(|m| m.bytes()).sum()
+    }
+
+    /// Number of distinct upstream clients metered this window.
+    pub fn client_count(&self) -> usize {
+        self.meters.len()
+    }
+
     /// Close every open circuit meter into receipt cores (one per client) at window end.
     pub fn close_window(&mut self, window_end: u64) -> Vec<ReceiptCore> {
         let mut out = Vec::new();
