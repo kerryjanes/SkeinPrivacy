@@ -134,6 +134,11 @@ pub fn build_swarm(
     id_keys: identity::Keypair,
     memory: bool,
 ) -> crate::error::Result<Swarm<WeftBehaviour>> {
+    // Keep idle connections alive long enough for Kademlia queries to complete (the
+    // default closes idle links almost immediately, racing in-process queries).
+    let idle = |cfg: libp2p::swarm::Config| {
+        cfg.with_idle_connection_timeout(std::time::Duration::from_secs(60))
+    };
     let swarm = if memory {
         SwarmBuilder::with_existing_identity(id_keys)
             .with_tokio()
@@ -151,6 +156,7 @@ pub fn build_swarm(
             .map_err(|e| NetError::Noise(format!("{e:?}")))?
             .with_behaviour(make_behaviour)
             .map_err(|e| NetError::Noise(format!("{e:?}")))?
+            .with_swarm_config(idle)
             .build()
     } else {
         SwarmBuilder::with_existing_identity(id_keys)
@@ -163,6 +169,7 @@ pub fn build_swarm(
             .map_err(|e| NetError::Noise(format!("{e:?}")))?
             .with_behaviour(make_behaviour)
             .map_err(|e| NetError::Noise(format!("{e:?}")))?
+            .with_swarm_config(idle)
             .build()
     };
     Ok(swarm)
