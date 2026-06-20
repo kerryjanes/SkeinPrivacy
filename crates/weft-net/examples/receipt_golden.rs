@@ -44,7 +44,10 @@ fn main() {
     let client = WeftKeypair::generate(&mut rng);
     let op_a = WeftKeypair::generate(&mut rng);
     let op_b = WeftKeypair::generate(&mut rng);
-    let signed_specs = [(&op_a, 1u64, 2_000_000_000u64, 1u64), (&op_b, 2, 5_000_000_000, 1)];
+    let signed_specs = [
+        (&op_a, 1u64, 2_000_000_000u64, 1u64),
+        (&op_b, 2, 5_000_000_000, 1),
+    ];
     for (i, (op, node_id, bytes, nonce)) in signed_specs.iter().enumerate() {
         let core = ReceiptCore {
             client: client.operator_pubkey(),
