@@ -1,0 +1,47 @@
+[package]
+name = "token-distributor"
+description = "Weft IDO/TGE merkle distributor: 25% at TGE + 75% over 12 months via weft-vesting CPI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "token_distributor"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true }
+anchor-spl = { workspace = true }
+weft-primitives = { workspace = true }
+weft-vesting = { workspace = true }
+
+[dev-dependencies]
+anchor-lang = { workspace = true }
+weft-primitives = { workspace = true }
+weft-vesting = { workspace = true }
+litesvm = { workspace = true }
+solana-message = { workspace = true }
+solana-transaction = { workspace = true }
+solana-signer = { workspace = true }
+solana-keypair = { workspace = true }
+solana-pubkey = { workspace = true }
+solana-instruction = { workspace = true }
+solana-account = "3"
+solana-clock = "3.1"
+spl-token-interface = "2"
+solana-program-pack = "3.1"
+solana-program-option = "3.1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

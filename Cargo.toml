@@ -26,6 +26,7 @@ staking = { path = "programs/staking", features = ["cpi"] }
 reputation = { path = "programs/reputation", features = ["cpi"] }
 rewards-settlement = { path = "programs/rewards-settlement", features = ["cpi"] }
 governance = { path = "programs/governance", features = ["cpi"] }
+weft-vesting = { path = "programs/weft-vesting", features = ["cpi"] }
 # --- M6 networking data plane (host-only crates; NOT SBF) ---
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "io-util", "net"] }
 futures = "0.3"

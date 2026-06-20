@@ -6177,6 +6177,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
+name = "token-distributor"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "litesvm",
+ "weft-primitives",
+ "weft-vesting",
+ "solana-account",
+ "solana-clock",
+ "solana-instruction",
+ "solana-keypair",
+ "solana-message",
+ "solana-program-option",
+ "solana-program-pack",
+ "solana-pubkey 3.0.0",
+ "solana-signer",
+ "solana-transaction",
+ "spl-token-interface",
+]
+
+[[package]]
 name = "tokio"
 version = "1.52.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
