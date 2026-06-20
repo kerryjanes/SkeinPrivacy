@@ -37,17 +37,19 @@ import { connect, loadSigner, send, type Connection } from './rpc';
 export interface OwnerOverrides {
   treasury?: Address;
   emissions?: Address;
-  idoTge?: Address;
+  /** Owner of the full 150M IDO custody bucket (funds the token-distributor vault). */
+  ido?: Address;
   scheduleOwners?: Record<string, { beneficiary: Address; authority: Address }>;
 }
 
-const CUSTODY_KEYS = ['treasury', 'emissions', 'idoTge'] as const;
+const CUSTODY_KEYS = ['treasury', 'emissions', 'ido'] as const;
 type CustodyKey = (typeof CUSTODY_KEYS)[number];
 
 const CUSTODY_AMOUNT: Record<CustodyKey, bigint> = {
   treasury: AMOUNTS.treasury,
   emissions: AMOUNTS.nodeEmissions,
-  idoTge: AMOUNTS.idoTge,
+  // The whole IDO bucket (TGE + vesting); the distributor splits 25/75 per claimant.
+  ido: AMOUNTS.idoTge + AMOUNTS.idoLinear,
 };
 
 async function ataFor(owner: Address, mint: Address): Promise<Address> {

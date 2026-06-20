@@ -10,14 +10,14 @@ import { runGenesis, type OwnerOverrides } from './genesis';
 const env = loadEnv();
 
 // On devnet/mainnet, point custody at the Squads multisig vault addresses
-// (vault 0 = treasury, 1 = emissions, 2 = IDO-TGE). Absent overrides, ephemeral
+// (vault 0 = treasury, 1 = emissions, 2 = IDO). Absent overrides, ephemeral
 // owner addresses are generated and recorded in the manifest (localnet/dev).
 const overrides: OwnerOverrides = {};
 const envOwner = (k: string): Address | undefined =>
   process.env[k] ? address(process.env[k] as string) : undefined;
 overrides.treasury = envOwner('WEFT_TREASURY_OWNER');
 overrides.emissions = envOwner('WEFT_EMISSIONS_OWNER');
-overrides.idoTge = envOwner('WEFT_IDO_TGE_OWNER');
+overrides.ido = envOwner('WEFT_IDO_OWNER');
 
 runGenesis(env, overrides)
   .then((m) => {

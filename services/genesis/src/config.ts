@@ -28,14 +28,11 @@ export const SCHEDULES = [
     duration: 36n * MONTH_SECONDS,
     revocable: true,
   },
-  {
-    key: 'idoLinear',
-    scheduleId: 1n,
-    amount: AMOUNTS.idoLinear,
-    cliff: 0n,
-    duration: 12n * MONTH_SECONDS,
-    revocable: false,
-  },
+  // NB: the IDO bucket (150M = idoTge 37.5M + idoLinear 112.5M) is NOT vested here at
+  // genesis — its per-participant 25%/75% split is handled on demand by the M8
+  // `token-distributor` program (the allocation merkle root isn't known until the IDO
+  // participant list is finalized). Genesis routes the full 150M to the `ido` custody
+  // bucket; the distributor vault is funded from it at IDO-init time.
   {
     key: 'ecosystem',
     scheduleId: 2n,

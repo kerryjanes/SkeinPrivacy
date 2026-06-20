@@ -50,19 +50,19 @@ describe('genesis on localnet', () => {
   it('routes the three liquid custody buckets exactly', async () => {
     expect(await balance(conn, manifest.custody.treasury.ata)).toBe(AMOUNTS.treasury);
     expect(await balance(conn, manifest.custody.emissions.ata)).toBe(AMOUNTS.nodeEmissions);
-    expect(await balance(conn, manifest.custody.idoTge.ata)).toBe(AMOUNTS.idoTge);
+    // The full IDO bucket (150M) is custody now — the distributor splits 25/75 on claim.
+    expect(await balance(conn, manifest.custody.ido.ata)).toBe(AMOUNTS.idoTge + AMOUNTS.idoLinear);
   });
 
   it('funds each vesting vault exactly', async () => {
     expect(await balance(conn, manifest.schedules.team.vault)).toBe(AMOUNTS.team);
-    expect(await balance(conn, manifest.schedules.idoLinear.vault)).toBe(AMOUNTS.idoLinear);
     expect(await balance(conn, manifest.schedules.ecosystem.vault)).toBe(AMOUNTS.ecosystem);
     expect(await balance(conn, manifest.schedules.marketing.vault)).toBe(AMOUNTS.marketing);
   });
 
   it('conserves the total supply across all destinations', async () => {
     let sum = 0n;
-    for (const k of ['treasury', 'emissions', 'idoTge'] as const) {
+    for (const k of ['treasury', 'emissions', 'ido'] as const) {
       sum += await balance(conn, manifest.custody[k].ata);
     }
     for (const k of Object.keys(manifest.schedules)) {
