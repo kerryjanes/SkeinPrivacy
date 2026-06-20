@@ -11,7 +11,9 @@ weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
 
 [programs.localnet]
 node-registry = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd"
+reputation = "6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u"
 weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
+staking = "86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK"
 
 [provider]
 cluster = "localnet"

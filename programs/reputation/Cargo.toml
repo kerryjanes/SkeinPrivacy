@@ -1,0 +1,43 @@
+[package]
+name = "reputation"
+description = "Weft node reputation: oracle-fed uptime/speed/review → 0.5x-2.0x multiplier, mirrored into NodeState"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "reputation"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { workspace = true, features = ["init-if-needed"] }
+weft-primitives = { workspace = true }
+node-registry = { workspace = true }
+
+[dev-dependencies]
+anchor-lang = { workspace = true }
+weft-primitives = { workspace = true }
+node-registry = { workspace = true }
+litesvm = { workspace = true }
+solana-message = { workspace = true }
+solana-transaction = { workspace = true }
+solana-signer = { workspace = true }
+solana-keypair = { workspace = true }
+solana-pubkey = { workspace = true }
+solana-instruction = { workspace = true }
+solana-account = "3"
+solana-clock = "3.1"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
