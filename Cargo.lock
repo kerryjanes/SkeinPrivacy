@@ -1340,6 +1340,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "governance"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "litesvm",
+ "node-registry",
+ "reputation",
+ "rewards-settlement",
+ "weft-primitives",
+ "solana-account",
+ "solana-clock",
+ "solana-instruction",
+ "solana-keypair",
+ "solana-message",
+ "solana-program-option",
+ "solana-program-pack",
+ "solana-pubkey 3.0.0",
+ "solana-signer",
+ "solana-transaction",
+ "spl-token-interface",
+ "staking",
+]
+
+[[package]]
 name = "group"
 version = "0.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2200,6 +2225,7 @@ version = "0.1.0"
 dependencies = [
  "anchor-lang",
  "anchor-spl",
+ "governance",
  "litesvm",
  "node-registry",
  "reputation",

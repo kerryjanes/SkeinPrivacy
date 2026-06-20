@@ -23,6 +23,8 @@ weft-primitives = { path = "crates/weft-primitives" }
 node-registry = { path = "programs/node-registry", features = ["cpi"] }
 staking = { path = "programs/staking", features = ["cpi"] }
 reputation = { path = "programs/reputation", features = ["cpi"] }
+rewards-settlement = { path = "programs/rewards-settlement", features = ["cpi"] }
+governance = { path = "programs/governance", features = ["cpi"] }
 # Test harness (Anchor 1.0 LiteSVM convention)
 litesvm = "0.10.0"
 solana-message = "3.0.1"
