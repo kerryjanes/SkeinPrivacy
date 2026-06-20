@@ -3,7 +3,8 @@ use anchor_spl::token_interface::{
     burn_checked, transfer_checked, BurnChecked, Mint, TokenAccount, TokenInterface,
     TransferChecked,
 };
-use weft_primitives::split_payment;
+use governance::ProtocolConfig;
+use weft_primitives::split_payment_bps;
 
 use crate::{constants::*, error::SettlementError, state::Distributor};
 
@@ -19,6 +20,14 @@ pub struct PayTraffic<'info> {
         has_one = treasury,
     )]
     pub distributor: Account<'info, Distributor>,
+    /// The DAO-governed parameters; the payment split is read from here so
+    /// governance can adjust it without a program upgrade.
+    #[account(
+        seeds = [governance::PROTOCOL_CONFIG_SEED],
+        bump = protocol_config.bump,
+        seeds::program = governance::ID,
+    )]
+    pub protocol_config: Account<'info, ProtocolConfig>,
     #[account(mut)]
     pub reward_mint: InterfaceAccount<'info, Mint>,
     #[account(mut, token::mint = reward_mint, token::authority = payer)]
@@ -31,10 +40,15 @@ pub struct PayTraffic<'info> {
 }
 
 impl PayTraffic<'_> {
-    /// Split a user traffic payment 70/20/10: 70% → reward vault, 20% burned, 10% → treasury.
+    /// Split a user traffic payment per the governed `ProtocolConfig`: nodes share
+    /// → reward vault, burn share burned, remainder → treasury (default 70/20/10).
     pub fn pay_traffic(&mut self, amount: u64) -> Result<()> {
         require!(amount > 0, SettlementError::ZeroAmount);
-        let split = split_payment(amount);
+        let split = split_payment_bps(
+            amount,
+            self.protocol_config.split_nodes_bps,
+            self.protocol_config.split_burn_bps,
+        );
         let dec = self.reward_mint.decimals;
         let program = self.token_program.key();
 

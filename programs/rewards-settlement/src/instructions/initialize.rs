@@ -81,3 +81,24 @@ impl SetAuthorities<'_> {
         Ok(())
     }
 }
+
+#[derive(Accounts)]
+pub struct TransferAuthority<'info> {
+    pub authority: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [DISTRIBUTOR_SEED],
+        bump = distributor.bump,
+        constraint = distributor.authority == authority.key() @ SettlementError::Unauthorized,
+    )]
+    pub distributor: Account<'info, Distributor>,
+}
+
+impl TransferAuthority<'_> {
+    /// Hand the distributor's top-level authority to a new key — M5 bootstrap
+    /// transfers it to the governance authority PDA.
+    pub fn transfer_authority(&mut self, new_authority: Pubkey) -> Result<()> {
+        self.distributor.authority = new_authority;
+        Ok(())
+    }
+}

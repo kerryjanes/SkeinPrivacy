@@ -7,8 +7,8 @@
 
 use {
     anchor_lang::{
-        solana_program::instruction::Instruction, AccountDeserialize, InstructionData,
-        ToAccountMetas,
+        solana_program::instruction::Instruction, AccountDeserialize, AccountSerialize,
+        InstructionData, ToAccountMetas,
     },
     litesvm::{types::TransactionResult, LiteSVM},
     weft_primitives::{
@@ -74,6 +74,44 @@ fn distributor_pda() -> Pubkey {
         &rewards_settlement::ID,
     )
     .0
+}
+fn protocol_config_pda() -> Pubkey {
+    Pubkey::find_program_address(&[governance::PROTOCOL_CONFIG_SEED], &governance::ID).0
+}
+
+/// Craft a governed `ProtocolConfig` (owned by the governance program) directly,
+/// so `pay_traffic` can read the split bps without loading the governance program.
+fn craft_protocol_config(svm: &mut LiteSVM, nodes_bps: u32, burn_bps: u32) {
+    let (pda, bump) =
+        Pubkey::find_program_address(&[governance::PROTOCOL_CONFIG_SEED], &governance::ID);
+    let cfg = governance::ProtocolConfig {
+        authority: Pubkey::new_unique(),
+        split_nodes_bps: nodes_bps,
+        split_burn_bps: burn_bps,
+        split_treasury_bps: 10_000 - nodes_bps - burn_bps,
+        dispute_window_seconds: 0,
+        clawback_window_seconds: 0,
+        base_rate_per_gb: 0,
+        geo_bonus_max_bps: 5_000,
+        reputation_min_bps: 5_000,
+        reputation_max_bps: 20_000,
+        staking_bonus_bps: 2_000,
+        staking_bonus_threshold: 0,
+        bump,
+    };
+    let mut data = Vec::new();
+    cfg.try_serialize(&mut data).unwrap();
+    svm.set_account(
+        pda,
+        Account {
+            lamports: 10_000_000,
+            data,
+            owner: governance::ID,
+            executable: false,
+            rent_epoch: 0,
+        },
+    )
+    .unwrap();
 }
 fn vault_pda() -> Pubkey {
     Pubkey::find_program_address(&[rewards_settlement::VAULT_SEED], &rewards_settlement::ID).0
@@ -329,6 +367,7 @@ fn distributor_obligated(svm: &LiteSVM) -> u64 {
 fn pay_traffic_splits_70_20_10_and_burns() {
     let (mut svm, authority) = setup();
     let env = init_distributor(&mut svm, &authority, 100, 1000);
+    craft_protocol_config(&mut svm, 7_000, 2_000);
 
     let payer = Keypair::new();
     svm.airdrop(&payer.pubkey(), 1_000_000_000).unwrap();
@@ -342,6 +381,7 @@ fn pay_traffic_splits_70_20_10_and_burns() {
     let metas = rewards_settlement::accounts::PayTraffic {
         payer: payer.pubkey(),
         distributor: distributor_pda(),
+        protocol_config: protocol_config_pda(),
         reward_mint: env.mint,
         payer_token_account: payer_ta,
         reward_vault: vault_pda(),
@@ -373,6 +413,7 @@ fn pay_traffic_splits_70_20_10_and_burns() {
 fn pay_traffic_rounding_remainder_goes_to_treasury() {
     let (mut svm, authority) = setup();
     let env = init_distributor(&mut svm, &authority, 100, 1000);
+    craft_protocol_config(&mut svm, 7_000, 2_000);
     let payer = Keypair::new();
     svm.airdrop(&payer.pubkey(), 1_000_000_000).unwrap();
     let amount = 7u64; // 70%/20% floor → nodes=4, burn=1, treasury=2
@@ -384,6 +425,7 @@ fn pay_traffic_rounding_remainder_goes_to_treasury() {
     let metas = rewards_settlement::accounts::PayTraffic {
         payer: payer.pubkey(),
         distributor: distributor_pda(),
+        protocol_config: protocol_config_pda(),
         reward_mint: env.mint,
         payer_token_account: payer_ta,
         reward_vault: vault_pda(),

@@ -58,4 +58,12 @@ pub mod staking {
     ) -> Result<()> {
         ctx.accounts.set_slash_authority(new_slash_authority)
     }
+
+    /// Transfer the config authority (M5: hand control to the governance PDA).
+    pub fn transfer_authority(
+        ctx: Context<TransferAuthority>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.transfer_authority(new_authority)
+    }
 }

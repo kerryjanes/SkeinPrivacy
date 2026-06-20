@@ -21,3 +21,24 @@ impl SetOracle<'_> {
         Ok(())
     }
 }
+
+#[derive(Accounts)]
+pub struct TransferAuthority<'info> {
+    pub authority: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [CONFIG_SEED],
+        bump = config.bump,
+        constraint = config.authority == authority.key() @ ReputationError::Unauthorized,
+    )]
+    pub config: Account<'info, ReputationConfig>,
+}
+
+impl TransferAuthority<'_> {
+    /// Hand the top-level config authority to a new key — used during M5 bootstrap to
+    /// transfer control to the governance authority PDA.
+    pub fn transfer_authority(&mut self, new_authority: Pubkey) -> Result<()> {
+        self.config.authority = new_authority;
+        Ok(())
+    }
+}

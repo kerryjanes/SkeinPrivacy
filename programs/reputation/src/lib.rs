@@ -52,4 +52,12 @@ pub mod reputation {
     pub fn set_oracle(ctx: Context<SetOracle>, new_oracle: Pubkey) -> Result<()> {
         ctx.accounts.set_oracle(new_oracle)
     }
+
+    /// Transfer the config authority (M5: hand control to the governance PDA).
+    pub fn transfer_authority(
+        ctx: Context<TransferAuthority>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.transfer_authority(new_authority)
+    }
 }

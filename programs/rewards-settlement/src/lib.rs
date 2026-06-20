@@ -39,6 +39,14 @@ pub mod rewards_settlement {
             .set_authorities(poster_authority, dispute_authority)
     }
 
+    /// Transfer the distributor authority (M5: hand control to the governance PDA).
+    pub fn transfer_authority(
+        ctx: Context<TransferAuthority>,
+        new_authority: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.transfer_authority(new_authority)
+    }
+
     /// User pays for traffic: 70% → reward vault, 20% burned, 10% → treasury.
     pub fn pay_traffic(ctx: Context<PayTraffic>, amount: u64) -> Result<()> {
         ctx.accounts.pay_traffic(amount)

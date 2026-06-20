@@ -27,6 +27,7 @@ weft-primitives = { workspace = true }
 node-registry = { workspace = true }
 staking = { workspace = true }
 reputation = { workspace = true }
+governance = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }
