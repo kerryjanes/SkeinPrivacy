@@ -1,0 +1,58 @@
+{
+  "parity": [
+    {
+      "client": "4vJ9JU1bJJE96FWSJKvHsmmFADCg4gpZQff4P3bkLKi",
+      "operator": "8qbHbw2BbbTHBW1sbeqakYXVKRQM8Ne7pLK7m6CVfeR",
+      "nodeId": "7",
+      "bytes": "123456",
+      "windowStart": "600",
+      "windowEnd": "1200",
+      "nonce": "1",
+      "core": "01010101010101010101010101010101010101010101010101010101010101010202020202020202020202020202020202020202020202020202020202020202070000000000000040e20100000000005802000000000000b0040000000000000100000000000000"
+    },
+    {
+      "client": "11111111111111111111111111111111",
+      "operator": "JEKNVnkbo3jma5nREBBJCDoXFVeKkD56V3xKrvRmWxFG",
+      "nodeId": "0",
+      "bytes": "1",
+      "windowStart": "0",
+      "windowEnd": "600",
+      "nonce": "0",
+      "core": "0000000000000000000000000000000000000000000000000000000000000000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000000100000000000000000000000000000058020000000000000000000000000000"
+    },
+    {
+      "client": "cGfHiC6Kgg3FpFZvgwGcswsCRtp4aBP2fzuXRQPizuN",
+      "operator": "CktRuQ2mttgRGkXJtyksdKHjUdc2C4TgDzyB98oEzy8",
+      "nodeId": "18446744073709551615",
+      "bytes": "18446744073709551615",
+      "windowStart": "600",
+      "windowEnd": "601",
+      "nonce": "18446744073709551615",
+      "core": "09090909090909090909090909090909090909090909090909090909090909090303030303030303030303030303030303030303030303030303030303030303ffffffffffffffffffffffffffffffff58020000000000005902000000000000ffffffffffffffff"
+    }
+  ],
+  "signed": [
+    {
+      "client": "DVBccsAHGmik6H8aJe4MWpvsB1NmhtroizjbhE2fzJFz",
+      "operator": "3YWUHBGhNAoUg8LXKKzDsycz4DJqmNFHmGg3TugUgbzj",
+      "nodeId": "1",
+      "bytes": "2000000000",
+      "windowStart": "600",
+      "windowEnd": "1200",
+      "nonce": "1",
+      "clientSig": "3742a3afbe17444cabebcaccb6154da13b6030fa0aee32106502b26ea4fafcc0ab3c64acd7b6b6f06a1e13b95a07a8a49fffb2a96965e4f35e79e19c4111c906",
+      "relaySig": "064d5e62ecbfd4bee30405ea6ffcb30902925f898f35e01a7a092864b9d399c4d0371df7d70110485f6d1b8c1ec42de581a1047395822a94159d740f7b5b3e0c"
+    },
+    {
+      "client": "DVBccsAHGmik6H8aJe4MWpvsB1NmhtroizjbhE2fzJFz",
+      "operator": "5MEsaxkQivRFRK5X2EpBmiQR744upvHm9D4PTYPNaYUU",
+      "nodeId": "2",
+      "bytes": "5000000000",
+      "windowStart": "600",
+      "windowEnd": "1200",
+      "nonce": "1",
+      "clientSig": "5e1672c9eb4d98263843b10c4965851071544f0d01b0db9c5a532c16bfb2efe89ecfc8662862ac438e18a594d11b755eb2178cdf767f0dc1f0cea1aa3caa920e",
+      "relaySig": "5f46ee49d9bccd5f5f40f07d0aef36239e79bf6901813a81f9c0be1c448f0183419e51d0a7ee8754a92ed9220e2b5fcb8332ac18148d8af959f7c90125dfc904"
+    }
+  ]
+}

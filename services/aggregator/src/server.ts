@@ -4,17 +4,21 @@
 //   GET  /proof?epoch=N&operator=&nodeId= → the exact leaf + proof `claim` accepts
 //   GET  /pay/traffic                    → Solana Pay label (wallet handshake)
 //   POST /pay/traffic?amount=N {account} → unsigned pay_traffic transaction
+//   POST /receipts?epoch=N {receipts}    → ingest dual-signed traffic receipts (M6)
 
 import { createServer, type Server } from 'node:http';
 import { address, type Address } from '@solana/kit';
 
 import { buildPayTrafficTransaction, payLabel, type Blockhashish, type PayConfig } from './pay';
+import { selectReceiptsForEpoch, type TrafficReceipt } from './receipts';
 import type { EpochStore } from './store';
 
 export interface ServerDeps {
   store: EpochStore;
   payConfig: PayConfig;
   getBlockhash: () => Promise<Blockhashish>;
+  /** Called with the verified, deduped receipts ingested for an epoch (M6 → M4). */
+  onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => void;
 }
 
 function readBody(req: import('node:http').IncomingMessage): Promise<string> {
@@ -101,6 +105,26 @@ export function createAggregatorServer(deps: ServerDeps): Server {
             await deps.getBlockhash(),
           );
           json(200, tx);
+          return;
+        }
+
+        if (url.pathname === '/receipts' && req.method === 'POST') {
+          const epoch = BigInt(url.searchParams.get('epoch') ?? '-1');
+          if (epoch < 0n) {
+            json(400, { error: 'missing epoch' });
+            return;
+          }
+          const body = JSON.parse((await readBody(req)) || '{}') as { receipts?: unknown };
+          const raw = Array.isArray(body.receipts) ? (body.receipts as TrafficReceipt[]) : [];
+          // verify both signatures, drop out-of-epoch + duplicate (operator, nonce).
+          const sel = selectReceiptsForEpoch(raw, epoch);
+          deps.onReceipts?.(epoch, sel.accepted);
+          json(200, {
+            epoch: epoch.toString(),
+            accepted: sel.accepted.length,
+            rejected: sel.rejected.length,
+            reasons: sel.rejected.map((r) => r.reason),
+          });
           return;
         }
 
