@@ -82,6 +82,12 @@ export type NodeState = {
   /** Staked $WEFT mirrored by the M3 staking program. */
   stakeAmount: bigint;
   bump: number;
+  /**
+   * Global registration order, 1-based, stamped at `register` (M8 cold-start). Nodes
+   * with `sequence <= bootstrap_node_limit` earn the early-adopter bonus. Appended
+   * after `bump`; pre-M8 `NodeState` accounts read 0 here (= "no bonus").
+   */
+  sequence: bigint;
 };
 
 export type NodeStateArgs = {
@@ -112,6 +118,12 @@ export type NodeStateArgs = {
   /** Staked $WEFT mirrored by the M3 staking program. */
   stakeAmount: number | bigint;
   bump: number;
+  /**
+   * Global registration order, 1-based, stamped at `register` (M8 cold-start). Nodes
+   * with `sequence <= bootstrap_node_limit` earn the early-adopter bonus. Appended
+   * after `bump`; pre-M8 `NodeState` accounts read 0 here (= "no bonus").
+   */
+  sequence: number | bigint;
 };
 
 /** Gets the encoder for {@link NodeStateArgs} account data. */
@@ -134,6 +146,7 @@ export function getNodeStateEncoder(): FixedSizeEncoder<NodeStateArgs> {
       ['reputation', getU16Encoder()],
       ['stakeAmount', getU64Encoder()],
       ['bump', getU8Encoder()],
+      ['sequence', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: NODE_STATE_DISCRIMINATOR }),
   );
@@ -158,6 +171,7 @@ export function getNodeStateDecoder(): FixedSizeDecoder<NodeState> {
     ['reputation', getU16Decoder()],
     ['stakeAmount', getU64Decoder()],
     ['bump', getU8Decoder()],
+    ['sequence', getU64Decoder()],
   ]);
 }
 
@@ -217,5 +231,5 @@ export async function fetchAllMaybeNodeState(
 }
 
 export function getNodeStateSize(): number {
-  return 189;
+  return 197;
 }

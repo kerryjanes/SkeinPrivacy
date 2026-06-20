@@ -84,6 +84,9 @@ export type UpdateProtocolConfigInstructionData = {
   reputationMaxBps: number;
   stakingBonusBps: number;
   stakingBonusThreshold: bigint;
+  bootstrapNodeLimit: bigint;
+  bootstrapBonusBps: number;
+  bootstrapEndTs: bigint;
 };
 
 export type UpdateProtocolConfigInstructionDataArgs = {
@@ -98,6 +101,9 @@ export type UpdateProtocolConfigInstructionDataArgs = {
   reputationMaxBps: number;
   stakingBonusBps: number;
   stakingBonusThreshold: number | bigint;
+  bootstrapNodeLimit: number | bigint;
+  bootstrapBonusBps: number;
+  bootstrapEndTs: number | bigint;
 };
 
 export function getUpdateProtocolConfigInstructionDataEncoder(): FixedSizeEncoder<UpdateProtocolConfigInstructionDataArgs> {
@@ -115,6 +121,9 @@ export function getUpdateProtocolConfigInstructionDataEncoder(): FixedSizeEncode
       ['reputationMaxBps', getU32Encoder()],
       ['stakingBonusBps', getU32Encoder()],
       ['stakingBonusThreshold', getU64Encoder()],
+      ['bootstrapNodeLimit', getU64Encoder()],
+      ['bootstrapBonusBps', getU32Encoder()],
+      ['bootstrapEndTs', getI64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: UPDATE_PROTOCOL_CONFIG_DISCRIMINATOR }),
   );
@@ -134,6 +143,9 @@ export function getUpdateProtocolConfigInstructionDataDecoder(): FixedSizeDecode
     ['reputationMaxBps', getU32Decoder()],
     ['stakingBonusBps', getU32Decoder()],
     ['stakingBonusThreshold', getU64Decoder()],
+    ['bootstrapNodeLimit', getU64Decoder()],
+    ['bootstrapBonusBps', getU32Decoder()],
+    ['bootstrapEndTs', getI64Decoder()],
   ]);
 }
 
@@ -165,6 +177,9 @@ export type UpdateProtocolConfigAsyncInput<
   reputationMaxBps: UpdateProtocolConfigInstructionDataArgs['reputationMaxBps'];
   stakingBonusBps: UpdateProtocolConfigInstructionDataArgs['stakingBonusBps'];
   stakingBonusThreshold: UpdateProtocolConfigInstructionDataArgs['stakingBonusThreshold'];
+  bootstrapNodeLimit: UpdateProtocolConfigInstructionDataArgs['bootstrapNodeLimit'];
+  bootstrapBonusBps: UpdateProtocolConfigInstructionDataArgs['bootstrapBonusBps'];
+  bootstrapEndTs: UpdateProtocolConfigInstructionDataArgs['bootstrapEndTs'];
 };
 
 export async function getUpdateProtocolConfigInstructionAsync<
@@ -229,6 +244,9 @@ export type UpdateProtocolConfigInput<
   reputationMaxBps: UpdateProtocolConfigInstructionDataArgs['reputationMaxBps'];
   stakingBonusBps: UpdateProtocolConfigInstructionDataArgs['stakingBonusBps'];
   stakingBonusThreshold: UpdateProtocolConfigInstructionDataArgs['stakingBonusThreshold'];
+  bootstrapNodeLimit: UpdateProtocolConfigInstructionDataArgs['bootstrapNodeLimit'];
+  bootstrapBonusBps: UpdateProtocolConfigInstructionDataArgs['bootstrapBonusBps'];
+  bootstrapEndTs: UpdateProtocolConfigInstructionDataArgs['bootstrapEndTs'];
 };
 
 export function getUpdateProtocolConfigInstruction<

@@ -15,6 +15,7 @@ export * as staking from './generated/staking/src/generated';
 export * as reputation from './generated/reputation/src/generated';
 export * as rewardsSettlement from './generated/rewards_settlement/src/generated';
 export * as governance from './generated/governance/src/generated';
+export * as tokenDistributor from './generated/token_distributor/src/generated';
 
 // Off-chain reward/settlement math, byte-identical to the on-chain program.
 export * as math from './math';

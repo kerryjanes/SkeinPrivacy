@@ -162,3 +162,82 @@ describe('buildEpoch', () => {
     expect(build.entries.map((e) => e.operator)).toEqual(sorted.map((e) => e.operator));
   });
 });
+
+describe('cold-start bootstrap bonus', () => {
+  it('applies the bonus to an eligible early node and not to a late one', () => {
+    const client = makeSigner();
+    const early = makeSigner();
+    const late = makeSigner();
+    const nodes: NodeInfo[] = [
+      {
+        operator: early.address,
+        nodeId: 1n,
+        reputationBps: 10_000,
+        geo: 0,
+        stake: 2_000n * WEFT,
+        sequence: 5n,
+      },
+      {
+        operator: late.address,
+        nodeId: 1n,
+        reputationBps: 10_000,
+        geo: 0,
+        stake: 2_000n * WEFT,
+        sequence: 50n,
+      },
+    ];
+    const receipts = [
+      makeReceipt(client, early, {
+        nodeId: 1n,
+        bytes: GB,
+        windowStart: 1n,
+        windowEnd: 2n,
+        nonce: 1n,
+      }),
+      makeReceipt(client, late, {
+        nodeId: 1n,
+        bytes: GB,
+        windowStart: 1n,
+        windowEnd: 2n,
+        nonce: 2n,
+      }),
+    ];
+    const bootstrap = { nodeLimit: 10n, bonusBps: 5_000n, endTs: 0n };
+    const build = buildEpoch(0n, receipts, nodes, { minStakeToEarn: 1n, bootstrap });
+
+    const e = build.rewards.find((r) => r.operator === early.address)!;
+    const l = build.rewards.find((r) => r.operator === late.address)!;
+    // early (seq 5 <= 10) gets +50%; late (seq 50 > 10) gets nothing.
+    expect(e.bootstrapBonusBps).toBe(5_000);
+    expect(l.bootstrapBonusBps).toBe(0);
+    expect(e.reward).toBe((l.reward * 3n) / 2n);
+  });
+
+  it('expires the bonus after the governed end timestamp', () => {
+    const client = makeSigner();
+    const op = makeSigner();
+    const nodes: NodeInfo[] = [
+      {
+        operator: op.address,
+        nodeId: 1n,
+        reputationBps: 10_000,
+        geo: 0,
+        stake: 2_000n * WEFT,
+        sequence: 1n,
+      },
+    ];
+    // epoch 1 starts at 600; an endTs of 500 is already past → no bonus.
+    const r = makeReceipt(client, op, {
+      nodeId: 1n,
+      bytes: GB,
+      windowStart: 600n,
+      windowEnd: 700n,
+      nonce: 1n,
+    });
+    const build = buildEpoch(1n, [r], nodes, {
+      minStakeToEarn: 1n,
+      bootstrap: { nodeLimit: 10n, bonusBps: 5_000n, endTs: 500n },
+    });
+    expect(build.rewards[0].bootstrapBonusBps).toBe(0);
+  });
+});

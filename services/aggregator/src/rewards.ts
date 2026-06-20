@@ -11,6 +11,7 @@
 import { getAddressEncoder, type Address } from '@solana/kit';
 import { math } from '@weft/sdk';
 
+import { EPOCH_SECONDS } from './epoch';
 import { geoBonusBps, EMPTY_GEO_TABLE, type GeoTable } from './geo';
 import { selectReceiptsForEpoch, type TrafficReceipt } from './receipts';
 
@@ -23,6 +24,18 @@ export interface NodeInfo {
   reputationBps: number;
   geo: number;
   stake: bigint;
+  /** Global registration order from `NodeState.sequence` (0 = pre-M8 / unknown). */
+  sequence?: bigint;
+}
+
+/** The DAO-governed cold-start bonus (from `ProtocolConfig`). */
+export interface BootstrapConfig {
+  /** Nodes with `sequence <= nodeLimit` are eligible. */
+  nodeLimit: bigint;
+  /** Bonus applied to the base reward (bps). */
+  bonusBps: bigint;
+  /** Bonus expires at this unix timestamp (0 = never). */
+  endTs: bigint;
 }
 
 export interface BuildOptions {
@@ -31,10 +44,29 @@ export interface BuildOptions {
   minStakeToEarn?: bigint;
   /** Per-(operator,node) byte cap per epoch. Default 5 TB. */
   maxBytesPerEpoch?: bigint;
+  /** Cold-start bonus (M8). Omit to disable. */
+  bootstrap?: BootstrapConfig;
 }
 
 export const DEFAULT_MIN_STAKE_TO_EARN = 1_000n * math.ONE_WEFT;
 export const DEFAULT_MAX_BYTES_PER_EPOCH = 5_000_000_000_000n; // 5 TB / 10 min
+
+/** The cold-start bonus (bps) a node earns this epoch, or 0n if ineligible. */
+function bootstrapBonusFor(
+  info: NodeInfo,
+  cfg: BootstrapConfig | undefined,
+  epoch: bigint,
+): bigint {
+  if (!cfg || cfg.bonusBps === 0n) return 0n;
+  const seq = info.sequence ?? 0n;
+  if (seq === 0n || seq > cfg.nodeLimit) return 0n;
+  // The bonus applies while the epoch's window starts before the governed end.
+  if (cfg.endTs !== 0n) {
+    const epochStart = epoch * EPOCH_SECONDS;
+    if (epochStart >= cfg.endTs) return 0n;
+  }
+  return cfg.bonusBps;
+}
 
 export interface NodeReward {
   operator: Address;
@@ -44,6 +76,7 @@ export interface NodeReward {
   reputationBps: number;
   geoBonusBps: number;
   stakingBonusBps: number;
+  bootstrapBonusBps: number;
 }
 
 export interface EpochEntry {
@@ -120,11 +153,15 @@ export function buildEpoch(
     }
     const geoBonus = geoBonusBps(geoTable, info.geo);
     const stakingBonus = Number(math.stakingBonusForStake(info.stake));
-    const reward = math.trafficReward(
+    // Cold-start bonus (M8): a node within the early-adopter sequence limit, while the
+    // governed window is open, earns an extra multiplier on top of the base reward.
+    const bootstrapBonus = bootstrapBonusFor(info, opts.bootstrap, epoch);
+    const reward = math.trafficRewardWithBootstrap(
       bytes,
       BigInt(info.reputationBps),
       BigInt(geoBonus),
       BigInt(stakingBonus),
+      bootstrapBonus,
     );
     if (reward === 0n) {
       skipped.push({ operator, nodeId, bytes, reason: 'zero-reward' });
@@ -138,6 +175,7 @@ export function buildEpoch(
       reputationBps: info.reputationBps,
       geoBonusBps: geoBonus,
       stakingBonusBps: stakingBonus,
+      bootstrapBonusBps: Number(bootstrapBonus),
     });
   }
 

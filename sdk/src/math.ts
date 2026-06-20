@@ -58,6 +58,31 @@ export function trafficReward(
   return reward > U64_MAX ? U64_MAX : reward;
 }
 
+/** Maximum cold-start bonus (bps): +100%. Mirrors `BOOTSTRAP_BONUS_MAX_BPS`. */
+export const BOOTSTRAP_BONUS_MAX_BPS = 10_000n;
+/** Default first-N-nodes cold-start cap. Mirrors `BOOTSTRAP_NODE_LIMIT`. */
+export const BOOTSTRAP_NODE_LIMIT = 10_000n;
+
+/**
+ * Reward with the cold-start bonus applied on top of the base [`trafficReward`]. Mirrors
+ * `weft_primitives::traffic_reward_with_bootstrap`: the bonus is the last multiplier so
+ * the base formula is unchanged; the caller passes `0` when the node is ineligible.
+ */
+export function trafficRewardWithBootstrap(
+  bytes: bigint,
+  reputationBps: bigint,
+  geoBonusBps: bigint,
+  stakingBonusBps: bigint,
+  bootstrapBonusBps: bigint,
+): bigint {
+  const base = trafficReward(bytes, reputationBps, geoBonusBps, stakingBonusBps);
+  const bonus =
+    BPS +
+    (bootstrapBonusBps > BOOTSTRAP_BONUS_MAX_BPS ? BOOTSTRAP_BONUS_MAX_BPS : bootstrapBonusBps);
+  const reward = (base * bonus) / BPS;
+  return reward > U64_MAX ? U64_MAX : reward;
+}
+
 export interface PaymentSplit {
   nodes: bigint;
   burn: bigint;
@@ -70,6 +95,19 @@ export function splitPayment(amount: bigint): PaymentSplit {
   const burn = (amount * SPLIT_BURN_BPS) / BPS;
   const treasury = amount - nodes - burn;
   return { nodes, burn, treasury };
+}
+
+/** Default IDO TGE unlock share: 25%. Mirrors `TGE_UNLOCK_BPS`. */
+export const TGE_UNLOCK_BPS = 2_500n;
+
+/**
+ * Split an IDO allocation into the TGE (immediate) and vesting (linear) portions, the
+ * mirror of `weft_primitives::split_tge`. The TGE share rounds down; the vesting share
+ * gets the exact remainder.
+ */
+export function splitTge(allocation: bigint, tgeBps: bigint): { tge: bigint; vesting: bigint } {
+  const tge = (allocation * (tgeBps > BPS ? BPS : tgeBps)) / BPS;
+  return { tge, vesting: allocation - tge };
 }
 
 // ---- merkle (mirror weft-primitives::merkle) ----
@@ -108,6 +146,22 @@ export function hashRewardLeaf(
   if (operator.length !== 32) throw new Error('operator must be 32 bytes');
   const inner = sha256(concatBytes(operator, u64le(nodeId), u64le(amount), u64le(epoch)));
   return sha256(concatBytes(Uint8Array.of(0x00), inner));
+}
+
+/**
+ * The IDO/TGE allocation leaf (domain `0x02`, distributor-bound), mirror of
+ * `weft_primitives::merkle::hash_allocation_leaf`:
+ * `sha256(0x02 ‖ sha256(distributor ‖ claimant ‖ amount_le))`.
+ */
+export function hashAllocationLeaf(
+  distributor: Uint8Array,
+  claimant: Uint8Array,
+  amount: bigint,
+): Uint8Array {
+  if (distributor.length !== 32 || claimant.length !== 32)
+    throw new Error('distributor and claimant must be 32 bytes');
+  const inner = sha256(concatBytes(distributor, claimant, u64le(amount)));
+  return sha256(concatBytes(Uint8Array.of(0x02), inner));
 }
 
 function lte(a: Uint8Array, b: Uint8Array): boolean {

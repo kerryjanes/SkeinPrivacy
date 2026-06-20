@@ -10,13 +10,16 @@ import { describe, expect, it } from 'vitest';
 
 import {
   fromHex,
+  hashAllocationLeaf,
   hashRewardLeaf,
   merkleProof,
   merkleRoot,
   merkleVerify,
   splitPayment,
+  splitTge,
   toHex,
   trafficReward,
+  trafficRewardWithBootstrap,
 } from '../src/math';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -31,6 +34,16 @@ const vectors = JSON.parse(
     reward: string;
   }[];
   splits: { amount: string; nodes: string; burn: string; treasury: string }[];
+  bootstrap: {
+    bytes: string;
+    reputationBps: number;
+    geoBonusBps: number;
+    stakingBonusBps: number;
+    bootstrapBonusBps: number;
+    reward: string;
+  }[];
+  tge: { allocation: string; tgeBps: number; tge: string; vesting: string }[];
+  allocLeaves: { distributor: string; claimant: string; amount: string; leaf: string }[];
   leaves: { epoch: number; operator: string; nodeId: string; amount: string; leaf: string }[];
   tree: {
     epoch: number;
@@ -62,6 +75,35 @@ describe('splitPayment parity', () => {
     expect(s.treasury.toString()).toBe(v.treasury);
     // invariant: the split is exact
     expect(s.nodes + s.burn + s.treasury).toBe(BigInt(v.amount));
+  });
+});
+
+describe('trafficRewardWithBootstrap parity', () => {
+  it.each(vectors.bootstrap)('bytes=$bytes boot=$bootstrapBonusBps', (v) => {
+    const got = trafficRewardWithBootstrap(
+      BigInt(v.bytes),
+      BigInt(v.reputationBps),
+      BigInt(v.geoBonusBps),
+      BigInt(v.stakingBonusBps),
+      BigInt(v.bootstrapBonusBps),
+    );
+    expect(got.toString()).toBe(v.reward);
+  });
+});
+
+describe('splitTge parity', () => {
+  it.each(vectors.tge)('allocation=$allocation tge=$tgeBps', (v) => {
+    const s = splitTge(BigInt(v.allocation), BigInt(v.tgeBps));
+    expect(s.tge.toString()).toBe(v.tge);
+    expect(s.vesting.toString()).toBe(v.vesting);
+    expect(s.tge + s.vesting).toBe(BigInt(v.allocation));
+  });
+});
+
+describe('hashAllocationLeaf parity', () => {
+  it.each(vectors.allocLeaves)('claimant=$claimant', (v) => {
+    const leaf = hashAllocationLeaf(fromHex(v.distributor), fromHex(v.claimant), BigInt(v.amount));
+    expect(toHex(leaf)).toBe(v.leaf);
   });
 });
 

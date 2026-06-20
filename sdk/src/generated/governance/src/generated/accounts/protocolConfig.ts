@@ -66,6 +66,9 @@ export type ProtocolConfig = {
   stakingBonusBps: number;
   stakingBonusThreshold: bigint;
   bump: number;
+  bootstrapNodeLimit: bigint;
+  bootstrapBonusBps: number;
+  bootstrapEndTs: bigint;
 };
 
 export type ProtocolConfigArgs = {
@@ -82,6 +85,9 @@ export type ProtocolConfigArgs = {
   stakingBonusBps: number;
   stakingBonusThreshold: number | bigint;
   bump: number;
+  bootstrapNodeLimit: number | bigint;
+  bootstrapBonusBps: number;
+  bootstrapEndTs: number | bigint;
 };
 
 /** Gets the encoder for {@link ProtocolConfigArgs} account data. */
@@ -102,6 +108,9 @@ export function getProtocolConfigEncoder(): FixedSizeEncoder<ProtocolConfigArgs>
       ['stakingBonusBps', getU32Encoder()],
       ['stakingBonusThreshold', getU64Encoder()],
       ['bump', getU8Encoder()],
+      ['bootstrapNodeLimit', getU64Encoder()],
+      ['bootstrapBonusBps', getU32Encoder()],
+      ['bootstrapEndTs', getI64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: PROTOCOL_CONFIG_DISCRIMINATOR }),
   );
@@ -124,6 +133,9 @@ export function getProtocolConfigDecoder(): FixedSizeDecoder<ProtocolConfig> {
     ['stakingBonusBps', getU32Decoder()],
     ['stakingBonusThreshold', getU64Decoder()],
     ['bump', getU8Decoder()],
+    ['bootstrapNodeLimit', getU64Decoder()],
+    ['bootstrapBonusBps', getU32Decoder()],
+    ['bootstrapEndTs', getI64Decoder()],
   ]);
 }
 
@@ -183,5 +195,5 @@ export async function fetchAllMaybeProtocolConfig(
 }
 
 export function getProtocolConfigSize(): number {
-  return 101;
+  return 121;
 }

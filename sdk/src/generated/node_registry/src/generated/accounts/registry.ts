@@ -61,7 +61,7 @@ export type Registry = {
   activeTree: Address;
   /** Number of tree shards provisioned so far. */
   treeCount: number;
-  /** Currently registered (active) nodes. */
+  /** Currently registered (active) nodes (decremented on deregister). */
   nodeCount: bigint;
   /** Program allowed to write `NodeState.reputation` (M3). Defaults to `authority`. */
   reputationAuthority: Address;
@@ -70,6 +70,12 @@ export type Registry = {
   /** When true, `register` is rejected. */
   paused: boolean;
   bump: number;
+  /**
+   * Monotonic count of nodes ever registered (never decremented) — the source of each
+   * node's global `sequence` for the M8 cold-start bonus. Appended after `bump` so the
+   * existing on-chain `Registry` layout is preserved (old accounts read 0).
+   */
+  nodeSequence: bigint;
 };
 
 export type RegistryArgs = {
@@ -81,7 +87,7 @@ export type RegistryArgs = {
   activeTree: Address;
   /** Number of tree shards provisioned so far. */
   treeCount: number;
-  /** Currently registered (active) nodes. */
+  /** Currently registered (active) nodes (decremented on deregister). */
   nodeCount: number | bigint;
   /** Program allowed to write `NodeState.reputation` (M3). Defaults to `authority`. */
   reputationAuthority: Address;
@@ -90,6 +96,12 @@ export type RegistryArgs = {
   /** When true, `register` is rejected. */
   paused: boolean;
   bump: number;
+  /**
+   * Monotonic count of nodes ever registered (never decremented) — the source of each
+   * node's global `sequence` for the M8 cold-start bonus. Appended after `bump` so the
+   * existing on-chain `Registry` layout is preserved (old accounts read 0).
+   */
+  nodeSequence: number | bigint;
 };
 
 /** Gets the encoder for {@link RegistryArgs} account data. */
@@ -106,6 +118,7 @@ export function getRegistryEncoder(): FixedSizeEncoder<RegistryArgs> {
       ['stakingAuthority', getAddressEncoder()],
       ['paused', getBooleanEncoder()],
       ['bump', getU8Encoder()],
+      ['nodeSequence', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: REGISTRY_DISCRIMINATOR }),
   );
@@ -124,6 +137,7 @@ export function getRegistryDecoder(): FixedSizeDecoder<Registry> {
     ['stakingAuthority', getAddressDecoder()],
     ['paused', getBooleanDecoder()],
     ['bump', getU8Decoder()],
+    ['nodeSequence', getU64Decoder()],
   ]);
 }
 
@@ -183,5 +197,5 @@ export async function fetchAllMaybeRegistry(
 }
 
 export function getRegistrySize(): number {
-  return 180;
+  return 188;
 }
