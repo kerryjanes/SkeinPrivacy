@@ -20,6 +20,7 @@ anchor-spl = "1.0.2"
 mpl-bubblegum = { version = "3.0.0", default-features = false }
 # Internal
 weft-primitives = { path = "crates/weft-primitives" }
+node-registry = { path = "programs/node-registry", features = ["cpi"] }
 # Test harness (Anchor 1.0 LiteSVM convention)
 litesvm = "0.10.0"
 solana-message = "3.0.1"

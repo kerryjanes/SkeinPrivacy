@@ -4099,6 +4099,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "staking"
+version = "0.1.0"
+dependencies = [
+ "anchor-lang",
+ "anchor-spl",
+ "litesvm",
+ "node-registry",
+ "weft-primitives",
+ "solana-account",
+ "solana-clock",
+ "solana-instruction",
+ "solana-keypair",
+ "solana-message",
+ "solana-program-option",
+ "solana-program-pack",
+ "solana-pubkey 3.0.0",
+ "solana-signer",
+ "solana-transaction",
+ "spl-token-interface",
+]
+
+[[package]]
 name = "static_assertions"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
