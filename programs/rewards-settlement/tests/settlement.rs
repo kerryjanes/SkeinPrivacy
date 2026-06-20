@@ -98,6 +98,9 @@ fn craft_protocol_config(svm: &mut LiteSVM, nodes_bps: u32, burn_bps: u32) {
         staking_bonus_bps: 2_000,
         staking_bonus_threshold: 0,
         bump,
+        bootstrap_node_limit: 0,
+        bootstrap_bonus_bps: 0,
+        bootstrap_end_ts: 0,
     };
     let mut data = Vec::new();
     cfg.try_serialize(&mut data).unwrap();

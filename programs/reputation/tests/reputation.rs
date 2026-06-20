@@ -138,6 +138,7 @@ fn craft_node(svm: &mut LiteSVM, operator: &Pubkey, node_id: u64) -> Pubkey {
         reputation: 0,
         stake_amount: 0,
         bump,
+        sequence: 0,
     };
     let mut data = Vec::new();
     node.try_serialize(&mut data).unwrap();
