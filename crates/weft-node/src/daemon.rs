@@ -11,7 +11,7 @@
 use futures::StreamExt;
 use libp2p::kad;
 use libp2p::swarm::SwarmEvent;
-use libp2p::{identity, Multiaddr, Swarm};
+use libp2p::{Multiaddr, Swarm};
 use weft_net::discovery::{
     build_swarm, descriptor_signing_bytes, record_key, sign_descriptor, validate_record,
     NodeDescriptor, WeftBehaviour, WeftBehaviourEvent,
@@ -37,7 +37,9 @@ impl Daemon {
         listen: Multiaddr,
         memory: bool,
     ) -> Result<Self> {
-        let swarm = build_swarm(identity::Keypair::generate_ed25519(), memory)?;
+        // Derive the libp2p identity from the operator key so the PeerId is a stable,
+        // verifiable function of the on-chain operator identity.
+        let swarm = build_swarm(kp.libp2p_keypair(), memory)?;
         Ok(Self {
             swarm,
             kp,
@@ -64,6 +66,7 @@ impl Daemon {
             operator: self.kp.operator_pubkey(),
             node_id: self.node_id,
             multiaddr: self.listen.to_string(),
+            peer_id: self.peer_id().to_base58(),
             noise_static_pub: self.kp.static_public(),
             onion_pub: self.kp.onion_public(),
             capabilities: self.capabilities,

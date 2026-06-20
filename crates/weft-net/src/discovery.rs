@@ -27,6 +27,9 @@ pub struct NodeDescriptor {
     pub operator: [u8; 32],
     pub node_id: u64,
     pub multiaddr: String,
+    /// The node's libp2p `PeerId` (base58). Deterministically derived from `operator`,
+    /// so `validate_record` rejects any descriptor advertising a mismatched peer id.
+    pub peer_id: String,
     pub noise_static_pub: [u8; 32],
     pub onion_pub: [u8; 32],
     pub capabilities: u32,
@@ -104,6 +107,13 @@ pub fn validate_record(key: &RecordKey, value: &[u8]) -> crate::error::Result<No
         .map_err(|_| NetError::Malformed("sig length"))?;
     if !verify_sig(&signed.desc.operator, &signing_bytes(&signed.desc), &sig) {
         return Err(NetError::BadReceiptSig);
+    }
+    // The advertised peer id must be the one deterministically derived from the operator
+    // key, so a node cannot point clients at a libp2p identity it doesn't control.
+    let expect_peer = crate::keys::peer_id_for_operator(&signed.desc.operator)
+        .ok_or(NetError::Malformed("operator key"))?;
+    if signed.desc.peer_id != expect_peer.to_base58() {
+        return Err(NetError::Malformed("peer id mismatch"));
     }
     Ok(signed.desc)
 }
@@ -189,12 +199,47 @@ mod tests {
             operator: kp.operator_pubkey(),
             node_id: 1,
             multiaddr: "/memory/42".into(),
+            peer_id: kp.libp2p_keypair().public().to_peer_id().to_base58(),
             noise_static_pub: kp.static_public(),
             onion_pub: kp.onion_public(),
             capabilities: 0b111,
             geo: 12345,
             issued_at: 1700,
         }
+    }
+
+    #[test]
+    fn peer_id_is_deterministic_and_distinct() {
+        let mut rng = StdRng::seed_from_u64(11);
+        let a = WeftKeypair::generate(&mut rng);
+        let b = WeftKeypair::generate(&mut rng);
+        // stable across derivations from the same operator key
+        assert_eq!(
+            a.libp2p_keypair().public().to_peer_id(),
+            a.libp2p_keypair().public().to_peer_id()
+        );
+        // derivable from just the operator pubkey, and matches the keypair's peer id
+        assert_eq!(
+            crate::keys::peer_id_for_operator(&a.operator_pubkey()).unwrap(),
+            a.libp2p_keypair().public().to_peer_id()
+        );
+        // distinct operators → distinct peer ids
+        assert_ne!(
+            a.libp2p_keypair().public().to_peer_id(),
+            b.libp2p_keypair().public().to_peer_id()
+        );
+    }
+
+    #[test]
+    fn mismatched_peer_id_is_rejected() {
+        let mut rng = StdRng::seed_from_u64(12);
+        let kp = WeftKeypair::generate(&mut rng);
+        let mut desc = descriptor(&kp);
+        desc.peer_id = "12D3KooWuNonsensePeerIdThatDoesntMatch00000000000".into();
+        let sig = kp.sign(&descriptor_signing_bytes(&desc));
+        let value = sign_descriptor(desc, sig);
+        let key = record_key(&kp.operator_pubkey(), 1);
+        assert!(validate_record(&key, &value).is_err());
     }
 
     #[test]

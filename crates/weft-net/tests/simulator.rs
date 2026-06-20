@@ -191,6 +191,7 @@ async fn kademlia_put_get_over_memory_transport() {
         operator: server_kp.operator_pubkey(),
         node_id: 1,
         multiaddr: "/memory/3001".into(),
+        peer_id: server_kp.libp2p_keypair().public().to_peer_id().to_base58(),
         noise_static_pub: server_kp.static_public(),
         onion_pub: server_kp.onion_public(),
         capabilities: capability::WIREGUARD | capability::RELAY,

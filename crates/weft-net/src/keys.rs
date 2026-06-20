@@ -71,9 +71,31 @@ impl WeftKeypair {
         self.onion_secret
     }
 
+    /// The 32-byte ed25519 operator seed (private). Used to derive a stable libp2p
+    /// identity so the node's `PeerId` is a deterministic function of its operator key.
+    pub fn operator_seed(&self) -> [u8; 32] {
+        self.operator.to_bytes()
+    }
+
+    /// A libp2p identity keypair derived deterministically from the operator key, so the
+    /// resulting `PeerId` is reproducible by anyone who knows the operator pubkey (used
+    /// to bind the DHT descriptor's `peer_id` to the on-chain operator identity).
+    pub fn libp2p_keypair(&self) -> libp2p::identity::Keypair {
+        let mut seed = self.operator_seed();
+        libp2p::identity::Keypair::ed25519_from_bytes(&mut seed)
+            .expect("32-byte ed25519 seed is always valid")
+    }
+
     pub fn sign(&self, msg: &[u8]) -> [u8; 64] {
         self.operator.sign(msg).to_bytes()
     }
+}
+
+/// The deterministic libp2p `PeerId` for an operator's ed25519 public key — what a
+/// client checks a DHT descriptor's advertised `peer_id` against.
+pub fn peer_id_for_operator(operator: &[u8; 32]) -> Option<libp2p::PeerId> {
+    let pk = libp2p::identity::ed25519::PublicKey::try_from_bytes(operator).ok()?;
+    Some(libp2p::identity::PublicKey::from(pk).to_peer_id())
 }
 
 /// Verify an ed25519 signature against a 32-byte public key.
