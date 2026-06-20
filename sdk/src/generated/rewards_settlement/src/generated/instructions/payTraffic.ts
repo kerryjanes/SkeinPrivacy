@@ -12,6 +12,7 @@ import {
   fixEncoderSize,
   getBytesDecoder,
   getBytesEncoder,
+  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -53,6 +54,7 @@ export type PayTrafficInstruction<
   TProgram extends string = typeof REWARDS_SETTLEMENT_PROGRAM_ADDRESS,
   TAccountPayer extends string | AccountMeta<string> = string,
   TAccountDistributor extends string | AccountMeta<string> = string,
+  TAccountProtocolConfig extends string | AccountMeta<string> = string,
   TAccountRewardMint extends string | AccountMeta<string> = string,
   TAccountPayerTokenAccount extends string | AccountMeta<string> = string,
   TAccountRewardVault extends string | AccountMeta<string> = string,
@@ -70,6 +72,9 @@ export type PayTrafficInstruction<
       TAccountDistributor extends string
         ? ReadonlyAccount<TAccountDistributor>
         : TAccountDistributor,
+      TAccountProtocolConfig extends string
+        ? ReadonlyAccount<TAccountProtocolConfig>
+        : TAccountProtocolConfig,
       TAccountRewardMint extends string ? WritableAccount<TAccountRewardMint> : TAccountRewardMint,
       TAccountPayerTokenAccount extends string
         ? WritableAccount<TAccountPayerTokenAccount>
@@ -116,6 +121,7 @@ export function getPayTrafficInstructionDataCodec(): FixedSizeCodec<
 export type PayTrafficAsyncInput<
   TAccountPayer extends string = string,
   TAccountDistributor extends string = string,
+  TAccountProtocolConfig extends string = string,
   TAccountRewardMint extends string = string,
   TAccountPayerTokenAccount extends string = string,
   TAccountRewardVault extends string = string,
@@ -124,6 +130,11 @@ export type PayTrafficAsyncInput<
 > = {
   payer: TransactionSigner<TAccountPayer>;
   distributor?: Address<TAccountDistributor>;
+  /**
+   * The DAO-governed parameters; the payment split is read from here so
+   * governance can adjust it without a program upgrade.
+   */
+  protocolConfig?: Address<TAccountProtocolConfig>;
   rewardMint: Address<TAccountRewardMint>;
   payerTokenAccount: Address<TAccountPayerTokenAccount>;
   rewardVault: Address<TAccountRewardVault>;
@@ -135,6 +146,7 @@ export type PayTrafficAsyncInput<
 export async function getPayTrafficInstructionAsync<
   TAccountPayer extends string,
   TAccountDistributor extends string,
+  TAccountProtocolConfig extends string,
   TAccountRewardMint extends string,
   TAccountPayerTokenAccount extends string,
   TAccountRewardVault extends string,
@@ -145,6 +157,7 @@ export async function getPayTrafficInstructionAsync<
   input: PayTrafficAsyncInput<
     TAccountPayer,
     TAccountDistributor,
+    TAccountProtocolConfig,
     TAccountRewardMint,
     TAccountPayerTokenAccount,
     TAccountRewardVault,
@@ -157,6 +170,7 @@ export async function getPayTrafficInstructionAsync<
     TProgramAddress,
     TAccountPayer,
     TAccountDistributor,
+    TAccountProtocolConfig,
     TAccountRewardMint,
     TAccountPayerTokenAccount,
     TAccountRewardVault,
@@ -171,6 +185,7 @@ export async function getPayTrafficInstructionAsync<
   const originalAccounts = {
     payer: { value: input.payer ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
+    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
     rewardMint: { value: input.rewardMint ?? null, isWritable: true },
     payerTokenAccount: { value: input.payerTokenAccount ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
@@ -189,6 +204,17 @@ export async function getPayTrafficInstructionAsync<
   if (!accounts.distributor.value) {
     accounts.distributor.value = await findDistributorPda();
   }
+  if (!accounts.protocolConfig.value) {
+    accounts.protocolConfig.value = await getProgramDerivedAddress({
+      programAddress:
+        'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA' as Address<'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA'>,
+      seeds: [
+        getBytesEncoder().encode(
+          new Uint8Array([112, 114, 111, 116, 111, 99, 111, 108, 95, 99, 111, 110, 102, 105, 103]),
+        ),
+      ],
+    });
+  }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
       'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address<'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA'>;
@@ -199,6 +225,7 @@ export async function getPayTrafficInstructionAsync<
     accounts: [
       getAccountMeta('payer', accounts.payer),
       getAccountMeta('distributor', accounts.distributor),
+      getAccountMeta('protocolConfig', accounts.protocolConfig),
       getAccountMeta('rewardMint', accounts.rewardMint),
       getAccountMeta('payerTokenAccount', accounts.payerTokenAccount),
       getAccountMeta('rewardVault', accounts.rewardVault),
@@ -211,6 +238,7 @@ export async function getPayTrafficInstructionAsync<
     TProgramAddress,
     TAccountPayer,
     TAccountDistributor,
+    TAccountProtocolConfig,
     TAccountRewardMint,
     TAccountPayerTokenAccount,
     TAccountRewardVault,
@@ -222,6 +250,7 @@ export async function getPayTrafficInstructionAsync<
 export type PayTrafficInput<
   TAccountPayer extends string = string,
   TAccountDistributor extends string = string,
+  TAccountProtocolConfig extends string = string,
   TAccountRewardMint extends string = string,
   TAccountPayerTokenAccount extends string = string,
   TAccountRewardVault extends string = string,
@@ -230,6 +259,11 @@ export type PayTrafficInput<
 > = {
   payer: TransactionSigner<TAccountPayer>;
   distributor: Address<TAccountDistributor>;
+  /**
+   * The DAO-governed parameters; the payment split is read from here so
+   * governance can adjust it without a program upgrade.
+   */
+  protocolConfig: Address<TAccountProtocolConfig>;
   rewardMint: Address<TAccountRewardMint>;
   payerTokenAccount: Address<TAccountPayerTokenAccount>;
   rewardVault: Address<TAccountRewardVault>;
@@ -241,6 +275,7 @@ export type PayTrafficInput<
 export function getPayTrafficInstruction<
   TAccountPayer extends string,
   TAccountDistributor extends string,
+  TAccountProtocolConfig extends string,
   TAccountRewardMint extends string,
   TAccountPayerTokenAccount extends string,
   TAccountRewardVault extends string,
@@ -251,6 +286,7 @@ export function getPayTrafficInstruction<
   input: PayTrafficInput<
     TAccountPayer,
     TAccountDistributor,
+    TAccountProtocolConfig,
     TAccountRewardMint,
     TAccountPayerTokenAccount,
     TAccountRewardVault,
@@ -262,6 +298,7 @@ export function getPayTrafficInstruction<
   TProgramAddress,
   TAccountPayer,
   TAccountDistributor,
+  TAccountProtocolConfig,
   TAccountRewardMint,
   TAccountPayerTokenAccount,
   TAccountRewardVault,
@@ -275,6 +312,7 @@ export function getPayTrafficInstruction<
   const originalAccounts = {
     payer: { value: input.payer ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
+    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
     rewardMint: { value: input.rewardMint ?? null, isWritable: true },
     payerTokenAccount: { value: input.payerTokenAccount ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
@@ -300,6 +338,7 @@ export function getPayTrafficInstruction<
     accounts: [
       getAccountMeta('payer', accounts.payer),
       getAccountMeta('distributor', accounts.distributor),
+      getAccountMeta('protocolConfig', accounts.protocolConfig),
       getAccountMeta('rewardMint', accounts.rewardMint),
       getAccountMeta('payerTokenAccount', accounts.payerTokenAccount),
       getAccountMeta('rewardVault', accounts.rewardVault),
@@ -312,6 +351,7 @@ export function getPayTrafficInstruction<
     TProgramAddress,
     TAccountPayer,
     TAccountDistributor,
+    TAccountProtocolConfig,
     TAccountRewardMint,
     TAccountPayerTokenAccount,
     TAccountRewardVault,
@@ -328,11 +368,16 @@ export type ParsedPayTrafficInstruction<
   accounts: {
     payer: TAccountMetas[0];
     distributor: TAccountMetas[1];
-    rewardMint: TAccountMetas[2];
-    payerTokenAccount: TAccountMetas[3];
-    rewardVault: TAccountMetas[4];
-    treasury: TAccountMetas[5];
-    tokenProgram: TAccountMetas[6];
+    /**
+     * The DAO-governed parameters; the payment split is read from here so
+     * governance can adjust it without a program upgrade.
+     */
+    protocolConfig: TAccountMetas[2];
+    rewardMint: TAccountMetas[3];
+    payerTokenAccount: TAccountMetas[4];
+    rewardVault: TAccountMetas[5];
+    treasury: TAccountMetas[6];
+    tokenProgram: TAccountMetas[7];
   };
   data: PayTrafficInstructionData;
 };
@@ -345,10 +390,10 @@ export function parsePayTrafficInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedPayTrafficInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 7) {
+  if (instruction.accounts.length < 8) {
     throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 7,
+      expectedAccountMetas: 8,
     });
   }
   let accountIndex = 0;
@@ -362,6 +407,7 @@ export function parsePayTrafficInstruction<
     accounts: {
       payer: getNextAccount(),
       distributor: getNextAccount(),
+      protocolConfig: getNextAccount(),
       rewardMint: getNextAccount(),
       payerTokenAccount: getNextAccount(),
       rewardVault: getNextAccount(),

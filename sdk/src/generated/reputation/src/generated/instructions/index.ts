@@ -10,4 +10,5 @@ export * from './initializeConfig';
 export * from './penalize';
 export * from './resync';
 export * from './setOracle';
+export * from './transferAuthority';
 export * from './updateMetrics';

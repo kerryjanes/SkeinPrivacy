@@ -14,3 +14,4 @@ export * from './payTraffic';
 export * from './postEpoch';
 export * from './setAuthorities';
 export * from './sweepEpoch';
+export * from './transferAuthority';

@@ -48,6 +48,7 @@ import {
   getSetSlashAuthorityInstructionAsync,
   getSlashInstructionAsync,
   getStakeInstructionAsync,
+  getTransferAuthorityInstructionAsync,
   getWithdrawUnstakedInstructionAsync,
   parseInitializeConfigInstruction,
   parseRequestUnstakeInstruction,
@@ -55,6 +56,7 @@ import {
   parseSetSlashAuthorityInstruction,
   parseSlashInstruction,
   parseStakeInstruction,
+  parseTransferAuthorityInstruction,
   parseWithdrawUnstakedInstruction,
   type InitializeConfigAsyncInput,
   type ParsedInitializeConfigInstruction,
@@ -63,12 +65,14 @@ import {
   type ParsedSetSlashAuthorityInstruction,
   type ParsedSlashInstruction,
   type ParsedStakeInstruction,
+  type ParsedTransferAuthorityInstruction,
   type ParsedWithdrawUnstakedInstruction,
   type RequestUnstakeAsyncInput,
   type ResyncAsyncInput,
   type SetSlashAuthorityAsyncInput,
   type SlashAsyncInput,
   type StakeAsyncInput,
+  type TransferAuthorityAsyncInput,
   type WithdrawUnstakedAsyncInput,
 } from '../instructions';
 import { findConfigPda, findPositionPda, findProgramAuthorityPda, findVaultPda } from '../pdas';
@@ -120,6 +124,7 @@ export enum StakingInstruction {
   SetSlashAuthority,
   Slash,
   Stake,
+  TransferAuthority,
   WithdrawUnstaked,
 }
 
@@ -197,6 +202,17 @@ export function identifyStakingInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([48, 169, 76, 72, 229, 180, 55, 161]),
+      ),
+      0,
+    )
+  ) {
+    return StakingInstruction.TransferAuthority;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([19, 202, 68, 255, 216, 40, 205, 61]),
       ),
       0,
@@ -225,6 +241,9 @@ export type ParsedStakingInstruction<
     } & ParsedSetSlashAuthorityInstruction<TProgram>)
   | ({ instructionType: StakingInstruction.Slash } & ParsedSlashInstruction<TProgram>)
   | ({ instructionType: StakingInstruction.Stake } & ParsedStakeInstruction<TProgram>)
+  | ({
+      instructionType: StakingInstruction.TransferAuthority;
+    } & ParsedTransferAuthorityInstruction<TProgram>)
   | ({
       instructionType: StakingInstruction.WithdrawUnstaked;
     } & ParsedWithdrawUnstakedInstruction<TProgram>);
@@ -266,6 +285,13 @@ export function parseStakingInstruction<TProgram extends string>(
     case StakingInstruction.Stake: {
       assertIsInstructionWithAccounts(instruction);
       return { instructionType: StakingInstruction.Stake, ...parseStakeInstruction(instruction) };
+    }
+    case StakingInstruction.TransferAuthority: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: StakingInstruction.TransferAuthority,
+        ...parseTransferAuthorityInstruction(instruction),
+      };
     }
     case StakingInstruction.WithdrawUnstaked: {
       assertIsInstructionWithAccounts(instruction);
@@ -317,6 +343,9 @@ export type StakingPluginInstructions = {
   stake: (
     input: StakeAsyncInput,
   ) => ReturnType<typeof getStakeInstructionAsync> & SelfPlanAndSendFunctions;
+  transferAuthority: (
+    input: TransferAuthorityAsyncInput,
+  ) => ReturnType<typeof getTransferAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
   withdrawUnstaked: (
     input: WithdrawUnstakedAsyncInput,
   ) => ReturnType<typeof getWithdrawUnstakedInstructionAsync> & SelfPlanAndSendFunctions;
@@ -353,6 +382,8 @@ export function stakingProgram() {
             addSelfPlanAndSendFunctions(client, getSetSlashAuthorityInstructionAsync(input)),
           slash: (input) => addSelfPlanAndSendFunctions(client, getSlashInstructionAsync(input)),
           stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),
+          transferAuthority: (input) =>
+            addSelfPlanAndSendFunctions(client, getTransferAuthorityInstructionAsync(input)),
           withdrawUnstaked: (input) =>
             addSelfPlanAndSendFunctions(client, getWithdrawUnstakedInstructionAsync(input)),
         },

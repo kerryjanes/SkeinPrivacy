@@ -12,4 +12,5 @@ export * from './resync';
 export * from './setSlashAuthority';
 export * from './slash';
 export * from './stake';
+export * from './transferAuthority';
 export * from './withdrawUnstaked';

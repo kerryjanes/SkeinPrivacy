@@ -6,9 +6,8 @@
  * @see https://github.com/codama-idl/codama
  */
 
-export * from './accounts';
-export * from './errors';
-export * from './instructions';
-export * from './pdas';
-export * from './programs';
-export * from './types';
+export * from './governanceAuthority';
+export * from './governanceConfig';
+export * from './proposalTransaction';
+export * from './protocolConfig';
+export * from './voteRecord';

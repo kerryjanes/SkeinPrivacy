@@ -54,6 +54,7 @@ import {
   getPostEpochInstructionAsync,
   getSetAuthoritiesInstructionAsync,
   getSweepEpochInstructionAsync,
+  getTransferAuthorityInstructionAsync,
   parseClaimInstruction,
   parseDisputeInstruction,
   parseFundVaultInstruction,
@@ -62,6 +63,7 @@ import {
   parsePostEpochInstruction,
   parseSetAuthoritiesInstruction,
   parseSweepEpochInstruction,
+  parseTransferAuthorityInstruction,
   type ClaimAsyncInput,
   type DisputeAsyncInput,
   type FundVaultAsyncInput,
@@ -74,10 +76,12 @@ import {
   type ParsedPostEpochInstruction,
   type ParsedSetAuthoritiesInstruction,
   type ParsedSweepEpochInstruction,
+  type ParsedTransferAuthorityInstruction,
   type PayTrafficAsyncInput,
   type PostEpochAsyncInput,
   type SetAuthoritiesAsyncInput,
   type SweepEpochAsyncInput,
+  type TransferAuthorityAsyncInput,
 } from '../instructions';
 import {
   findClaimStatusPda,
@@ -148,6 +152,7 @@ export enum RewardsSettlementInstruction {
   PostEpoch,
   SetAuthorities,
   SweepEpoch,
+  TransferAuthority,
 }
 
 export function identifyRewardsSettlementInstruction(
@@ -240,6 +245,17 @@ export function identifyRewardsSettlementInstruction(
   ) {
     return RewardsSettlementInstruction.SweepEpoch;
   }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([48, 169, 76, 72, 229, 180, 55, 161]),
+      ),
+      0,
+    )
+  ) {
+    return RewardsSettlementInstruction.TransferAuthority;
+  }
   throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION, {
     instructionData: data,
     programName: 'rewardsSettlement',
@@ -268,7 +284,10 @@ export type ParsedRewardsSettlementInstruction<
     } & ParsedSetAuthoritiesInstruction<TProgram>)
   | ({
       instructionType: RewardsSettlementInstruction.SweepEpoch;
-    } & ParsedSweepEpochInstruction<TProgram>);
+    } & ParsedSweepEpochInstruction<TProgram>)
+  | ({
+      instructionType: RewardsSettlementInstruction.TransferAuthority;
+    } & ParsedTransferAuthorityInstruction<TProgram>);
 
 export function parseRewardsSettlementInstruction<TProgram extends string>(
   instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>,
@@ -331,6 +350,13 @@ export function parseRewardsSettlementInstruction<TProgram extends string>(
         ...parseSweepEpochInstruction(instruction),
       };
     }
+    case RewardsSettlementInstruction.TransferAuthority: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: RewardsSettlementInstruction.TransferAuthority,
+        ...parseTransferAuthorityInstruction(instruction),
+      };
+    }
     default:
       throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE, {
         instructionType: instructionType as string,
@@ -382,6 +408,9 @@ export type RewardsSettlementPluginInstructions = {
   sweepEpoch: (
     input: SweepEpochAsyncInput,
   ) => ReturnType<typeof getSweepEpochInstructionAsync> & SelfPlanAndSendFunctions;
+  transferAuthority: (
+    input: TransferAuthorityAsyncInput,
+  ) => ReturnType<typeof getTransferAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
 };
 
 export type RewardsSettlementPluginPdas = {
@@ -429,6 +458,8 @@ export function rewardsSettlementProgram() {
             addSelfPlanAndSendFunctions(client, getSetAuthoritiesInstructionAsync(input)),
           sweepEpoch: (input) =>
             addSelfPlanAndSendFunctions(client, getSweepEpochInstructionAsync(input)),
+          transferAuthority: (input) =>
+            addSelfPlanAndSendFunctions(client, getTransferAuthorityInstructionAsync(input)),
         },
         pdas: {
           distributor: findDistributorPda,
