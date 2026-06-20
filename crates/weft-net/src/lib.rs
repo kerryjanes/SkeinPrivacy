@@ -8,7 +8,10 @@
 
 pub mod error;
 pub mod keys;
+pub mod metering;
 pub mod noise;
+pub mod receipt;
+pub mod selection;
 pub mod sphinx;
 
 pub use error::{NetError, Result};
