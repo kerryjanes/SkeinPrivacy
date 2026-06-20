@@ -292,6 +292,86 @@ pub fn availability_is_valid(availability: u8) -> bool {
     availability <= MAX_AVAILABILITY
 }
 
+// ---------------------------------------------------------------------------
+// Reputation scoring (`SPEC.md` > Reputation) — M3
+// ---------------------------------------------------------------------------
+
+/// Reputation signal weights (bps of [`BPS`]; sum to `BPS`).
+pub const REPUTATION_W_UPTIME_BPS: u32 = 5_000;
+/// See [`REPUTATION_W_UPTIME_BPS`].
+pub const REPUTATION_W_SPEED_BPS: u32 = 3_000;
+/// See [`REPUTATION_W_UPTIME_BPS`].
+pub const REPUTATION_W_REVIEW_BPS: u32 = 2_000;
+
+/// EMA weight of a fresh sample (0.2). Higher = less smoothing.
+pub const REPUTATION_EMA_ALPHA_BPS: u32 = 2_000;
+
+/// Quality score that maps to a neutral 1.0x multiplier. New/idle nodes sit here.
+pub const REPUTATION_BASELINE_QUALITY_BPS: u32 = 3_333;
+
+/// Fraction pulled toward baseline per elapsed decay period (0.1).
+pub const REPUTATION_DECAY_PER_PERIOD_BPS: u32 = 1_000;
+/// Length of one staleness decay period (seconds).
+pub const REPUTATION_DECAY_PERIOD_SECONDS: i64 = 3_600;
+/// Periods after which a stale score is treated as fully decayed to baseline.
+const REPUTATION_DECAY_MAX_PERIODS: i64 = 64;
+
+/// Weighted blend of the three signals (each clamped to `0..=BPS`) into a quality
+/// score in `0..=BPS`. `u128` intermediate, divide last.
+pub fn reputation_quality_bps(uptime_bps: u32, speed_bps: u32, review_bps: u32) -> u32 {
+    let u = uptime_bps.min(BPS) as u128;
+    let s = speed_bps.min(BPS) as u128;
+    let r = review_bps.min(BPS) as u128;
+    let q = (u * REPUTATION_W_UPTIME_BPS as u128
+        + s * REPUTATION_W_SPEED_BPS as u128
+        + r * REPUTATION_W_REVIEW_BPS as u128)
+        / BPS as u128;
+    q as u32
+}
+
+/// Map a quality score (`0..=BPS`) linearly onto `[REPUTATION_MIN_BPS,
+/// REPUTATION_MAX_BPS]` (rounded), so `0 -> 0.5x`, baseline `-> 1.0x`, `BPS -> 2.0x`.
+pub fn reputation_multiplier_bps(quality_bps: u32) -> u32 {
+    let q = quality_bps.min(BPS) as u128;
+    let span = (REPUTATION_MAX_BPS - REPUTATION_MIN_BPS) as u128;
+    let scaled = (q * span + (BPS as u128 / 2)) / BPS as u128;
+    REPUTATION_MIN_BPS + scaled as u32
+}
+
+/// EMA update of a stored quality with a fresh sample:
+/// `new = (alpha*sample + (BPS-alpha)*old) / BPS`. Result lies between old and sample.
+pub fn reputation_ema(old_quality_bps: u32, sample_quality_bps: u32, alpha_bps: u32) -> u32 {
+    let old = old_quality_bps.min(BPS) as u128;
+    let sample = sample_quality_bps.min(BPS) as u128;
+    let alpha = alpha_bps.min(BPS) as u128;
+    let new = (alpha * sample + (BPS as u128 - alpha) * old) / BPS as u128;
+    new as u32
+}
+
+/// Decay a stored quality toward [`REPUTATION_BASELINE_QUALITY_BPS`] by whole
+/// elapsed decay periods (compounded 10%/period), before a fresh sample is blended.
+/// Monotonic toward baseline, never overshoots; fixed point at baseline.
+pub fn reputation_decayed_quality_bps(old_quality_bps: u32, now: i64, last_update: i64) -> u32 {
+    let old = old_quality_bps.min(BPS);
+    if now <= last_update {
+        return old;
+    }
+    let periods = (now - last_update) / REPUTATION_DECAY_PERIOD_SECONDS;
+    if periods <= 0 {
+        return old;
+    }
+    if periods >= REPUTATION_DECAY_MAX_PERIODS {
+        return REPUTATION_BASELINE_QUALITY_BPS;
+    }
+    let base = REPUTATION_BASELINE_QUALITY_BPS as i128;
+    let decay = REPUTATION_DECAY_PER_PERIOD_BPS as i128;
+    let mut q = old as i128;
+    for _ in 0..periods {
+        q += (base - q) * decay / BPS as i128;
+    }
+    q as u32
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -561,5 +641,71 @@ mod tests {
         assert!(availability_is_valid(0));
         assert!(availability_is_valid(MAX_AVAILABILITY));
         assert!(!availability_is_valid(101));
+    }
+
+    #[test]
+    fn reputation_weights_sum_to_bps() {
+        assert_eq!(
+            REPUTATION_W_UPTIME_BPS + REPUTATION_W_SPEED_BPS + REPUTATION_W_REVIEW_BPS,
+            BPS
+        );
+    }
+
+    #[test]
+    fn reputation_quality_blend() {
+        assert_eq!(reputation_quality_bps(BPS, BPS, BPS), BPS); // all max
+        assert_eq!(reputation_quality_bps(0, 0, 0), 0);
+        // 0.5*10000 + 0.3*0 + 0.2*0 = 5000
+        assert_eq!(reputation_quality_bps(BPS, 0, 0), 5_000);
+        // clamps out-of-range inputs
+        assert_eq!(reputation_quality_bps(u32::MAX, u32::MAX, u32::MAX), BPS);
+    }
+
+    #[test]
+    fn reputation_multiplier_endpoints_and_baseline() {
+        assert_eq!(reputation_multiplier_bps(0), REPUTATION_MIN_BPS); // 0.5x
+        assert_eq!(reputation_multiplier_bps(BPS), REPUTATION_MAX_BPS); // 2.0x
+        assert_eq!(
+            reputation_multiplier_bps(REPUTATION_BASELINE_QUALITY_BPS),
+            BPS
+        ); // 1.0x
+        assert_eq!(reputation_multiplier_bps(u32::MAX), REPUTATION_MAX_BPS); // clamped
+    }
+
+    #[test]
+    fn reputation_ema_is_bounded_and_converges() {
+        // ema(x, x, a) == x
+        assert_eq!(
+            reputation_ema(4_000, 4_000, REPUTATION_EMA_ALPHA_BPS),
+            4_000
+        );
+        // result lies between old and sample
+        let e = reputation_ema(2_000, 8_000, REPUTATION_EMA_ALPHA_BPS);
+        assert!((2_000..=8_000).contains(&e));
+        // 0.2*8000 + 0.8*2000 = 3200
+        assert_eq!(e, 3_200);
+        // repeated blending toward the sample converges upward
+        let mut q = 0u32;
+        for _ in 0..50 {
+            q = reputation_ema(q, BPS, REPUTATION_EMA_ALPHA_BPS);
+        }
+        assert!(q > 9_900);
+    }
+
+    #[test]
+    fn reputation_decay_toward_baseline() {
+        let base = REPUTATION_BASELINE_QUALITY_BPS;
+        // no elapsed time → unchanged
+        assert_eq!(reputation_decayed_quality_bps(9_000, 1_000, 1_000), 9_000);
+        // baseline is a fixed point
+        assert_eq!(reputation_decayed_quality_bps(base, 1_000_000, 0), base);
+        // from above, one period pulls down toward baseline (not past it)
+        let after = reputation_decayed_quality_bps(9_000, REPUTATION_DECAY_PERIOD_SECONDS, 0);
+        assert!(after < 9_000 && after > base);
+        // from below, pulls up toward baseline
+        let up = reputation_decayed_quality_bps(0, REPUTATION_DECAY_PERIOD_SECONDS, 0);
+        assert!(up > 0 && up < base);
+        // very stale → fully decayed to baseline
+        assert_eq!(reputation_decayed_quality_bps(9_999, i64::MAX, 0), base);
     }
 }
