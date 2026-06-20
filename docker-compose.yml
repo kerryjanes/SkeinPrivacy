@@ -1,0 +1,46 @@
+# Local Weft testnet: a Solana validator + a mesh of relay nodes. Bring the data plane
+# up with `docker compose up`; programs + genesis are deployed by `scripts/testnet-up.sh`
+# against the validator (run it on the host, or extend this with a bootstrap service).
+# NOTE: the relay images compile the Rust workspace; first build is heavy. The socket-free
+# correctness of the same code is covered by `cargo test` (the cell-transport + simulator
+# integration tests), so this compose file is for live multi-node experiments, not CI.
+services:
+  validator:
+    image: anzaorg/solana-test-validator:latest
+    command: ['solana-test-validator', '--reset', '--quiet']
+    ports:
+      - '8899:8899'
+      - '8900:8900'
+
+  node1:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+    environment:
+      WEFT_NODE_ID: '1'
+      WEFT_NODE_GEO: '101'
+      WEFT_NODE_LISTEN: /ip4/0.0.0.0/tcp/9101
+    depends_on: [validator]
+    ports: ['9101:9101']
+
+  node2:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+    environment:
+      WEFT_NODE_ID: '2'
+      WEFT_NODE_GEO: '102'
+      WEFT_NODE_LISTEN: /ip4/0.0.0.0/tcp/9102
+    depends_on: [validator]
+    ports: ['9102:9102']
+
+  node3:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.node
+    environment:
+      WEFT_NODE_ID: '3'
+      WEFT_NODE_GEO: '103'
+      WEFT_NODE_LISTEN: /ip4/0.0.0.0/tcp/9103
+    depends_on: [validator]
+    ports: ['9103:9103']

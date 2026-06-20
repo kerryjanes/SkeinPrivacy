@@ -1,0 +1,17 @@
+# A Weft relay/exit node daemon image (M8 testnet orchestration). Multi-stage: build the
+# weft-node binary against the pinned Rust toolchain, then ship a slim runtime.
+FROM rust:1.89-slim AS build
+WORKDIR /weft
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    pkg-config libssl-dev protobuf-compiler clang && rm -rf /var/lib/apt/lists/*
+COPY . .
+RUN cargo build --release -p weft-node
+
+FROM debian:bookworm-slim
+RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=build /weft/target/release/weft-node /usr/local/bin/weft-node
+# WEFT_NODE_ID / WEFT_NODE_GEO / WEFT_NODE_LISTEN configure the node (see crates/weft-node).
+ENV WEFT_NODE_LISTEN=/ip4/0.0.0.0/tcp/9100
+EXPOSE 9100
+ENTRYPOINT ["weft-node"]
