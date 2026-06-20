@@ -4136,6 +4136,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "weft-node"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "hex",
+ "libp2p",
+ "rand 0.8.6",
+ "weft-net",
+ "weft-primitives",
+ "tokio",
+]
+
+[[package]]
 name = "weft-primitives"
 version = "0.1.0"
 dependencies = [
