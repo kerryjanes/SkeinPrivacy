@@ -1,5 +1,7 @@
 // False positives from the Anchor `#[program]` macro expansion, not our code.
-#![allow(clippy::diverging_sub_expression)]
+// `too_many_arguments` fires on the generated `cpi::create_schedule` wrapper (a 7-param
+// vesting instruction) once another program enables this crate's `cpi` feature.
+#![allow(clippy::diverging_sub_expression, clippy::too_many_arguments)]
 
 pub mod constants;
 pub mod error;
