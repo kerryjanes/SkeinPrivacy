@@ -2201,6 +2201,8 @@ dependencies = [
  "anchor-lang",
  "anchor-spl",
  "litesvm",
+ "node-registry",
+ "reputation",
  "weft-primitives",
  "solana-account",
  "solana-clock",
@@ -2213,6 +2215,7 @@ dependencies = [
  "solana-signer",
  "solana-transaction",
  "spl-token-interface",
+ "staking",
 ]
 
 [[package]]

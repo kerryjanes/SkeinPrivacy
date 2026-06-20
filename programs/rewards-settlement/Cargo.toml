@@ -24,10 +24,16 @@ custom-panic = []
 anchor-lang = { workspace = true }
 anchor-spl = { workspace = true }
 weft-primitives = { workspace = true }
+node-registry = { workspace = true }
+staking = { workspace = true }
+reputation = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }
 weft-primitives = { workspace = true }
+node-registry = { workspace = true }
+staking = { workspace = true }
+reputation = { workspace = true }
 litesvm = { workspace = true }
 solana-message = { workspace = true }
 solana-transaction = { workspace = true }

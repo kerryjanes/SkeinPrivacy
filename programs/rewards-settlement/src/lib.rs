@@ -82,4 +82,24 @@ pub mod rewards_settlement {
     pub fn sweep_epoch(ctx: Context<SweepEpoch>, _epoch: u64) -> Result<()> {
         ctx.accounts.sweep_epoch()
     }
+
+    /// Flag a fraudulent leaf: block the payout and slash + penalize the node.
+    pub fn dispute(
+        ctx: Context<Dispute>,
+        epoch: u64,
+        node_id: u64,
+        amount: u64,
+        severity_bps: u32,
+        slash_amount: u64,
+    ) -> Result<()> {
+        ctx.accounts.dispute(
+            epoch,
+            node_id,
+            amount,
+            severity_bps,
+            slash_amount,
+            ctx.bumps.claim_status,
+            ctx.bumps.program_authority,
+        )
+    }
 }
