@@ -6,9 +6,12 @@
 //! libp2p Kademlia DHT, selected by geo/reputation, and relayed traffic is metered
 //! into the byte-identical M4 dual-signed [`receipt`]s.
 
+pub mod client;
+pub mod discovery;
 pub mod error;
 pub mod keys;
 pub mod metering;
+pub mod node;
 pub mod noise;
 pub mod receipt;
 pub mod selection;

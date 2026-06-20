@@ -4111,6 +4111,7 @@ dependencies = [
 name = "weft-net"
 version = "0.1.0"
 dependencies = [
+ "bincode",
  "blake2",
  "bs58",
  "chacha20",

@@ -57,6 +57,13 @@ pub struct Cell {
     pub delta: Vec<u8>, // PAYLOAD_SIZE
 }
 
+impl Cell {
+    /// Total wire byte length (fixed across hop counts) — what a relay meters per cell.
+    pub fn wire_len(&self) -> usize {
+        32 + self.beta.len() + MAC_SIZE + self.delta.len()
+    }
+}
+
 /// What a hop should do after peeling one layer. `reply_key` lets the hop seal one
 /// layer of a reverse-path reply (a VPN is bidirectional); the client, holding every
 /// hop's reply key, opens the layered reply.
