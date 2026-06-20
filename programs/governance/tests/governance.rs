@@ -542,6 +542,9 @@ fn update_split_inner() -> (Pubkey, Vec<AccountMeta>, Vec<u8>) {
         reputation_max_bps: 20_000,
         staking_bonus_bps: 2_000,
         staking_bonus_threshold: 10_000_000_000_000,
+        bootstrap_node_limit: 10_000,
+        bootstrap_bonus_bps: 5_000,
+        bootstrap_end_ts: 0,
     };
     let data = governance::instruction::UpdateProtocolConfig { params }.data();
     let inner = vec![

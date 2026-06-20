@@ -115,6 +115,7 @@ impl Register<'_> {
             reputation: 0,
             stake_amount: 0,
             bump,
+            sequence: 0, // stamped below once the registry counter is bumped
         });
 
         let metadata = MetadataArgsV2 {
@@ -175,6 +176,14 @@ impl Register<'_> {
             .node_count
             .checked_add(1)
             .ok_or(RegistryError::MathOverflow)?;
+        // Stamp the node's global registration order (monotonic; never rewound by a
+        // deregister) for the M8 cold-start bonus.
+        self.registry.node_sequence = self
+            .registry
+            .node_sequence
+            .checked_add(1)
+            .ok_or(RegistryError::MathOverflow)?;
+        self.node.sequence = self.registry.node_sequence;
         Ok(())
     }
 }

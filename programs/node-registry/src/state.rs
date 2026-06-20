@@ -12,7 +12,7 @@ pub struct Registry {
     pub active_tree: Pubkey,
     /// Number of tree shards provisioned so far.
     pub tree_count: u16,
-    /// Currently registered (active) nodes.
+    /// Currently registered (active) nodes (decremented on deregister).
     pub node_count: u64,
     /// Program allowed to write `NodeState.reputation` (M3). Defaults to `authority`.
     pub reputation_authority: Pubkey,
@@ -21,6 +21,10 @@ pub struct Registry {
     /// When true, `register` is rejected.
     pub paused: bool,
     pub bump: u8,
+    /// Monotonic count of nodes ever registered (never decremented) — the source of each
+    /// node's global `sequence` for the M8 cold-start bonus. Appended after `bump` so the
+    /// existing on-chain `Registry` layout is preserved (old accounts read 0).
+    pub node_sequence: u64,
 }
 
 /// One merkle-tree shard. PDA `[TREE_SEED, index_le]`.
@@ -70,4 +74,8 @@ pub struct NodeState {
     /// Staked $WEFT mirrored by the M3 staking program.
     pub stake_amount: u64,
     pub bump: u8,
+    /// Global registration order, 1-based, stamped at `register` (M8 cold-start). Nodes
+    /// with `sequence <= bootstrap_node_limit` earn the early-adopter bonus. Appended
+    /// after `bump`; pre-M8 `NodeState` accounts read 0 here (= "no bonus").
+    pub sequence: u64,
 }

@@ -113,6 +113,7 @@ fn initialize_sets_fields() {
     assert_eq!(r.active_tree, tree);
     assert_eq!(r.tree_count, 0);
     assert_eq!(r.node_count, 0);
+    assert_eq!(r.node_sequence, 0);
     assert_eq!(r.reputation_authority, authority.pubkey());
     assert_eq!(r.staking_authority, authority.pubkey());
     assert!(!r.paused);
@@ -355,6 +356,7 @@ fn set_node_state(svm: &mut LiteSVM, operator: &Pubkey, node_id: u64, status: u8
         reputation: 0,
         stake_amount: 0,
         bump,
+        sequence: 0,
     };
     let mut data = Vec::new();
     node.try_serialize(&mut data).unwrap();

@@ -127,4 +127,11 @@ pub struct ProtocolConfig {
     pub staking_bonus_bps: u32,
     pub staking_bonus_threshold: u64,
     pub bump: u8,
+    // Cold-start bonus (M8) — consumed off-chain by the aggregator, governed here.
+    // Nodes with `NodeState.sequence <= bootstrap_node_limit` earn `bootstrap_bonus_bps`
+    // until `bootstrap_end_ts`. Appended after `bump` so the existing on-chain
+    // `ProtocolConfig` layout is preserved.
+    pub bootstrap_node_limit: u64,
+    pub bootstrap_bonus_bps: u32,
+    pub bootstrap_end_ts: i64,
 }

@@ -38,6 +38,7 @@ impl InitializeRegistry<'_> {
             staking_authority: authority,
             paused: false,
             bump,
+            node_sequence: 0,
         });
         Ok(())
     }

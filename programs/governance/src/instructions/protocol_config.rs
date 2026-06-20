@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use weft_primitives::{
-    BASE_RATE_PER_GB, BPS, GEO_BONUS_MAX_BPS, REPUTATION_MAX_BPS, REPUTATION_MIN_BPS,
-    SPLIT_BURN_BPS, SPLIT_NODES_BPS, SPLIT_TREASURY_BPS, STAKING_BONUS_BPS,
+    BASE_RATE_PER_GB, BOOTSTRAP_NODE_LIMIT, BPS, GEO_BONUS_MAX_BPS, REPUTATION_MAX_BPS,
+    REPUTATION_MIN_BPS, SPLIT_BURN_BPS, SPLIT_NODES_BPS, SPLIT_TREASURY_BPS, STAKING_BONUS_BPS,
     STAKING_BONUS_THRESHOLD,
 };
 
@@ -57,6 +57,11 @@ impl InitializeProtocolConfig<'_> {
             staking_bonus_bps: STAKING_BONUS_BPS,
             staking_bonus_threshold: STAKING_BONUS_THRESHOLD,
             bump,
+            // Cold-start defaults: first 10k nodes, +50%, no end (governance sets the
+            // window via a proposal once the TGE date is known).
+            bootstrap_node_limit: BOOTSTRAP_NODE_LIMIT,
+            bootstrap_bonus_bps: 5_000,
+            bootstrap_end_ts: 0,
         });
         Ok(())
     }
@@ -77,6 +82,9 @@ pub struct ProtocolParams {
     pub reputation_max_bps: u32,
     pub staking_bonus_bps: u32,
     pub staking_bonus_threshold: u64,
+    pub bootstrap_node_limit: u64,
+    pub bootstrap_bonus_bps: u32,
+    pub bootstrap_end_ts: i64,
 }
 
 #[derive(Accounts)]
@@ -104,8 +112,10 @@ impl UpdateProtocolConfig<'_> {
             p.reputation_min_bps <= p.reputation_max_bps
                 && p.geo_bonus_max_bps <= BPS
                 && p.staking_bonus_bps <= BPS
+                && p.bootstrap_bonus_bps <= weft_primitives::BOOTSTRAP_BONUS_MAX_BPS
                 && p.dispute_window_seconds >= 0
-                && p.clawback_window_seconds >= 0,
+                && p.clawback_window_seconds >= 0
+                && p.bootstrap_end_ts >= 0,
             GovError::InvalidParam
         );
         let c = &mut self.protocol_config;
@@ -120,6 +130,9 @@ impl UpdateProtocolConfig<'_> {
         c.reputation_max_bps = p.reputation_max_bps;
         c.staking_bonus_bps = p.staking_bonus_bps;
         c.staking_bonus_threshold = p.staking_bonus_threshold;
+        c.bootstrap_node_limit = p.bootstrap_node_limit;
+        c.bootstrap_bonus_bps = p.bootstrap_bonus_bps;
+        c.bootstrap_end_ts = p.bootstrap_end_ts;
         Ok(())
     }
 }
