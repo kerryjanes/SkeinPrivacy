@@ -625,3 +625,46 @@ fn slash_to_treasury_saturates_and_gated() {
     assert_eq!(get_position(&svm, &op.pubkey(), 1).amount, 0);
     assert_eq!(node_stake(&svm, &node), 0); // mirror zeroed
 }
+
+fn set_slash_authority_ix(authority: &Pubkey, new: &Pubkey) -> Instruction {
+    let data = staking::instruction::SetSlashAuthority {
+        new_slash_authority: *new,
+    }
+    .data();
+    let metas = staking::accounts::SetSlashAuthority {
+        authority: *authority,
+        config: config_pda(),
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(staking::ID, &data, metas)
+}
+
+#[test]
+fn set_slash_authority_admin_only() {
+    let (mut svm, authority) = setup();
+    let _ = full_setup(&mut svm, &authority, 100);
+    let new = Pubkey::new_unique();
+    send(
+        &mut svm,
+        set_slash_authority_ix(&authority.pubkey(), &new),
+        &authority,
+        &[&authority],
+    )
+    .unwrap();
+    let cfg = staking::StakingConfig::try_deserialize(
+        &mut svm.get_account(&config_pda()).unwrap().data.as_slice(),
+    )
+    .unwrap();
+    assert_eq!(cfg.slash_authority, new);
+    let attacker = Keypair::new();
+    svm.airdrop(&attacker.pubkey(), 1_000_000_000_000).unwrap();
+    assert_failed_with(
+        send(
+            &mut svm,
+            set_slash_authority_ix(&attacker.pubkey(), &attacker.pubkey()),
+            &attacker,
+            &[&attacker],
+        ),
+        "Unauthorized",
+    );
+}

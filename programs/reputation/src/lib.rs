@@ -48,4 +48,8 @@ pub mod reputation {
     pub fn resync(ctx: Context<Resync>) -> Result<()> {
         ctx.accounts.resync(ctx.bumps.program_authority)
     }
+
+    pub fn set_oracle(ctx: Context<SetOracle>, new_oracle: Pubkey) -> Result<()> {
+        ctx.accounts.set_oracle(new_oracle)
+    }
 }

@@ -51,4 +51,11 @@ pub mod staking {
     pub fn resync(ctx: Context<Resync>) -> Result<()> {
         ctx.accounts.resync(ctx.bumps.program_authority)
     }
+
+    pub fn set_slash_authority(
+        ctx: Context<SetSlashAuthority>,
+        new_slash_authority: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.set_slash_authority(new_slash_authority)
+    }
 }

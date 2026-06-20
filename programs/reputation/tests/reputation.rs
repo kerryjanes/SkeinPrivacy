@@ -358,3 +358,47 @@ fn penalize_lowers_and_mirrors() {
     .unwrap();
     assert!(node_reputation(&svm, &node) < before); // penalized
 }
+
+fn set_oracle_ix(authority: &Pubkey, new: &Pubkey) -> Instruction {
+    let data = reputation::instruction::SetOracle { new_oracle: *new }.data();
+    let metas = reputation::accounts::SetOracle {
+        authority: *authority,
+        config: config_pda(),
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(reputation::ID, &data, metas)
+}
+
+#[test]
+fn set_oracle_admin_only() {
+    let (mut svm, authority) = setup();
+    set_clock(&mut svm, 1_000);
+    init_registry(&mut svm, &authority);
+    let oracle = Keypair::new();
+    svm.airdrop(&oracle.pubkey(), 1_000_000_000_000).unwrap();
+    init_config(&mut svm, &authority, &oracle.pubkey());
+    let new = Pubkey::new_unique();
+    send(
+        &mut svm,
+        set_oracle_ix(&authority.pubkey(), &new),
+        &authority,
+        &[&authority],
+    )
+    .unwrap();
+    let cfg = reputation::ReputationConfig::try_deserialize(
+        &mut svm.get_account(&config_pda()).unwrap().data.as_slice(),
+    )
+    .unwrap();
+    assert_eq!(cfg.oracle, new);
+    let attacker = Keypair::new();
+    svm.airdrop(&attacker.pubkey(), 1_000_000_000_000).unwrap();
+    assert_failed_with(
+        send(
+            &mut svm,
+            set_oracle_ix(&attacker.pubkey(), &attacker.pubkey()),
+            &attacker,
+            &[&attacker],
+        ),
+        "Unauthorized",
+    );
+}
