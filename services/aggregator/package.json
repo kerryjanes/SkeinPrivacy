@@ -6,11 +6,13 @@
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
     "start": "tsx src/cli.ts",
+    "smoke": "tsx src/m4smoke.ts",
     "test": "vitest run"
   },
   "dependencies": {
     "@noble/curves": "^1.6.0",
     "@weft/sdk": "workspace:*",
+    "@solana-program/system": "^0.8.0",
     "@solana-program/token": "^0.14.0",
     "@solana/kit": "^6.10.0"
   },
