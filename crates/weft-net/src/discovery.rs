@@ -109,11 +109,12 @@ pub fn validate_record(key: &RecordKey, value: &[u8]) -> crate::error::Result<No
 }
 
 /// The libp2p behaviour: Kademlia (record store) + identify (so Kademlia learns
-/// reachable listen addresses).
+/// reachable listen addresses) + the `/weft/cell/1.0.0` cell transport (M7).
 #[derive(NetworkBehaviour)]
 pub struct WeftBehaviour {
     pub kad: kad::Behaviour<MemoryStore>,
     pub identify: identify::Behaviour,
+    pub cell: crate::cell_transport::CellBehaviour,
 }
 
 fn make_behaviour(key: &identity::Keypair) -> WeftBehaviour {
@@ -124,6 +125,7 @@ fn make_behaviour(key: &identity::Keypair) -> WeftBehaviour {
             "/weft/1.0.0".into(),
             key.public(),
         )),
+        cell: crate::cell_transport::cell_behaviour(),
     }
 }
 

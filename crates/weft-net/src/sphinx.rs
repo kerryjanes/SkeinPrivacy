@@ -50,7 +50,7 @@ pub struct OnionHop {
 
 /// The fixed-size wire cell. `delta` is always [`PAYLOAD_SIZE`] regardless of hop
 /// count, so a 3-hop and a 5-hop circuit are indistinguishable by length.
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Cell {
     pub alpha: [u8; 32],
     pub beta: Vec<u8>, // BETA_LEN
