@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
     "genesis": "tsx src/cli.ts",
+    "m8smoke": "tsx src/m8smoke.ts",
     "test": "vitest run"
   },
   "dependencies": {
