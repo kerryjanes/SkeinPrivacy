@@ -128,6 +128,52 @@ pub fn traffic_reward(
 }
 
 // ---------------------------------------------------------------------------
+// Traffic receipts (M6 metering ↔ M4 settlement)
+// ---------------------------------------------------------------------------
+
+/// Byte length of the canonical dual-signed traffic-receipt signing preimage.
+pub const RECEIPT_CORE_LEN: usize = 104;
+
+/// Canonical signing preimage for a dual-signed traffic receipt, byte-identical to
+/// the off-chain aggregator's `encodeReceiptCore` (`services/aggregator/src/receipts.ts`)
+/// so a receipt minted by the Rust data plane (M6) verifies in the TS aggregator (M4)
+/// and feeds the on-chain reward merkle. Layout (no padding, all little-endian):
+/// `client(32) ‖ operator(32) ‖ node_id ‖ bytes ‖ window_start ‖ window_end ‖ nonce`.
+/// The client signs `client_sig` and the relay/operator signs `relay_sig`, both over
+/// this preimage.
+pub fn encode_receipt_core(
+    client: &[u8; 32],
+    operator: &[u8; 32],
+    node_id: u64,
+    bytes: u64,
+    window_start: u64,
+    window_end: u64,
+    nonce: u64,
+) -> [u8; RECEIPT_CORE_LEN] {
+    let mut out = [0u8; RECEIPT_CORE_LEN];
+    out[0..32].copy_from_slice(client);
+    out[32..64].copy_from_slice(operator);
+    out[64..72].copy_from_slice(&node_id.to_le_bytes());
+    out[72..80].copy_from_slice(&bytes.to_le_bytes());
+    out[80..88].copy_from_slice(&window_start.to_le_bytes());
+    out[88..96].copy_from_slice(&window_end.to_le_bytes());
+    out[96..104].copy_from_slice(&nonce.to_le_bytes());
+    out
+}
+
+/// A receipt window belongs to `epoch` iff it is non-empty and lies wholly inside the
+/// epoch's `[epoch·EPOCH_SECONDS, (epoch+1)·EPOCH_SECONDS)` range. Mirrors the
+/// aggregator's `windowInEpoch`.
+pub fn receipt_window_in_epoch(epoch: u64, window_start: u64, window_end: u64) -> bool {
+    if window_end <= window_start {
+        return false;
+    }
+    let start = epoch.saturating_mul(EPOCH_SECONDS);
+    let end = epoch.saturating_add(1).saturating_mul(EPOCH_SECONDS);
+    window_start >= start && window_end <= end
+}
+
+// ---------------------------------------------------------------------------
 // User traffic-payment split (`SPEC.md` > Burn Mechanism)
 // ---------------------------------------------------------------------------
 
@@ -542,6 +588,32 @@ mod tests {
         assert_eq!(s.nodes, 6_999);
         assert_eq!(s.burn, 1_999);
         assert_eq!(s.treasury, 1_001);
+    }
+
+    #[test]
+    fn receipt_core_layout_is_canonical() {
+        let client = [1u8; 32];
+        let operator = [2u8; 32];
+        let core = encode_receipt_core(&client, &operator, 7, 123_456, 600, 601, 9);
+        assert_eq!(core.len(), RECEIPT_CORE_LEN);
+        assert_eq!(&core[0..32], &client);
+        assert_eq!(&core[32..64], &operator);
+        assert_eq!(&core[64..72], &7u64.to_le_bytes());
+        assert_eq!(&core[72..80], &123_456u64.to_le_bytes());
+        assert_eq!(&core[80..88], &600u64.to_le_bytes());
+        assert_eq!(&core[88..96], &601u64.to_le_bytes());
+        assert_eq!(&core[96..104], &9u64.to_le_bytes());
+    }
+
+    #[test]
+    fn receipt_window_epoch_bounds() {
+        // epoch 1 spans [600, 1200)
+        assert!(receipt_window_in_epoch(1, 600, 1200));
+        assert!(receipt_window_in_epoch(1, 700, 800));
+        assert!(!receipt_window_in_epoch(1, 599, 800)); // starts before
+        assert!(!receipt_window_in_epoch(1, 700, 1201)); // ends after
+        assert!(!receipt_window_in_epoch(1, 800, 800)); // empty
+        assert!(!receipt_window_in_epoch(0, 600, 1200)); // wrong epoch
     }
 
     #[test]
