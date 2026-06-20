@@ -10,6 +10,10 @@
 
 #![cfg_attr(not(test), no_std)]
 
+extern crate alloc;
+
+pub mod merkle;
+
 /// Basis-point denominator. `10_000 bps == 100%`.
 pub const BPS: u32 = 10_000;
 

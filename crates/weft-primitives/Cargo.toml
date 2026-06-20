@@ -6,5 +6,10 @@ edition.workspace = true
 license.workspace = true
 repository.workspace = true
 
+[dependencies]
+# no_std SHA-256 for the reward merkle tree (byte-identical to Solana `hashv` and
+# @noble/hashes sha256, so on-chain, the aggregator, and tests agree).
+sha2 = { version = "0.10", default-features = false }
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
