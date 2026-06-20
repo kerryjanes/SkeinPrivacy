@@ -9,6 +9,7 @@
 pub mod error;
 pub mod keys;
 pub mod noise;
+pub mod sphinx;
 
 pub use error::{NetError, Result};
 pub use keys::{verify_sig, WeftKeypair};

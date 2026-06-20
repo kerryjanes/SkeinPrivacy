@@ -1,7 +1,13 @@
-//! Node identity: an ed25519 operator key (signs receipts + DHT descriptors, equals
-//! the on-chain `operator` pubkey) and an x25519 static key (the WireGuard/Noise link
-//! key, published in the DHT and committed via `NodeState.endpoint_hash`).
+//! Node identity, three keys:
+//! - **operator** ed25519 — signs receipts + DHT descriptors, equals the on-chain
+//!   `operator` pubkey;
+//! - **static** x25519 — the WireGuard/Noise link key (hop-to-hop transport);
+//! - **onion** Ristretto — the Sphinx onion key (prime-order group → clean blinding).
+//!
+//! All three are published in the DHT descriptor and committed via
+//! `NodeState.endpoint_hash`.
 
+use curve25519_dalek::{constants::RISTRETTO_BASEPOINT_POINT, scalar::Scalar};
 use ed25519_dalek::{Signer, SigningKey, Verifier, VerifyingKey};
 use rand::{CryptoRng, RngCore};
 use x25519_dalek::{PublicKey, StaticSecret};
@@ -9,6 +15,7 @@ use x25519_dalek::{PublicKey, StaticSecret};
 pub struct WeftKeypair {
     operator: SigningKey,
     static_secret: StaticSecret,
+    onion_secret: Scalar,
 }
 
 impl WeftKeypair {
@@ -18,17 +25,24 @@ impl WeftKeypair {
         let operator = SigningKey::from_bytes(&sk);
         let mut xs = [0u8; 32];
         rng.fill_bytes(&mut xs);
+        let onion_secret = Scalar::random(rng);
         Self {
             operator,
             static_secret: StaticSecret::from(xs),
+            onion_secret,
         }
     }
 
-    /// Reconstruct from raw 32-byte seeds (operator ed25519 seed + x25519 static).
-    pub fn from_bytes(operator_seed: &[u8; 32], static_secret: &[u8; 32]) -> Self {
+    /// Reconstruct from raw seeds (operator ed25519 seed, x25519 static, onion scalar).
+    pub fn from_bytes(
+        operator_seed: &[u8; 32],
+        static_secret: &[u8; 32],
+        onion_secret: &[u8; 32],
+    ) -> Self {
         Self {
             operator: SigningKey::from_bytes(operator_seed),
             static_secret: StaticSecret::from(*static_secret),
+            onion_secret: Scalar::from_bytes_mod_order(*onion_secret),
         }
     }
 
@@ -44,6 +58,17 @@ impl WeftKeypair {
 
     pub fn static_secret_bytes(&self) -> [u8; 32] {
         self.static_secret.to_bytes()
+    }
+
+    /// The compressed Ristretto onion public key for Sphinx.
+    pub fn onion_public(&self) -> [u8; 32] {
+        (RISTRETTO_BASEPOINT_POINT * self.onion_secret)
+            .compress()
+            .to_bytes()
+    }
+
+    pub fn onion_secret(&self) -> Scalar {
+        self.onion_secret
     }
 
     pub fn sign(&self, msg: &[u8]) -> [u8; 64] {
