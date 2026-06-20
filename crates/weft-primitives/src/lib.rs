@@ -154,8 +154,18 @@ pub struct PaymentSplit {
 /// Node and burn shares round down; the treasury receives the exact remainder
 /// so the parts always sum back to `amount` with zero leaked lamports.
 pub fn split_payment(amount: u64) -> PaymentSplit {
-    let nodes = (amount as u128 * SPLIT_NODES_BPS as u128 / BPS as u128) as u64;
-    let burn = (amount as u128 * SPLIT_BURN_BPS as u128 / BPS as u128) as u64;
+    split_payment_bps(amount, SPLIT_NODES_BPS, SPLIT_BURN_BPS)
+}
+
+/// Split a user traffic payment using DAO-governed node/burn shares (the rest goes
+/// to the treasury). Identical rounding to [`split_payment`] — node and burn shares
+/// round down, the treasury gets the exact remainder. The on-chain `pay_traffic`
+/// instruction reads `nodes_bps`/`burn_bps` from the governed `ProtocolConfig`, so
+/// the split is adjustable by governance without a program upgrade. Callers must
+/// ensure `nodes_bps + burn_bps <= BPS` (validated where the config is set).
+pub fn split_payment_bps(amount: u64, nodes_bps: u32, burn_bps: u32) -> PaymentSplit {
+    let nodes = (amount as u128 * nodes_bps as u128 / BPS as u128) as u64;
+    let burn = (amount as u128 * burn_bps as u128 / BPS as u128) as u64;
     let treasury = amount - nodes - burn;
     PaymentSplit {
         nodes,
@@ -532,6 +542,23 @@ mod tests {
         assert_eq!(s.nodes, 6_999);
         assert_eq!(s.burn, 1_999);
         assert_eq!(s.treasury, 1_001);
+    }
+
+    #[test]
+    fn split_payment_bps_matches_constant_split_at_defaults() {
+        // The governed split with the default bps must be byte-identical to the
+        // compile-time `split_payment`, so the M5 migration changes nothing at par.
+        for amount in [0u64, 1, 7, 9_999, 12_345, 1_000_000, u64::MAX] {
+            assert_eq!(
+                split_payment_bps(amount, SPLIT_NODES_BPS, SPLIT_BURN_BPS),
+                split_payment(amount)
+            );
+        }
+        // A DAO-adjusted split (60/30/10) still conserves the total.
+        let s = split_payment_bps(1_000_000, 6_000, 3_000);
+        assert_eq!(s.nodes, 600_000);
+        assert_eq!(s.burn, 300_000);
+        assert_eq!(s.treasury, 100_000);
     }
 
     #[test]

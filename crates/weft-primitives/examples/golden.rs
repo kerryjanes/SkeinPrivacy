@@ -21,12 +21,12 @@ fn main() {
 
     // --- reward vectors (exercise every clamp + rounding path) ---
     let reward_inputs: &[(u64, u32, u32, u32)] = &[
-        (1_000_000_000, 10_000, 0, 0),          // 1 GB, neutral
-        (5_000_000_000, 20_000, 5_000, 2_000),  // max rep/geo/staking
-        (2_500_000_000, 3_000, 9_000, 9_000),   // rep below floor, geo+staking above cap
-        (0, 20_000, 5_000, 2_000),              // zero bytes
-        (123_456_789, 14_237, 1_234, 2_000),    // arbitrary
-        (1_000_000_000_000, 12_000, 2_500, 0),  // ~1 TB
+        (1_000_000_000, 10_000, 0, 0),         // 1 GB, neutral
+        (5_000_000_000, 20_000, 5_000, 2_000), // max rep/geo/staking
+        (2_500_000_000, 3_000, 9_000, 9_000),  // rep below floor, geo+staking above cap
+        (0, 20_000, 5_000, 2_000),             // zero bytes
+        (123_456_789, 14_237, 1_234, 2_000),   // arbitrary
+        (1_000_000_000_000, 12_000, 2_500, 0), // ~1 TB
     ];
     out.push_str("  \"rewards\": [\n");
     for (i, (bytes, rep, geo, stk)) in reward_inputs.iter().enumerate() {
