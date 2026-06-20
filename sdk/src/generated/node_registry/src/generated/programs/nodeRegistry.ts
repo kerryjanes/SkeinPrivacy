@@ -50,14 +50,20 @@ import {
   getRegisterInstructionAsync,
   getRegisterTreeInstructionAsync,
   getSetAuthorityInstructionAsync,
+  getSetMetricsAuthoritiesInstructionAsync,
   getSetPausedInstructionAsync,
+  getSetReputationInstructionAsync,
+  getSetStakeInstructionAsync,
   getUpdateInstruction,
   parseDeregisterInstruction,
   parseInitializeRegistryInstruction,
   parseRegisterInstruction,
   parseRegisterTreeInstruction,
   parseSetAuthorityInstruction,
+  parseSetMetricsAuthoritiesInstruction,
   parseSetPausedInstruction,
+  parseSetReputationInstruction,
+  parseSetStakeInstruction,
   parseUpdateInstruction,
   type DeregisterAsyncInput,
   type InitializeRegistryAsyncInput,
@@ -66,12 +72,18 @@ import {
   type ParsedRegisterInstruction,
   type ParsedRegisterTreeInstruction,
   type ParsedSetAuthorityInstruction,
+  type ParsedSetMetricsAuthoritiesInstruction,
   type ParsedSetPausedInstruction,
+  type ParsedSetReputationInstruction,
+  type ParsedSetStakeInstruction,
   type ParsedUpdateInstruction,
   type RegisterAsyncInput,
   type RegisterTreeAsyncInput,
   type SetAuthorityAsyncInput,
+  type SetMetricsAuthoritiesAsyncInput,
   type SetPausedAsyncInput,
+  type SetReputationAsyncInput,
+  type SetStakeAsyncInput,
   type UpdateInput,
 } from '../instructions';
 import { findNodePda, findRegistryPda, findTreeShardPda } from '../pdas';
@@ -134,7 +146,10 @@ export enum NodeRegistryInstruction {
   Register,
   RegisterTree,
   SetAuthority,
+  SetMetricsAuthorities,
   SetPaused,
+  SetReputation,
+  SetStake,
   Update,
 }
 
@@ -201,12 +216,45 @@ export function identifyNodeRegistryInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([51, 50, 93, 210, 105, 78, 78, 104]),
+      ),
+      0,
+    )
+  ) {
+    return NodeRegistryInstruction.SetMetricsAuthorities;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([91, 60, 125, 192, 176, 225, 166, 218]),
       ),
       0,
     )
   ) {
     return NodeRegistryInstruction.SetPaused;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([140, 34, 179, 36, 67, 85, 58, 225]),
+      ),
+      0,
+    )
+  ) {
+    return NodeRegistryInstruction.SetReputation;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([86, 173, 233, 196, 120, 133, 103, 254]),
+      ),
+      0,
+    )
+  ) {
+    return NodeRegistryInstruction.SetStake;
   }
   if (
     containsBytes(
@@ -241,7 +289,14 @@ export type ParsedNodeRegistryInstruction<
   | ({
       instructionType: NodeRegistryInstruction.SetAuthority;
     } & ParsedSetAuthorityInstruction<TProgram>)
+  | ({
+      instructionType: NodeRegistryInstruction.SetMetricsAuthorities;
+    } & ParsedSetMetricsAuthoritiesInstruction<TProgram>)
   | ({ instructionType: NodeRegistryInstruction.SetPaused } & ParsedSetPausedInstruction<TProgram>)
+  | ({
+      instructionType: NodeRegistryInstruction.SetReputation;
+    } & ParsedSetReputationInstruction<TProgram>)
+  | ({ instructionType: NodeRegistryInstruction.SetStake } & ParsedSetStakeInstruction<TProgram>)
   | ({ instructionType: NodeRegistryInstruction.Update } & ParsedUpdateInstruction<TProgram>);
 
 export function parseNodeRegistryInstruction<TProgram extends string>(
@@ -284,11 +339,32 @@ export function parseNodeRegistryInstruction<TProgram extends string>(
         ...parseSetAuthorityInstruction(instruction),
       };
     }
+    case NodeRegistryInstruction.SetMetricsAuthorities: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetMetricsAuthorities,
+        ...parseSetMetricsAuthoritiesInstruction(instruction),
+      };
+    }
     case NodeRegistryInstruction.SetPaused: {
       assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: NodeRegistryInstruction.SetPaused,
         ...parseSetPausedInstruction(instruction),
+      };
+    }
+    case NodeRegistryInstruction.SetReputation: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetReputation,
+        ...parseSetReputationInstruction(instruction),
+      };
+    }
+    case NodeRegistryInstruction.SetStake: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetStake,
+        ...parseSetStakeInstruction(instruction),
       };
     }
     case NodeRegistryInstruction.Update: {
@@ -337,9 +413,18 @@ export type NodeRegistryPluginInstructions = {
   setAuthority: (
     input: SetAuthorityAsyncInput,
   ) => ReturnType<typeof getSetAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
+  setMetricsAuthorities: (
+    input: SetMetricsAuthoritiesAsyncInput,
+  ) => ReturnType<typeof getSetMetricsAuthoritiesInstructionAsync> & SelfPlanAndSendFunctions;
   setPaused: (
     input: SetPausedAsyncInput,
   ) => ReturnType<typeof getSetPausedInstructionAsync> & SelfPlanAndSendFunctions;
+  setReputation: (
+    input: SetReputationAsyncInput,
+  ) => ReturnType<typeof getSetReputationInstructionAsync> & SelfPlanAndSendFunctions;
+  setStake: (
+    input: SetStakeAsyncInput,
+  ) => ReturnType<typeof getSetStakeInstructionAsync> & SelfPlanAndSendFunctions;
   update: (
     input: UpdateInput,
   ) => ReturnType<typeof getUpdateInstruction> & SelfPlanAndSendFunctions;
@@ -379,8 +464,14 @@ export function nodeRegistryProgram() {
             addSelfPlanAndSendFunctions(client, getRegisterTreeInstructionAsync(input)),
           setAuthority: (input) =>
             addSelfPlanAndSendFunctions(client, getSetAuthorityInstructionAsync(input)),
+          setMetricsAuthorities: (input) =>
+            addSelfPlanAndSendFunctions(client, getSetMetricsAuthoritiesInstructionAsync(input)),
           setPaused: (input) =>
             addSelfPlanAndSendFunctions(client, getSetPausedInstructionAsync(input)),
+          setReputation: (input) =>
+            addSelfPlanAndSendFunctions(client, getSetReputationInstructionAsync(input)),
+          setStake: (input) =>
+            addSelfPlanAndSendFunctions(client, getSetStakeInstructionAsync(input)),
           update: (input) => addSelfPlanAndSendFunctions(client, getUpdateInstruction(input)),
         },
         pdas: { registry: findRegistryPda, node: findNodePda, treeShard: findTreeShardPda },

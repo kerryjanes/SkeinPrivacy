@@ -11,5 +11,8 @@ export * from './initializeRegistry';
 export * from './register';
 export * from './registerTree';
 export * from './setAuthority';
+export * from './setMetricsAuthorities';
 export * from './setPaused';
+export * from './setReputation';
+export * from './setStake';
 export * from './update';
