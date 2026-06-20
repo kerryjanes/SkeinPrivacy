@@ -69,6 +69,16 @@ pub mod node_registry {
         ctx.accounts.deregister()
     }
 
+    /// Mirror a node's staked balance into `NodeState` (staking program only).
+    pub fn set_stake(ctx: Context<SetStake>, amount: u64) -> Result<()> {
+        ctx.accounts.set_stake(amount)
+    }
+
+    /// Mirror a node's reputation multiplier into `NodeState` (reputation program only).
+    pub fn set_reputation(ctx: Context<SetReputation>, reputation_bps: u16) -> Result<()> {
+        ctx.accounts.set_reputation(reputation_bps)
+    }
+
     /// Rotate the registry authority.
     pub fn set_authority(ctx: Context<AdminRegistry>, new_authority: Pubkey) -> Result<()> {
         ctx.accounts.set_authority(new_authority)
@@ -77,5 +87,15 @@ pub mod node_registry {
     /// Pause or unpause node registration.
     pub fn set_paused(ctx: Context<AdminRegistry>, paused: bool) -> Result<()> {
         ctx.accounts.set_paused(paused)
+    }
+
+    /// Set the staking/reputation metric-writer authorities (admin).
+    pub fn set_metrics_authorities(
+        ctx: Context<AdminRegistry>,
+        reputation_authority: Pubkey,
+        staking_authority: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts
+            .set_metrics_authorities(reputation_authority, staking_authority)
     }
 }

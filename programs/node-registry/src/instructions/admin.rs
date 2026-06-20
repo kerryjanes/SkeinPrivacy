@@ -25,4 +25,16 @@ impl AdminRegistry<'_> {
         self.registry.paused = paused;
         Ok(())
     }
+
+    /// Point the gated metric writers at the staking/reputation programs'
+    /// `[b"authority"]` signer PDAs (only they may then mirror into `NodeState`).
+    pub fn set_metrics_authorities(
+        &mut self,
+        reputation_authority: Pubkey,
+        staking_authority: Pubkey,
+    ) -> Result<()> {
+        self.registry.reputation_authority = reputation_authority;
+        self.registry.staking_authority = staking_authority;
+        Ok(())
+    }
 }

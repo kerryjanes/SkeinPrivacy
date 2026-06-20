@@ -540,3 +540,103 @@ fn deregister_closes_node_state() {
     send(&mut svm, deregister_ix(&op.pubkey(), 7), &op).unwrap();
     assert!(svm.get_account(&pda).is_none_or(|a| a.lamports == 0));
 }
+
+fn set_metrics_authorities_ix(authority: &Pubkey, rep: &Pubkey, stk: &Pubkey) -> Instruction {
+    let data = node_registry::instruction::SetMetricsAuthorities {
+        reputation_authority: *rep,
+        staking_authority: *stk,
+    }
+    .data();
+    let metas = node_registry::accounts::AdminRegistry {
+        authority: *authority,
+        registry: registry_pda(),
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(node_registry::ID, &data, metas)
+}
+
+fn set_stake_ix(staking_authority: &Pubkey, node: &Pubkey, amount: u64) -> Instruction {
+    let data = node_registry::instruction::SetStake { amount }.data();
+    let metas = node_registry::accounts::SetStake {
+        staking_authority: *staking_authority,
+        registry: registry_pda(),
+        node: *node,
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(node_registry::ID, &data, metas)
+}
+
+fn set_reputation_ix(reputation_authority: &Pubkey, node: &Pubkey, bps: u16) -> Instruction {
+    let data = node_registry::instruction::SetReputation {
+        reputation_bps: bps,
+    }
+    .data();
+    let metas = node_registry::accounts::SetReputation {
+        reputation_authority: *reputation_authority,
+        registry: registry_pda(),
+        node: *node,
+    }
+    .to_account_metas(None);
+    Instruction::new_with_bytes(node_registry::ID, &data, metas)
+}
+
+#[test]
+fn gated_mirror_writes_node_metrics() {
+    let (mut svm, authority) = setup();
+    init_registry(&mut svm, &authority);
+    let op = Keypair::new();
+    svm.airdrop(&op.pubkey(), 100_000_000_000).unwrap();
+    let node = set_node_state(&mut svm, &op.pubkey(), 7, node_registry::STATUS_ACTIVE);
+
+    let staking_auth = Keypair::new();
+    let rep_auth = Keypair::new();
+    for k in [&staking_auth, &rep_auth] {
+        svm.airdrop(&k.pubkey(), 100_000_000_000).unwrap();
+    }
+
+    // admin points the gated writers at the two authorities
+    send(
+        &mut svm,
+        set_metrics_authorities_ix(
+            &authority.pubkey(),
+            &rep_auth.pubkey(),
+            &staking_auth.pubkey(),
+        ),
+        &authority,
+    )
+    .unwrap();
+
+    // staking authority mirrors stake; reputation authority cannot
+    send(
+        &mut svm,
+        set_stake_ix(&staking_auth.pubkey(), &node, 12_345),
+        &staking_auth,
+    )
+    .unwrap();
+    assert_eq!(get_node(&svm, &node).stake_amount, 12_345);
+    assert_failed_with(
+        send(
+            &mut svm,
+            set_stake_ix(&rep_auth.pubkey(), &node, 1),
+            &rep_auth,
+        ),
+        "Unauthorized",
+    );
+
+    // reputation authority mirrors reputation; staking authority cannot
+    send(
+        &mut svm,
+        set_reputation_ix(&rep_auth.pubkey(), &node, 15_000),
+        &rep_auth,
+    )
+    .unwrap();
+    assert_eq!(get_node(&svm, &node).reputation, 15_000);
+    assert_failed_with(
+        send(
+            &mut svm,
+            set_reputation_ix(&staking_auth.pubkey(), &node, 1),
+            &staking_auth,
+        ),
+        "Unauthorized",
+    );
+}
