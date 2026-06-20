@@ -11,5 +11,9 @@ repository.workspace = true
 # @noble/hashes sha256, so on-chain, the aggregator, and tests agree).
 sha2 = { version = "0.10", default-features = false }
 
+[dev-dependencies]
+# Property-based fuzzing of the economic integer math (audit hardening, M8).
+proptest = "1"
+
 [lints.rust]
 unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

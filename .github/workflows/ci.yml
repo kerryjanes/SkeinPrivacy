@@ -58,3 +58,14 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
       - run: pnpm build
+
+  security:
+    name: Dependency audit (cargo-deny)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # cargo-deny checks advisories (RUSTSEC), license policy, banned crates, and
+      # source registries against `deny.toml` (M8 audit hardening).
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check advisories bans licenses sources

@@ -1,0 +1,58 @@
+# cargo-deny configuration (M8 audit hardening). Gate on known vulnerabilities + yanked
+# crates and a permissive-license allowlist. The large solana/libp2p transitive tree
+# pulls in several *unmaintained-but-not-vulnerable* crates (ansi_term, paste,
+# derivative, bincode, libsecp256k1) we don't control, so the unmaintained check is
+# scoped to first-party workspace deps; vulnerabilities still fail the build globally.
+
+[advisories]
+version = 2
+yanked = "deny"
+unmaintained = "workspace"
+ignore = [
+    # bincode 1.3 is flagged unmaintained because the project pivoted to the
+    # incompatible 2.x line — it is NOT a vulnerability. We use it only to (de)serialize
+    # the self-authenticating libp2p DHT node descriptor (`crates/weft-net/discovery.rs`),
+    # whose integrity is guaranteed by an operator ed25519 signature regardless of the
+    # encoder. Tracked for a future migration to bincode 2.x. See SECURITY.md.
+    "RUSTSEC-2025-0141",
+]
+
+[licenses]
+version = 2
+# The workspace is AGPL-3.0-or-later; dependencies are standard permissive OSS licenses.
+allow = [
+    "AGPL-3.0",
+    "AGPL-3.0-or-later",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "MIT",
+    "MIT-0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "Zlib",
+    "MPL-2.0",
+    "CC0-1.0",
+    "Unlicense",
+    "0BSD",
+]
+confidence-threshold = 0.8
+# mpl-bubblegum ships an Apache-2.0 LICENSE whose text scores below the default
+# confidence threshold; clarify it explicitly.
+[[licenses.clarify]]
+crate = "mpl-bubblegum"
+expression = "Apache-2.0"
+license-files = [{ path = "LICENSE", hash = 0xd3dacb8e }]
+
+[bans]
+multiple-versions = "allow"  # the libp2p/solana trees legitimately duplicate some crates
+wildcards = "allow"          # path deps use workspace versions
+allow = []
+deny = []
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
