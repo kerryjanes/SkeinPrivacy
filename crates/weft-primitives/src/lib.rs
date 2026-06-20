@@ -127,6 +127,41 @@ pub fn traffic_reward(
     }
 }
 
+/// Default cap on the number of early nodes eligible for the cold-start bonus
+/// (`SPEC.md` > Cold Start: "the first 10,000 nodes"). Governance can override it via
+/// `ProtocolConfig.bootstrap_node_limit`.
+pub const BOOTSTRAP_NODE_LIMIT: u64 = 10_000;
+
+/// Maximum cold-start bonus (bps): +100%. Governance sets the active value within this cap.
+pub const BOOTSTRAP_BONUS_MAX_BPS: u32 = 10_000;
+
+/// Clamp a cold-start bonus into `[0, +100%]`.
+pub fn clamp_bootstrap_bonus_bps(bootstrap_bonus_bps: u32) -> u32 {
+    bootstrap_bonus_bps.min(BOOTSTRAP_BONUS_MAX_BPS)
+}
+
+/// Reward for `bytes` of relayed traffic with the cold-start bonus applied on top of the
+/// base [`traffic_reward`] (`SPEC.md` > Cold Start: "increased rewards from the emissions
+/// pool" for the first 10,000 nodes). The bonus is the *last* multiplier so the base
+/// formula and its golden vectors stay unchanged; the caller decides eligibility (node
+/// sequence ≤ limit, before the bonus end timestamp) and passes `0` when ineligible.
+pub fn traffic_reward_with_bootstrap(
+    bytes: u64,
+    reputation_bps: u32,
+    geo_bonus_bps: u32,
+    staking_bonus_bps: u32,
+    bootstrap_bonus_bps: u32,
+) -> u64 {
+    let base = traffic_reward(bytes, reputation_bps, geo_bonus_bps, staking_bonus_bps) as u128;
+    let bonus = (BPS + clamp_bootstrap_bonus_bps(bootstrap_bonus_bps)) as u128;
+    let reward = base * bonus / BPS as u128;
+    if reward > u64::MAX as u128 {
+        u64::MAX
+    } else {
+        reward as u64
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Traffic receipts (M6 metering ↔ M4 settlement)
 // ---------------------------------------------------------------------------
@@ -218,6 +253,22 @@ pub fn split_payment_bps(amount: u64, nodes_bps: u32, burn_bps: u32) -> PaymentS
         burn,
         treasury,
     }
+}
+
+// ---------------------------------------------------------------------------
+// IDO / TGE distribution (`SPEC.md` > Token Distribution: "25% at TGE, rest 12mo")
+// ---------------------------------------------------------------------------
+
+/// Default share of an IDO allocation released immediately at TGE: 25%.
+pub const TGE_UNLOCK_BPS: u32 = 2_500;
+
+/// The TGE (immediate) and vesting (linear) portions of an IDO `allocation`. The TGE
+/// share rounds down; the vesting share gets the exact remainder so the two always sum
+/// back to `allocation`. `tge_bps` is supplied by the distributor (default
+/// [`TGE_UNLOCK_BPS`]) so the unlock fraction is configurable per round.
+pub fn split_tge(allocation: u64, tge_bps: u32) -> (u64, u64) {
+    let tge = (allocation as u128 * tge_bps.min(BPS) as u128 / BPS as u128) as u64;
+    (tge, allocation - tge)
 }
 
 // ---------------------------------------------------------------------------
@@ -614,6 +665,41 @@ mod tests {
         assert!(!receipt_window_in_epoch(1, 700, 1201)); // ends after
         assert!(!receipt_window_in_epoch(1, 800, 800)); // empty
         assert!(!receipt_window_in_epoch(0, 600, 1200)); // wrong epoch
+    }
+
+    #[test]
+    fn split_tge_conserves_and_defaults_to_25_percent() {
+        for allocation in [0u64, 1, 3, 1_000, 1_000_000, u64::MAX] {
+            let (tge, vest) = split_tge(allocation, TGE_UNLOCK_BPS);
+            assert_eq!(tge as u128 + vest as u128, allocation as u128);
+        }
+        let (tge, vest) = split_tge(1_000_000, TGE_UNLOCK_BPS);
+        assert_eq!(tge, 250_000);
+        assert_eq!(vest, 750_000);
+        // a 150M IDO allocation → 37.5M TGE + 112.5M vesting
+        let (tge, vest) = split_tge(150_000_000 * ONE_WEFT, TGE_UNLOCK_BPS);
+        assert_eq!(tge, 37_500_000 * ONE_WEFT);
+        assert_eq!(vest, 112_500_000 * ONE_WEFT);
+    }
+
+    #[test]
+    fn bootstrap_bonus_scales_the_base_reward() {
+        let base = traffic_reward(1_000_000_000, 10_000, 0, 0); // 0.1 WEFT
+                                                                // no bonus → identical to the base reward
+        assert_eq!(
+            traffic_reward_with_bootstrap(1_000_000_000, 10_000, 0, 0, 0),
+            base
+        );
+        // +50% bonus
+        assert_eq!(
+            traffic_reward_with_bootstrap(1_000_000_000, 10_000, 0, 0, 5_000),
+            base * 3 / 2
+        );
+        // the bonus is clamped to +100%
+        assert_eq!(
+            traffic_reward_with_bootstrap(1_000_000_000, 10_000, 0, 0, 99_999),
+            base * 2
+        );
     }
 
     #[test]

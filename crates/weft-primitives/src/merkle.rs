@@ -30,6 +30,15 @@ pub fn hash_reward_leaf(epoch: u64, operator: &[u8; 32], node_id: u64, amount: u
     sha256(&[&[0u8], &inner])
 }
 
+/// The merkle leaf for an IDO/TGE allocation entitlement (M8 token distributor). Binds
+/// the **distributor pubkey** (so a proof can't replay across distribution rounds), the
+/// claimant, and the total allocation. Leaf domain `0x02` keeps it disjoint from reward
+/// leaves (`0x00`) and intermediate nodes (`0x01`); double-hashed like the others.
+pub fn hash_allocation_leaf(distributor: &[u8; 32], claimant: &[u8; 32], amount: u64) -> [u8; 32] {
+    let inner = sha256(&[distributor, claimant, &amount.to_le_bytes()]);
+    sha256(&[&[2u8], &inner])
+}
+
 /// Hash two nodes in sorted order with the intermediate domain prefix `0x01`.
 fn hash_pair(a: [u8; 32], b: [u8; 32]) -> [u8; 32] {
     if a <= b {
@@ -157,5 +166,42 @@ mod tests {
             hex,
             "cea5f73a341abd012da25e67633b67f133416f1c5d045b877b8b9602bd8424f1"
         );
+    }
+
+    #[test]
+    fn allocation_leaf_is_distributor_bound_and_distinct_from_reward_leaf() {
+        let dist = [3u8; 32];
+        let claimant = [7u8; 32];
+        // bound to the distributor → a proof can't replay across rounds
+        assert_ne!(
+            hash_allocation_leaf(&dist, &claimant, 100),
+            hash_allocation_leaf(&[9u8; 32], &claimant, 100)
+        );
+        // different claimant / amount → different leaf
+        assert_ne!(
+            hash_allocation_leaf(&dist, &claimant, 100),
+            hash_allocation_leaf(&dist, &[8u8; 32], 100)
+        );
+        assert_ne!(
+            hash_allocation_leaf(&dist, &claimant, 100),
+            hash_allocation_leaf(&dist, &claimant, 101)
+        );
+        // domain `0x02` keeps it disjoint from a same-shaped reward leaf
+        assert_ne!(
+            hash_allocation_leaf(&dist, &claimant, 100),
+            hash_reward_leaf(0, &dist, 0, 100)
+        );
+    }
+
+    #[test]
+    fn allocation_leaves_build_a_verifiable_tree() {
+        let dist = [1u8; 32];
+        let ls: Vec<[u8; 32]> = (0..5u64)
+            .map(|i| hash_allocation_leaf(&dist, &[i as u8; 32], (i + 1) * 1000))
+            .collect();
+        let root = merkle_root(&ls);
+        for (i, leaf) in ls.iter().enumerate() {
+            assert!(merkle_verify(&merkle_proof(&ls, i), root, *leaf));
+        }
     }
 }

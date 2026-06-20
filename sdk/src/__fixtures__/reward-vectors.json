@@ -43,6 +43,65 @@
       "reward": "150000000000"
     }
   ],
+  "bootstrap": [
+    {
+      "bytes": "1000000000",
+      "reputationBps": 10000,
+      "geoBonusBps": 0,
+      "stakingBonusBps": 0,
+      "bootstrapBonusBps": 0,
+      "reward": "100000000"
+    },
+    {
+      "bytes": "1000000000",
+      "reputationBps": 10000,
+      "geoBonusBps": 0,
+      "stakingBonusBps": 0,
+      "bootstrapBonusBps": 5000,
+      "reward": "150000000"
+    },
+    {
+      "bytes": "1000000000",
+      "reputationBps": 20000,
+      "geoBonusBps": 5000,
+      "stakingBonusBps": 2000,
+      "bootstrapBonusBps": 5000,
+      "reward": "540000000"
+    },
+    {
+      "bytes": "1000000000",
+      "reputationBps": 10000,
+      "geoBonusBps": 0,
+      "stakingBonusBps": 0,
+      "bootstrapBonusBps": 99999,
+      "reward": "200000000"
+    }
+  ],
+  "tge": [
+    {
+      "allocation": "150000000000000000",
+      "tgeBps": 2500,
+      "tge": "37500000000000000",
+      "vesting": "112500000000000000"
+    },
+    { "allocation": "1000000", "tgeBps": 2500, "tge": "250000", "vesting": "750000" },
+    { "allocation": "3", "tgeBps": 2500, "tge": "0", "vesting": "3" },
+    { "allocation": "1000", "tgeBps": 10000, "tge": "1000", "vesting": "0" }
+  ],
+  "allocLeaves": [
+    {
+      "distributor": "0101010101010101010101010101010101010101010101010101010101010101",
+      "claimant": "0202020202020202020202020202020202020202020202020202020202020202",
+      "amount": "1000000",
+      "leaf": "bceec1f2445a7389bb9bd1430b30a7fff2cdbffa4886a46decd1f196ad4d1424"
+    },
+    {
+      "distributor": "0303030303030303030303030303030303030303030303030303030303030303",
+      "claimant": "0404040404040404040404040404040404040404040404040404040404040404",
+      "amount": "18446744073709551615",
+      "leaf": "1673ab384952a96000be92e9883e6dfddb05bc399d6c2c090c44aeed3de38657"
+    }
+  ],
   "splits": [
     { "amount": "1000000", "nodes": "700000", "burn": "200000", "treasury": "100000" },
     { "amount": "7", "nodes": "4", "burn": "1", "treasury": "2" },

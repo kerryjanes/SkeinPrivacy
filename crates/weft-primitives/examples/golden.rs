@@ -7,8 +7,8 @@
 //!   cargo run -q -p weft-primitives --example golden > sdk/src/__fixtures__/reward-vectors.json
 
 use weft_primitives::{
-    merkle::{hash_reward_leaf, merkle_proof, merkle_root},
-    split_payment, traffic_reward,
+    merkle::{hash_allocation_leaf, hash_reward_leaf, merkle_proof, merkle_root},
+    split_payment, split_tge, traffic_reward, traffic_reward_with_bootstrap,
 };
 
 fn hex32(b: &[u8; 32]) -> String {
@@ -34,6 +34,58 @@ fn main() {
         out.push_str(&format!(
             "    {{ \"bytes\": \"{bytes}\", \"reputationBps\": {rep}, \"geoBonusBps\": {geo}, \"stakingBonusBps\": {stk}, \"reward\": \"{reward}\" }}{}\n",
             if i + 1 < reward_inputs.len() { "," } else { "" }
+        ));
+    }
+    out.push_str("  ],\n");
+
+    // --- cold-start bootstrap-bonus vectors (M8) ---
+    let bootstrap_inputs: &[(u64, u32, u32, u32, u32)] = &[
+        (1_000_000_000, 10_000, 0, 0, 0),     // no bonus
+        (1_000_000_000, 10_000, 0, 0, 5_000), // +50%
+        (1_000_000_000, 20_000, 5_000, 2_000, 5_000),
+        (1_000_000_000, 10_000, 0, 0, 99_999), // clamped to +100%
+    ];
+    out.push_str("  \"bootstrap\": [\n");
+    for (i, (bytes, rep, geo, stk, boot)) in bootstrap_inputs.iter().enumerate() {
+        let reward = traffic_reward_with_bootstrap(*bytes, *rep, *geo, *stk, *boot);
+        out.push_str(&format!(
+            "    {{ \"bytes\": \"{bytes}\", \"reputationBps\": {rep}, \"geoBonusBps\": {geo}, \"stakingBonusBps\": {stk}, \"bootstrapBonusBps\": {boot}, \"reward\": \"{reward}\" }}{}\n",
+            if i + 1 < bootstrap_inputs.len() { "," } else { "" }
+        ));
+    }
+    out.push_str("  ],\n");
+
+    // --- IDO TGE-split vectors (M8) ---
+    let tge_inputs: &[(u64, u32)] = &[
+        (150_000_000_000_000_000, 2_500), // 150M WEFT @ 25%
+        (1_000_000, 2_500),
+        (3, 2_500),
+        (1_000, 10_000), // 100% at TGE
+    ];
+    out.push_str("  \"tge\": [\n");
+    for (i, (allocation, tge_bps)) in tge_inputs.iter().enumerate() {
+        let (tge, vest) = split_tge(*allocation, *tge_bps);
+        out.push_str(&format!(
+            "    {{ \"allocation\": \"{allocation}\", \"tgeBps\": {tge_bps}, \"tge\": \"{tge}\", \"vesting\": \"{vest}\" }}{}\n",
+            if i + 1 < tge_inputs.len() { "," } else { "" }
+        ));
+    }
+    out.push_str("  ],\n");
+
+    // --- allocation-leaf vectors (distributor-bound, domain 0x02) ---
+    let alloc_inputs: &[([u8; 32], [u8; 32], u64)] = &[
+        ([1u8; 32], [2u8; 32], 1_000_000),
+        ([3u8; 32], [4u8; 32], u64::MAX),
+    ];
+    out.push_str("  \"allocLeaves\": [\n");
+    for (i, (dist, claimant, amount)) in alloc_inputs.iter().enumerate() {
+        let leaf = hash_allocation_leaf(dist, claimant, *amount);
+        out.push_str(&format!(
+            "    {{ \"distributor\": \"{}\", \"claimant\": \"{}\", \"amount\": \"{amount}\", \"leaf\": \"{}\" }}{}\n",
+            hex32(dist),
+            hex32(claimant),
+            hex32(&leaf),
+            if i + 1 < alloc_inputs.len() { "," } else { "" }
         ));
     }
     out.push_str("  ],\n");
