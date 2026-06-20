@@ -161,6 +161,9 @@ async function main(): Promise<void> {
     reputationMaxBps: pcBefore.data.reputationMaxBps,
     stakingBonusBps: pcBefore.data.stakingBonusBps,
     stakingBonusThreshold: pcBefore.data.stakingBonusThreshold,
+    bootstrapNodeLimit: pcBefore.data.bootstrapNodeLimit,
+    bootstrapBonusBps: pcBefore.data.bootstrapBonusBps,
+    bootstrapEndTs: pcBefore.data.bootstrapEndTs,
   });
   const queued = encodeInstruction(innerIx);
   await send(conn, deployer, [
