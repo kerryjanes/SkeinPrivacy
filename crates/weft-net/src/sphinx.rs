@@ -17,6 +17,7 @@ use curve25519_dalek::{
 use hkdf::Hkdf;
 use poly1305::Poly1305;
 use rand::{CryptoRng, RngCore};
+use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
 use crate::error::{NetError, Result};
@@ -49,7 +50,7 @@ pub struct OnionHop {
 
 /// The fixed-size wire cell. `delta` is always [`PAYLOAD_SIZE`] regardless of hop
 /// count, so a 3-hop and a 5-hop circuit are indistinguishable by length.
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Cell {
     pub alpha: [u8; 32],
     pub beta: Vec<u8>, // BETA_LEN

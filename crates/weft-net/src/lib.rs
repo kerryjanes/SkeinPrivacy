@@ -6,6 +6,7 @@
 //! libp2p Kademlia DHT, selected by geo/reputation, and relayed traffic is metered
 //! into the byte-identical M4 dual-signed [`receipt`]s.
 
+pub mod cell_transport;
 pub mod client;
 pub mod discovery;
 pub mod error;
