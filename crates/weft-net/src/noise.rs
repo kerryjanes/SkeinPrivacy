@@ -7,7 +7,7 @@
 
 use snow::{Builder, HandshakeState, TransportState};
 
-use crate::error::{NetError, Result};
+use crate::error::Result;
 
 const PARAMS: &str = "Noise_IKpsk2_25519_ChaChaPoly_BLAKE2s";
 const PSK_INDEX: u8 = 2;
