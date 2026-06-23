@@ -22,7 +22,7 @@ use weft_net::selection::NodeRecord;
 use weft_primitives::capability;
 
 use crate::client_engine::{ClientEngine, DialInfo};
-use crate::exit::{EgressPolicy, InternetExit};
+use crate::exit::{EgressBind, EgressPolicy, InternetExit};
 
 /// Bind a node over the real TCP transport (real noise + yamux), returning its swarm and
 /// the actual bound address.
@@ -56,14 +56,14 @@ impl Drop for LocalNet {
 }
 
 /// Spawn an in-process circuit and return it wired to a client engine. The last node is the
-/// real internet exit (governed by `exit_policy`); the rest are relays. `exit_bind_if` pins
-/// the exit's egress to an interface index (macOS `IP_BOUND_IF`) so that, when this runs on
-/// the same host as a TUN client, the exit's own connections bypass the tunnel routes.
+/// real internet exit (governed by `exit_policy`); the rest are relays. `exit_bind` pins the
+/// exit's egress (interface + source) so that, when this runs on the same host as a TUN
+/// client, the exit's own connections bypass the tunnel routes instead of looping.
 pub async fn spawn(
     hops: usize,
     exit_policy: EgressPolicy,
     base: usize,
-    exit_bind_if: Option<u32>,
+    exit_bind: EgressBind,
 ) -> io::Result<LocalNet> {
     let hops = hops.clamp(2, 5);
     let n = hops + 2; // a little path diversity beyond the minimum
@@ -118,10 +118,10 @@ pub async fn spawn(
     let mut relays = Vec::new();
     for (i, (nd, sw)) in nodes.iter().zip(swarms.into_iter()).enumerate() {
         let relay = Relay::new(nd.kp.operator_pubkey(), nd.id, nd.kp.onion_secret(), 0);
-        let exit: Box<dyn Exit> = if i == last {
-            Box::new(InternetExit::new(exit_policy.clone()).with_bind_interface(exit_bind_if))
+        let exit: std::sync::Arc<dyn Exit> = if i == last {
+            std::sync::Arc::new(InternetExit::new(exit_policy.clone()).with_egress_bind(exit_bind))
         } else {
-            Box::new(EchoExit)
+            std::sync::Arc::new(EchoExit)
         };
         let mut svc = RelayService::new(sw, relay, Clock::System, exit);
         for (peer, addr, raddr) in &routes {

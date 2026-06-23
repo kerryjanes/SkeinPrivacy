@@ -85,7 +85,7 @@ struct RelayHandle {
 
 /// Echo exit: reply with `ack:` + the delivered payload (the trait impl in `weft-net`).
 fn echo_exit() -> ExitHandler {
-    Box::new(weft_net::exit::EchoExit)
+    std::sync::Arc::new(weft_net::exit::EchoExit)
 }
 
 /// Construct + spawn a relay service (already-bound swarm), seeding the full circuit

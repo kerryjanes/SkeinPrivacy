@@ -14,9 +14,12 @@ use tokio::net::TcpStream;
 
 use crate::stream::{exit_err, ClientFrame, ExitFrame};
 
-/// How long the exit waits for upstream bytes before returning an (empty) reply, so the
-/// relay loop is never blocked for long on one cell. The client `Poll`s to drain more.
-const READ_DEADLINE: Duration = Duration::from_millis(25);
+/// How long the exit holds a `Poll`/`Data` cell waiting for upstream bytes before returning
+/// an (empty) reply — a long-poll. It returns immediately when data is ready, so active
+/// flows aren't slowed; idle flows just hold one cell instead of re-polling every few ms,
+/// which keeps the relay from being flooded by many idle connections. Exit I/O runs in its
+/// own task (see the relay loop), so holding a cell this long never blocks other flows.
+const READ_DEADLINE: Duration = Duration::from_millis(1500);
 /// Cap on bytes returned to the client per `Poll` cell. The reverse path isn't fixed-size
 /// (each hop only adds a 16-byte AEAD tag), so a large window keeps download throughput up:
 /// download rate ≈ this / circuit-RTT.
@@ -85,87 +88,118 @@ enum Conn {
     Udp { sock: tokio::net::UdpSocket },
 }
 
-/// A stateful exit that dials real destinations for VPN clients.
+/// How an exit pins its own egress so it bypasses any tunnel the same host is running:
+/// the output interface (macOS `IP_BOUND_IF`) and/or the source address (so reply packets
+/// route back correctly even when a full-tunnel route would otherwise hijack them).
+#[derive(Default, Clone, Copy)]
+pub struct EgressBind {
+    pub if_index: Option<u32>,
+    pub source: Option<IpAddr>,
+}
+
+impl EgressBind {
+    fn is_set(&self) -> bool {
+        self.if_index.is_some() || self.source.is_some()
+    }
+}
+
+type ConnKey = ([u8; 32], u64);
+/// Each live connection is behind its own async mutex, so different streams' I/O proceeds
+/// concurrently while one stream's cells stay serialized (in order). The outer map is a
+/// plain mutex held only briefly (lookup/insert/remove), never across I/O.
+type ConnMap = std::sync::Mutex<HashMap<ConnKey, Arc<tokio::sync::Mutex<Conn>>>>;
+
+use std::sync::Arc;
+
+/// A stateful exit that dials real destinations for VPN clients. Uses interior mutability so
+/// the relay can run many `handle` calls concurrently (one per connection).
 #[derive(Default)]
 pub struct InternetExit {
     policy: EgressPolicy,
-    conns: HashMap<(/*client*/ [u8; 32], /*stream*/ u64), Conn>,
+    conns: ConnMap,
     max_conns: usize,
-    /// Optional interface index to bind egress to (macOS `IP_BOUND_IF`). Needed when the
-    /// exit runs on the same host as a TUN client, so the exit's own connections bypass the
-    /// tunnel's routes instead of looping back in.
-    bind_if: Option<u32>,
+    bind: EgressBind,
 }
 
 impl InternetExit {
     pub fn new(policy: EgressPolicy) -> Self {
         Self {
             policy,
-            conns: HashMap::new(),
+            conns: ConnMap::default(),
             max_conns: 4096,
-            bind_if: None,
+            bind: EgressBind::default(),
         }
     }
 
-    /// Bind outbound connections to a specific interface index (see [`InternetExit::bind_if`]).
-    pub fn with_bind_interface(mut self, idx: Option<u32>) -> Self {
-        self.bind_if = idx;
+    /// Pin outbound egress (interface + source address) so it bypasses tunnel routes.
+    pub fn with_egress_bind(mut self, bind: EgressBind) -> Self {
+        self.bind = bind;
         self
     }
 
-    /// Connect TCP to `dst`, optionally pinning egress to `bind_if` (bypasses tunnel routes).
-    async fn connect(dst: SocketAddr, bind_if: Option<u32>) -> io::Result<TcpStream> {
-        match bind_if {
-            #[cfg(target_os = "macos")]
-            Some(idx) if idx != 0 => {
-                use tokio::net::TcpSocket;
-                let sock = if dst.is_ipv4() {
-                    TcpSocket::new_v4()?
+    /// Connect TCP to `dst`, pinning egress per `bind` (interface + source) so it bypasses
+    /// tunnel routes and returns route correctly.
+    async fn connect(dst: SocketAddr, bind: EgressBind) -> io::Result<TcpStream> {
+        #[cfg(target_os = "macos")]
+        if bind.is_set() {
+            use tokio::net::TcpSocket;
+            let sock = if dst.is_ipv4() {
+                TcpSocket::new_v4()?
+            } else {
+                TcpSocket::new_v6()?
+            };
+            let r = socket2::SockRef::from(&sock);
+            if let Some(nz) = bind.if_index.and_then(std::num::NonZeroU32::new) {
+                if dst.is_ipv4() {
+                    r.bind_device_by_index_v4(Some(nz))?;
                 } else {
-                    TcpSocket::new_v6()?
-                };
-                if let Some(nz) = std::num::NonZeroU32::new(idx) {
-                    let r = socket2::SockRef::from(&sock);
-                    if dst.is_ipv4() {
-                        r.bind_device_by_index_v4(Some(nz))?;
-                    } else {
-                        r.bind_device_by_index_v6(Some(nz))?;
-                    }
+                    r.bind_device_by_index_v6(Some(nz))?;
                 }
-                sock.connect(dst).await
             }
-            _ => TcpStream::connect(dst).await,
+            if let Some(src) = bind.source {
+                if src.is_ipv4() == dst.is_ipv4() {
+                    sock.bind(SocketAddr::new(src, 0))?;
+                }
+            }
+            return sock.connect(dst).await;
         }
+        let _ = bind;
+        TcpStream::connect(dst).await
     }
 
-    /// Create a UDP socket connected to `dst` (for DNS etc.), pinned to `bind_if` if set.
-    async fn connect_udp(
-        dst: SocketAddr,
-        bind_if: Option<u32>,
-    ) -> io::Result<tokio::net::UdpSocket> {
+    /// Create a UDP socket connected to `dst` (for DNS etc.), pinned per `bind`.
+    async fn connect_udp(dst: SocketAddr, bind: EgressBind) -> io::Result<tokio::net::UdpSocket> {
         #[cfg(target_os = "macos")]
-        if let Some(nz) = bind_if.and_then(std::num::NonZeroU32::new) {
+        if bind.is_set() {
             use socket2::{Domain, Socket, Type};
-            let (domain, any): (Domain, SocketAddr) = if dst.is_ipv4() {
-                (Domain::IPV4, "0.0.0.0:0".parse().unwrap())
+            let domain = if dst.is_ipv4() {
+                Domain::IPV4
             } else {
-                (Domain::IPV6, "[::]:0".parse().unwrap())
+                Domain::IPV6
             };
             let s = Socket::new(domain, Type::DGRAM, None)?;
-            if dst.is_ipv4() {
-                s.bind_device_by_index_v4(Some(nz))?;
-            } else {
-                s.bind_device_by_index_v6(Some(nz))?;
+            if let Some(nz) = bind.if_index.and_then(std::num::NonZeroU32::new) {
+                if dst.is_ipv4() {
+                    s.bind_device_by_index_v4(Some(nz))?;
+                } else {
+                    s.bind_device_by_index_v6(Some(nz))?;
+                }
             }
-            s.bind(&any.into())?;
+            let src: SocketAddr = match bind.source {
+                Some(ip) if ip.is_ipv4() == dst.is_ipv4() => SocketAddr::new(ip, 0),
+                _ if dst.is_ipv4() => "0.0.0.0:0".parse().unwrap(),
+                _ => "[::]:0".parse().unwrap(),
+            };
+            s.bind(&src.into())?;
             s.set_nonblocking(true)?;
             let std_sock: std::net::UdpSocket = s.into();
             let sock = tokio::net::UdpSocket::from_std(std_sock)?;
             sock.connect(dst).await?;
             return Ok(sock);
         }
-        let bind = if dst.is_ipv4() { "0.0.0.0:0" } else { "[::]:0" };
-        let sock = tokio::net::UdpSocket::bind(bind).await?;
+        let _ = bind;
+        let any = if dst.is_ipv4() { "0.0.0.0:0" } else { "[::]:0" };
+        let sock = tokio::net::UdpSocket::bind(any).await?;
         sock.connect(dst).await?;
         Ok(sock)
     }
@@ -206,7 +240,15 @@ impl InternetExit {
         }
     }
 
-    async fn handle_frame(&mut self, client: [u8; 32], frame: ClientFrame) -> ExitFrame {
+    fn get_conn(&self, key: &ConnKey) -> Option<Arc<tokio::sync::Mutex<Conn>>> {
+        self.conns.lock().unwrap().get(key).cloned()
+    }
+
+    fn drop_conn(&self, key: &ConnKey) {
+        self.conns.lock().unwrap().remove(key);
+    }
+
+    async fn handle_frame(&self, client: [u8; 32], frame: ClientFrame) -> ExitFrame {
         match frame {
             ClientFrame::Open {
                 stream_id,
@@ -216,60 +258,74 @@ impl InternetExit {
                 if !self.policy.permits(&dst) {
                     return ExitFrame::Err(exit_err::POLICY_BLOCKED);
                 }
-                if self.conns.len() >= self.max_conns {
+                if self.conns.lock().unwrap().len() >= self.max_conns {
                     return ExitFrame::Err(exit_err::IO);
                 }
                 let conn = if udp {
-                    match Self::connect_udp(dst, self.bind_if).await {
+                    match Self::connect_udp(dst, self.bind).await {
                         Ok(sock) => Conn::Udp { sock },
                         Err(_) => return ExitFrame::Err(exit_err::CONNECT_FAILED),
                     }
                 } else {
-                    match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst, self.bind_if))
-                        .await
+                    match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst, self.bind)).await
                     {
                         Ok(Ok(sock)) => {
                             let _ = sock.set_nodelay(true);
                             Conn::Tcp { sock, eof: false }
                         }
-                        _ => return ExitFrame::Err(exit_err::CONNECT_FAILED),
+                        Ok(Err(e)) => {
+                            eprintln!("[weft-vpn] exit: connect {dst} failed: {e}");
+                            return ExitFrame::Err(exit_err::CONNECT_FAILED);
+                        }
+                        Err(_) => {
+                            eprintln!("[weft-vpn] exit: connect {dst} timed out");
+                            return ExitFrame::Err(exit_err::CONNECT_FAILED);
+                        }
                     }
                 };
-                self.conns.insert((client, stream_id), conn);
+                self.conns
+                    .lock()
+                    .unwrap()
+                    .insert((client, stream_id), Arc::new(tokio::sync::Mutex::new(conn)));
                 ExitFrame::Data(Vec::new()) // nothing to read yet
             }
             ClientFrame::Data {
                 stream_id, data, ..
             } => {
-                let Some(conn) = self.conns.get_mut(&(client, stream_id)) else {
+                let key = (client, stream_id);
+                let Some(arc) = self.get_conn(&key) else {
                     return ExitFrame::Err(exit_err::NO_STREAM);
                 };
                 if !data.is_empty() {
-                    let w = match conn {
+                    let mut conn = arc.lock().await;
+                    let w = match &mut *conn {
                         Conn::Tcp { sock, .. } => sock.write_all(&data).await,
                         Conn::Udp { sock } => sock.send(&data).await.map(|_| ()),
                     };
                     if w.is_err() {
-                        self.conns.remove(&(client, stream_id));
+                        self.drop_conn(&key);
                         return ExitFrame::Err(exit_err::IO);
                     }
                 }
-                // Upload only: the downstream direction is drained by `Poll` cells, so the
-                // client's up- and down-pumps stay independent and each stays in order.
+                // Upload only: `Poll` cells drain the downstream direction independently.
                 ExitFrame::Data(Vec::new())
             }
             ClientFrame::Poll { stream_id } => {
-                let Some(conn) = self.conns.get_mut(&(client, stream_id)) else {
+                let key = (client, stream_id);
+                let Some(arc) = self.get_conn(&key) else {
                     return ExitFrame::Err(exit_err::NO_STREAM);
                 };
-                let out = Self::drain(conn).await;
+                let out = {
+                    let mut conn = arc.lock().await;
+                    Self::drain(&mut conn).await
+                };
                 if matches!(out, ExitFrame::Eof | ExitFrame::Err(_)) {
-                    self.conns.remove(&(client, stream_id));
+                    self.drop_conn(&key);
                 }
                 out
             }
             ClientFrame::Close { stream_id } => {
-                self.conns.remove(&(client, stream_id));
+                self.drop_conn(&(client, stream_id));
                 ExitFrame::Eof
             }
         }
@@ -278,7 +334,7 @@ impl InternetExit {
 
 impl Exit for InternetExit {
     fn handle<'a>(
-        &'a mut self,
+        &'a self,
         client: [u8; 32],
         _dest: [u8; 32],
         payload: &'a [u8],
@@ -310,7 +366,7 @@ mod tests {
             s.write_all(b"HTTP/1.1 200 OK\r\n\r\nhello").await.unwrap();
         });
 
-        let mut exit = InternetExit::new(EgressPolicy::allowlist(vec![origin.ip()]));
+        let exit = InternetExit::new(EgressPolicy::allowlist(vec![origin.ip()]));
         let client = [9u8; 32];
 
         // Open → connect.
@@ -366,8 +422,7 @@ mod tests {
 
     #[tokio::test]
     async fn policy_blocks_disallowed_destinations() {
-        let mut exit =
-            InternetExit::new(EgressPolicy::allowlist(vec!["127.0.0.1".parse().unwrap()]));
+        let exit = InternetExit::new(EgressPolicy::allowlist(vec!["127.0.0.1".parse().unwrap()]));
         let blocked: SocketAddr = "8.8.8.8:53".parse().unwrap();
         let r = exit
             .handle(

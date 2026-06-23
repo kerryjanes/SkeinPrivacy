@@ -7,6 +7,7 @@
 //! hop never blocks a task while waiting on its downstream.
 //!
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::cell_transport::{err, CellResponse};
@@ -19,6 +20,7 @@ use futures::StreamExt;
 use libp2p::request_response::{self, OutboundRequestId, ResponseChannel};
 use libp2p::swarm::SwarmEvent;
 use libp2p::{Multiaddr, PeerId, Swarm};
+use tokio::sync::mpsc;
 
 /// How a relay obtains the wall-clock `now` fed to the rate limiter.
 #[derive(Clone, Copy)]
@@ -45,8 +47,16 @@ struct Parked {
     reply_key: [u8; 32],
 }
 
-/// The exit destination handler (async + stateful) — see [`crate::exit::Exit`].
-pub type ExitHandler = Box<dyn Exit>;
+/// The exit destination handler (async + concurrent) — see [`crate::exit::Exit`]. Shared so
+/// many cells' egress I/O run at once.
+pub type ExitHandler = Arc<dyn Exit>;
+
+/// A completed exit task: the reply bytes + the upstream channel + hop key to seal them.
+struct ExitDone {
+    channel: ResponseChannel<CellResponse>,
+    reply_key: [u8; 32],
+    reply: Vec<u8>,
+}
 
 /// Owns the swarm, the relay engine, the address book, and the in-flight parked channels.
 pub struct RelayService {
@@ -56,6 +66,10 @@ pub struct RelayService {
     addrbook: HashMap<[u8; 32], (PeerId, Multiaddr)>,
     pending: HashMap<OutboundRequestId, Parked>,
     exit: ExitHandler,
+    // Exit I/O runs in spawned tasks (so one slow egress never blocks the relay loop) and
+    // reports completion here; the event loop seals + answers upstream.
+    exit_tx: mpsc::UnboundedSender<ExitDone>,
+    exit_rx: mpsc::UnboundedReceiver<ExitDone>,
 }
 
 impl RelayService {
@@ -65,6 +79,7 @@ impl RelayService {
         clock: Clock,
         exit: ExitHandler,
     ) -> Self {
+        let (exit_tx, exit_rx) = mpsc::unbounded_channel();
         Self {
             swarm,
             relay,
@@ -72,6 +87,8 @@ impl RelayService {
             addrbook: HashMap::new(),
             pending: HashMap::new(),
             exit,
+            exit_tx,
+            exit_rx,
         }
     }
 
@@ -99,12 +116,24 @@ impl RelayService {
         self.addrbook.insert(routing_addr, (peer, addr));
     }
 
-    /// Drive one swarm event. Returns the upstream PeerId when a top-level inbound request
-    /// completes (useful for tests); most callers just loop on this.
+    /// Drive one event: either a swarm event, or a completed exit task whose reply we now
+    /// seal and answer upstream. Decoupling the two means a slow egress never blocks the
+    /// relay's event loop, so many connections flow concurrently.
     pub async fn step(&mut self) {
-        let event = self.swarm.select_next_some().await;
-        if let SwarmEvent::Behaviour(WeftBehaviourEvent::Cell(ev)) = event {
-            self.handle_cell(ev).await;
+        tokio::select! {
+            event = self.swarm.select_next_some() => {
+                if let SwarmEvent::Behaviour(WeftBehaviourEvent::Cell(ev)) = event {
+                    self.handle_cell(ev).await;
+                }
+            }
+            Some(done) = self.exit_rx.recv() => {
+                let sealed = reply_seal(&done.reply_key, &done.reply);
+                let _ = self
+                    .swarm
+                    .behaviour_mut()
+                    .cell
+                    .send_response(done.channel, CellResponse::Reply(sealed));
+            }
         }
     }
 
@@ -153,11 +182,19 @@ impl RelayService {
                 payload,
                 reply_key,
             }) => {
-                // The exit does real I/O (a VPN egress dials the destination), so this
-                // awaits; the relay's other in-flight cells keep flowing via parked channels.
-                let reply = self.exit.handle(client, dest, &payload).await;
-                let sealed = reply_seal(&reply_key, &reply);
-                respond(&mut self.swarm, channel, CellResponse::Reply(sealed));
+                // Run the exit's real I/O in a task so it never blocks the relay loop; it
+                // reports back through `exit_tx` and the event loop answers upstream. This is
+                // what lets one exit serve many simultaneous connections.
+                let exit = self.exit.clone();
+                let tx = self.exit_tx.clone();
+                tokio::spawn(async move {
+                    let reply = exit.handle(client, dest, &payload).await;
+                    let _ = tx.send(ExitDone {
+                        channel,
+                        reply_key,
+                        reply,
+                    });
+                });
             }
             Ok(Peeled::Forward {
                 next_addr,

@@ -120,10 +120,10 @@ async fn setup(base: usize, origin_ip: std::net::IpAddr) -> ClientEngine {
     // reached on the exit path). All get the full address book so forwards resolve.
     for (i, (n, swarm)) in nodes.iter().zip(swarms.into_iter()).enumerate() {
         let relay = Relay::new(n.kp.operator_pubkey(), n.node_id, n.kp.onion_secret(), 600);
-        let exit: Box<dyn weft_net::exit::Exit> = if i == 2 {
-            Box::new(InternetExit::new(EgressPolicy::allowlist(vec![origin_ip])))
+        let exit: std::sync::Arc<dyn weft_net::exit::Exit> = if i == 2 {
+            std::sync::Arc::new(InternetExit::new(EgressPolicy::allowlist(vec![origin_ip])))
         } else {
-            Box::new(EchoExit)
+            std::sync::Arc::new(EchoExit)
         };
         let mut service = RelayService::new(swarm, relay, Clock::Fixed(700), exit);
         for (peer, addr, raddr) in &routes {

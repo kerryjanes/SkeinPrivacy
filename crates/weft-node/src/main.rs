@@ -121,7 +121,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         _ => weft_vpn::exit::EgressPolicy::open(),
     };
-    let exit = Box::new(weft_vpn::exit::InternetExit::new(policy));
+    let exit = std::sync::Arc::new(weft_vpn::exit::InternetExit::new(policy));
     let mut service = RelayService::new(swarm, relay, Clock::System, exit);
 
     // Bootstrap forwarding: seed the address book from the peer manifest directory so peeled

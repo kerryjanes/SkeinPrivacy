@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 use weft_net::keys::WeftKeypair;
 use weft_vpn::client_engine::ClientEngine;
-use weft_vpn::exit::EgressPolicy;
+use weft_vpn::exit::{EgressBind, EgressPolicy};
 use weft_vpn::{localnet, manifest, socks};
 
 /// The circuit backing a session: either a self-contained in-process network (real TCP,
@@ -34,11 +34,7 @@ impl Net {
     }
 }
 
-async fn build_net(
-    hops: usize,
-    policy: EgressPolicy,
-    bind_if: Option<u32>,
-) -> std::io::Result<Net> {
+async fn build_net(hops: usize, policy: EgressPolicy, bind: EgressBind) -> std::io::Result<Net> {
     if let Ok(dir) = std::env::var("WEFT_PEERS") {
         let peers = manifest::load_dir(std::path::Path::new(&dir))?;
         eprintln!(
@@ -51,7 +47,7 @@ async fn build_net(
     } else {
         eprintln!("[weft-vpn] starting self-contained circuit ({hops} hops)…");
         Ok(Net::Local(
-            localnet::spawn(hops, policy, 50_000, bind_if).await?,
+            localnet::spawn(hops, policy, 50_000, bind).await?,
         ))
     }
 }
@@ -81,7 +77,7 @@ async fn main() -> std::io::Result<()> {
             let listen = listen
                 .parse()
                 .map_err(|_| std::io::Error::other("bad listen addr"))?;
-            let net = build_net(hops, policy, None).await?;
+            let net = build_net(hops, policy, EgressBind::default()).await?;
             let (bound, _task) = socks::serve(net.engine(), listen).await?;
             println!("[weft-vpn] SOCKS5 proxy on {bound} — set your app's SOCKS proxy to it");
             println!("[weft-vpn] e.g. curl --proxy socks5h://{bound} https://example.com");
@@ -98,11 +94,34 @@ async fn main() -> std::io::Result<()> {
                 eprintln!("usage: sudo weft-vpn tun <dst-ip-or-cidr|default> [more…]");
                 std::process::exit(2);
             }
-            // Pin a self-contained exit's egress to the real default interface so it doesn't
-            // loop back into our own tunnel (irrelevant for external nodes).
-            let bind_if = tun::default_interface_index();
-            let net = build_net(hops, policy, bind_if).await?;
-            let _tun = tun::up(net.engine(), scoped).await?;
+            // The self-contained exit egresses via the physical link (en0) + the LAN gateway,
+            // bypassing every utun — including a co-resident VPN that owns the default route.
+            // Bind the exit to that interface + source address so replies route back.
+            let phys = tun::physical_egress();
+            let bind = match &phys {
+                Some((pif, addr, _gw)) => EgressBind {
+                    if_index: tun::interface_index(pif),
+                    source: Some(*addr),
+                },
+                None => EgressBind::default(),
+            };
+            eprintln!(
+                "[weft-vpn] exit egress pinned: if#{:?} src={:?}",
+                bind.if_index, bind.source
+            );
+            // Full-tunnel: bypass the data-plane endpoints (remote relay IPs). Self-contained
+            // relays are on loopback (no bypass).
+            let bypass: Vec<IpAddr> = match std::env::var("WEFT_PEERS") {
+                Ok(dir) => manifest::load_dir(std::path::Path::new(&dir))
+                    .unwrap_or_default()
+                    .iter()
+                    .filter_map(|m| m.multiaddr.split('/').nth(2)?.parse().ok())
+                    .collect(),
+                _ => Vec::new(),
+            };
+            let egress = phys.map(|(pif, _addr, gw)| (pif, gw));
+            let net = build_net(hops, policy, bind).await?;
+            let _tun = tun::up(net.engine(), scoped, bypass, egress).await?;
             println!("[weft-vpn] system tunnel up — routed traffic now exits via Weft");
             println!("[weft-vpn] Ctrl-C to stop (routes are removed automatically)");
             tokio::signal::ctrl_c().await.ok();
