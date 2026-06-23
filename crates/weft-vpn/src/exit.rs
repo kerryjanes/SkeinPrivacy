@@ -196,7 +196,6 @@ impl Exit for InternetExit {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tokio::io::AsyncWriteExt as _;
     use tokio::net::TcpListener;
 
     #[tokio::test]
