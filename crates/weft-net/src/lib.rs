@@ -16,6 +16,7 @@ pub mod metering;
 pub mod node;
 pub mod noise;
 pub mod receipt;
+pub mod relay;
 pub mod selection;
 pub mod sphinx;
 

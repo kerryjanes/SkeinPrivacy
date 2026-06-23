@@ -23,9 +23,7 @@ use weft_primitives::capability;
 use weft_vpn::client_engine::{ClientEngine, DialInfo};
 use weft_vpn::exit::{EgressPolicy, InternetExit};
 
-#[path = "../../weft-node/src/relay_service.rs"]
-mod relay_service;
-use relay_service::{Clock, RelayService};
+use weft_net::relay::{Clock, RelayService};
 
 struct NodeInfo {
     kp: WeftKeypair,

@@ -1,4 +1,4 @@
-//! The relay/exit event loop that binds [`weft_net::node::Relay`] to libp2p sockets
+//! The relay/exit event loop that binds [`crate::node::Relay`] to libp2p sockets
 //! over the `/weft/cell/1.0.0` protocol. Cells flow recursively: a hop peels one layer,
 //! and if it must forward it sends the cell downstream and PARKS its upstream response
 //! channel keyed by the outbound request id; when the downstream reply arrives it
@@ -6,23 +6,19 @@
 //! handler and seal the reply synchronously. Fully event-driven — no inline awaits, so a
 //! hop never blocks a task while waiting on its downstream.
 //!
-// The relay loop + client helpers are driven by the integration tests and `main`'s run
-// loop; the binary itself doesn't touch every entry point, so allow unused here.
-#![allow(dead_code)]
-
 use std::collections::HashMap;
 use std::time::{SystemTime, UNIX_EPOCH};
 
+use crate::cell_transport::{err, CellResponse};
+use crate::discovery::{WeftBehaviour, WeftBehaviourEvent};
+use crate::exit::Exit;
+use crate::keys::WeftKeypair;
+use crate::node::Relay;
+use crate::sphinx::{reply_seal, Cell, Peeled};
 use futures::StreamExt;
 use libp2p::request_response::{self, OutboundRequestId, ResponseChannel};
 use libp2p::swarm::SwarmEvent;
 use libp2p::{Multiaddr, PeerId, Swarm};
-use weft_net::cell_transport::{err, CellResponse};
-use weft_net::discovery::{WeftBehaviour, WeftBehaviourEvent};
-use weft_net::exit::Exit;
-use weft_net::keys::WeftKeypair;
-use weft_net::node::Relay;
-use weft_net::sphinx::{reply_seal, Cell, Peeled};
 
 /// How a relay obtains the wall-clock `now` fed to the rate limiter.
 #[derive(Clone, Copy)]
@@ -49,7 +45,7 @@ struct Parked {
     reply_key: [u8; 32],
 }
 
-/// The exit destination handler (async + stateful) — see [`weft_net::exit::Exit`].
+/// The exit destination handler (async + stateful) — see [`crate::exit::Exit`].
 pub type ExitHandler = Box<dyn Exit>;
 
 /// Owns the swarm, the relay engine, the address book, and the in-flight parked channels.
@@ -186,8 +182,8 @@ impl RelayService {
             },
             Err(e) => {
                 let code = match e {
-                    weft_net::NetError::RateLimited => err::RATE_LIMITED,
-                    weft_net::NetError::ContentOptOut => err::OPT_OUT,
+                    crate::NetError::RateLimited => err::RATE_LIMITED,
+                    crate::NetError::ContentOptOut => err::OPT_OUT,
                     _ => err::PEEL,
                 };
                 respond(&mut self.swarm, channel, CellResponse::Err(code));

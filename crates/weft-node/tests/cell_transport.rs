@@ -19,9 +19,7 @@ use weft_net::node::Relay;
 use weft_net::receipt::ReceiptCore;
 use weft_net::selection::NodeRecord;
 
-#[path = "../src/relay_service.rs"]
-mod relay_service;
-use relay_service::{send_cell, Clock, ExitHandler, RelayService};
+use weft_net::relay::{send_cell, Clock, ExitHandler, RelayService};
 
 const DEST: [u8; 32] = [0xde; 32];
 

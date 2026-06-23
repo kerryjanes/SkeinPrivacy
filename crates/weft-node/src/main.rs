@@ -1,6 +1,6 @@
 //! `weft-node` — the node operator daemon. Derives a stable libp2p identity from the
 //! operator key, joins the Kademlia DHT over the production tcp+noise+yamux transport,
-//! publishes its signed descriptor, and then runs the [`relay_service::RelayService`]
+//! publishes its signed descriptor, and then runs the [`weft_net::relay::RelayService`]
 //! event loop so it relays onion cells over the `/weft/cell/1.0.0` transport. Real exit
 //! egress to the internet (OS TUN / socket routing) is the deferred M8 step; this build
 //! delivers an in-protocol ack at the exit.
@@ -16,8 +16,7 @@ use weft_net::discovery::{
 use weft_net::keys::WeftKeypair;
 
 mod daemon;
-mod relay_service;
-use relay_service::{Clock, RelayService};
+use weft_net::relay::{self, Clock, RelayService};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -74,7 +73,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Exit handler: the real internet-egress exit. By default it dials the open internet
     // (a genuine VPN exit); set WEFT_EXIT_ALLOWLIST=ip1,ip2 to restrict egress (used for
     // scoped/test runs). Relay-only nodes never reach the exit (no EXIT capability path).
-    let relay = relay_service::make_relay(&kp, node_id, 0);
+    let relay = relay::make_relay(&kp, node_id, 0);
     let policy = match env::var("WEFT_EXIT_ALLOWLIST") {
         Ok(list) if !list.trim().is_empty() => {
             let ips = list
