@@ -4283,6 +4283,7 @@ dependencies = [
  "rand 0.8.6",
  "weft-net",
  "weft-primitives",
+ "weft-vpn",
  "tokio",
 ]
 

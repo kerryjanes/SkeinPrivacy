@@ -12,6 +12,7 @@ path = "src/main.rs"
 
 [dependencies]
 weft-net = { workspace = true }
+weft-vpn = { workspace = true }
 weft-primitives = { workspace = true }
 tokio = { workspace = true }
 futures = { workspace = true }

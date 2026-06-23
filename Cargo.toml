@@ -21,6 +21,7 @@ mpl-bubblegum = { version = "3.0.0", default-features = false }
 # Internal
 weft-primitives = { path = "crates/weft-primitives" }
 weft-net = { path = "crates/weft-net" }
+weft-vpn = { path = "crates/weft-vpn" }
 node-registry = { path = "programs/node-registry", features = ["cpi"] }
 staking = { path = "programs/staking", features = ["cpi"] }
 reputation = { path = "programs/reputation", features = ["cpi"] }

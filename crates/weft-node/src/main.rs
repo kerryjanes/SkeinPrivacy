@@ -71,12 +71,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
     println!("[weft-node] joined the DHT; serving node {node_id} on {listen}");
 
-    // Exit handler. The real internet-egress exit (weft-vpn `InternetExit`) is wired in the
-    // next M9 chunk; for now use the echo exit so the reverse path is exercised end to end.
+    // Exit handler: the real internet-egress exit. By default it dials the open internet
+    // (a genuine VPN exit); set WEFT_EXIT_ALLOWLIST=ip1,ip2 to restrict egress (used for
+    // scoped/test runs). Relay-only nodes never reach the exit (no EXIT capability path).
     let relay = relay_service::make_relay(&kp, node_id, 0);
-    let exit = Box::new(weft_net::exit::EchoExit);
+    let policy = match env::var("WEFT_EXIT_ALLOWLIST") {
+        Ok(list) if !list.trim().is_empty() => {
+            let ips = list
+                .split(',')
+                .filter_map(|s| s.trim().parse().ok())
+                .collect();
+            weft_vpn::exit::EgressPolicy::allowlist(ips)
+        }
+        _ => weft_vpn::exit::EgressPolicy::open(),
+    };
+    let exit = Box::new(weft_vpn::exit::InternetExit::new(policy));
     let mut service = RelayService::new(swarm, relay, Clock::System, exit);
-    println!("[weft-node] relaying cells on /weft/cell/1.0.0");
+    println!("[weft-node] relaying cells on /weft/cell/1.0.0 (real internet exit)");
     loop {
         service.step().await;
     }
