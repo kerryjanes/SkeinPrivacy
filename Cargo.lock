@@ -4451,6 +4451,8 @@ dependencies = [
  "libc",
  "libp2p",
  "rand 0.8.6",
+ "serde",
+ "serde_json",
  "weft-net",
  "weft-primitives",
  "socket2 0.5.10",
