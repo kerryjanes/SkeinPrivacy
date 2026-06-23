@@ -11,3 +11,5 @@ pub mod exit;
 pub mod localnet;
 pub mod socks;
 pub mod stream;
+#[cfg(target_os = "macos")]
+pub mod tun;

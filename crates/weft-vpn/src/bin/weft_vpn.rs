@@ -46,8 +46,29 @@ async fn main() -> std::io::Result<()> {
             drop(net);
             Ok(())
         }
+        #[cfg(target_os = "macos")]
+        "tun" => {
+            // Route the given destinations (IPs/prefixes, space-separated) through Weft.
+            // Requires root. Example: sudo weft-vpn tun 93.184.216.34/32
+            use weft_vpn::tun;
+            let scoped: Vec<String> = args.collect();
+            if scoped.is_empty() {
+                eprintln!("usage: sudo weft-vpn tun <dst-ip-or-cidr> [more…]");
+                std::process::exit(2);
+            }
+            eprintln!("[weft-vpn] starting self-contained circuit ({hops} hops)…");
+            let net = localnet::spawn(hops, policy, 50_000).await?;
+            let _tun = tun::up(net.engine.clone(), scoped).await?;
+            println!("[weft-vpn] system tunnel up — routed traffic now exits via Weft");
+            println!("[weft-vpn] Ctrl-C to stop (routes are removed automatically)");
+            tokio::signal::ctrl_c().await.ok();
+            println!("[weft-vpn] shutting down…");
+            drop(_tun);
+            drop(net);
+            Ok(())
+        }
         _ => {
-            eprintln!("usage: weft-vpn socks [listen_addr]");
+            eprintln!("usage: weft-vpn socks [listen_addr]  |  sudo weft-vpn tun <dst> [more…]");
             std::process::exit(2);
         }
     }
