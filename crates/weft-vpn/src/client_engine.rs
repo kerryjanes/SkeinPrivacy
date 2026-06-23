@@ -166,6 +166,38 @@ impl ClientEngine {
         })
     }
 
+    /// Connect to an external Weft network described by bootstrap [`crate::manifest`]s
+    /// (real relay/exit processes over TCP), building the circuit directory + first-hop
+    /// dialing map from them. This is the distributed path (vs the in-process localnet).
+    pub async fn connect(
+        client_kp: &WeftKeypair,
+        manifests: &[crate::manifest::NodeManifest],
+        hops: usize,
+        client_geo: u32,
+    ) -> io::Result<Self> {
+        let mut directory = Vec::new();
+        let mut dial = DialInfo::new();
+        for m in manifests {
+            if let (Some(rec), Some(peer)) = (m.record(), m.dial()) {
+                dial.insert(rec.addr, peer);
+                directory.push(rec);
+            }
+        }
+        if directory.is_empty() {
+            return Err(io::Error::other("no usable node manifests"));
+        }
+        Self::spawn(
+            client_kp,
+            false,
+            "/ip4/0.0.0.0/tcp/0".parse().unwrap(),
+            directory,
+            dial,
+            hops,
+            client_geo,
+        )
+        .await
+    }
+
     /// A clone of the underlying swarm handle (for advanced callers).
     pub fn handle(&self) -> ClientHandle {
         self.handle.clone()

@@ -46,12 +46,49 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     swarm.listen_on(listen.parse()?)?;
     swarm.behaviour_mut().kad.set_mode(Some(kad::Mode::Server));
 
+    // Learn the actual bound address (the configured port may be 0 = auto-assigned). Fail
+    // fast on a bind error (e.g. port in use) instead of hanging.
+    use futures::StreamExt;
+    use libp2p::swarm::SwarmEvent;
+    let bound = loop {
+        match swarm.select_next_some().await {
+            SwarmEvent::NewListenAddr { address, .. } => break address.to_string(),
+            SwarmEvent::ListenerError { error, .. } => {
+                return Err(format!("listen failed on {listen}: {error}").into());
+            }
+            SwarmEvent::ListenerClosed { reason, .. } => {
+                return Err(format!("listener closed on {listen}: {reason:?}").into());
+            }
+            _ => {}
+        }
+    };
+    let peer_id = swarm.local_peer_id().to_base58();
+
+    // Write a bootstrap manifest so a VPN client / other relays can find us (the real,
+    // distributed path). In production this comes from the on-chain registry + indexer.
+    if let Ok(path) = env::var("WEFT_MANIFEST") {
+        let m = weft_vpn::manifest::NodeManifest {
+            operator: hex::encode(kp.operator_pubkey()),
+            node_id,
+            onion_pub: hex::encode(kp.onion_public()),
+            static_pub: hex::encode(kp.static_public()),
+            geo,
+            capabilities: caps,
+            peer_id: peer_id.clone(),
+            multiaddr: bound.clone(),
+            availability: 100,
+            reputation_bps: 10_000,
+        };
+        m.write(std::path::Path::new(&path))?;
+        println!("[weft-node] wrote manifest → {path}");
+    }
+
     // Publish the operator-signed node descriptor keyed by sha256(operator‖node_id).
     let desc = NodeDescriptor {
         operator: kp.operator_pubkey(),
         node_id,
-        multiaddr: listen.clone(),
-        peer_id: swarm.local_peer_id().to_base58(),
+        multiaddr: bound.clone(),
+        peer_id,
         noise_static_pub: kp.static_public(),
         onion_pub: kp.onion_public(),
         capabilities: caps,
@@ -86,6 +123,27 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let exit = Box::new(weft_vpn::exit::InternetExit::new(policy));
     let mut service = RelayService::new(swarm, relay, Clock::System, exit);
+
+    // Bootstrap forwarding: seed the address book from the peer manifest directory so peeled
+    // next-hops resolve to dialable peers. We wait briefly so every node has written its
+    // manifest, then add a route for each peer (production relays resolve via the DHT).
+    if let Ok(dir) = env::var("WEFT_PEERS") {
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        let own = weft_net::discovery::routing_addr(&kp.operator_pubkey(), node_id);
+        if let Ok(peers) = weft_vpn::manifest::load_dir(std::path::Path::new(&dir)) {
+            let mut n = 0;
+            for m in &peers {
+                if let (Some(ra), Some((peer, addr))) = (m.routing_addr(), m.dial()) {
+                    if ra != own {
+                        service.add_route(ra, peer, addr);
+                        n += 1;
+                    }
+                }
+            }
+            println!("[weft-node] seeded {n} peer routes from {dir}");
+        }
+    }
+
     println!("[weft-node] relaying cells on /weft/cell/1.0.0 (real internet exit)");
     loop {
         service.step().await;

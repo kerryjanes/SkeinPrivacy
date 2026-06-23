@@ -9,6 +9,7 @@
 pub mod client_engine;
 pub mod exit;
 pub mod localnet;
+pub mod manifest;
 pub mod socks;
 pub mod stream;
 #[cfg(target_os = "macos")]

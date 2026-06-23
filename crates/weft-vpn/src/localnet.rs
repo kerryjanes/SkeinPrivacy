@@ -24,14 +24,13 @@ use weft_primitives::capability;
 use crate::client_engine::{ClientEngine, DialInfo};
 use crate::exit::{EgressPolicy, InternetExit};
 
-async fn bind(
-    kp: &WeftKeypair,
-    listen: Multiaddr,
-) -> io::Result<(Swarm<WeftBehaviour>, Multiaddr)> {
+/// Bind a node over the real TCP transport (real noise + yamux), returning its swarm and
+/// the actual bound address.
+async fn bind(kp: &WeftKeypair) -> io::Result<(Swarm<WeftBehaviour>, Multiaddr)> {
     let mut swarm =
-        build_swarm(kp.libp2p_keypair(), true).map_err(|e| io::Error::other(e.to_string()))?;
+        build_swarm(kp.libp2p_keypair(), false).map_err(|e| io::Error::other(e.to_string()))?;
     swarm
-        .listen_on(listen)
+        .listen_on("/ip4/127.0.0.1/tcp/0".parse().unwrap())
         .map_err(|e| io::Error::other(e.to_string()))?;
     let addr = loop {
         if let SwarmEvent::NewListenAddr { address, .. } = swarm.select_next_some().await {
@@ -105,11 +104,11 @@ pub async fn spawn(
         })
         .collect();
 
-    // Bind every node, learn its memory address.
+    // Bind every node over real TCP, learn its bound address.
     let mut swarms = Vec::new();
     let mut routes: Vec<(PeerId, Multiaddr, [u8; 32])> = Vec::new();
-    for (i, nd) in nodes.iter().enumerate() {
-        let (sw, addr) = bind(&nd.kp, format!("/memory/{}", base + i).parse().unwrap()).await?;
+    for nd in nodes.iter() {
+        let (sw, addr) = bind(&nd.kp).await?;
         routes.push((nd.peer, addr.clone(), nd.rec.addr));
         swarms.push(sw);
     }
@@ -141,8 +140,8 @@ pub async fn spawn(
         dial.insert(*raddr, (*peer, addr.clone()));
     }
     let client_kp = WeftKeypair::generate(&mut rng);
-    let listen: Multiaddr = format!("/memory/{}", base + 500).parse().unwrap();
-    let engine = ClientEngine::spawn(&client_kp, true, listen, directory, dial, hops, 0).await?;
+    let listen: Multiaddr = "/ip4/127.0.0.1/tcp/0".parse().unwrap();
+    let engine = ClientEngine::spawn(&client_kp, false, listen, directory, dial, hops, 0).await?;
     Ok(LocalNet {
         engine: std::sync::Arc::new(engine),
         relays,

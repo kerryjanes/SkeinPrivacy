@@ -1,15 +1,60 @@
 //! `weft-vpn` — run the VPN client front-ends.
 //!
 //! Usage:
-//!   weft-vpn socks [listen_addr]      Local SOCKS5 proxy over a self-contained circuit.
-//!                                      Default listen 127.0.0.1:1080. Point apps at it.
+//!   weft-vpn socks [listen_addr]      Local SOCKS5 proxy (default 127.0.0.1:1080).
+//!   sudo weft-vpn tun <dst|default>   System-wide TUN (macOS). `default` = full tunnel.
 //!
-//! Env: WEFT_HOPS (default 3), WEFT_EXIT_ALLOWLIST=ip1,ip2 (default: open internet).
+//! Env:
+//!   WEFT_HOPS=3                       Circuit hop count (2..=5).
+//!   WEFT_EXIT_ALLOWLIST=ip1,ip2       Restrict the (self-contained) exit's egress.
+//!   WEFT_PEERS=<dir>                  Connect to a REAL external network: load node
+//!                                      manifests from <dir> instead of an in-process circuit.
 
 use std::net::IpAddr;
+use std::sync::Arc;
 
+use weft_net::keys::WeftKeypair;
+use weft_vpn::client_engine::ClientEngine;
 use weft_vpn::exit::EgressPolicy;
-use weft_vpn::{localnet, socks};
+use weft_vpn::{localnet, manifest, socks};
+
+/// The circuit backing a session: either a self-contained in-process network (real TCP,
+/// kept alive by its guard) or a connection to external relay/exit nodes.
+enum Net {
+    Local(localnet::LocalNet),
+    External(Arc<ClientEngine>),
+}
+
+impl Net {
+    fn engine(&self) -> Arc<ClientEngine> {
+        match self {
+            Net::Local(n) => n.engine.clone(),
+            Net::External(e) => e.clone(),
+        }
+    }
+}
+
+async fn build_net(
+    hops: usize,
+    policy: EgressPolicy,
+    bind_if: Option<u32>,
+) -> std::io::Result<Net> {
+    if let Ok(dir) = std::env::var("WEFT_PEERS") {
+        let peers = manifest::load_dir(std::path::Path::new(&dir))?;
+        eprintln!(
+            "[weft-vpn] connecting to {} external node(s) from {dir}…",
+            peers.len()
+        );
+        let kp = WeftKeypair::generate(&mut rand::thread_rng());
+        let engine = ClientEngine::connect(&kp, &peers, hops, 0).await?;
+        Ok(Net::External(Arc::new(engine)))
+    } else {
+        eprintln!("[weft-vpn] starting self-contained circuit ({hops} hops)…");
+        Ok(Net::Local(
+            localnet::spawn(hops, policy, 50_000, bind_if).await?,
+        ))
+    }
+}
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -36,32 +81,28 @@ async fn main() -> std::io::Result<()> {
             let listen = listen
                 .parse()
                 .map_err(|_| std::io::Error::other("bad listen addr"))?;
-            eprintln!("[weft-vpn] starting self-contained circuit ({hops} hops)…");
-            let net = localnet::spawn(hops, policy, 40_000, None).await?;
-            let (bound, _task) = socks::serve(net.engine.clone(), listen).await?;
+            let net = build_net(hops, policy, None).await?;
+            let (bound, _task) = socks::serve(net.engine(), listen).await?;
             println!("[weft-vpn] SOCKS5 proxy on {bound} — set your app's SOCKS proxy to it");
             println!("[weft-vpn] e.g. curl --proxy socks5h://{bound} https://example.com");
-            // Keep `net` alive (its drop tears the circuit down) until killed.
             std::future::pending::<()>().await;
             drop(net);
             Ok(())
         }
         #[cfg(target_os = "macos")]
         "tun" => {
-            // Route the given destinations (IPs/prefixes, space-separated) through Weft.
-            // Requires root. Example: sudo weft-vpn tun 93.184.216.34/32
+            // Route destinations (IPs/CIDRs) or `default` (full tunnel) through Weft. Root.
             use weft_vpn::tun;
             let scoped: Vec<String> = args.collect();
             if scoped.is_empty() {
-                eprintln!("usage: sudo weft-vpn tun <dst-ip-or-cidr> [more…]");
+                eprintln!("usage: sudo weft-vpn tun <dst-ip-or-cidr|default> [more…]");
                 std::process::exit(2);
             }
-            // Pin the exit's egress to the real default interface so its connections don't
-            // loop back into our own tunnel (the exit shares this host).
+            // Pin a self-contained exit's egress to the real default interface so it doesn't
+            // loop back into our own tunnel (irrelevant for external nodes).
             let bind_if = tun::default_interface_index();
-            eprintln!("[weft-vpn] starting self-contained circuit ({hops} hops; exit via if#{bind_if:?})…");
-            let net = localnet::spawn(hops, policy, 50_000, bind_if).await?;
-            let _tun = tun::up(net.engine.clone(), scoped).await?;
+            let net = build_net(hops, policy, bind_if).await?;
+            let _tun = tun::up(net.engine(), scoped).await?;
             println!("[weft-vpn] system tunnel up — routed traffic now exits via Weft");
             println!("[weft-vpn] Ctrl-C to stop (routes are removed automatically)");
             tokio::signal::ctrl_c().await.ok();
@@ -71,7 +112,7 @@ async fn main() -> std::io::Result<()> {
             Ok(())
         }
         _ => {
-            eprintln!("usage: weft-vpn socks [listen_addr]  |  sudo weft-vpn tun <dst> [more…]");
+            eprintln!("usage: weft-vpn socks [listen_addr]  |  sudo weft-vpn tun <dst|default>");
             std::process::exit(2);
         }
     }
