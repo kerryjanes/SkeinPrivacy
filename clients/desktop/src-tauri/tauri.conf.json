@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Weft VPN",
+  "version": "0.1.0",
+  "identifier": "network.weft.vpn",
+  "build": {
+    "frontendDist": "../dist",
+    "devUrl": "http://localhost:5173",
+    "beforeDevCommand": "pnpm dev",
+    "beforeBuildCommand": "pnpm build"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Weft VPN",
+        "width": 480,
+        "height": 760,
+        "resizable": true,
+        "minWidth": 420,
+        "minHeight": 640
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["app", "dmg"],
+    "icon": ["icons/icon.png"]
+  }
+}

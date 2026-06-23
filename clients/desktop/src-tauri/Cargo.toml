@@ -1,0 +1,35 @@
+[package]
+name = "weft-desktop"
+version = "0.1.0"
+description = "Weft VPN desktop client"
+edition = "2021"
+
+# Standalone workspace so Tauri's app profile doesn't clash with the protocol workspace.
+[workspace]
+
+[lib]
+name = "weft_desktop_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[[bin]]
+name = "weft-desktop"
+path = "src/main.rs"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+bs58 = "0.5"
+tokio = { version = "1", features = ["rt-multi-thread", "sync", "macros"] }
+weft-vpn = { path = "../../../crates/weft-vpn" }
+weft-net = { path = "../../../crates/weft-net" }
+
+[profile.release]
+panic = "abort"
+codegen-units = 1
+lto = true
+opt-level = "s"
+strip = true

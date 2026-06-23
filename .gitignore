@@ -27,3 +27,6 @@ keypairs/*.json
 
 # OS
 .DS_Store
+
+# Tauri generated
+clients/desktop/src-tauri/gen

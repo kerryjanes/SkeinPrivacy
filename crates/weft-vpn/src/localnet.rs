@@ -41,13 +41,24 @@ async fn bind(
     Ok((swarm, addr))
 }
 
-/// Spawn an in-process circuit and return a client engine wired to it. The last node is the
+/// A running in-process circuit: the client engine plus the relay task handles, which are
+/// aborted on drop so a `disconnect` tears the whole local network down cleanly.
+pub struct LocalNet {
+    pub engine: std::sync::Arc<ClientEngine>,
+    relays: Vec<tokio::task::JoinHandle<()>>,
+}
+
+impl Drop for LocalNet {
+    fn drop(&mut self) {
+        for h in &self.relays {
+            h.abort();
+        }
+    }
+}
+
+/// Spawn an in-process circuit and return it wired to a client engine. The last node is the
 /// real internet exit (governed by `exit_policy`); the rest are relays.
-pub async fn spawn(
-    hops: usize,
-    exit_policy: EgressPolicy,
-    base: usize,
-) -> io::Result<ClientEngine> {
+pub async fn spawn(hops: usize, exit_policy: EgressPolicy, base: usize) -> io::Result<LocalNet> {
     let hops = hops.clamp(2, 5);
     let n = hops + 2; // a little path diversity beyond the minimum
     let mut rng = StdRng::seed_from_u64(0xc0ffee ^ base as u64);
@@ -98,6 +109,7 @@ pub async fn spawn(
 
     // Spawn each relay; the last is the real internet exit.
     let last = nodes.len() - 1;
+    let mut relays = Vec::new();
     for (i, (nd, sw)) in nodes.iter().zip(swarms.into_iter()).enumerate() {
         let relay = Relay::new(nd.kp.operator_pubkey(), nd.id, nd.kp.onion_secret(), 0);
         let exit: Box<dyn Exit> = if i == last {
@@ -109,11 +121,11 @@ pub async fn spawn(
         for (peer, addr, raddr) in &routes {
             svc.add_route(*raddr, *peer, addr.clone());
         }
-        tokio::spawn(async move {
+        relays.push(tokio::spawn(async move {
             loop {
                 svc.step().await;
             }
-        });
+        }));
     }
 
     let directory: Vec<NodeRecord> = nodes.iter().map(|nd| nd.rec.clone()).collect();
@@ -124,5 +136,8 @@ pub async fn spawn(
     let client_kp = WeftKeypair::generate(&mut rng);
     let listen: Multiaddr = format!("/memory/{}", base + 500).parse().unwrap();
     let engine = ClientEngine::spawn(&client_kp, true, listen, directory, dial, hops, 0).await?;
-    Ok(engine)
+    Ok(LocalNet {
+        engine: std::sync::Arc::new(engine),
+        relays,
+    })
 }

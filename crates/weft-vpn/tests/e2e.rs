@@ -183,7 +183,7 @@ async fn http_tunnels_through_the_circuit_to_a_real_origin() {
 async fn http_tunnels_through_the_socks5_proxy() {
     let origin = spawn_origin("hello-via-socks").await;
     let engine = Arc::new(setup(21_000, origin.ip()).await);
-    let socks = weft_vpn::socks::serve(engine, "127.0.0.1:0".parse().unwrap())
+    let (socks, _socks_task) = weft_vpn::socks::serve(engine, "127.0.0.1:0".parse().unwrap())
         .await
         .unwrap();
 

@@ -110,6 +110,13 @@ async fn run_swarm(mut swarm: Swarm<WeftBehaviour>, mut rx: mpsc::Receiver<Cmd>)
     }
 }
 
+/// Live throughput counters (bytes the engine has tunnelled), shared with the UI.
+#[derive(Clone, Default)]
+pub struct Counters {
+    pub up: std::sync::Arc<std::sync::atomic::AtomicU64>,
+    pub down: std::sync::Arc<std::sync::atomic::AtomicU64>,
+}
+
 /// The VPN client engine.
 pub struct ClientEngine {
     handle: ClientHandle,
@@ -117,6 +124,14 @@ pub struct ClientEngine {
     dial: DialInfo,
     hops: usize,
     client_geo: u32,
+    counters: Counters,
+    swarm_task: tokio::task::JoinHandle<()>,
+}
+
+impl Drop for ClientEngine {
+    fn drop(&mut self) {
+        self.swarm_task.abort();
+    }
 }
 
 impl ClientEngine {
@@ -144,19 +159,26 @@ impl ClientEngine {
             }
         }
         let (tx, rx) = mpsc::channel(256);
-        tokio::spawn(run_swarm(swarm, rx));
+        let swarm_task = tokio::spawn(run_swarm(swarm, rx));
         Ok(Self {
             handle: ClientHandle { tx },
             nodes,
             dial,
             hops: hops.clamp(2, 5),
             client_geo,
+            counters: Counters::default(),
+            swarm_task,
         })
     }
 
     /// A clone of the underlying swarm handle (for advanced callers).
     pub fn handle(&self) -> ClientHandle {
         self.handle.clone()
+    }
+
+    /// Live byte counters (clone is cheap; shares the same atomics).
+    pub fn counters(&self) -> Counters {
+        self.counters.clone()
     }
 
     /// One onion round-trip: wrap `payload` for `path` (exit selector = the exit's routing
@@ -241,6 +263,9 @@ impl ClientEngine {
                     return Ok(());
                 }
                 Ok(Ok(n)) => {
+                    self.counters
+                        .up
+                        .fetch_add(n as u64, std::sync::atomic::Ordering::Relaxed);
                     let f = ClientFrame::Data {
                         stream_id,
                         seq,
@@ -266,6 +291,9 @@ impl ClientEngine {
             {
                 ExitFrame::Data(d) => {
                     if !d.is_empty() {
+                        self.counters
+                            .down
+                            .fetch_add(d.len() as u64, std::sync::atomic::Ordering::Relaxed);
                         io.write_all(&d).await?;
                     }
                 }

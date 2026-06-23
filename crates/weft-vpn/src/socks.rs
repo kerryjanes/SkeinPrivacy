@@ -14,11 +14,15 @@ use tokio::net::{lookup_host, TcpListener, TcpStream};
 
 use crate::client_engine::ClientEngine;
 
-/// Bind the SOCKS5 listener and serve in the background. Returns the bound address.
-pub async fn serve(engine: Arc<ClientEngine>, listen: SocketAddr) -> io::Result<SocketAddr> {
+/// Bind the SOCKS5 listener and serve in the background. Returns the bound address and the
+/// accept-loop task handle (abort it to stop the proxy).
+pub async fn serve(
+    engine: Arc<ClientEngine>,
+    listen: SocketAddr,
+) -> io::Result<(SocketAddr, tokio::task::JoinHandle<()>)> {
     let listener = TcpListener::bind(listen).await?;
     let local = listener.local_addr()?;
-    tokio::spawn(async move {
+    let task = tokio::spawn(async move {
         while let Ok((sock, _)) = listener.accept().await {
             let eng = engine.clone();
             tokio::spawn(async move {
@@ -26,7 +30,7 @@ pub async fn serve(engine: Arc<ClientEngine>, listen: SocketAddr) -> io::Result<
             });
         }
     });
-    Ok(local)
+    Ok((local, task))
 }
 
 async fn handle(engine: Arc<ClientEngine>, mut sock: TcpStream) -> io::Result<()> {

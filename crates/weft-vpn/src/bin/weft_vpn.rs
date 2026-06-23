@@ -7,7 +7,6 @@
 //! Env: WEFT_HOPS (default 3), WEFT_EXIT_ALLOWLIST=ip1,ip2 (default: open internet).
 
 use std::net::IpAddr;
-use std::sync::Arc;
 
 use weft_vpn::exit::EgressPolicy;
 use weft_vpn::{localnet, socks};
@@ -38,12 +37,13 @@ async fn main() -> std::io::Result<()> {
                 .parse()
                 .map_err(|_| std::io::Error::other("bad listen addr"))?;
             eprintln!("[weft-vpn] starting self-contained circuit ({hops} hops)…");
-            let engine = Arc::new(localnet::spawn(hops, policy, 40_000).await?);
-            let bound = socks::serve(engine, listen).await?;
+            let net = localnet::spawn(hops, policy, 40_000).await?;
+            let (bound, _task) = socks::serve(net.engine.clone(), listen).await?;
             println!("[weft-vpn] SOCKS5 proxy on {bound} — set your app's SOCKS proxy to it");
             println!("[weft-vpn] e.g. curl --proxy socks5h://{bound} https://example.com");
-            // Run until killed.
+            // Keep `net` alive (its drop tears the circuit down) until killed.
             std::future::pending::<()>().await;
+            drop(net);
             Ok(())
         }
         _ => {
