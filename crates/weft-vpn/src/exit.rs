@@ -4,6 +4,7 @@
 //! actual destination. This is what turns Weft from an echo into a working VPN exit.
 
 use std::collections::HashMap;
+use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
@@ -88,6 +89,10 @@ pub struct InternetExit {
     policy: EgressPolicy,
     conns: HashMap<(/*client*/ [u8; 32], /*stream*/ u64), Conn>,
     max_conns: usize,
+    /// Optional interface index to bind egress to (macOS `IP_BOUND_IF`). Needed when the
+    /// exit runs on the same host as a TUN client, so the exit's own connections bypass the
+    /// tunnel's routes instead of looping back in.
+    bind_if: Option<u32>,
 }
 
 impl InternetExit {
@@ -96,6 +101,38 @@ impl InternetExit {
             policy,
             conns: HashMap::new(),
             max_conns: 4096,
+            bind_if: None,
+        }
+    }
+
+    /// Bind outbound connections to a specific interface index (see [`InternetExit::bind_if`]).
+    pub fn with_bind_interface(mut self, idx: Option<u32>) -> Self {
+        self.bind_if = idx;
+        self
+    }
+
+    /// Connect to `dst`, optionally pinning egress to `bind_if` so it bypasses tunnel routes.
+    async fn connect(dst: SocketAddr, bind_if: Option<u32>) -> io::Result<TcpStream> {
+        match bind_if {
+            #[cfg(target_os = "macos")]
+            Some(idx) if idx != 0 => {
+                use tokio::net::TcpSocket;
+                let sock = if dst.is_ipv4() {
+                    TcpSocket::new_v4()?
+                } else {
+                    TcpSocket::new_v6()?
+                };
+                if let Some(nz) = std::num::NonZeroU32::new(idx) {
+                    let r = socket2::SockRef::from(&sock);
+                    if dst.is_ipv4() {
+                        r.bind_device_by_index_v4(Some(nz))?;
+                    } else {
+                        r.bind_device_by_index_v6(Some(nz))?;
+                    }
+                }
+                sock.connect(dst).await
+            }
+            _ => TcpStream::connect(dst).await,
         }
     }
 
@@ -129,7 +166,8 @@ impl InternetExit {
                 if self.conns.len() >= self.max_conns {
                     return ExitFrame::Err(exit_err::IO);
                 }
-                match tokio::time::timeout(CONNECT_TIMEOUT, TcpStream::connect(dst)).await {
+                match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst, self.bind_if)).await
+                {
                     Ok(Ok(sock)) => {
                         let _ = sock.set_nodelay(true);
                         self.conns

@@ -57,8 +57,15 @@ impl Drop for LocalNet {
 }
 
 /// Spawn an in-process circuit and return it wired to a client engine. The last node is the
-/// real internet exit (governed by `exit_policy`); the rest are relays.
-pub async fn spawn(hops: usize, exit_policy: EgressPolicy, base: usize) -> io::Result<LocalNet> {
+/// real internet exit (governed by `exit_policy`); the rest are relays. `exit_bind_if` pins
+/// the exit's egress to an interface index (macOS `IP_BOUND_IF`) so that, when this runs on
+/// the same host as a TUN client, the exit's own connections bypass the tunnel routes.
+pub async fn spawn(
+    hops: usize,
+    exit_policy: EgressPolicy,
+    base: usize,
+    exit_bind_if: Option<u32>,
+) -> io::Result<LocalNet> {
     let hops = hops.clamp(2, 5);
     let n = hops + 2; // a little path diversity beyond the minimum
     let mut rng = StdRng::seed_from_u64(0xc0ffee ^ base as u64);
@@ -113,7 +120,7 @@ pub async fn spawn(hops: usize, exit_policy: EgressPolicy, base: usize) -> io::R
     for (i, (nd, sw)) in nodes.iter().zip(swarms.into_iter()).enumerate() {
         let relay = Relay::new(nd.kp.operator_pubkey(), nd.id, nd.kp.onion_secret(), 0);
         let exit: Box<dyn Exit> = if i == last {
-            Box::new(InternetExit::new(exit_policy.clone()))
+            Box::new(InternetExit::new(exit_policy.clone()).with_bind_interface(exit_bind_if))
         } else {
             Box::new(EchoExit)
         };

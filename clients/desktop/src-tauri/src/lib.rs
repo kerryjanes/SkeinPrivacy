@@ -74,7 +74,7 @@ async fn connect(state: tauri::State<'_, AppState>) -> Result<Status, String> {
     }
     // Fresh /memory base per connect so reconnects never collide with a prior circuit.
     let base = 40_000 + state.base.fetch_add(1, Ordering::Relaxed) * 1000;
-    let net = localnet::spawn(HOPS, EgressPolicy::open(), base)
+    let net = localnet::spawn(HOPS, EgressPolicy::open(), base, None)
         .await
         .map_err(|e| format!("circuit failed: {e}"))?;
     let counters = net.engine.counters();

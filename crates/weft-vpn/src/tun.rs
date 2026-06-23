@@ -17,12 +17,31 @@ use tun::AbstractDevice;
 
 use crate::client_engine::ClientEngine;
 
-/// The Weft tunnel interface's own address + the MTU we advertise. MTU is kept low so a
-/// single TCP segment fits one onion cell payload (no IP fragmentation).
+/// The Weft tunnel interface's own address + the MTU we advertise. The netstack reassembles
+/// TCP and the client engine re-chunks the byte stream to ≤ one onion cell payload, so the
+/// link MTU is independent of the cell size; `ipstack` requires ≥ 1280 (the IPv6 minimum).
 const TUN_ADDR: Ipv4Addr = Ipv4Addr::new(10, 73, 0, 2);
 const TUN_PEER: Ipv4Addr = Ipv4Addr::new(10, 73, 0, 1);
 const TUN_NETMASK: Ipv4Addr = Ipv4Addr::new(255, 255, 255, 0);
-const TUN_MTU: u16 = 1000;
+const TUN_MTU: u16 = 1400;
+
+/// The interface index of the system default route (e.g. `en0`), so the exit can pin its
+/// egress there and bypass our tunnel. Returns `None` if it can't be determined.
+pub fn default_interface_index() -> Option<u32> {
+    let out = Command::new("route")
+        .args(["-n", "get", "default"])
+        .output()
+        .ok()?;
+    let text = String::from_utf8_lossy(&out.stdout);
+    let name = text
+        .lines()
+        .find_map(|l| l.trim().strip_prefix("interface:"))?
+        .trim();
+    let cname = std::ffi::CString::new(name).ok()?;
+    // SAFETY: `if_nametoindex` reads a NUL-terminated C string and returns 0 on error.
+    let idx = unsafe { libc::if_nametoindex(cname.as_ptr()) };
+    (idx != 0).then_some(idx)
+}
 
 /// A handle to a running TUN tunnel. Dropping it removes the scoped routes (kill-switch).
 pub struct TunHandle {
@@ -80,8 +99,9 @@ pub async fn up(engine: Arc<ClientEngine>, scoped: Vec<String>) -> io::Result<Tu
     ipcfg
         .mtu(TUN_MTU)
         .map_err(|e| io::Error::other(e.to_string()))?;
-    // macOS utun frames carry a 4-byte address-family prefix.
-    ipcfg.packet_information(true);
+    // The `tun` crate already strips/adds the macOS utun 4-byte address-family prefix
+    // (PI=true by default), so ipstack sees bare IP packets — packet_information must be off.
+    ipcfg.packet_information(false);
     let mut stack = IpStack::new(ipcfg, device);
 
     let counter = Arc::new(AtomicU64::new(0));
@@ -89,20 +109,32 @@ pub async fn up(engine: Arc<ClientEngine>, scoped: Vec<String>) -> io::Result<Tu
         loop {
             match stack.accept().await {
                 Ok(IpStackStream::Tcp(tcp)) => {
-                    let dst = tcp.local_addr(); // the destination the app dialed
+                    // ipstack: peer_addr() is the original destination, local_addr() the source.
+                    let dst = tcp.peer_addr();
+                    let src = tcp.local_addr();
+                    eprintln!("[weft-vpn] tun: TCP flow {src} → {dst} (tunnelling)");
                     let eng = engine.clone();
                     let seed =
                         rand::thread_rng().gen::<u64>() ^ counter.fetch_add(1, Ordering::Relaxed);
                     tokio::spawn(async move {
-                        let _ = eng.tunnel(dst, seed, tcp).await;
+                        match eng.tunnel(dst, seed, tcp).await {
+                            Ok(()) => eprintln!("[weft-vpn] tun: flow → {dst} closed"),
+                            Err(e) => eprintln!("[weft-vpn] tun: flow → {dst} error: {e}"),
+                        }
                     });
                 }
                 Ok(IpStackStream::Udp(udp)) => {
                     // UDP egress (DNS, QUIC) is not yet supported at the exit — drop for now.
-                    let _ = udp;
+                    eprintln!(
+                        "[weft-vpn] tun: UDP flow → {} dropped (no UDP egress yet)",
+                        udp.local_addr()
+                    );
                 }
                 Ok(_) => {}
-                Err(_) => break,
+                Err(e) => {
+                    eprintln!("[weft-vpn] tun: netstack accept error: {e}");
+                    break;
+                }
             }
         }
     });
