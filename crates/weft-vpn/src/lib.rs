@@ -8,5 +8,6 @@
 
 pub mod client_engine;
 pub mod exit;
+pub mod localnet;
 pub mod socks;
 pub mod stream;
