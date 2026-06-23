@@ -1,0 +1,30 @@
+[package]
+name = "weft-vpn"
+description = "Weft VPN engine: tunnel real traffic through the onion circuit (SOCKS + system TUN) and egress at an exit node"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "weft_vpn"
+
+[[bin]]
+name = "weft-vpn"
+path = "src/bin/weft_vpn.rs"
+
+[dependencies]
+weft-net = { workspace = true }
+weft-primitives = { workspace = true }
+tokio = { workspace = true }
+futures = { workspace = true }
+libp2p = { workspace = true }
+rand = { workspace = true }
+hex = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }

@@ -4316,6 +4316,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "weft-vpn"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "hex",
+ "libp2p",
+ "rand 0.8.6",
+ "weft-net",
+ "weft-primitives",
+ "thiserror 1.0.69",
+ "tokio",
+]
+
+[[package]]
 name = "slab"
 version = "0.4.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
