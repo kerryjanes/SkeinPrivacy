@@ -19,6 +19,7 @@ use libp2p::swarm::SwarmEvent;
 use libp2p::{Multiaddr, PeerId, Swarm};
 use weft_net::cell_transport::{err, CellResponse};
 use weft_net::discovery::{WeftBehaviour, WeftBehaviourEvent};
+use weft_net::exit::Exit;
 use weft_net::keys::WeftKeypair;
 use weft_net::node::Relay;
 use weft_net::sphinx::{reply_seal, Cell, Peeled};
@@ -48,8 +49,8 @@ struct Parked {
     reply_key: [u8; 32],
 }
 
-/// The exit destination handler: given `(dest, payload)`, return the reply bytes.
-pub type ExitHandler = Box<dyn Fn([u8; 32], &[u8]) -> Vec<u8> + Send>;
+/// The exit destination handler (async + stateful) — see [`weft_net::exit::Exit`].
+pub type ExitHandler = Box<dyn Exit>;
 
 /// Owns the swarm, the relay engine, the address book, and the in-flight parked channels.
 pub struct RelayService {
@@ -156,7 +157,9 @@ impl RelayService {
                 payload,
                 reply_key,
             }) => {
-                let reply = (self.exit)(dest, &payload);
+                // The exit does real I/O (a VPN egress dials the destination), so this
+                // awaits; the relay's other in-flight cells keep flowing via parked channels.
+                let reply = self.exit.handle(client, dest, &payload).await;
                 let sealed = reply_seal(&reply_key, &reply);
                 respond(&mut self.swarm, channel, CellResponse::Reply(sealed));
             }

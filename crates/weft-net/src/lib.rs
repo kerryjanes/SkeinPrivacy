@@ -10,6 +10,7 @@ pub mod cell_transport;
 pub mod client;
 pub mod discovery;
 pub mod error;
+pub mod exit;
 pub mod keys;
 pub mod metering;
 pub mod node;

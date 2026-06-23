@@ -71,14 +71,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     )?;
     println!("[weft-node] joined the DHT; serving node {node_id} on {listen}");
 
-    // Exit handler: real OS egress is deferred (M8) — answer with an in-protocol ack so the
-    // circuit's reverse path is exercised end to end.
+    // Exit handler. The real internet-egress exit (weft-vpn `InternetExit`) is wired in the
+    // next M9 chunk; for now use the echo exit so the reverse path is exercised end to end.
     let relay = relay_service::make_relay(&kp, node_id, 0);
-    let exit = Box::new(|_dest: [u8; 32], payload: &[u8]| {
-        let mut r = b"ack:".to_vec();
-        r.extend_from_slice(payload);
-        r
-    });
+    let exit = Box::new(weft_net::exit::EchoExit);
     let mut service = RelayService::new(swarm, relay, Clock::System, exit);
     println!("[weft-node] relaying cells on /weft/cell/1.0.0");
     loop {
