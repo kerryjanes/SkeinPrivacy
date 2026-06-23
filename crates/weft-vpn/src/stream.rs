@@ -21,8 +21,13 @@ const K_POLL: u8 = 4;
 /// A frame the client sends toward the exit (one per onion cell).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ClientFrame {
-    /// Open a new logical stream to `dst` (the real internet target).
-    Open { stream_id: u64, dst: SocketAddr },
+    /// Open a new logical stream to `dst` (the real internet target). `udp` selects the
+    /// transport at the exit: false → a TCP connection, true → a UDP socket (for DNS etc.).
+    Open {
+        stream_id: u64,
+        dst: SocketAddr,
+        udp: bool,
+    },
     /// Stream payload bytes (already chunked to `MAX_DATA_CHUNK`).
     Data {
         stream_id: u64,
@@ -71,9 +76,14 @@ impl ClientFrame {
     pub fn encode(&self) -> Vec<u8> {
         let mut out = Vec::with_capacity(16);
         match self {
-            ClientFrame::Open { stream_id, dst } => {
+            ClientFrame::Open {
+                stream_id,
+                dst,
+                udp,
+            } => {
                 out.push(K_OPEN);
                 out.extend_from_slice(&stream_id.to_le_bytes());
+                out.push(*udp as u8);
                 put_sockaddr(&mut out, dst);
             }
             ClientFrame::Data {
@@ -104,7 +114,8 @@ impl ClientFrame {
         match kind {
             K_OPEN => Some(ClientFrame::Open {
                 stream_id,
-                dst: get_sockaddr(rest.get(8..)?)?,
+                udp: *rest.get(8)? != 0,
+                dst: get_sockaddr(rest.get(9..)?)?,
             }),
             K_DATA => {
                 let seq = u32::from_le_bytes(rest.get(8..12)?.try_into().ok()?);
@@ -195,10 +206,12 @@ mod tests {
             ClientFrame::Open {
                 stream_id: 7,
                 dst: "93.184.216.34:443".parse().unwrap(),
+                udp: false,
             },
             ClientFrame::Open {
                 stream_id: 9,
                 dst: "[2606:2800:220:1:248:1893:25c8:1946]:80".parse().unwrap(),
+                udp: true,
             },
             ClientFrame::Data {
                 stream_id: 7,

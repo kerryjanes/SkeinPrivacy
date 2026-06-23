@@ -17,9 +17,10 @@ use crate::stream::{exit_err, ClientFrame, ExitFrame};
 /// How long the exit waits for upstream bytes before returning an (empty) reply, so the
 /// relay loop is never blocked for long on one cell. The client `Poll`s to drain more.
 const READ_DEADLINE: Duration = Duration::from_millis(25);
-/// Cap on bytes returned to the client per cell (the reverse path isn't fixed-size, but we
-/// bound it to keep replies sane).
-const MAX_READ_PER_TICK: usize = 32 * 1024;
+/// Cap on bytes returned to the client per `Poll` cell. The reverse path isn't fixed-size
+/// (each hop only adds a 16-byte AEAD tag), so a large window keeps download throughput up:
+/// download rate ≈ this / circuit-RTT.
+const MAX_READ_PER_TICK: usize = 256 * 1024;
 /// Connection establishment timeout.
 const CONNECT_TIMEOUT: Duration = Duration::from_secs(5);
 
@@ -78,9 +79,10 @@ fn is_private(ip: &IpAddr) -> bool {
     }
 }
 
-struct Conn {
-    sock: TcpStream,
-    eof: bool,
+/// A live upstream connection at the exit: a TCP stream or a connected UDP socket.
+enum Conn {
+    Tcp { sock: TcpStream, eof: bool },
+    Udp { sock: tokio::net::UdpSocket },
 }
 
 /// A stateful exit that dials real destinations for VPN clients.
@@ -111,7 +113,7 @@ impl InternetExit {
         self
     }
 
-    /// Connect to `dst`, optionally pinning egress to `bind_if` so it bypasses tunnel routes.
+    /// Connect TCP to `dst`, optionally pinning egress to `bind_if` (bypasses tunnel routes).
     async fn connect(dst: SocketAddr, bind_if: Option<u32>) -> io::Result<TcpStream> {
         match bind_if {
             #[cfg(target_os = "macos")]
@@ -136,47 +138,105 @@ impl InternetExit {
         }
     }
 
+    /// Create a UDP socket connected to `dst` (for DNS etc.), pinned to `bind_if` if set.
+    async fn connect_udp(
+        dst: SocketAddr,
+        bind_if: Option<u32>,
+    ) -> io::Result<tokio::net::UdpSocket> {
+        #[cfg(target_os = "macos")]
+        if let Some(nz) = bind_if.and_then(std::num::NonZeroU32::new) {
+            use socket2::{Domain, Socket, Type};
+            let (domain, any): (Domain, SocketAddr) = if dst.is_ipv4() {
+                (Domain::IPV4, "0.0.0.0:0".parse().unwrap())
+            } else {
+                (Domain::IPV6, "[::]:0".parse().unwrap())
+            };
+            let s = Socket::new(domain, Type::DGRAM, None)?;
+            if dst.is_ipv4() {
+                s.bind_device_by_index_v4(Some(nz))?;
+            } else {
+                s.bind_device_by_index_v6(Some(nz))?;
+            }
+            s.bind(&any.into())?;
+            s.set_nonblocking(true)?;
+            let std_sock: std::net::UdpSocket = s.into();
+            let sock = tokio::net::UdpSocket::from_std(std_sock)?;
+            sock.connect(dst).await?;
+            return Ok(sock);
+        }
+        let bind = if dst.is_ipv4() { "0.0.0.0:0" } else { "[::]:0" };
+        let sock = tokio::net::UdpSocket::bind(bind).await?;
+        sock.connect(dst).await?;
+        Ok(sock)
+    }
+
     /// Read whatever is currently available (up to a deadline / cap) into an `ExitFrame`.
     async fn drain(conn: &mut Conn) -> ExitFrame {
-        if conn.eof {
-            return ExitFrame::Eof;
-        }
-        let mut buf = vec![0u8; MAX_READ_PER_TICK];
-        match tokio::time::timeout(READ_DEADLINE, conn.sock.read(&mut buf)).await {
-            Ok(Ok(0)) => {
-                conn.eof = true;
-                ExitFrame::Eof
+        match conn {
+            Conn::Tcp { sock, eof } => {
+                if *eof {
+                    return ExitFrame::Eof;
+                }
+                let mut buf = vec![0u8; MAX_READ_PER_TICK];
+                match tokio::time::timeout(READ_DEADLINE, sock.read(&mut buf)).await {
+                    Ok(Ok(0)) => {
+                        *eof = true;
+                        ExitFrame::Eof
+                    }
+                    Ok(Ok(n)) => {
+                        buf.truncate(n);
+                        ExitFrame::Data(buf)
+                    }
+                    Ok(Err(_)) => ExitFrame::Err(exit_err::IO),
+                    // Nothing ready within the deadline — return an empty chunk; client polls.
+                    Err(_) => ExitFrame::Data(Vec::new()),
+                }
             }
-            Ok(Ok(n)) => {
-                buf.truncate(n);
-                ExitFrame::Data(buf)
+            Conn::Udp { sock } => {
+                let mut buf = vec![0u8; 65_535];
+                match tokio::time::timeout(READ_DEADLINE, sock.recv(&mut buf)).await {
+                    Ok(Ok(n)) => {
+                        buf.truncate(n);
+                        ExitFrame::Data(buf)
+                    }
+                    Ok(Err(_)) => ExitFrame::Err(exit_err::IO),
+                    Err(_) => ExitFrame::Data(Vec::new()),
+                }
             }
-            Ok(Err(_)) => ExitFrame::Err(exit_err::IO),
-            // Nothing ready within the deadline — return an empty chunk; the client polls.
-            Err(_) => ExitFrame::Data(Vec::new()),
         }
     }
 
     async fn handle_frame(&mut self, client: [u8; 32], frame: ClientFrame) -> ExitFrame {
         match frame {
-            ClientFrame::Open { stream_id, dst } => {
+            ClientFrame::Open {
+                stream_id,
+                dst,
+                udp,
+            } => {
                 if !self.policy.permits(&dst) {
                     return ExitFrame::Err(exit_err::POLICY_BLOCKED);
                 }
                 if self.conns.len() >= self.max_conns {
                     return ExitFrame::Err(exit_err::IO);
                 }
-                match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst, self.bind_if)).await
-                {
-                    Ok(Ok(sock)) => {
-                        let _ = sock.set_nodelay(true);
-                        self.conns
-                            .insert((client, stream_id), Conn { sock, eof: false });
-                        // No data to read yet right after connect.
-                        ExitFrame::Data(Vec::new())
+                let conn = if udp {
+                    match Self::connect_udp(dst, self.bind_if).await {
+                        Ok(sock) => Conn::Udp { sock },
+                        Err(_) => return ExitFrame::Err(exit_err::CONNECT_FAILED),
                     }
-                    _ => ExitFrame::Err(exit_err::CONNECT_FAILED),
-                }
+                } else {
+                    match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst, self.bind_if))
+                        .await
+                    {
+                        Ok(Ok(sock)) => {
+                            let _ = sock.set_nodelay(true);
+                            Conn::Tcp { sock, eof: false }
+                        }
+                        _ => return ExitFrame::Err(exit_err::CONNECT_FAILED),
+                    }
+                };
+                self.conns.insert((client, stream_id), conn);
+                ExitFrame::Data(Vec::new()) // nothing to read yet
             }
             ClientFrame::Data {
                 stream_id, data, ..
@@ -185,16 +245,18 @@ impl InternetExit {
                     return ExitFrame::Err(exit_err::NO_STREAM);
                 };
                 if !data.is_empty() {
-                    if let Err(_e) = conn.sock.write_all(&data).await {
+                    let w = match conn {
+                        Conn::Tcp { sock, .. } => sock.write_all(&data).await,
+                        Conn::Udp { sock } => sock.send(&data).await.map(|_| ()),
+                    };
+                    if w.is_err() {
                         self.conns.remove(&(client, stream_id));
                         return ExitFrame::Err(exit_err::IO);
                     }
                 }
-                let out = Self::drain(conn).await;
-                if matches!(out, ExitFrame::Eof | ExitFrame::Err(_)) {
-                    self.conns.remove(&(client, stream_id));
-                }
-                out
+                // Upload only: the downstream direction is drained by `Poll` cells, so the
+                // client's up- and down-pumps stay independent and each stays in order.
+                ExitFrame::Data(Vec::new())
             }
             ClientFrame::Poll { stream_id } => {
                 let Some(conn) = self.conns.get_mut(&(client, stream_id)) else {
@@ -259,6 +321,7 @@ mod tests {
                 &ClientFrame::Open {
                     stream_id: 1,
                     dst: origin,
+                    udp: false,
                 }
                 .encode(),
             )
@@ -313,6 +376,7 @@ mod tests {
                 &ClientFrame::Open {
                     stream_id: 1,
                     dst: blocked,
+                    udp: false,
                 }
                 .encode(),
             )

@@ -111,24 +111,26 @@ pub async fn up(engine: Arc<ClientEngine>, scoped: Vec<String>) -> io::Result<Tu
                 Ok(IpStackStream::Tcp(tcp)) => {
                     // ipstack: peer_addr() is the original destination, local_addr() the source.
                     let dst = tcp.peer_addr();
-                    let src = tcp.local_addr();
-                    eprintln!("[weft-vpn] tun: TCP flow {src} → {dst} (tunnelling)");
                     let eng = engine.clone();
                     let seed =
                         rand::thread_rng().gen::<u64>() ^ counter.fetch_add(1, Ordering::Relaxed);
                     tokio::spawn(async move {
-                        match eng.tunnel(dst, seed, tcp).await {
-                            Ok(()) => eprintln!("[weft-vpn] tun: flow → {dst} closed"),
-                            Err(e) => eprintln!("[weft-vpn] tun: flow → {dst} error: {e}"),
+                        if let Err(e) = eng.tunnel(dst, seed, tcp, false).await {
+                            eprintln!("[weft-vpn] tun: TCP → {dst} error: {e}");
                         }
                     });
                 }
                 Ok(IpStackStream::Udp(udp)) => {
-                    // UDP egress (DNS, QUIC) is not yet supported at the exit — drop for now.
-                    eprintln!(
-                        "[weft-vpn] tun: UDP flow → {} dropped (no UDP egress yet)",
-                        udp.local_addr()
-                    );
+                    // UDP (DNS, QUIC) — tunnel as a UDP flow to the exit.
+                    let dst = udp.peer_addr();
+                    let eng = engine.clone();
+                    let seed =
+                        rand::thread_rng().gen::<u64>() ^ counter.fetch_add(1, Ordering::Relaxed);
+                    tokio::spawn(async move {
+                        if let Err(e) = eng.tunnel(dst, seed, udp, true).await {
+                            eprintln!("[weft-vpn] tun: UDP → {dst} error: {e}");
+                        }
+                    });
                 }
                 Ok(_) => {}
                 Err(e) => {

@@ -69,7 +69,7 @@ async fn handle(engine: Arc<ClientEngine>, mut sock: TcpStream) -> io::Result<()
         .await?;
 
     let seed: u64 = rand::thread_rng().gen();
-    engine.tunnel(dst, seed, sock).await
+    engine.tunnel(dst, seed, sock, false).await
 }
 
 async fn read_target(sock: &mut TcpStream, atyp: u8) -> io::Result<Option<SocketAddr>> {

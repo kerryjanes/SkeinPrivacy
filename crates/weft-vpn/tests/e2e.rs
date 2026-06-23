@@ -159,7 +159,7 @@ async fn http_tunnels_through_the_circuit_to_a_real_origin() {
 
     // Drive the engine directly: the "app side" writes an HTTP request and reads the body.
     let (mut app, tunnel_side) = tokio::io::duplex(64 * 1024);
-    let h = tokio::spawn(async move { engine.tunnel(origin, 42, tunnel_side).await });
+    let h = tokio::spawn(async move { engine.tunnel(origin, 42, tunnel_side, false).await });
 
     app.write_all(b"GET / HTTP/1.1\r\nHost: x\r\n\r\n")
         .await
