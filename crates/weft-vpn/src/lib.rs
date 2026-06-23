@@ -6,5 +6,6 @@
 //! feed the same engine — a local SOCKS5 proxy (no admin) and a system-wide TUN device —
 //! and the same [`exit`] runs on operator nodes to dial the real destination.
 
+pub mod client_engine;
 pub mod exit;
 pub mod stream;
