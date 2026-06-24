@@ -241,6 +241,31 @@ async fn http_tunnels_through_the_circuit_to_a_real_origin() {
 }
 
 #[tokio::test]
+async fn localnet_tunnels_http_through_the_deployed_topology() {
+    // The single-VPS gateway builds its circuit with `localnet::spawn` (in-process relays +
+    // one real-egress exit, over real TCP). Exercise that exact path end-to-end.
+    let origin = spawn_origin("hello-from-localnet").await;
+    let net = weft_vpn::localnet::spawn(3, EgressPolicy::allowlist(vec![origin.ip()]), 61_000)
+        .await
+        .unwrap();
+    let engine = net.engine.clone();
+
+    let (mut app, tunnel_side) = tokio::io::duplex(64 * 1024);
+    let h = tokio::spawn(async move { engine.tunnel(origin, 5, tunnel_side, false).await });
+    app.write_all(b"GET / HTTP/1.1\r\nHost: x\r\n\r\n")
+        .await
+        .unwrap();
+    let mut got = Vec::new();
+    tokio::time::timeout(std::time::Duration::from_secs(20), app.read_to_end(&mut got))
+        .await
+        .expect("localnet tunnel timed out")
+        .unwrap();
+    let text = String::from_utf8_lossy(&got);
+    assert!(text.contains("200 OK") && text.contains("hello-from-localnet"), "body: {text}");
+    let _ = h.await;
+}
+
+#[tokio::test]
 async fn first_byte_is_fast_and_one_circuit_carries_many_requests() {
     let origin = spawn_keepalive_origin().await;
     let engine = setup(24_000, origin.ip()).await;
