@@ -43,6 +43,12 @@ jobs:
           avm install ${ANCHOR_VERSION}
           avm use ${ANCHOR_VERSION}
       - uses: Swatinem/rust-cache@v2
+      # The deploy keypairs (target/deploy/*-keypair.json) are gitignored, so a fresh CI
+      # checkout has none. `anchor keys sync` generates them and rewrites declare_id!/Anchor.toml
+      # to match, avoiding the program-id-mismatch check. Ephemeral (CI only) — the committed
+      # on-chain ids are unchanged in the repo; tests only need the ids to be self-consistent.
+      - name: Sync program keys
+        run: anchor keys sync
       # Build first so program test binaries can `include_bytes!` the .so.
       - name: Anchor build
         run: anchor build
