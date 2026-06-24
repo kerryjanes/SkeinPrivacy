@@ -88,21 +88,6 @@ enum Conn {
     Udp { sock: tokio::net::UdpSocket },
 }
 
-/// How an exit pins its own egress so it bypasses any tunnel the same host is running:
-/// the output interface (macOS `IP_BOUND_IF`) and/or the source address (so reply packets
-/// route back correctly even when a full-tunnel route would otherwise hijack them).
-#[derive(Default, Clone, Copy)]
-pub struct EgressBind {
-    pub if_index: Option<u32>,
-    pub source: Option<IpAddr>,
-}
-
-impl EgressBind {
-    fn is_set(&self) -> bool {
-        self.if_index.is_some() || self.source.is_some()
-    }
-}
-
 type ConnKey = ([u8; 32], u64);
 /// Each live connection is behind its own async mutex, so different streams' I/O proceeds
 /// concurrently while one stream's cells stay serialized (in order). The outer map is a
@@ -118,7 +103,6 @@ pub struct InternetExit {
     policy: EgressPolicy,
     conns: ConnMap,
     max_conns: usize,
-    bind: EgressBind,
 }
 
 impl InternetExit {
@@ -127,77 +111,16 @@ impl InternetExit {
             policy,
             conns: ConnMap::default(),
             max_conns: 4096,
-            bind: EgressBind::default(),
         }
     }
 
-    /// Pin outbound egress (interface + source address) so it bypasses tunnel routes.
-    pub fn with_egress_bind(mut self, bind: EgressBind) -> Self {
-        self.bind = bind;
-        self
-    }
-
-    /// Connect TCP to `dst`, pinning egress per `bind` (interface + source) so it bypasses
-    /// tunnel routes and returns route correctly.
-    async fn connect(dst: SocketAddr, bind: EgressBind) -> io::Result<TcpStream> {
-        #[cfg(target_os = "macos")]
-        if bind.is_set() {
-            use tokio::net::TcpSocket;
-            let sock = if dst.is_ipv4() {
-                TcpSocket::new_v4()?
-            } else {
-                TcpSocket::new_v6()?
-            };
-            let r = socket2::SockRef::from(&sock);
-            if let Some(nz) = bind.if_index.and_then(std::num::NonZeroU32::new) {
-                if dst.is_ipv4() {
-                    r.bind_device_by_index_v4(Some(nz))?;
-                } else {
-                    r.bind_device_by_index_v6(Some(nz))?;
-                }
-            }
-            if let Some(src) = bind.source {
-                if src.is_ipv4() == dst.is_ipv4() {
-                    sock.bind(SocketAddr::new(src, 0))?;
-                }
-            }
-            return sock.connect(dst).await;
-        }
-        let _ = bind;
+    /// Connect TCP to `dst`.
+    async fn connect(dst: SocketAddr) -> io::Result<TcpStream> {
         TcpStream::connect(dst).await
     }
 
-    /// Create a UDP socket connected to `dst` (for DNS etc.), pinned per `bind`.
-    async fn connect_udp(dst: SocketAddr, bind: EgressBind) -> io::Result<tokio::net::UdpSocket> {
-        #[cfg(target_os = "macos")]
-        if bind.is_set() {
-            use socket2::{Domain, Socket, Type};
-            let domain = if dst.is_ipv4() {
-                Domain::IPV4
-            } else {
-                Domain::IPV6
-            };
-            let s = Socket::new(domain, Type::DGRAM, None)?;
-            if let Some(nz) = bind.if_index.and_then(std::num::NonZeroU32::new) {
-                if dst.is_ipv4() {
-                    s.bind_device_by_index_v4(Some(nz))?;
-                } else {
-                    s.bind_device_by_index_v6(Some(nz))?;
-                }
-            }
-            let src: SocketAddr = match bind.source {
-                Some(ip) if ip.is_ipv4() == dst.is_ipv4() => SocketAddr::new(ip, 0),
-                _ if dst.is_ipv4() => "0.0.0.0:0".parse().unwrap(),
-                _ => "[::]:0".parse().unwrap(),
-            };
-            s.bind(&src.into())?;
-            s.set_nonblocking(true)?;
-            let std_sock: std::net::UdpSocket = s.into();
-            let sock = tokio::net::UdpSocket::from_std(std_sock)?;
-            sock.connect(dst).await?;
-            return Ok(sock);
-        }
-        let _ = bind;
+    /// Create a UDP socket connected to `dst` (for DNS etc.).
+    async fn connect_udp(dst: SocketAddr) -> io::Result<tokio::net::UdpSocket> {
         let any = if dst.is_ipv4() { "0.0.0.0:0" } else { "[::]:0" };
         let sock = tokio::net::UdpSocket::bind(any).await?;
         sock.connect(dst).await?;
@@ -262,13 +185,12 @@ impl InternetExit {
                     return ExitFrame::Err(exit_err::IO);
                 }
                 let conn = if udp {
-                    match Self::connect_udp(dst, self.bind).await {
+                    match Self::connect_udp(dst).await {
                         Ok(sock) => Conn::Udp { sock },
                         Err(_) => return ExitFrame::Err(exit_err::CONNECT_FAILED),
                     }
                 } else {
-                    match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst, self.bind)).await
-                    {
+                    match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst)).await {
                         Ok(Ok(sock)) => {
                             let _ = sock.set_nodelay(true);
                             Conn::Tcp { sock, eof: false }

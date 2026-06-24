@@ -1,6 +1,6 @@
 [package]
 name = "weft-vpn"
-description = "Weft VPN engine: tunnel real traffic through the onion circuit (SOCKS + system TUN) and egress at an exit node"
+description = "Weft VPN engine: tunnel real traffic through the onion circuit (SOCKS + VLESS gateway) and egress at an exit node"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
@@ -24,13 +24,12 @@ hex = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-
-# System-wide TUN mode (macOS utun + userspace netstack): captures all OS traffic.
-[target.'cfg(target_os = "macos")'.dependencies]
-tun = { version = "0.8", features = ["async"] }
-ipstack = "1"
-socket2 = "0.5"
-libc = "0.2"
+# VLESS gateway: optional TLS transport (rustls, ring provider to match libp2p-tls) +
+# self-signed cert generation for dev deployments.
+tokio-rustls = { version = "0.26", default-features = false, features = ["ring", "tls12"] }
+rustls = { version = "0.23", default-features = false, features = ["ring", "std", "tls12"] }
+rustls-pemfile = "2"
+rcgen = { version = "0.13", default-features = false, features = ["ring", "pem"] }
 
 [dev-dependencies]
 tokio = { workspace = true }

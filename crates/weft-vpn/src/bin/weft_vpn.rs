@@ -1,8 +1,16 @@
-//! `weft-vpn` — run the VPN client front-ends.
+//! `weft-vpn` — run the VPN client front-ends over the onion circuit.
 //!
 //! Usage:
-//!   weft-vpn socks [listen_addr]      Local SOCKS5 proxy (default 127.0.0.1:1080).
-//!   sudo weft-vpn tun <dst|default>   System-wide TUN (macOS). `default` = full tunnel.
+//!   weft-vpn socks [listen_addr]              Local SOCKS5 proxy (default 127.0.0.1:1080).
+//!   weft-vpn vless [listen_addr] [opts]       VLESS gateway for V2Box / Happ / sing-box /
+//!                                              Xray clients (default 0.0.0.0:8443).
+//!
+//! VLESS options:
+//!   --uuid <uuid>          User id (default: the WEFT_UUID env, else a random one printed).
+//!   --tls                  Terminate TLS with a self-signed cert (clients allow-insecure).
+//!   --tls-sni <host>       SNI/CN for the self-signed cert (default "weft.local").
+//!   --tls-cert <f> --tls-key <f>   Terminate TLS with a real PEM cert chain + key.
+//!   (no TLS flags = raw TCP, security=none — for testing or behind a TLS front.)
 //!
 //! Env:
 //!   WEFT_HOPS=3                       Circuit hop count (2..=5).
@@ -15,8 +23,8 @@ use std::sync::Arc;
 
 use weft_net::keys::WeftKeypair;
 use weft_vpn::client_engine::ClientEngine;
-use weft_vpn::exit::{EgressBind, EgressPolicy};
-use weft_vpn::{localnet, manifest, socks};
+use weft_vpn::exit::EgressPolicy;
+use weft_vpn::{localnet, manifest, socks, vless};
 
 /// The circuit backing a session: either a self-contained in-process network (real TCP,
 /// kept alive by its guard) or a connection to external relay/exit nodes.
@@ -34,7 +42,7 @@ impl Net {
     }
 }
 
-async fn build_net(hops: usize, policy: EgressPolicy, bind: EgressBind) -> std::io::Result<Net> {
+async fn build_net(hops: usize, policy: EgressPolicy) -> std::io::Result<Net> {
     if let Ok(dir) = std::env::var("WEFT_PEERS") {
         let peers = manifest::load_dir(std::path::Path::new(&dir))?;
         eprintln!(
@@ -46,21 +54,19 @@ async fn build_net(hops: usize, policy: EgressPolicy, bind: EgressBind) -> std::
         Ok(Net::External(Arc::new(engine)))
     } else {
         eprintln!("[weft-vpn] starting self-contained circuit ({hops} hops)…");
-        Ok(Net::Local(
-            localnet::spawn(hops, policy, 50_000, bind).await?,
-        ))
+        Ok(Net::Local(localnet::spawn(hops, policy, 50_000).await?))
     }
 }
 
-#[tokio::main]
-async fn main() -> std::io::Result<()> {
-    let mut args = std::env::args().skip(1);
-    let cmd = args.next().unwrap_or_default();
-    let hops: usize = std::env::var("WEFT_HOPS")
+fn hops_from_env() -> usize {
+    std::env::var("WEFT_HOPS")
         .ok()
         .and_then(|s| s.parse().ok())
-        .unwrap_or(3);
-    let policy = match std::env::var("WEFT_EXIT_ALLOWLIST") {
+        .unwrap_or(3)
+}
+
+fn policy_from_env() -> EgressPolicy {
+    match std::env::var("WEFT_EXIT_ALLOWLIST") {
         Ok(list) if !list.trim().is_empty() => {
             let ips: Vec<IpAddr> = list
                 .split(',')
@@ -69,7 +75,14 @@ async fn main() -> std::io::Result<()> {
             EgressPolicy::allowlist(ips)
         }
         _ => EgressPolicy::open(),
-    };
+    }
+}
+
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
+    let mut args = std::env::args().skip(1);
+    let cmd = args.next().unwrap_or_default();
+    let hops = hops_from_env();
 
     match cmd.as_str() {
         "socks" => {
@@ -77,7 +90,7 @@ async fn main() -> std::io::Result<()> {
             let listen = listen
                 .parse()
                 .map_err(|_| std::io::Error::other("bad listen addr"))?;
-            let net = build_net(hops, policy, EgressBind::default()).await?;
+            let net = build_net(hops, policy_from_env()).await?;
             let (bound, _task) = socks::serve(net.engine(), listen).await?;
             println!("[weft-vpn] SOCKS5 proxy on {bound} — set your app's SOCKS proxy to it");
             println!("[weft-vpn] e.g. curl --proxy socks5h://{bound} https://example.com");
@@ -85,54 +98,85 @@ async fn main() -> std::io::Result<()> {
             drop(net);
             Ok(())
         }
-        #[cfg(target_os = "macos")]
-        "tun" => {
-            // Route destinations (IPs/CIDRs) or `default` (full tunnel) through Weft. Root.
-            use weft_vpn::tun;
-            let scoped: Vec<String> = args.collect();
-            if scoped.is_empty() {
-                eprintln!("usage: sudo weft-vpn tun <dst-ip-or-cidr|default> [more…]");
-                std::process::exit(2);
-            }
-            // The self-contained exit egresses via the physical link (en0) + the LAN gateway,
-            // bypassing every utun — including a co-resident VPN that owns the default route.
-            // Bind the exit to that interface + source address so replies route back.
-            let phys = tun::physical_egress();
-            let bind = match &phys {
-                Some((pif, addr, _gw)) => EgressBind {
-                    if_index: tun::interface_index(pif),
-                    source: Some(*addr),
-                },
-                None => EgressBind::default(),
-            };
-            eprintln!(
-                "[weft-vpn] exit egress pinned: if#{:?} src={:?}",
-                bind.if_index, bind.source
-            );
-            // Full-tunnel: bypass the data-plane endpoints (remote relay IPs). Self-contained
-            // relays are on loopback (no bypass).
-            let bypass: Vec<IpAddr> = match std::env::var("WEFT_PEERS") {
-                Ok(dir) => manifest::load_dir(std::path::Path::new(&dir))
-                    .unwrap_or_default()
-                    .iter()
-                    .filter_map(|m| m.multiaddr.split('/').nth(2)?.parse().ok())
-                    .collect(),
-                _ => Vec::new(),
-            };
-            let egress = phys.map(|(pif, _addr, gw)| (pif, gw));
-            let net = build_net(hops, policy, bind).await?;
-            let _tun = tun::up(net.engine(), scoped, bypass, egress).await?;
-            println!("[weft-vpn] system tunnel up — routed traffic now exits via Weft");
-            println!("[weft-vpn] Ctrl-C to stop (routes are removed automatically)");
-            tokio::signal::ctrl_c().await.ok();
-            println!("[weft-vpn] shutting down…");
-            drop(_tun);
-            drop(net);
-            Ok(())
-        }
+        "vless" => run_vless(args, hops).await,
         _ => {
-            eprintln!("usage: weft-vpn socks [listen_addr]  |  sudo weft-vpn tun <dst|default>");
+            eprintln!("usage: weft-vpn socks [listen_addr]  |  weft-vpn vless [listen_addr] [--uuid U] [--tls|--tls-cert f --tls-key f]");
             std::process::exit(2);
         }
     }
+}
+
+async fn run_vless(mut args: impl Iterator<Item = String>, hops: usize) -> std::io::Result<()> {
+    // First positional (if it doesn't start with `--`) is the listen address.
+    let mut listen = "0.0.0.0:8443".to_string();
+    let mut uuid_str = std::env::var("WEFT_UUID").ok();
+    let mut tls = false;
+    let mut tls_sni = "weft.local".to_string();
+    let mut tls_cert: Option<String> = None;
+    let mut tls_key: Option<String> = None;
+    let mut first = true;
+    while let Some(a) = args.next() {
+        match a.as_str() {
+            "--uuid" => uuid_str = args.next(),
+            "--tls" => tls = true,
+            "--tls-sni" => {
+                if let Some(v) = args.next() {
+                    tls_sni = v;
+                }
+            }
+            "--tls-cert" => tls_cert = args.next(),
+            "--tls-key" => tls_key = args.next(),
+            other if first && !other.starts_with("--") => listen = other.to_string(),
+            other => eprintln!("[weft-vpn] ignoring unknown arg: {other}"),
+        }
+        first = false;
+    }
+    let listen = listen
+        .parse()
+        .map_err(|_| std::io::Error::other("bad listen addr"))?;
+
+    // Resolve the UUID: explicit, env, or a freshly generated one (printed so it can be shared).
+    let uuid = match uuid_str {
+        Some(s) => vless::parse_uuid(&s)
+            .ok_or_else(|| std::io::Error::other("bad --uuid (want 8-4-4-4-12 hex)"))?,
+        None => {
+            let mut u = [0u8; 16];
+            rand::Rng::fill(&mut rand::thread_rng(), &mut u);
+            eprintln!("[weft-vpn] generated UUID: {}", vless::format_uuid(&u));
+            u
+        }
+    };
+
+    let security = if let (Some(cert), Some(key)) = (&tls_cert, &tls_key) {
+        vless::Security::Tls(vless::tls_config_from_pem(cert, key)?)
+    } else if tls {
+        eprintln!(
+            "[weft-vpn] TLS: self-signed cert for SNI '{tls_sni}' (clients must allow-insecure)"
+        );
+        vless::Security::Tls(vless::self_signed_tls(&tls_sni)?)
+    } else {
+        vless::Security::None
+    };
+
+    let net = build_net(hops, policy_from_env()).await?;
+    let (bound, _task) = vless::serve(net.engine(), listen, uuid, security).await?;
+    let sec = match (&tls_cert, tls) {
+        (Some(_), _) => "tls",
+        (None, true) => "tls (self-signed)",
+        _ => "none",
+    };
+    println!("[weft-vpn] VLESS gateway on {bound} (security={sec})");
+    println!(
+        "[weft-vpn] share link: {}",
+        vless::share_link(
+            &uuid,
+            &bound.to_string(),
+            tls || tls_cert.is_some(),
+            &tls_sni
+        )
+    );
+    println!("[weft-vpn] add this server in V2Box / Happ / any sing-box or Xray client");
+    std::future::pending::<()>().await;
+    drop(net);
+    Ok(())
 }

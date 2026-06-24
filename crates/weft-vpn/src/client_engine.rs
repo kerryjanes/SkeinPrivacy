@@ -1,6 +1,6 @@
 //! The VPN client engine. Owns a libp2p swarm (driven by a background task that
 //! multiplexes many in-flight cells), a node directory, and the per-flow tunnel loop that
-//! both front-ends (SOCKS, TUN) share. A flow = a duplex byte stream to some internet
+//! both front-ends (SOCKS, VLESS) share. A flow = a duplex byte stream to some internet
 //! `dst`; the engine builds a fresh 3–5 hop onion circuit for it and pumps bytes as
 //! [`crate::stream`] frames, one onion cell per round-trip, until either side closes.
 
