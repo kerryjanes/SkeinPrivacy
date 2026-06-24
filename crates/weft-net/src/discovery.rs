@@ -169,15 +169,14 @@ pub fn validate_record(key: &RecordKey, value: &[u8]) -> crate::error::Result<No
 }
 
 /// The libp2p behaviour: Kademlia (record store) + identify (so Kademlia learns
-/// reachable listen addresses) + the `/weft/cell/1.0.0` cell transport (M7).
+/// reachable listen addresses) + the `/weft/circuit/1.0.0` streaming data plane.
 #[derive(NetworkBehaviour)]
 pub struct WeftBehaviour {
     pub kad: kad::Behaviour<MemoryStore>,
     pub identify: identify::Behaviour,
-    pub cell: crate::cell_transport::CellBehaviour,
-    /// Persistent full-duplex circuit transport (`/weft/circuit/1.0.0`). The fast VPN data
+    /// Persistent full-duplex circuit transport (`/weft/circuit/1.0.0`). The VPN data
     /// plane: open a raw bidirectional substream per hop-link via its `Control` and stream
-    /// onion cells both ways. Coexists with `cell` during migration off request/response.
+    /// onion cells both ways (built once, the exit pushes return data).
     pub circuit: libp2p_stream::Behaviour,
     // NAT traversal so home nodes behind NAT are reachable without a public IP or any
     // user setup: `autonat` learns whether we're publicly reachable; `relay` (server)
@@ -200,7 +199,6 @@ fn make_behaviour(
             "/weft/1.0.0".into(),
             key.public(),
         )),
-        cell: crate::cell_transport::cell_behaviour(),
         circuit: libp2p_stream::Behaviour::new(),
         relay: relay::Behaviour::new(peer_id, relay::Config::default()),
         relay_client,
