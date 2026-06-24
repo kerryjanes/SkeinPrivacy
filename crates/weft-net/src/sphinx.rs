@@ -85,7 +85,7 @@ pub enum Peeled {
 /// once per circuit (the expensive ECDH blinding chain) and reused for every cell, since
 /// it peels identically each time (the per-hop secret depends only on `alpha` and the
 /// hop's key). A wire data cell is this header (sent once) plus a per-cell `(seq, delta)`.
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Header {
     pub alpha: [u8; 32],
     pub beta: Vec<u8>, // BETA_LEN

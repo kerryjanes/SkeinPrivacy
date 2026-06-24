@@ -9,7 +9,9 @@ repository.workspace = true
 [dependencies]
 weft-primitives = { workspace = true }
 tokio = { workspace = true }
+tokio-util = { workspace = true }
 futures = { workspace = true }
+libp2p-stream = { workspace = true }
 libp2p = { workspace = true }
 snow = { workspace = true }
 x25519-dalek = { workspace = true }

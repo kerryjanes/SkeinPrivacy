@@ -7,6 +7,7 @@
 //! into the byte-identical M4 dual-signed [`receipt`]s.
 
 pub mod cell_transport;
+pub mod circuit;
 pub mod client;
 pub mod discovery;
 pub mod error;

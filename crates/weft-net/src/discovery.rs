@@ -175,6 +175,10 @@ pub struct WeftBehaviour {
     pub kad: kad::Behaviour<MemoryStore>,
     pub identify: identify::Behaviour,
     pub cell: crate::cell_transport::CellBehaviour,
+    /// Persistent full-duplex circuit transport (`/weft/circuit/1.0.0`). The fast VPN data
+    /// plane: open a raw bidirectional substream per hop-link via its `Control` and stream
+    /// onion cells both ways. Coexists with `cell` during migration off request/response.
+    pub circuit: libp2p_stream::Behaviour,
     // NAT traversal so home nodes behind NAT are reachable without a public IP or any
     // user setup: `autonat` learns whether we're publicly reachable; `relay` (server)
     // lets public nodes relay for others; `relay_client` lets an unreachable node be
@@ -185,7 +189,10 @@ pub struct WeftBehaviour {
     pub autonat: autonat::Behaviour,
 }
 
-fn make_behaviour(key: &identity::Keypair, relay_client: relay::client::Behaviour) -> WeftBehaviour {
+fn make_behaviour(
+    key: &identity::Keypair,
+    relay_client: relay::client::Behaviour,
+) -> WeftBehaviour {
     let peer_id = key.public().to_peer_id();
     WeftBehaviour {
         kad: kad::Behaviour::new(peer_id, MemoryStore::new(peer_id)),
@@ -194,6 +201,7 @@ fn make_behaviour(key: &identity::Keypair, relay_client: relay::client::Behaviou
             key.public(),
         )),
         cell: crate::cell_transport::cell_behaviour(),
+        circuit: libp2p_stream::Behaviour::new(),
         relay: relay::Behaviour::new(peer_id, relay::Config::default()),
         relay_client,
         dcutr: dcutr::Behaviour::new(peer_id),

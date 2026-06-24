@@ -32,6 +32,8 @@ weft-vesting = { path = "programs/weft-vesting", features = ["cpi"] }
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "io-util", "net", "signal"] }
 futures = "0.3"
 libp2p = { version = "0.54", features = ["tokio", "kad", "noise", "yamux", "tcp", "identify", "request-response", "cbor", "macros", "relay", "dcutr", "autonat"] }
+libp2p-stream = "=0.2.0-alpha"
+tokio-util = { version = "0.7", features = ["codec"] }
 snow = { version = "0.9", default-features = false, features = ["default-resolver"] }
 x25519-dalek = { version = "2", features = ["static_secrets"] }
 curve25519-dalek = { version = "4", features = ["rand_core"] }
