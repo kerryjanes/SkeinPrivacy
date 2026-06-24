@@ -1,17 +1,13 @@
 //! Weft VPN engine.
 //!
-//! Turns the Weft onion data plane (`weft-net`) into a usable VPN: real application
-//! traffic is split into [`stream`] frames, each carried inside one onion cell through a
-//! 3–5 hop circuit, and **egresses to the real internet at an exit node**. Two standard
-//! front-ends feed the same engine — a local SOCKS5 proxy and a **VLESS gateway** (the
-//! protocol V2Box / Happ / any sing-box / Xray client speaks) — and the same [`exit`] runs
-//! on operator nodes to dial the real destination. OS-level capture is delegated to those
-//! mature clients, so there is no hand-rolled TUN/routing code here.
+//! A usable multi-hop privacy VPN: application traffic is carried through the **Tor network**
+//! ([`tor_backend`], via the pure-Rust Arti client) — genuine 3-hop onion routing with Tor's
+//! battle-tested flow control, lifecycle, and NAT traversal. Two standard front-ends feed the
+//! same backend — a local SOCKS5 proxy and a **VLESS gateway** (the protocol V2Box / Happ /
+//! any sing-box / Xray client speaks). OS-level capture is delegated to those mature clients,
+//! so there is no hand-rolled TUN/routing code here. Weft's value-add is the polished client
+//! plus the on-chain incentive layer that rewards users for running Tor relays.
 
-pub mod client_engine;
-pub mod exit;
-pub mod localnet;
-pub mod manifest;
 pub mod socks;
-pub mod stream;
+pub mod tor_backend;
 pub mod vless;

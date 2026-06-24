@@ -31,6 +31,9 @@ if ! command -v cargo >/dev/null 2>&1; then
   curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 fi
 . "$HOME/.cargo/env"
+# The repo pins rustc 1.89 for the Solana/Anchor programs, but the Tor data plane (Arti)
+# needs a modern rustc — build the host VPN crate with the stable toolchain.
+rustup toolchain install stable --profile minimal -y
 
 echo "→ Fetching Weft…"
 [ -d /opt/weft ] || git clone https://github.com/kerryjanes/WeftNetwork.git /opt/weft
@@ -38,7 +41,7 @@ cd /opt/weft && git pull --ff-only || true
 echo "→ Building (a few minutes on a small server)…"
 # Disable LTO + use more codegen units: much lighter on RAM/CPU for a small VPS.
 CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 \
-  cargo build -p weft-vpn --release
+  cargo +stable build -p weft-vpn --release
 
 echo "→ Getting a real TLS certificate for ${DOMAIN} (Let's Encrypt)…"
 curl -s https://get.acme.sh | sh -s email="admin@${DOMAIN}"
@@ -67,8 +70,10 @@ ExecStart=/opt/weft/target/release/weft-vpn vless 0.0.0.0:443 --uuid ${UUID} \\
 Restart=always
 RestartSec=3
 AmbientCapabilities=CAP_NET_BIND_SERVICE
-# A busy VPN node holds many concurrent connections — the 1024 default is far too low.
+# A busy VPN gateway holds many concurrent connections — the 1024 default is far too low.
 LimitNOFILE=1048576
+# Arti (the Tor client) stores its directory cache under \$HOME; systemd starts with none.
+Environment=HOME=/root
 
 [Install]
 WantedBy=multi-user.target

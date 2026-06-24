@@ -1,7 +1,7 @@
 //! A VLESS gateway front-end — the protocol that V2Box, Happ, and any sing-box / Xray
-//! client speak. Each accepted VLESS stream becomes a flow that the [`ClientEngine`] tunnels
-//! to its destination through a fresh onion circuit, so a stock client (no Weft software
-//! installed) connects to a Weft node and its traffic egresses at a Weft exit.
+//! client speak. Each accepted VLESS stream becomes a flow that the [`TorBackend`] tunnels
+//! to its destination through the Tor network, so a stock client (no Weft software
+//! installed) connects to a Weft gateway and its traffic egresses at a Tor exit.
 //!
 //! VLESS itself is a thin, stateless framing with no transport crypto of its own; security
 //! comes from the transport. We support raw TCP (`security=none`, for testing or behind a
@@ -22,7 +22,7 @@ use rand::Rng;
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
 use tokio::net::{lookup_host, TcpListener};
 
-use crate::client_engine::ClientEngine;
+use crate::tor_backend::TorBackend;
 
 /// A 16-byte VLESS user id.
 pub type Uuid = [u8; 16];
@@ -77,7 +77,7 @@ pub enum Security {
 /// accept-loop task handle (abort it to stop the gateway). Only streams presenting `uuid`
 /// are served.
 pub async fn serve(
-    engine: Arc<ClientEngine>,
+    engine: Arc<TorBackend>,
     listen: SocketAddr,
     uuid: Uuid,
     security: Security,
@@ -112,7 +112,7 @@ pub async fn serve(
 }
 
 /// Read and validate one VLESS request header, then hand the duplex stream to the engine.
-async fn handle<S>(engine: Arc<ClientEngine>, uuid: Uuid, mut s: S) -> io::Result<()>
+async fn handle<S>(engine: Arc<TorBackend>, uuid: Uuid, mut s: S) -> io::Result<()>
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
@@ -156,22 +156,12 @@ where
     s.write_all(&[0u8, 0u8]).await?;
 
     if udp {
-        return tunnel_udp(&engine, dst, s).await;
+        // Tor carries TCP streams only; UDP egress (e.g. QUIC) is unsupported. Stock clients
+        // fall back to TCP when the UDP association fails.
+        return Err(io::Error::other("UDP egress is not supported over Tor"));
     }
     let seed: u64 = rand::thread_rng().gen();
     engine.tunnel(dst, seed, s, false).await
-}
-
-/// VLESS UDP-over-stream: each datagram is framed `len(2 BE) | payload`. We de-frame the
-/// client side into the engine's per-datagram `Data` cells (one datagram per engine read)
-/// and re-frame the exit's replies. The destination is fixed by the request header.
-async fn tunnel_udp<S>(engine: &ClientEngine, dst: SocketAddr, s: S) -> io::Result<()>
-where
-    S: AsyncRead + AsyncWrite + Unpin,
-{
-    let framed = UdpFramed::new(s);
-    let seed: u64 = rand::thread_rng().gen();
-    engine.tunnel(dst, seed, framed, true).await
 }
 
 async fn read_addr<S>(s: &mut S, atyp: u8, port: u16) -> io::Result<Option<SocketAddr>>
@@ -198,153 +188,6 @@ where
             Ok(lookup_host((host, port)).await?.next())
         }
         _ => Ok(None),
-    }
-}
-
-/// Adapts a VLESS length-prefixed UDP stream `S` to the raw-datagram `AsyncRead`/`AsyncWrite`
-/// the engine's UDP path expects: each `poll_read` yields exactly one datagram (the 2-byte
-/// length prefix stripped) and each `poll_write` emits one framed datagram. Both directions
-/// keep explicit byte-progress state so a mid-frame `Pending` or partial inner read/write
-/// never loses or splices bytes — the engine sends one `Data` cell per write and consumes one
-/// datagram per read, so framing lines up one-to-one.
-struct UdpFramed<S> {
-    inner: S,
-    // Read side: assemble length, then body.
-    len_buf: [u8; 2],
-    len_filled: usize,
-    body: Vec<u8>,
-    body_filled: usize,
-    have_len: bool,
-    // Write side: hold the framed datagram until it is fully flushed to `inner`.
-    wbuf: Vec<u8>,
-    wsent: usize,
-    wpayload: usize,
-}
-
-impl<S> UdpFramed<S> {
-    fn new(inner: S) -> Self {
-        Self {
-            inner,
-            len_buf: [0u8; 2],
-            len_filled: 0,
-            body: Vec::new(),
-            body_filled: 0,
-            have_len: false,
-            wbuf: Vec::new(),
-            wsent: 0,
-            wpayload: 0,
-        }
-    }
-}
-
-impl<S: AsyncRead + Unpin> AsyncRead for UdpFramed<S> {
-    fn poll_read(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-        buf: &mut tokio::io::ReadBuf<'_>,
-    ) -> std::task::Poll<io::Result<()>> {
-        use std::task::Poll;
-        let me = self.get_mut();
-        loop {
-            if !me.have_len {
-                let mut tmp = tokio::io::ReadBuf::new(&mut me.len_buf[me.len_filled..]);
-                match std::pin::Pin::new(&mut me.inner).poll_read(cx, &mut tmp) {
-                    Poll::Ready(Ok(())) => {
-                        let got = tmp.filled().len();
-                        if got == 0 {
-                            return Poll::Ready(Ok(())); // EOF
-                        }
-                        me.len_filled += got;
-                        if me.len_filled == 2 {
-                            let n = u16::from_be_bytes(me.len_buf) as usize;
-                            me.body = vec![0u8; n];
-                            me.body_filled = 0;
-                            me.have_len = true;
-                        }
-                    }
-                    Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
-                    Poll::Pending => return Poll::Pending,
-                }
-            } else {
-                let n = me.body.len();
-                if n == 0 {
-                    // Zero-length datagram: emit nothing, reset for the next frame.
-                    me.have_len = false;
-                    me.len_filled = 0;
-                    return Poll::Ready(Ok(()));
-                }
-                let mut tmp = tokio::io::ReadBuf::new(&mut me.body[me.body_filled..]);
-                match std::pin::Pin::new(&mut me.inner).poll_read(cx, &mut tmp) {
-                    Poll::Ready(Ok(())) => {
-                        let got = tmp.filled().len();
-                        if got == 0 {
-                            return Poll::Ready(Ok(())); // EOF mid-body
-                        }
-                        me.body_filled += got;
-                        if me.body_filled == n {
-                            me.have_len = false;
-                            me.len_filled = 0;
-                            if buf.remaining() >= n {
-                                buf.put_slice(&me.body);
-                                return Poll::Ready(Ok(()));
-                            }
-                            // Datagram bigger than one onion cell (e.g. a QUIC packet): it
-                            // can't ride in a single `Data` cell, so drop it (UDP is lossy)
-                            // and loop to read the next one. Returning 0 bytes here would be
-                            // read as EOF and tear the flow down, so we must not do that.
-                            continue;
-                        }
-                    }
-                    Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
-                    Poll::Pending => return Poll::Pending,
-                }
-            }
-        }
-    }
-}
-
-impl<S: AsyncWrite + Unpin> AsyncWrite for UdpFramed<S> {
-    fn poll_write(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-        data: &[u8],
-    ) -> std::task::Poll<io::Result<usize>> {
-        use std::task::Poll;
-        let me = self.get_mut();
-        // Stage a new framed datagram only when the previous one is fully flushed.
-        if me.wsent == me.wbuf.len() {
-            me.wbuf.clear();
-            me.wbuf
-                .extend_from_slice(&(data.len() as u16).to_be_bytes());
-            me.wbuf.extend_from_slice(data);
-            me.wsent = 0;
-            me.wpayload = data.len();
-        }
-        while me.wsent < me.wbuf.len() {
-            match std::pin::Pin::new(&mut me.inner).poll_write(cx, &me.wbuf[me.wsent..]) {
-                Poll::Ready(Ok(0)) => {
-                    return Poll::Ready(Err(io::Error::from(io::ErrorKind::WriteZero)))
-                }
-                Poll::Ready(Ok(k)) => me.wsent += k,
-                Poll::Ready(Err(e)) => return Poll::Ready(Err(e)),
-                Poll::Pending => return Poll::Pending,
-            }
-        }
-        Poll::Ready(Ok(me.wpayload))
-    }
-    fn poll_flush(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<io::Result<()>> {
-        let me = self.get_mut();
-        std::pin::Pin::new(&mut me.inner).poll_flush(cx)
-    }
-    fn poll_shutdown(
-        self: std::pin::Pin<&mut Self>,
-        cx: &mut std::task::Context<'_>,
-    ) -> std::task::Poll<io::Result<()>> {
-        let me = self.get_mut();
-        std::pin::Pin::new(&mut me.inner).poll_shutdown(cx)
     }
 }
 

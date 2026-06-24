@@ -1,8 +1,8 @@
 //! A minimal SOCKS5 proxy front-end. Each accepted CONNECT becomes a flow that the
-//! [`ClientEngine`] tunnels to its destination through a fresh onion circuit. This is the
-//! no-admin VPN mode: point a browser/OS at `socks5://127.0.0.1:<port>` and its traffic
-//! egresses at a Weft exit node. (Domain targets are resolved client-side for now;
-//! exit-side DNS is a documented follow-up.)
+//! [`TorBackend`] tunnels to its destination through the Tor network. This is the no-admin
+//! VPN mode: point a browser/OS at `socks5://127.0.0.1:<port>` and its traffic egresses at a
+//! Tor exit. (Domain targets are resolved client-side for now; exit-side DNS via Tor is a
+//! documented follow-up.)
 
 use std::io;
 use std::net::{IpAddr, Ipv4Addr, Ipv6Addr, SocketAddr};
@@ -12,12 +12,12 @@ use rand::Rng;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{lookup_host, TcpListener, TcpStream};
 
-use crate::client_engine::ClientEngine;
+use crate::tor_backend::TorBackend;
 
 /// Bind the SOCKS5 listener and serve in the background. Returns the bound address and the
 /// accept-loop task handle (abort it to stop the proxy).
 pub async fn serve(
-    engine: Arc<ClientEngine>,
+    engine: Arc<TorBackend>,
     listen: SocketAddr,
 ) -> io::Result<(SocketAddr, tokio::task::JoinHandle<()>)> {
     let listener = TcpListener::bind(listen).await?;
@@ -33,7 +33,7 @@ pub async fn serve(
     Ok((local, task))
 }
 
-async fn handle(engine: Arc<ClientEngine>, mut sock: TcpStream) -> io::Result<()> {
+async fn handle(engine: Arc<TorBackend>, mut sock: TcpStream) -> io::Result<()> {
     // Greeting: VER, NMETHODS, METHODS…
     let mut head = [0u8; 2];
     sock.read_exact(&mut head).await?;
