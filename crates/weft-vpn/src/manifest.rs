@@ -97,6 +97,21 @@ impl NodeManifest {
     }
 }
 
+/// Load every `*.json` manifest in `dir`.
+pub fn load_dir(dir: &Path) -> io::Result<Vec<NodeManifest>> {
+    let mut out = Vec::new();
+    for entry in std::fs::read_dir(dir)? {
+        let path = entry?.path();
+        if path.extension().and_then(|e| e.to_str()) == Some("json") {
+            let bytes = std::fs::read(&path)?;
+            if let Ok(m) = serde_json::from_slice::<NodeManifest>(&bytes) {
+                out.push(m);
+            }
+        }
+    }
+    Ok(out)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -138,19 +153,4 @@ mod tests {
         ))
         .is_ok());
     }
-}
-
-/// Load every `*.json` manifest in `dir`.
-pub fn load_dir(dir: &Path) -> io::Result<Vec<NodeManifest>> {
-    let mut out = Vec::new();
-    for entry in std::fs::read_dir(dir)? {
-        let path = entry?.path();
-        if path.extension().and_then(|e| e.to_str()) == Some("json") {
-            let bytes = std::fs::read(&path)?;
-            if let Ok(m) = serde_json::from_slice::<NodeManifest>(&bytes) {
-                out.push(m);
-            }
-        }
-    }
-    Ok(out)
 }
