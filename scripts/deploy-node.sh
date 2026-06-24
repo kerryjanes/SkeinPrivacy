@@ -14,6 +14,14 @@ DOMAIN="${1:?usage: deploy-node.sh <domain whose A record points at this server>
 
 if [ "$(id -u)" -ne 0 ]; then echo "run as root (needs port 443 + cert)"; exit 1; fi
 
+# A small (1–2 GB) VPS needs swap to compile Rust without running out of memory.
+RAM_MB="$(free -m | awk '/^Mem:/{print $2}')"
+if [ "${RAM_MB:-0}" -lt 3000 ] && [ ! -f /swapfile ]; then
+  echo "→ Adding 4 GB swap (small RAM)…"
+  fallocate -l 4G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=4096
+  chmod 600 /swapfile && mkswap /swapfile >/dev/null && swapon /swapfile
+fi
+
 echo "→ Installing dependencies…"
 apt-get update -y
 apt-get install -y curl git build-essential pkg-config libssl-dev socat
@@ -27,7 +35,10 @@ fi
 echo "→ Fetching Weft…"
 [ -d /opt/weft ] || git clone https://github.com/kerryjanes/WeftNetwork.git /opt/weft
 cd /opt/weft && git pull --ff-only || true
-cargo build -p weft-vpn --release
+echo "→ Building (a few minutes on a small server)…"
+# Disable LTO + use more codegen units: much lighter on RAM/CPU for a small VPS.
+CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 \
+  cargo build -p weft-vpn --release
 
 echo "→ Getting a real TLS certificate for ${DOMAIN} (Let's Encrypt)…"
 curl -s https://get.acme.sh | sh -s email="admin@${DOMAIN}"
