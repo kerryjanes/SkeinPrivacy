@@ -81,6 +81,29 @@ pub enum Peeled {
     },
 }
 
+/// The Sphinx routing header — `alpha`/`beta`/`gamma` without any payload. It is built
+/// once per circuit (the expensive ECDH blinding chain) and reused for every cell, since
+/// it peels identically each time (the per-hop secret depends only on `alpha` and the
+/// hop's key). A wire data cell is this header (sent once) plus a per-cell `(seq, delta)`.
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct Header {
+    pub alpha: [u8; 32],
+    pub beta: Vec<u8>, // BETA_LEN
+    pub gamma: [u8; MAC_SIZE],
+}
+
+/// Result of peeling a header ONCE at a hop: the routing decision + this hop's reusable
+/// `reply_key` (used to open every forward payload cell and seal every reverse cell) and
+/// the `payload_len` it must open. `fwd_header` is the header to forward downstream (the
+/// same for every cell on this circuit); `None` means this hop is the exit.
+pub struct PeeledHeader {
+    pub addr: [u8; 32], // next hop id, or (exit) destination id
+    pub is_exit: bool,
+    pub reply_key: [u8; 32],
+    pub payload_len: usize,
+    pub fwd_header: Option<Header>,
+}
+
 // ---- crypto helpers ----
 fn hkdf32(secret: &[u8; 32], label: &[u8]) -> [u8; 32] {
     let hk = Hkdf::<Sha256>::new(None, secret);
@@ -112,14 +135,30 @@ fn blinding_factor(alpha: &[u8; 32], secret: &[u8; 32]) -> Scalar {
     Scalar::from_bytes_mod_order_wide(&h)
 }
 
-fn aead_seal(key: &[u8; 32], pt: &[u8]) -> Vec<u8> {
+// AEAD nonce discipline (the crux of persistent circuits): the forward and reverse
+// directions reuse the SAME per-hop key (`payload_key` == `reply_key`), and a persistent
+// circuit reuses one header — hence one key — across many cells. So every cell MUST get a
+// unique 96-bit nonce or ChaCha20-Poly1305 catastrophically reuses a keystream. The nonce
+// is `dir(1) ‖ 0(3) ‖ seq(8 LE)`: the direction byte keeps forward/reverse disjoint (they
+// share a key), and `seq` is a strictly-monotonic per-circuit, per-direction counter.
+const DIR_FWD: u8 = 0;
+const DIR_REV: u8 = 1;
+
+fn cell_nonce(dir: u8, seq: u64) -> [u8; 12] {
+    let mut n = [0u8; 12];
+    n[0] = dir;
+    n[4..12].copy_from_slice(&seq.to_le_bytes());
+    n
+}
+
+fn aead_seal(key: &[u8; 32], nonce: &[u8; 12], pt: &[u8]) -> Vec<u8> {
     ChaCha20Poly1305::new(key.into())
-        .encrypt(&Nonce::default(), pt)
+        .encrypt(Nonce::from_slice(nonce), pt)
         .expect("aead seal")
 }
-fn aead_open(key: &[u8; 32], ct: &[u8]) -> Result<Vec<u8>> {
+fn aead_open(key: &[u8; 32], nonce: &[u8; 12], ct: &[u8]) -> Result<Vec<u8>> {
     ChaCha20Poly1305::new(key.into())
-        .decrypt(&Nonce::default(), ct)
+        .decrypt(Nonce::from_slice(nonce), ct)
         .map_err(|_| NetError::Malformed("payload aead"))
 }
 
@@ -187,28 +226,21 @@ fn filler(secrets: &[[u8; 32]]) -> Vec<u8> {
     phi
 }
 
-/// Build the onion cell for `payload` routed along `hops` (3–5 hops, last = exit).
-/// Returns the cell plus the per-hop reply keys (in path order) the client keeps to
-/// open a layered reverse-path reply.
-pub fn create_onion<R: RngCore + CryptoRng>(
+/// Build the Sphinx routing header ONCE for a circuit along `hops` (1–5 hops, last =
+/// exit). This runs the expensive part — the ephemeral scalar, the per-hop ECDH blinding
+/// chain (`path_secrets`), and the beta/gamma construction — exactly once; the returned
+/// `Header` is then reused for every data cell. Also returns the per-hop keys (path order)
+/// the client keeps: each doubles as the forward payload key and the reverse reply key.
+pub fn build_header<R: RngCore + CryptoRng>(
     rng: &mut R,
     hops: &[OnionHop],
-    payload: &[u8],
-) -> Result<(Cell, Vec<[u8; 32]>)> {
+) -> Result<(Header, Vec<[u8; 32]>)> {
     let n = hops.len();
     if !(1..=MAX_HOPS).contains(&n) {
         return Err(NetError::Circuit("hop count out of range"));
     }
     let ephemeral = Scalar::random(rng);
     let (secrets, alpha0) = path_secrets(&ephemeral, hops)?;
-
-    // payload: nested AEAD, outermost = hop 0.
-    let mut cur = frame_payload(payload)?.to_vec();
-    for s in secrets.iter().rev() {
-        cur = aead_seal(&payload_key(s), &cur);
-    }
-    let mut delta = cur;
-    delta.resize(PAYLOAD_SIZE, 0);
 
     // header: build beta/gamma backward, with the Sphinx filler at the last hop.
     let fill = filler(&secrets);
@@ -233,32 +265,68 @@ pub fn create_onion<R: RngCore + CryptoRng>(
         next_mac = header_mac(&secrets[i], &beta);
     }
 
-    let reply_keys = secrets.iter().map(payload_key).collect();
+    let keys = secrets.iter().map(payload_key).collect();
     Ok((
-        Cell {
+        Header {
             alpha: alpha0,
             beta,
             gamma: next_mac,
-            delta,
         },
-        reply_keys,
+        keys,
     ))
 }
 
-/// Peel one layer at a hop holding onion secret `y`.
-pub fn peel(cell: &Cell, y: &Scalar) -> Result<Peeled> {
-    let alpha = CompressedRistretto(cell.alpha)
+/// Seal ONE forward data cell's `delta` using the circuit's per-hop `keys` and a unique
+/// `seq`. Cheap — N nested AEAD seals (outermost = hop 0), no curve ops. The caller MUST
+/// pass a strictly-increasing `seq` per circuit (forward direction) so no nonce repeats.
+pub fn seal_forward_payload(keys: &[[u8; 32]], seq: u64, data: &[u8]) -> Result<Vec<u8>> {
+    let nonce = cell_nonce(DIR_FWD, seq);
+    let mut cur = frame_payload(data)?.to_vec();
+    for k in keys.iter().rev() {
+        cur = aead_seal(k, &nonce, &cur);
+    }
+    cur.resize(PAYLOAD_SIZE, 0);
+    Ok(cur)
+}
+
+/// Legacy one-shot: build a fresh header + seal the payload at `seq = 0`. Bit-for-bit
+/// identical to the original `create_onion` on the forward path (the forward seq-0 nonce
+/// is all-zeros). Kept for the request_response path + existing tests during migration.
+pub fn create_onion<R: RngCore + CryptoRng>(
+    rng: &mut R,
+    hops: &[OnionHop],
+    payload: &[u8],
+) -> Result<(Cell, Vec<[u8; 32]>)> {
+    let (header, keys) = build_header(rng, hops)?;
+    let delta = seal_forward_payload(&keys, 0, payload)?;
+    Ok((
+        Cell {
+            alpha: header.alpha,
+            beta: header.beta,
+            gamma: header.gamma,
+            delta,
+        },
+        keys,
+    ))
+}
+
+/// Peel the routing HEADER once at a hop holding onion secret `y`: verify the header MAC,
+/// learn the next hop (or exit destination), and derive this hop's `reply_key` + the
+/// downstream header to forward. No payload is touched — call this once per circuit and
+/// cache the result; then open each data cell's payload with [`peel_payload`].
+pub fn peel_header(h: &Header, y: &Scalar) -> Result<PeeledHeader> {
+    let alpha = CompressedRistretto(h.alpha)
         .decompress()
         .ok_or(NetError::Malformed("alpha"))?;
     let secret = (alpha * y).compress().to_bytes();
 
     // header integrity
-    if header_mac(&secret, &cell.beta) != cell.gamma {
+    if header_mac(&secret, &h.beta) != h.gamma {
         return Err(NetError::OnionAuth(0));
     }
 
     // decrypt routing block + shift
-    let mut padded = cell.beta.clone();
+    let mut padded = h.beta.clone();
     padded.resize(STREAM_LEN, 0);
     let stream = rho_stream(&secret, STREAM_LEN);
     for (k, b) in padded.iter_mut().enumerate() {
@@ -273,52 +341,107 @@ pub fn peel(cell: &Cell, y: &Scalar) -> Result<Peeled> {
     let mut next_mac = [0u8; MAC_SIZE];
     next_mac.copy_from_slice(&block[3 + ADDR_SIZE..]);
 
-    // peel one payload layer
-    if payload_len > cell.delta.len() {
-        return Err(NetError::Malformed("payload_len"));
-    }
     let reply_key = payload_key(&secret);
-    let inner = aead_open(&reply_key, &cell.delta[..payload_len])?;
-
     if flags & FLAG_EXIT != 0 {
-        let payload = unframe_payload(&inner)?;
-        Ok(Peeled::Exit {
-            dest: addr,
-            payload,
+        Ok(PeeledHeader {
+            addr,
+            is_exit: true,
             reply_key,
+            payload_len,
+            fwd_header: None,
         })
     } else {
-        let b = blinding_factor(&cell.alpha, &secret);
+        let b = blinding_factor(&h.alpha, &secret);
         let alpha_out = (alpha * b).compress().to_bytes();
-        let mut delta = inner;
-        delta.resize(PAYLOAD_SIZE, 0);
-        Ok(Peeled::Forward {
-            next_addr: addr,
-            cell: Cell {
+        Ok(PeeledHeader {
+            addr,
+            is_exit: false,
+            reply_key,
+            payload_len,
+            fwd_header: Some(Header {
                 alpha: alpha_out,
                 beta: beta_next,
                 gamma: next_mac,
-                delta,
-            },
-            reply_key,
+            }),
         })
     }
 }
 
-/// Seal one reverse-path reply layer with a hop's `reply_key` (exit seals the
-/// innermost layer; each hop toward the client adds an outer layer).
-pub fn reply_seal(reply_key: &[u8; 32], data: &[u8]) -> Vec<u8> {
-    aead_seal(reply_key, data)
+/// Open one forward payload layer at a hop using its `reply_key` and the cell's `seq`.
+/// Returns the inner bytes (the next hop's `delta`, or the exit's framed plaintext).
+pub fn peel_payload(
+    reply_key: &[u8; 32],
+    seq: u64,
+    payload_len: usize,
+    delta: &[u8],
+) -> Result<Vec<u8>> {
+    if payload_len > delta.len() {
+        return Err(NetError::Malformed("payload_len"));
+    }
+    aead_open(reply_key, &cell_nonce(DIR_FWD, seq), &delta[..payload_len])
 }
 
-/// Open a fully-layered reply at the client. `reply_keys` are in forward path order
-/// (entry first); the entry hop's layer is outermost, so we peel in path order.
-pub fn reply_open(reply_keys: &[[u8; 32]], sealed: &[u8]) -> Result<Vec<u8>> {
+/// Peel a full one-shot `Cell` (header + payload) at `seq` — header peel + payload peel.
+pub fn peel_seq(cell: &Cell, y: &Scalar, seq: u64) -> Result<Peeled> {
+    let header = Header {
+        alpha: cell.alpha,
+        beta: cell.beta.clone(),
+        gamma: cell.gamma,
+    };
+    let ph = peel_header(&header, y)?;
+    let inner = peel_payload(&ph.reply_key, seq, ph.payload_len, &cell.delta)?;
+    if ph.is_exit {
+        Ok(Peeled::Exit {
+            dest: ph.addr,
+            payload: unframe_payload(&inner)?,
+            reply_key: ph.reply_key,
+        })
+    } else {
+        let fwd = ph.fwd_header.expect("forward header present");
+        let mut delta = inner;
+        delta.resize(PAYLOAD_SIZE, 0);
+        Ok(Peeled::Forward {
+            next_addr: ph.addr,
+            cell: Cell {
+                alpha: fwd.alpha,
+                beta: fwd.beta,
+                gamma: fwd.gamma,
+                delta,
+            },
+            reply_key: ph.reply_key,
+        })
+    }
+}
+
+/// Legacy one-shot peel at `seq = 0`. Kept for the request_response path + existing tests.
+pub fn peel(cell: &Cell, y: &Scalar) -> Result<Peeled> {
+    peel_seq(cell, y, 0)
+}
+
+/// Seal one reverse-path reply layer with a hop's `reply_key` and reverse `seq` (exit
+/// seals the innermost layer; each hop toward the client adds an outer layer). The reverse
+/// `seq` is the exit's own strictly-increasing per-circuit counter.
+pub fn reply_seal_seq(reply_key: &[u8; 32], seq: u64, data: &[u8]) -> Vec<u8> {
+    aead_seal(reply_key, &cell_nonce(DIR_REV, seq), data)
+}
+
+/// Open a fully-layered reply at the client at reverse `seq`. `reply_keys` are in forward
+/// path order (entry first); the entry hop's layer is outermost, so we peel in path order.
+pub fn reply_open_seq(reply_keys: &[[u8; 32]], seq: u64, sealed: &[u8]) -> Result<Vec<u8>> {
+    let nonce = cell_nonce(DIR_REV, seq);
     let mut cur = sealed.to_vec();
     for k in reply_keys {
-        cur = aead_open(k, &cur)?;
+        cur = aead_open(k, &nonce, &cur)?;
     }
     Ok(cur)
+}
+
+/// Legacy reverse seal/open at `seq = 0`. Kept for the request_response path + tests.
+pub fn reply_seal(reply_key: &[u8; 32], data: &[u8]) -> Vec<u8> {
+    reply_seal_seq(reply_key, 0, data)
+}
+pub fn reply_open(reply_keys: &[[u8; 32]], sealed: &[u8]) -> Result<Vec<u8>> {
+    reply_open_seq(reply_keys, 0, sealed)
 }
 
 #[cfg(test)]
@@ -445,5 +568,82 @@ mod tests {
         let (mut cell, _keys) = create_onion(&mut rng, &path, b"hi").unwrap();
         cell.delta[0] ^= 1; // corrupt the payload ciphertext
         assert!(peel(&cell, &nodes[0].secret).is_err());
+    }
+
+    // ---- persistent-circuit crypto (build_header reused across many cells) ----
+
+    #[test]
+    fn header_reuse_carries_many_cells() {
+        let mut rng = StdRng::seed_from_u64(123);
+        let nodes: Vec<Node> = (0..3).map(|i| node(&mut rng, i as u8)).collect();
+        let path = route(&nodes);
+
+        // Build the routing header ONCE (the expensive ECDH chain).
+        let (header, client_keys) = build_header(&mut rng, &path).unwrap();
+
+        // The header peels identically every time — the property that makes reuse sound.
+        let a = peel_header(&header, &nodes[0].secret).unwrap();
+        let b = peel_header(&header, &nodes[0].secret).unwrap();
+        assert_eq!(a.reply_key, b.reply_key);
+        assert_eq!(a.addr, b.addr);
+
+        // Stream many forward cells over the SAME header, each with an increasing seq.
+        for seq in 0u64..6 {
+            let msg = format!("cell number {seq}");
+            let delta = seal_forward_payload(&client_keys, seq, msg.as_bytes()).unwrap();
+            let mut cell = Cell {
+                alpha: header.alpha,
+                beta: header.beta.clone(),
+                gamma: header.gamma,
+                delta,
+            };
+            let mut hop_keys = Vec::new();
+            let mut delivered = None;
+            for (i, n) in nodes.iter().enumerate() {
+                match peel_seq(&cell, &n.secret, seq).unwrap() {
+                    Peeled::Forward {
+                        next_addr,
+                        cell: c,
+                        reply_key,
+                    } => {
+                        assert_eq!(next_addr, nodes[i + 1].addr);
+                        hop_keys.push(reply_key);
+                        cell = c;
+                    }
+                    Peeled::Exit {
+                        payload, reply_key, ..
+                    } => {
+                        hop_keys.push(reply_key);
+                        delivered = Some(payload);
+                    }
+                }
+            }
+            assert_eq!(delivered.unwrap(), msg.as_bytes());
+            assert_eq!(hop_keys, client_keys);
+
+            // Reverse cell at its own seq, layered exit -> client.
+            let reply = format!("reply to {seq}");
+            let mut sealed = reply.clone().into_bytes();
+            for k in hop_keys.iter().rev() {
+                sealed = reply_seal_seq(k, seq, &sealed);
+            }
+            assert_eq!(
+                reply_open_seq(&client_keys, seq, &sealed).unwrap(),
+                reply.into_bytes()
+            );
+        }
+    }
+
+    #[test]
+    fn distinct_seq_yields_distinct_ciphertext() {
+        // The same payload at different seq MUST give different ciphertext (unique nonce) —
+        // guards against the catastrophic key+nonce reuse that header reuse would otherwise
+        // enable. seq=0 forward nonce is all-zeros (legacy compatibility).
+        let mut rng = StdRng::seed_from_u64(5);
+        let nodes: Vec<Node> = (0..3).map(|i| node(&mut rng, i as u8)).collect();
+        let (_h, keys) = build_header(&mut rng, &route(&nodes)).unwrap();
+        let a = seal_forward_payload(&keys, 0, b"same").unwrap();
+        let b = seal_forward_payload(&keys, 1, b"same").unwrap();
+        assert_ne!(a, b, "different seq must give different ciphertext");
     }
 }
