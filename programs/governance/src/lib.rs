@@ -68,6 +68,13 @@ pub mod governance {
         ctx.accounts.update_protocol_config(params)
     }
 
+    /// One-shot: grow a pre-M8 `ProtocolConfig` to the current layout (adds the
+    /// `bootstrap_*` fields). Idempotent; only ever conforms the account to the
+    /// program's own struct and seeds the spec cold-start defaults.
+    pub fn migrate_protocol_config(ctx: Context<MigrateProtocolConfig>) -> Result<()> {
+        ctx.accounts.migrate_protocol_config()
+    }
+
     /// Open a proposal (proposer must present a stake position ≥ `min_proposal_stake`).
     pub fn create_proposal(ctx: Context<CreateProposal>, node_id: u64, name: String) -> Result<()> {
         ctx.accounts

@@ -38,7 +38,7 @@ import { connect, loadEd25519Seed, loadSigner, send, type Connection } from './k
 import { buildEpoch } from './rewards';
 import { signReceiptCore, type TrafficReceipt } from './receipts';
 import { epochRange } from './epoch';
-import { fetchNodeInfos } from './nodes';
+import { fetchNodeInfos, fetchNodeStateTolerant } from './nodes';
 
 const NODE_ID = 1n;
 const MINT_FILE = new URL('../.m4-reward-mint.json', import.meta.url).pathname;
@@ -352,7 +352,7 @@ async function main(): Promise<void> {
   ]);
   console.log('[m4] slash_authority + oracle re-pointed at settlement PDA');
 
-  const nsBefore = await nodeRegistry.fetchNodeState(conn.rpc, node);
+  const nsBefore = await fetchNodeStateTolerant(conn.rpc, node);
   const slashAmount = 10_000n;
   await send(conn, deployer, [
     await rewardsSettlement.getDisputeInstructionAsync({
@@ -378,7 +378,7 @@ async function main(): Promise<void> {
     }),
   ]);
   const posAfter = await staking.fetchStakePosition(conn.rpc, position);
-  const nsAfter = await nodeRegistry.fetchNodeState(conn.rpc, node);
+  const nsAfter = await fetchNodeStateTolerant(conn.rpc, node);
   console.log(
     `[m4] dispute: position ${pos0.data.amount} → ${posAfter.data.amount}; NodeState stake ${nsBefore.data.stakeAmount} → ${nsAfter.data.stakeAmount}, reputation ${nsBefore.data.reputation} → ${nsAfter.data.reputation} bps`,
   );
