@@ -1,13 +1,15 @@
 # Weft
 
-**A decentralized VPN on Solana.** Weft is a DePIN network: anyone can run a node, route
-other people's encrypted traffic, and get paid in `$WEFT` per gigabyte. Traffic is onion-routed
-through 3–5 nodes — every hop only knows the next one, and the exit never learns who you are.
+**A decentralized VPN on Solana.** Weft is a DePIN network: traffic is onion-routed over the
+**Tor network** — multi-hop, so every relay only knows the next one and the exit never learns
+who you are — and `$WEFT` rewards people for running relays. It's incentivized Tor: the
+strongest, most battle-tested anonymity network as the data plane, with an on-chain incentive
+and registry layer on top.
 
-- **Token:** `$WEFT` (SPL), used to pay for traffic, stake on nodes, and vote in governance.
-- **Pricing:** `0.1 $WEFT` per GB. Each payment splits **70% to nodes / 20% burned / 10% treasury**.
+- **Token:** `$WEFT` (SPL), used to reward relay operators, stake on nodes, and vote in governance.
 - **Registry:** every node is a compressed NFT on Solana, carrying its geo, capabilities, stake and reputation.
-- **Transport:** WireGuard-style link encryption + a single-pass Sphinx onion over a libp2p/Kademlia network.
+- **Data plane:** the Tor network, embedded via [Arti](https://gitlab.torproject.org/tpo/core/arti) (the
+  pure-Rust Tor client) — 20 years of hardened multi-hop onion routing, flow control, and NAT traversal.
 
 The protocol speaks **VLESS**, so you can connect with apps you already trust — **V2Box, Happ,
 sing-box, Hiddify** — on any OS, or with the Weft desktop app.
@@ -36,21 +38,20 @@ open it, and press **Connect**. Nothing to paste.
 
 ## Run a node
 
-Run a node, route traffic, and earn `$WEFT`. Rewards settle every ~10 minutes, weighted by
-traffic, reputation (0.5×–2.0×), geo demand (up to +50%) and stake (+20% at 10,000 `$WEFT`).
+A Weft node is a **Tor relay**: run one, carry traffic for the network Weft routes over, and
+earn `$WEFT`. Rewards are weighted by reputation (0.5×–2.0×), geo demand (up to +50%) and
+stake (+20% at 10,000 `$WEFT`).
 
-### 1. With one script (recommended)
+### With one script (recommended)
 
 ```sh
-./scripts/run-node.sh
+./scripts/run-relay.sh
 ```
 
-That's it. The script creates your key, builds the node, registers it on-chain, and starts
-relaying — no extra commands, no keys to manage. Re-run it any time to start your node again.
-
-### 2. With the Weft app
-
-The desktop app can register your machine as a node and run it for you — no terminal at all.
+The script installs Tor, configures a **non-exit relay** (safe to run from home — it never
+sends traffic to the open internet on your behalf), creates your operator key, registers the
+relay on-chain, and starts it. Re-run it any time. To run an exit relay instead (extra demand,
+extra reward, but you egress others' traffic), pass `--exit` and read the printed warning first.
 
 ---
 
@@ -60,9 +61,7 @@ The desktop app can register your machine as a node and run it for you — no te
 | --- | --- |
 | `programs/` | 7 Anchor programs: token vesting, node registry (cNFT), staking, reputation, rewards settlement, governance (DAO), IDO/token distributor. |
 | `crates/weft-primitives` | Shared tokenomics + reward/split/merkle math (single source of truth, on- and off-chain). |
-| `crates/weft-net` | Onion data plane: Sphinx over Ristretto, WireGuard-style links, Kademlia discovery, circuit selection, metering. |
-| `crates/weft-node` | The node daemon (relay + exit). |
-| `crates/weft-vpn` | The VLESS gateway, SOCKS5 front-end, real-egress exit, and `weft-vpn` CLI. |
+| `crates/weft-vpn` | The data plane: routes traffic through Tor (Arti) behind a VLESS gateway + SOCKS5 front-end (`weft-vpn` CLI). |
 | `services/` | TypeScript services + CLIs: registry provisioning, the settlement aggregator, the node-directory indexer, governance tooling, and genesis. |
 | `sdk/` | `@weft/sdk` — typed Solana clients for every program, plus the shared math. |
 | `clients/desktop/` | The cross-platform desktop VPN app. |
