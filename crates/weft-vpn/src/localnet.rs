@@ -13,11 +13,11 @@ use libp2p::{Multiaddr, PeerId, Swarm};
 use rand::rngs::StdRng;
 use rand::SeedableRng;
 
+use weft_net::circuit_relay::{CircuitExit, CircuitRelayService};
 use weft_net::discovery::{build_swarm, routing_addr, WeftBehaviour};
-use weft_net::exit::{EchoExit, Exit};
 use weft_net::keys::WeftKeypair;
 use weft_net::node::Relay;
-use weft_net::relay::{Clock, RelayService};
+use weft_net::relay::Clock;
 use weft_net::selection::NodeRecord;
 use weft_primitives::capability;
 
@@ -106,25 +106,23 @@ pub async fn spawn(hops: usize, exit_policy: EgressPolicy, base: usize) -> io::R
         swarms.push(sw);
     }
 
-    // Spawn each relay; the last is the real internet exit.
+    // Spawn each relay as a streaming circuit service; the last is the real internet exit.
+    // Relay hops carry an exit handler too, but only the exit hop ever opens it.
     let last = nodes.len() - 1;
     let mut relays = Vec::new();
     for (i, (nd, sw)) in nodes.iter().zip(swarms.into_iter()).enumerate() {
         let relay = Relay::new(nd.kp.operator_pubkey(), nd.id, nd.kp.onion_secret(), 0);
-        let exit: std::sync::Arc<dyn Exit> = if i == last {
-            std::sync::Arc::new(InternetExit::new(exit_policy.clone()))
+        let policy = if i == last {
+            exit_policy.clone()
         } else {
-            std::sync::Arc::new(EchoExit)
+            EgressPolicy::default() // never invoked at a relay hop
         };
-        let mut svc = RelayService::new(sw, relay, Clock::System, exit);
+        let exit: std::sync::Arc<dyn CircuitExit> = std::sync::Arc::new(InternetExit::new(policy));
+        let mut svc = CircuitRelayService::new(sw, relay, Clock::System, exit);
         for (peer, addr, raddr) in &routes {
             svc.add_route(*raddr, *peer, addr.clone());
         }
-        relays.push(tokio::spawn(async move {
-            loop {
-                svc.step().await;
-            }
-        }));
+        relays.push(tokio::spawn(svc.run()));
     }
 
     let directory: Vec<NodeRecord> = nodes.iter().map(|nd| nd.rec.clone()).collect();

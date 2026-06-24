@@ -11,6 +11,10 @@ use std::io;
 
 use crate::sphinx::Header;
 
+/// Cloneable handle for opening circuit substreams from a driven swarm (re-exported so
+/// downstream crates can hold one without depending on `libp2p-stream` directly).
+pub use libp2p_stream::Control as CircuitControl;
+
 /// The streaming circuit protocol (one persistent bidirectional substream per hop-link).
 pub const CIRCUIT_PROTOCOL: StreamProtocol = StreamProtocol::new("/weft/circuit/1.0.0");
 

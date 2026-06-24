@@ -1,107 +1,37 @@
-//! The VPN client engine. Owns a libp2p swarm (driven by a background task that
-//! multiplexes many in-flight cells), a node directory, and the per-flow tunnel loop that
-//! both front-ends (SOCKS, VLESS) share. A flow = a duplex byte stream to some internet
-//! `dst`; the engine builds a fresh 3–5 hop onion circuit for it and pumps bytes as
-//! [`crate::stream`] frames, one onion cell per round-trip, until either side closes.
+//! The VPN client engine. Owns a libp2p swarm (driven by a background task) plus a node
+//! directory, and the per-flow tunnel loop that both front-ends (SOCKS, VLESS) share. A flow
+//! = a duplex byte stream to some internet `dst`; the engine builds ONE 3–5 hop onion circuit
+//! for it over a persistent full-duplex substream, then pumps bytes as [`crate::stream`]
+//! frames — pipelined uploads + pushed downloads, no per-cell round-trip — until it closes.
 
 use std::collections::HashMap;
 use std::io;
 use std::net::SocketAddr;
+use std::sync::atomic::Ordering::Relaxed;
 
-use futures::StreamExt;
-use libp2p::request_response::{self, OutboundRequestId};
+use futures::{AsyncReadExt as _, StreamExt};
 use libp2p::swarm::SwarmEvent;
 use libp2p::{Multiaddr, PeerId, Swarm};
 use rand::{rngs::StdRng, Rng, SeedableRng};
 use tokio::io::{AsyncRead, AsyncReadExt, AsyncWrite, AsyncWriteExt};
-use tokio::sync::{mpsc, oneshot};
 
-use weft_net::cell_transport::{err, CellResponse};
-use weft_net::client::{build_circuit, open_reply};
-use weft_net::discovery::{build_swarm, WeftBehaviour, WeftBehaviourEvent};
+use weft_net::circuit::{read_frame, write_frame, CircuitControl, Frame, CIRCUIT_PROTOCOL};
+use weft_net::client::build_stream_circuit;
+use weft_net::discovery::{build_swarm, WeftBehaviour};
 use weft_net::keys::WeftKeypair;
 use weft_net::selection::{select_circuit, NodeRecord, SelectParams};
-use weft_net::sphinx::Cell;
 
 use crate::stream::{ClientFrame, ExitFrame, MAX_DATA_CHUNK};
 
 /// First-hop dialing info for a routing address: the libp2p peer + its endpoint.
 pub type DialInfo = HashMap<[u8; 32], (PeerId, Multiaddr)>;
 
-enum Cmd {
-    Send {
-        first_peer: PeerId,
-        first_addr: Multiaddr,
-        cell: Cell,
-        reply: oneshot::Sender<CellResponse>,
-    },
-}
-
-/// A cheap, cloneable handle to the swarm task: send one cell, await its sealed reply.
-#[derive(Clone)]
-pub struct ClientHandle {
-    tx: mpsc::Sender<Cmd>,
-}
-
-impl ClientHandle {
-    async fn round_trip(
-        &self,
-        first_peer: PeerId,
-        first_addr: Multiaddr,
-        cell: Cell,
-    ) -> CellResponse {
-        let (reply, rx) = oneshot::channel();
-        if self
-            .tx
-            .send(Cmd::Send {
-                first_peer,
-                first_addr,
-                cell,
-                reply,
-            })
-            .await
-            .is_err()
-        {
-            return CellResponse::Err(err::DOWNSTREAM);
-        }
-        rx.await.unwrap_or(CellResponse::Err(err::DOWNSTREAM))
-    }
-}
-
-/// Drive the client swarm: accept send commands, dispatch cell responses back to waiters.
-async fn run_swarm(mut swarm: Swarm<WeftBehaviour>, mut rx: mpsc::Receiver<Cmd>) {
-    let mut pending: HashMap<OutboundRequestId, oneshot::Sender<CellResponse>> = HashMap::new();
+/// Drive the client swarm: dialing, connection upkeep, and the circuit-stream protocol all
+/// run through `select_next_some`. Opening circuits goes through the cloneable
+/// [`CircuitControl`] obtained before this task takes ownership of the swarm.
+async fn run_swarm(mut swarm: Swarm<WeftBehaviour>) {
     loop {
-        tokio::select! {
-            cmd = rx.recv() => match cmd {
-                Some(Cmd::Send { first_peer, first_addr, cell, reply }) => {
-                    swarm.add_peer_address(first_peer, first_addr);
-                    let id = swarm.behaviour_mut().cell.send_request(&first_peer, cell);
-                    pending.insert(id, reply);
-                }
-                None => break, // all handles dropped → shut down
-            },
-            ev = swarm.select_next_some() => {
-                if let SwarmEvent::Behaviour(WeftBehaviourEvent::Cell(ev)) = ev {
-                    match ev {
-                        request_response::Event::Message {
-                            message: request_response::Message::Response { request_id, response },
-                            ..
-                        } => {
-                            if let Some(tx) = pending.remove(&request_id) {
-                                let _ = tx.send(response);
-                            }
-                        }
-                        request_response::Event::OutboundFailure { request_id, .. } => {
-                            if let Some(tx) = pending.remove(&request_id) {
-                                let _ = tx.send(CellResponse::Err(err::DOWNSTREAM));
-                            }
-                        }
-                        _ => {}
-                    }
-                }
-            }
-        }
+        let _ = swarm.select_next_some().await;
     }
 }
 
@@ -114,7 +44,7 @@ pub struct Counters {
 
 /// The VPN client engine.
 pub struct ClientEngine {
-    handle: ClientHandle,
+    control: CircuitControl,
     nodes: Vec<NodeRecord>,
     dial: DialInfo,
     hops: usize,
@@ -153,10 +83,14 @@ impl ClientEngine {
                 break;
             }
         }
-        let (tx, rx) = mpsc::channel(256);
-        let swarm_task = tokio::spawn(run_swarm(swarm, rx));
+        // Pre-seed every first-hop candidate's address so `open_stream` can auto-dial it.
+        for (peer, addr) in dial.values() {
+            swarm.add_peer_address(*peer, addr.clone());
+        }
+        let control = swarm.behaviour().circuit.new_control();
+        let swarm_task = tokio::spawn(run_swarm(swarm));
         Ok(Self {
-            handle: ClientHandle { tx },
+            control,
             nodes,
             dial,
             hops: hops.clamp(2, 5),
@@ -198,52 +132,20 @@ impl ClientEngine {
         .await
     }
 
-    /// A clone of the underlying swarm handle (for advanced callers).
-    pub fn handle(&self) -> ClientHandle {
-        self.handle.clone()
-    }
-
     /// Live byte counters (clone is cheap; shares the same atomics).
     pub fn counters(&self) -> Counters {
         self.counters.clone()
     }
 
-    /// One onion round-trip: wrap `payload` for `path` (exit selector = the exit's routing
-    /// addr), send to the first hop, open the layered reply, decode the exit frame.
-    async fn onion_round_trip(
-        &self,
-        rng: &mut StdRng,
-        path: &[NodeRecord],
-        exit_addr: [u8; 32],
-        first_peer: PeerId,
-        first_addr: &Multiaddr,
-        payload: &[u8],
-    ) -> io::Result<ExitFrame> {
-        let (cell, circuit) = build_circuit(rng, path, exit_addr, payload)
-            .map_err(|e| io::Error::other(format!("build_circuit: {e}")))?;
-        let sealed = match self
-            .handle
-            .round_trip(first_peer, first_addr.clone(), cell)
-            .await
-        {
-            CellResponse::Reply(b) => b,
-            CellResponse::Err(code) => {
-                return Err(io::Error::other(format!("circuit error {code}")))
-            }
-        };
-        let opened =
-            open_reply(&circuit, &sealed).map_err(|e| io::Error::other(format!("reply: {e}")))?;
-        ExitFrame::decode(&opened).ok_or_else(|| io::Error::other("bad exit frame"))
-    }
-
     /// Tunnel a duplex byte stream `io` (an accepted SOCKS/TUN flow) to `dst` through a fresh
-    /// circuit until either side closes. `udp` selects TCP vs UDP egress at the exit.
+    /// circuit until it closes. `udp` selects TCP vs UDP egress at the exit.
     ///
-    /// Full-duplex + pipelined: independent up- and down-pumps run concurrently. The up-pump
-    /// sends `Data` cells (writes at the exit, one in order); the down-pump sends `Poll`
-    /// cells (drains the exit's read side, one in order). Separating the directions keeps
-    /// each ordered while overlapping them, and the exit's large read window per `Poll`
-    /// keeps download throughput ≈ window / RTT.
+    /// The circuit is built ONCE (one Sphinx header) over a persistent full-duplex substream;
+    /// then two pumps run concurrently. The up-pump pipelines `Data` cells (each sealed at a
+    /// unique forward `seq`, no waiting for a reply); the down-pump receives the cells the exit
+    /// PUSHES as the real connection produces bytes (no polling). The flow ends when the
+    /// download side closes (server EOF / error); the upload side finishing (app half-close)
+    /// does not cut an in-flight download.
     pub async fn tunnel<S>(&self, dst: SocketAddr, seed: u64, io: S, udp: bool) -> io::Result<()>
     where
         S: AsyncRead + AsyncWrite + Unpin,
@@ -258,7 +160,7 @@ impl ClientEngine {
         let path = select_circuit(&self.nodes, &params)
             .map_err(|e| io::Error::other(format!("select_circuit: {e}")))?;
         let first = &path[0];
-        let (first_peer, first_addr) = self
+        let (first_peer, _first_addr) = self
             .dial
             .get(&first.addr)
             .cloned()
@@ -266,90 +168,103 @@ impl ClientEngine {
         let exit_addr = path.last().expect("non-empty path").addr;
         let stream_id: u64 = rng.gen();
 
-        // OPEN the stream at the exit.
-        let open = ClientFrame::Open {
-            stream_id,
-            dst,
-            udp,
-        }
-        .encode();
-        if let ExitFrame::Err(code) = self
-            .onion_round_trip(&mut rng, &path, exit_addr, first_peer, &first_addr, &open)
-            .await?
-        {
-            return Err(io::Error::other(format!("exit open failed: {code}")));
-        }
+        // Build the streaming circuit (one reusable header) and open the persistent substream
+        // to the first hop (auto-dials using the pre-seeded address).
+        let sc = std::sync::Arc::new(
+            build_stream_circuit(&mut rng, &path, exit_addr)
+                .map_err(|e| io::Error::other(format!("build_stream_circuit: {e}")))?,
+        );
+        let stream = self
+            .control
+            .clone()
+            .open_stream(first_peer, CIRCUIT_PROTOCOL)
+            .await
+            .map_err(|e| io::Error::other(format!("open circuit: {e:?}")))?;
+        let (mut sr, mut sw) = stream.split();
+
+        // OPEN: the reused header + a fresh circuit id. FWD #0: open the exit's TCP/UDP stream.
+        write_frame(
+            &mut sw,
+            &Frame::Open {
+                circuit_id: rng.gen(),
+                header: sc.header.clone(),
+            },
+        )
+        .await?;
+        let open = ClientFrame::Open { stream_id, dst, udp }.encode();
+        let delta = sc
+            .seal(0, &open)
+            .map_err(|e| io::Error::other(format!("seal: {e}")))?;
+        write_frame(&mut sw, &Frame::Fwd { seq: 0, delta }).await?;
 
         let (mut rd, mut wr) = tokio::io::split(io);
 
-        // Up-pump: app → exit. One `Data` cell at a time (ordered).
-        let up = async {
-            let mut rng = StdRng::seed_from_u64(seed ^ 0x5151_5151);
+        // Up-pump: app → exit. Pipelined forward cells; forward `seq` strictly increases
+        // (cell 0 was the OPEN above, so app data starts at 1).
+        let counters = self.counters.clone();
+        let sc_up = sc.clone();
+        let up = async move {
+            let sc = sc_up;
             let mut buf = vec![0u8; MAX_DATA_CHUNK];
-            let mut seq: u32 = 0;
+            let mut fseq: u64 = 1;
+            let mut dseq: u32 = 0;
             loop {
                 let n = rd.read(&mut buf).await?;
                 if n == 0 {
                     break; // app closed its write side
                 }
-                self.counters
-                    .up
-                    .fetch_add(n as u64, std::sync::atomic::Ordering::Relaxed);
+                counters.up.fetch_add(n as u64, Relaxed);
                 let payload = ClientFrame::Data {
                     stream_id,
-                    seq,
+                    seq: dseq,
                     data: buf[..n].to_vec(),
                 }
                 .encode();
-                seq = seq.wrapping_add(1);
-                match self
-                    .onion_round_trip(
-                        &mut rng,
-                        &path,
-                        exit_addr,
-                        first_peer,
-                        &first_addr,
-                        &payload,
-                    )
-                    .await?
-                {
-                    ExitFrame::Err(_) | ExitFrame::Eof => break,
-                    ExitFrame::Data(_) => {}
-                }
+                dseq = dseq.wrapping_add(1);
+                let delta = sc
+                    .seal(fseq, &payload)
+                    .map_err(|e| io::Error::other(format!("seal: {e}")))?;
+                write_frame(&mut sw, &Frame::Fwd { seq: fseq, delta }).await?;
+                fseq += 1;
             }
             io::Result::Ok(())
         };
 
-        // Down-pump: exit → app. Continuously `Poll`; the exit's 25ms read deadline paces
-        // idle polling, and a non-empty reply means more is ready (poll again immediately).
-        let down = async {
-            let mut rng = StdRng::seed_from_u64(seed ^ 0xACAC_ACAC);
-            let poll = ClientFrame::Poll { stream_id }.encode();
-            // Loops while the exit keeps returning Data; an Eof/Err reply ends it.
-            while let ExitFrame::Data(d) = self
-                .onion_round_trip(&mut rng, &path, exit_addr, first_peer, &first_addr, &poll)
-                .await?
-            {
-                if !d.is_empty() {
-                    self.counters
-                        .down
-                        .fetch_add(d.len() as u64, std::sync::atomic::Ordering::Relaxed);
-                    wr.write_all(&d).await?;
+        // Down-pump: exit → app. Receive pushed reverse cells, open each at its reverse `seq`.
+        let counters = self.counters.clone();
+        let down = async move {
+            loop {
+                match read_frame(&mut sr).await? {
+                    Some(Frame::Rev { seq, sealed }) => {
+                        let opened = sc
+                            .open(seq, &sealed)
+                            .map_err(|e| io::Error::other(format!("reply open: {e}")))?;
+                        match ExitFrame::decode(&opened) {
+                            Some(ExitFrame::Data(d)) => {
+                                if !d.is_empty() {
+                                    counters.down.fetch_add(d.len() as u64, Relaxed);
+                                    wr.write_all(&d).await?;
+                                }
+                            }
+                            Some(ExitFrame::Eof) | None => break,
+                            Some(ExitFrame::Err(_)) => break,
+                        }
+                    }
+                    Some(Frame::Close) | None => break,
+                    Some(_) => {}
                 }
             }
             wr.flush().await?;
             io::Result::Ok(())
         };
 
-        // Whichever direction ends first finishes the flow; then close the exit stream.
+        // Full-duplex: the flow ends when EITHER pump ends — the download side on server EOF,
+        // the upload side when the app closes its write half (a real client keeps that half
+        // open while awaiting the response, so this only fires on a genuine disconnect). On
+        // return, dropping the substream halves tears the circuit down at every hop.
         tokio::select! {
-            r = up => r?,
-            r = down => r?,
+            r = up => r,
+            r = down => r,
         }
-        let close = ClientFrame::Close { stream_id }.encode();
-        let _ = self
-            .onion_round_trip(&mut rng, &path, exit_addr, first_peer, &first_addr, &close)
-            .await;
-        Ok(())
     }
 }

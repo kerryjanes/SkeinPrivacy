@@ -14,8 +14,8 @@ use rand::SeedableRng;
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 
+use weft_net::circuit_relay::{CircuitExit, CircuitRelayService};
 use weft_net::discovery::{build_swarm, routing_addr, WeftBehaviour};
-use weft_net::exit::EchoExit;
 use weft_net::keys::WeftKeypair;
 use weft_net::node::Relay;
 use weft_net::selection::NodeRecord;
@@ -23,7 +23,7 @@ use weft_primitives::capability;
 use weft_vpn::client_engine::{ClientEngine, DialInfo};
 use weft_vpn::exit::{EgressPolicy, InternetExit};
 
-use weft_net::relay::{Clock, RelayService};
+use weft_net::relay::Clock;
 
 struct NodeInfo {
     kp: WeftKeypair,
@@ -132,6 +132,39 @@ async fn spawn_origin(body: &'static str) -> std::net::SocketAddr {
     addr
 }
 
+/// A keep-alive HTTP origin: answers EVERY request on the same connection (never closes),
+/// so a client can pipeline several requests over one tunnel (one circuit).
+async fn spawn_keepalive_origin() -> std::net::SocketAddr {
+    let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+    let addr = listener.local_addr().unwrap();
+    tokio::spawn(async move {
+        loop {
+            let Ok((mut s, _)) = listener.accept().await else {
+                break;
+            };
+            tokio::spawn(async move {
+                let mut buf = [0u8; 1024];
+                // Each read ≈ one request; reply with a keep-alive response per request.
+                while let Ok(n) = s.read(&mut buf).await {
+                    if n == 0 {
+                        break;
+                    }
+                    let body = "pong";
+                    let resp = format!(
+                        "HTTP/1.1 200 OK\r\nContent-Length: {}\r\n\r\n{}",
+                        body.len(),
+                        body
+                    );
+                    if s.write_all(resp.as_bytes()).await.is_err() {
+                        break;
+                    }
+                }
+            });
+        }
+    });
+    addr
+}
+
 /// Stand up the 3-node circuit + a client engine over MemoryTransport. Returns the engine
 /// and the allowlisted origin the exit may dial.
 async fn setup(base: usize, origin_ip: std::net::IpAddr) -> ClientEngine {
@@ -147,24 +180,21 @@ async fn setup(base: usize, origin_ip: std::net::IpAddr) -> ClientEngine {
         swarms.push(swarm);
     }
 
-    // Phase 2: spawn each relay. Node 2 is the EXIT → real InternetExit; others echo (never
-    // reached on the exit path). All get the full address book so forwards resolve.
+    // Phase 2: spawn each relay as a streaming circuit service. Node 2 is the EXIT → real
+    // InternetExit; relay hops carry an (unused) exit handler. All get the full address book.
     for (i, (n, swarm)) in nodes.iter().zip(swarms.into_iter()).enumerate() {
         let relay = Relay::new(n.kp.operator_pubkey(), n.node_id, n.kp.onion_secret(), 600);
-        let exit: std::sync::Arc<dyn weft_net::exit::Exit> = if i == 2 {
-            std::sync::Arc::new(InternetExit::new(EgressPolicy::allowlist(vec![origin_ip])))
+        let policy = if i == 2 {
+            EgressPolicy::allowlist(vec![origin_ip])
         } else {
-            std::sync::Arc::new(EchoExit)
+            EgressPolicy::default()
         };
-        let mut service = RelayService::new(swarm, relay, Clock::Fixed(700), exit);
+        let exit: std::sync::Arc<dyn CircuitExit> = std::sync::Arc::new(InternetExit::new(policy));
+        let mut service = CircuitRelayService::new(swarm, relay, Clock::Fixed(700), exit);
         for (peer, addr, raddr) in &routes {
             service.add_route(*raddr, *peer, addr.clone());
         }
-        tokio::spawn(async move {
-            loop {
-                service.step().await;
-            }
-        });
+        tokio::spawn(service.run());
     }
 
     // The client directory + first-hop dialing map.
@@ -207,6 +237,41 @@ async fn http_tunnels_through_the_circuit_to_a_real_origin() {
     let text = String::from_utf8_lossy(&got);
     assert!(text.contains("200 OK"), "no status line: {text}");
     assert!(text.contains("hello-from-weft-exit"), "no body: {text}");
+    let _ = h.await;
+}
+
+#[tokio::test]
+async fn first_byte_is_fast_and_one_circuit_carries_many_requests() {
+    let origin = spawn_keepalive_origin().await;
+    let engine = setup(24_000, origin.ip()).await;
+
+    let (mut app, tunnel_side) = tokio::io::duplex(64 * 1024);
+    let h = tokio::spawn(async move { engine.tunnel(origin, 77, tunnel_side, false).await });
+
+    // Three pipelined requests over the SAME tunnel (one circuit, one Sphinx header) — each
+    // must come back quickly. The persistent circuit means no per-request rebuild/poll stall.
+    for i in 0..3u32 {
+        let t0 = std::time::Instant::now();
+        app.write_all(b"GET / HTTP/1.1\r\nHost: x\r\n\r\n")
+            .await
+            .unwrap();
+        // Read until we see one "pong" body.
+        let mut got = Vec::new();
+        let mut buf = [0u8; 256];
+        loop {
+            let n = tokio::time::timeout(std::time::Duration::from_secs(2), app.read(&mut buf))
+                .await
+                .expect("request stalled > 2s")
+                .unwrap();
+            assert!(n > 0, "tunnel closed early on request {i}");
+            got.extend_from_slice(&buf[..n]);
+            if got.windows(4).any(|w| w == b"pong") {
+                break;
+            }
+        }
+        assert!(t0.elapsed() < std::time::Duration::from_secs(2), "request {i} slow");
+    }
+    drop(app); // half-close → tunnel tears down
     let _ = h.await;
 }
 
