@@ -10,7 +10,7 @@ use curve25519_dalek::scalar::Scalar;
 use crate::error::{NetError, Result};
 use crate::metering::{CircuitMeter, TokenBucket};
 use crate::receipt::ReceiptCore;
-use crate::sphinx::{peel, Cell, Peeled};
+use crate::sphinx::{peel, peel_header, Cell, Header, Peeled, PeeledHeader, MAC_SIZE};
 
 /// Exit-node content policy: destinations the operator has opted out of serving
 /// (the protocol spec "opt-out mechanism for node operators by content type").
@@ -67,32 +67,67 @@ impl Relay {
         &mut self.policy
     }
 
-    /// Process one cell for `client` at time `now`. Rate-limits, peels, enforces exit
-    /// policy, and meters the cell's wire bytes.
-    pub fn process(&mut self, client: [u8; 32], cell: &Cell, now: u64) -> Result<Peeled> {
-        let wire = cell.wire_len() as u64;
-        let bucket = self
-            .buckets
+    /// Rate-limit `wire` bytes for `client` (token bucket). Returns `false` if over the
+    /// limit — the caller drops the cell WITHOUT metering, so a dropped cell is never billed.
+    pub fn admit(&mut self, client: [u8; 32], wire: u64, now: u64) -> bool {
+        self.buckets
             .entry(client)
-            .or_insert_with(|| TokenBucket::new(self.bucket_capacity, self.bucket_refill, now));
-        if !bucket.admit(wire, now) {
-            return Err(NetError::RateLimited);
-        }
+            .or_insert_with(|| TokenBucket::new(self.bucket_capacity, self.bucket_refill, now))
+            .admit(wire, now)
+    }
 
-        let peeled = peel(cell, &self.onion_secret)?;
-        if let Peeled::Exit { dest, .. } = &peeled {
-            if !self.policy.allows(dest) {
-                return Err(NetError::ContentOptOut);
-            }
-        }
-
+    /// Record `wire` metered bytes for `client` (only after a cell successfully peels).
+    pub fn record(&mut self, client: [u8; 32], wire: u64) {
         self.meters
             .entry(client)
             .or_insert_with(|| {
                 CircuitMeter::new(client, self.operator, self.node_id, self.window_start)
             })
             .record(wire);
+    }
+
+    /// This hop's onion secret (for opening forward payload cells on the streaming path).
+    pub fn onion_secret(&self) -> &Scalar {
+        &self.onion_secret
+    }
+
+    /// Process one cell for `client` at time `now`. Rate-limits, peels, enforces exit
+    /// policy, and meters the cell's wire bytes. (Legacy request/response path.)
+    pub fn process(&mut self, client: [u8; 32], cell: &Cell, now: u64) -> Result<Peeled> {
+        let wire = cell.wire_len() as u64;
+        if !self.admit(client, wire, now) {
+            return Err(NetError::RateLimited);
+        }
+        let peeled = peel(cell, &self.onion_secret)?;
+        if let Peeled::Exit { dest, .. } = &peeled {
+            if !self.policy.allows(dest) {
+                return Err(NetError::ContentOptOut);
+            }
+        }
+        self.record(client, wire);
         Ok(peeled)
+    }
+
+    /// Streaming path: peel a circuit's routing HEADER once. Rate-limits + meters the header
+    /// bytes, peels the header (auth before metering — a bad header is never billed), and at
+    /// the exit enforces the content opt-out policy. The returned [`PeeledHeader`] is cached;
+    /// each forward cell's payload is then opened with [`crate::sphinx::peel_payload`].
+    pub fn process_header(
+        &mut self,
+        client: [u8; 32],
+        header: &Header,
+        now: u64,
+    ) -> Result<PeeledHeader> {
+        let wire = (32 + header.beta.len() + MAC_SIZE) as u64;
+        if !self.admit(client, wire, now) {
+            return Err(NetError::RateLimited);
+        }
+        let ph = peel_header(header, &self.onion_secret)?;
+        if ph.is_exit && !self.policy.allows(&ph.addr) {
+            return Err(NetError::ContentOptOut);
+        }
+        self.record(client, wire);
+        Ok(ph)
     }
 
     pub fn metered_bytes(&self, client: &[u8; 32]) -> u64 {
