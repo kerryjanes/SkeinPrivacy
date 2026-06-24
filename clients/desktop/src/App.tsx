@@ -25,6 +25,50 @@ const fmtBytes = (n: number): string => {
   return `${(n / 1024 / 1024).toFixed(2)} MB`;
 };
 
+/** The brand mark — the site's reticle/bracket motif. */
+const Mark = ({ size = 22 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: 'none' }}>
+    <g stroke="#3FE3A4" strokeWidth="1.6" fill="none">
+      <path d="M3 7V3h4" />
+      <path d="M17 3h4v4" />
+      <path d="M21 17v4h-4" />
+      <path d="M7 21H3v-4" />
+    </g>
+    <rect x="9.5" y="9.5" width="5" height="5" fill="#3FE3A4" />
+  </svg>
+);
+
+const GLYPHS = 'ABCDEFGHJKLMNPQRSTUVWXYZ0123456789#%&/<>=+*·';
+
+/** Decrypt-scramble a string whenever it changes (the site's signature effect). */
+function useScrambled(text: string): string {
+  const [out, setOut] = useState(text);
+  useEffect(() => {
+    const n = text.length;
+    let t = 0;
+    const speed = Math.max(1.4, n / 12);
+    const iv = setInterval(() => {
+      t += speed;
+      let s = '';
+      for (let i = 0; i < n; i++) {
+        const ch = text[i];
+        if (ch === ' ') {
+          s += ch;
+          continue;
+        }
+        s += i < t ? ch : GLYPHS[(Math.random() * GLYPHS.length) | 0];
+      }
+      setOut(s);
+      if (t >= n) {
+        clearInterval(iv);
+        setOut(text);
+      }
+    }, 28);
+    return () => clearInterval(iv);
+  }, [text]);
+  return out;
+}
+
 export function App() {
   const [status, setStatus] = useState<Status>({
     state: 'off',
@@ -41,12 +85,15 @@ export function App() {
   const [err, setErr] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
+  const grainRef = useRef<HTMLCanvasElement>(null);
 
   const append = useCallback((line: string) => {
-    setLog((l) => [...l.slice(-80), `${new Date().toLocaleTimeString()}  ${line}`]);
+    const d = new Date();
+    const ts = `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}:${String(d.getSeconds()).padStart(2, '0')}`;
+    setLog((l) => [...l.slice(-120), `[${ts}] ${line}`]);
   }, []);
 
-  // Poll status while connected so the byte counters stay live.
+  // Live byte counters.
   useEffect(() => {
     const t = setInterval(async () => {
       try {
@@ -58,7 +105,7 @@ export function App() {
     return () => clearInterval(t);
   }, []);
 
-  // Stream the sing-box core's own logs + exit notice into the log panel.
+  // Stream the sing-box core's logs into the terminal.
   useEffect(() => {
     const uns = [
       listen<string>('singbox-log', (e) => append(`core · ${e.payload}`)),
@@ -75,31 +122,80 @@ export function App() {
     logRef.current?.scrollTo(0, logRef.current.scrollHeight);
   }, [log]);
 
-  const toggle = async () => {
+  // Film-grain shimmer overlay (the site's texture, subtle).
+  useEffect(() => {
+    const c = grainRef.current;
+    if (!c) return;
+    const ctx = c.getContext('2d');
+    if (!ctx) return;
+    const resize = () => {
+      c.width = innerWidth;
+      c.height = innerHeight;
+    };
+    resize();
+    addEventListener('resize', resize);
+    const tile = document.createElement('canvas');
+    tile.width = tile.height = 140;
+    const t = tile.getContext('2d')!;
+    let f = 0;
+    let raf = 0;
+    const draw = () => {
+      const id = t.createImageData(140, 140);
+      for (let i = 0; i < id.data.length; i += 4) {
+        const v = Math.random() * 255;
+        id.data[i] = v * 0.45;
+        id.data[i + 1] = v;
+        id.data[i + 2] = v * 0.75;
+        id.data[i + 3] = 22;
+      }
+      t.putImageData(id, 0, 0);
+      ctx.clearRect(0, 0, c.width, c.height);
+      const p = ctx.createPattern(tile, 'repeat');
+      if (p) {
+        ctx.fillStyle = p;
+        ctx.save();
+        ctx.translate((Math.random() * 140) | 0, (Math.random() * 140) | 0);
+        ctx.fillRect(-140, -140, c.width + 280, c.height + 280);
+        ctx.restore();
+      }
+    };
+    const loop = () => {
+      if (f++ % 4 === 0) draw();
+      raf = requestAnimationFrame(loop);
+    };
+    loop();
+    return () => {
+      cancelAnimationFrame(raf);
+      removeEventListener('resize', resize);
+    };
+  }, []);
+
+  const connect = async () => {
     setErr(null);
-    if (status.state === 'off') {
-      setStatus((s) => ({ ...s, state: 'connecting' }));
-      append(`connecting (${mode}) — building onion circuit + starting core…`);
-      try {
-        const s = await invoke<Status>('connect', { mode });
-        setStatus(s);
-        append(
-          `connected · ${s.mode === 'tun' ? 'system tunnel' : `proxy ${s.inbound}`} · ${s.hops} hops · exit ${s.exitMode}`,
-        );
-      } catch (e) {
-        setErr(String(e));
-        setStatus((s) => ({ ...s, state: 'off' }));
-        append(`connect failed: ${e}`);
-      }
-    } else if (status.state === 'on') {
-      setStatus((s) => ({ ...s, state: 'disconnecting' }));
-      append('disconnecting…');
-      try {
-        setStatus(await invoke<Status>('disconnect'));
-        append('disconnected');
-      } catch (e) {
-        setErr(String(e));
-      }
+    setStatus((s) => ({ ...s, state: 'connecting' }));
+    append(`negotiating circuit · mode=${mode} · building 3-hop onion + starting core…`);
+    try {
+      const s = await invoke<Status>('connect', { mode });
+      setStatus(s);
+      append(
+        `secured · ${s.mode === 'tun' ? 'system tunnel' : `socks/http ${s.inbound}`} · routed through ${s.hops} strangers`,
+      );
+    } catch (e) {
+      setErr(String(e));
+      setStatus((s) => ({ ...s, state: 'off' }));
+      append(`connect failed: ${e}`);
+    }
+  };
+
+  const disconnect = async () => {
+    setErr(null);
+    setStatus((s) => ({ ...s, state: 'disconnecting' }));
+    append('tearing down circuit…');
+    try {
+      setStatus(await invoke<Status>('disconnect'));
+      append('disconnected · trail redacted');
+    } catch (e) {
+      setErr(String(e));
     }
   };
 
@@ -109,145 +205,183 @@ export function App() {
       const w = await invoke<Wallet>('import_wallet', { keypair: keyInput.trim() });
       setWallet(w);
       setKeyInput('');
-      append(`wallet imported: ${w.address}`);
+      append(`identity loaded · ${w.address}`);
     } catch (e) {
       setErr(String(e));
     }
   };
 
-  const orbClass =
-    status.state === 'on' ? 'orb on' : status.state === 'off' ? 'orb off' : 'orb busy';
-  const orbLabel =
-    status.state === 'on'
-      ? 'CONNECTED'
-      : status.state === 'connecting'
-        ? 'CONNECTING'
-        : status.state === 'disconnecting'
-          ? 'STOPPING'
-          : 'CONNECT';
+  const on = status.state === 'on';
+  const busy = status.state === 'connecting' || status.state === 'disconnecting';
   const idle = status.state === 'off';
 
+  const headline =
+    status.state === 'on'
+      ? 'SECURED'
+      : status.state === 'connecting'
+        ? 'ROUTING'
+        : status.state === 'disconnecting'
+          ? 'CLOSING'
+          : 'EXPOSED';
+  const scrambledHead = useScrambled(headline);
+  const sub =
+    status.state === 'on'
+      ? `your traffic exits at a stranger · origin redacted`
+      : status.state === 'connecting'
+        ? 'wrapping you in two envelopes…'
+        : status.state === 'disconnecting'
+          ? 'erasing the path…'
+          : 'no route · the network can see you';
+
   return (
-    <div className="app">
-      <div className="brand">
-        <span className="dot" />
-        <h1>Weft VPN</h1>
-        <small>{status.state === 'on' ? '● secured' : '○ off'}</small>
-      </div>
+    <>
+      <canvas id="grain" ref={grainRef} />
+      <div className="app">
+        <div className="topbar">
+          <Mark size={22} />
+          <span className="name">WEFT</span>
+          <span className="tag">PRIVACY</span>
+          <span className={`chip ${on ? 'on' : ''}`}>{on ? '● secured' : '○ offline'}</span>
+        </div>
 
-      <div className="power">
-        <div className={orbClass} onClick={toggle}>
-          {orbLabel}
-        </div>
-        <div className="state">
-          {status.state === 'on' ? (
-            <>
-              Traffic is onion-routed through <b>{status.hops}</b> Weft nodes
-            </>
-          ) : (
-            'Tap to route your traffic through the Weft network'
-          )}
-        </div>
-      </div>
-
-      {/* Capture mode: a local proxy (no admin) or a system-wide tunnel (admin). */}
-      <div className="modes">
-        <button
-          className={`mode ${mode === 'proxy' ? 'sel' : ''}`}
-          onClick={() => idle && setMode('proxy')}
-          disabled={!idle}
-        >
-          Proxy
-          <small>local SOCKS/HTTP · no admin</small>
-        </button>
-        <button
-          className={`mode ${mode === 'tun' ? 'sel' : ''}`}
-          onClick={() => idle && setMode('tun')}
-          disabled={!idle}
-        >
-          System tunnel
-          <small>all traffic · needs admin</small>
-        </button>
-      </div>
-
-      {err && <div className="err">{err}</div>}
-
-      <div className="panel">
-        <h2>Connection</h2>
-        <div className="row">
-          <span>Status</span>
-          <b>{status.state}</b>
-        </div>
-        <div className="row">
-          <span>Mode</span>
-          <b>{status.mode ?? mode}</b>
-        </div>
-        <div className="row">
-          <span>Inbound</span>
-          <b className="addr">{status.inbound ?? '—'}</b>
-        </div>
-        <div className="row">
-          <span>Exit egress</span>
-          <b>{status.exitMode}</b>
-        </div>
-        <div className="row">
-          <span>↑ sent / ↓ received</span>
-          <b>
-            {fmtBytes(status.bytesUp)} / {fmtBytes(status.bytesDown)}
-          </b>
-        </div>
-        {status.state === 'on' && (
-          <div className="hops">
-            <span className="hop">you</span>
-            {Array.from({ length: status.hops }).map((_, i) => (
-              <span key={i}>
-                <span className="arrow"> → </span>
-                <span className="hop">{i === status.hops - 1 ? 'exit' : `relay ${i + 1}`}</span>
-              </span>
-            ))}
-            <span className="arrow"> → </span>
-            <span className="hop">internet</span>
+        {/* power / connect */}
+        <div className="power">
+          <div className="eyebrow">
+            <b>//</b> circuit
           </div>
-        )}
-        {status.state === 'on' && status.mode === 'proxy' && status.inbound && (
-          <div className="state" style={{ marginTop: 8 }}>
-            Point your browser/OS proxy at <b>{status.inbound}</b> (SOCKS5 or HTTP).
-          </div>
-        )}
-        {status.state === 'on' && status.mode === 'tun' && (
-          <div className="state" style={{ marginTop: 8 }}>
-            All system traffic is captured via the Weft tunnel interface.
-          </div>
-        )}
-      </div>
+          <div className={`state ${on ? 'on' : ''}`}>{scrambledHead}</div>
+          <div className="substate">{sub}</div>
+          <div className="tagline">ROUTE THROUGH STRANGERS · TRUST NO ONE · OWNED BY NO ONE</div>
 
-      <div className="panel">
-        <h2>Wallet</h2>
-        <div className="row">
-          <span>Address</span>
-          <b className="addr">{wallet.address ?? 'not connected'}</b>
-        </div>
-        {!wallet.address && (
-          <>
-            <input
-              className="field"
-              placeholder="paste keypair JSON ([1,2,…]) to import"
-              value={keyInput}
-              onChange={(e) => setKeyInput(e.target.value)}
-            />
-            <button className="act ghost" onClick={importWallet}>
-              Import wallet
+          <div className="modes">
+            <button
+              className={`mode ${mode === 'proxy' ? 'sel' : ''}`}
+              onClick={() => idle && setMode('proxy')}
+              disabled={!idle}
+            >
+              PROXY
+              <small>local socks/http · no admin</small>
             </button>
-          </>
-        )}
-      </div>
+            <button
+              className={`mode ${mode === 'tun' ? 'sel' : ''}`}
+              onClick={() => idle && setMode('tun')}
+              disabled={!idle}
+            >
+              SYSTEM
+              <small>full tunnel · needs admin</small>
+            </button>
+          </div>
 
-      <div className="panel">
-        <h2>Log</h2>
-        <div className="log" ref={logRef}>
-          {log.length ? log.join('\n') : 'idle.'}
+          <button
+            className={`connect ${busy ? 'busy' : on ? 'on' : 'off'}`}
+            onClick={on ? disconnect : idle ? connect : undefined}
+          >
+            {status.state === 'connecting'
+              ? '◌ NEGOTIATING…'
+              : status.state === 'disconnecting'
+                ? '◌ CLOSING…'
+                : on
+                  ? '■ DISCONNECT'
+                  : '▸ CONNECT'}
+          </button>
+        </div>
+
+        {err && <div className="err">! {err}</div>}
+
+        {/* readout */}
+        <div className="panel">
+          <div className="eyebrow">
+            <b>//</b> link
+          </div>
+          <div className="bx">
+            <div className="row">
+              <span className="k">status</span>
+              <span className={`v ${on ? 'acc' : ''}`}>{status.state}</span>
+            </div>
+            <div className="row">
+              <span className="k">mode</span>
+              <span className="v">{status.mode ?? mode}</span>
+            </div>
+            <div className="row">
+              <span className="k">inbound</span>
+              <span className="v">{status.inbound ?? '—'}</span>
+            </div>
+            <div className="row">
+              <span className="k">exit egress</span>
+              <span className="v">{status.exitMode}</span>
+            </div>
+            <div className="row">
+              <span className="k">↑ sent / ↓ recv</span>
+              <span className="v">
+                {fmtBytes(status.bytesUp)} / {fmtBytes(status.bytesDown)}
+              </span>
+            </div>
+            {on && (
+              <div className="hops">
+                <span className="hop">you</span>
+                {Array.from({ length: status.hops }).map((_, i) => (
+                  <span key={i} style={{ display: 'contents' }}>
+                    <span className="arrow">→</span>
+                    <span className="hop">{i === status.hops - 1 ? 'exit' : `relay${i + 1}`}</span>
+                  </span>
+                ))}
+                <span className="arrow">→</span>
+                <span className="hop">net</span>
+              </div>
+            )}
+            {on && status.mode === 'proxy' && status.inbound && (
+              <div className="substate" style={{ marginTop: 10 }}>
+                point your browser / OS proxy at <b style={{ color: '#fff' }}>{status.inbound}</b>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* identity / wallet */}
+        <div className="panel">
+          <div className="eyebrow">
+            <b>//</b> identity
+          </div>
+          <div className="bx">
+            <div className="row">
+              <span className="k">user</span>
+              <span className="v addr">{wallet.address ?? 'unknown'}</span>
+            </div>
+            {!wallet.address && (
+              <>
+                <input
+                  className="field"
+                  placeholder="paste keypair JSON ([1,2,…]) to bind identity"
+                  value={keyInput}
+                  onChange={(e) => setKeyInput(e.target.value)}
+                />
+                <button className="act" onClick={importWallet}>
+                  ▸ LOAD IDENTITY
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* session log */}
+        <div className="panel">
+          <div className="eyebrow">
+            <b>//</b> session log
+          </div>
+          <div className="bx">
+            <div className="log" ref={logRef}>
+              <div className="hdr">// weft@mesh · live</div>
+              {log.length ? (
+                log.join('\n')
+              ) : (
+                <span>
+                  idle. <span className="caret">▌</span>
+                </span>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
