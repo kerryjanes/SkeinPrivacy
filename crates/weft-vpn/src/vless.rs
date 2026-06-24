@@ -365,13 +365,17 @@ pub fn tls_config_from_pem(
     cert_path: &str,
     key_path: &str,
 ) -> io::Result<Arc<rustls::ServerConfig>> {
-    let certs = rustls_pemfile::certs(&mut io::BufReader::new(std::fs::File::open(cert_path)?))
-        .collect::<Result<Vec<_>, _>>()?;
+    use rustls::pki_types::pem::PemObject;
+    use rustls::pki_types::{CertificateDer, PrivateKeyDer};
+    let certs: Vec<CertificateDer<'static>> = CertificateDer::pem_file_iter(cert_path)
+        .map_err(|e| io::Error::other(format!("read certs: {e}")))?
+        .collect::<Result<Vec<_>, _>>()
+        .map_err(|e| io::Error::other(format!("parse certs: {e}")))?;
     if certs.is_empty() {
         return Err(io::Error::other("no certificates in cert file"));
     }
-    let key = rustls_pemfile::private_key(&mut io::BufReader::new(std::fs::File::open(key_path)?))?
-        .ok_or_else(|| io::Error::other("no private key in key file"))?;
+    let key = PrivateKeyDer::from_pem_file(key_path)
+        .map_err(|e| io::Error::other(format!("read key: {e}")))?;
     build_tls_config(certs, key)
 }
 

@@ -31,8 +31,14 @@ jobs:
         run: |
           sh -c "$(curl -sSfL https://release.anza.xyz/v${SOLANA_VERSION}/install)"
           echo "$HOME/.local/share/solana/install/active_release/bin" >> "$GITHUB_PATH"
+      # avm + anchor-cli are host tools; build them with a recent stable (some of their deps,
+      # e.g. cargo-platform, now require rustc > 1.91) while the programs + host-crate tests
+      # below stay on the repo-pinned 1.89 toolchain. RUSTUP_TOOLCHAIN overrides the pin.
       - name: Install Anchor ${{ env.ANCHOR_VERSION }} via avm
+        env:
+          RUSTUP_TOOLCHAIN: stable
         run: |
+          rustup toolchain install stable --profile minimal
           cargo install --git https://github.com/solana-foundation/anchor avm --locked --force
           avm install ${ANCHOR_VERSION}
           avm use ${ANCHOR_VERSION}
