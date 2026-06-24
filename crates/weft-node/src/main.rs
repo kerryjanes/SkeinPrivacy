@@ -1,9 +1,9 @@
 //! `weft-node` — the node operator daemon. Derives a stable libp2p identity from a
 //! **persisted** operator key, joins the Kademlia DHT over the production tcp+noise+yamux
 //! transport, publishes its signed descriptor, and then runs the
-//! [`weft_net::relay::RelayService`] event loop so it relays onion cells over the
-//! `/weft/cell/1.0.0` transport and **egresses real internet traffic at the exit**
-//! ([`weft_vpn::exit::InternetExit`]). To become a registered, reward-earning node, persist
+//! [`weft_net::circuit_relay::CircuitRelayService`] event loop so it relays onion cells over
+//! the persistent `/weft/circuit/1.0.0` transport and **egresses real internet traffic at
+//! the exit** ([`weft_vpn::exit::InternetExit`]). To become a registered, reward-earning node, persist
 //! the key (`WEFT_OPERATOR_KEY`) and register it on-chain from the written manifest (see
 //! `services/registry-provision` `register-node`).
 
@@ -76,7 +76,8 @@ fn write_key(p: &Path, hexs: &str) -> std::io::Result<()> {
 }
 
 mod daemon;
-use weft_net::relay::{self, Clock, RelayService};
+use weft_net::circuit_relay::{CircuitExit, CircuitRelayService};
+use weft_net::relay::{self, Clock};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -212,8 +213,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
         _ => weft_vpn::exit::EgressPolicy::open(),
     };
-    let exit = std::sync::Arc::new(weft_vpn::exit::InternetExit::new(policy));
-    let mut service = RelayService::new(swarm, relay, Clock::System, exit);
+    let exit: std::sync::Arc<dyn CircuitExit> =
+        std::sync::Arc::new(weft_vpn::exit::InternetExit::new(policy));
+    let mut service = CircuitRelayService::new(swarm, relay, Clock::System, exit);
 
     // Bootstrap forwarding: seed the address book from the peer manifest directory so peeled
     // next-hops resolve to dialable peers. We wait briefly so every node has written its
@@ -235,8 +237,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
-    println!("[weft-node] relaying cells on /weft/cell/1.0.0 (real internet exit)");
-    loop {
-        service.step().await;
-    }
+    println!("[weft-node] relaying circuits on /weft/circuit/1.0.0 (real internet exit)");
+    service.run().await;
+    Ok(())
 }
