@@ -232,7 +232,14 @@ async fn relay_circuit(
         }
     };
 
-    tokio::join!(forward, reverse);
+    // When EITHER direction ends (an end of the circuit closed), tear the whole hop down:
+    // dropping the other half closes both substreams, so the teardown cascades to every hop
+    // and the exit's sockets. Using `join!` here leaks — a half that never closes pins the
+    // task, the substreams, and the downstream exit sockets open forever.
+    tokio::select! {
+        _ = forward => {},
+        _ = reverse => {},
+    }
 }
 
 /// Exit hop: decode forward cells into `ClientFrame` payloads for the exit, and seal the
@@ -293,5 +300,11 @@ async fn exit_circuit(
         }
     };
 
-    tokio::join!(forward, reverse_loop);
+    // Tear down when either side ends: if the upstream closed, dropping `reverse_loop` drops
+    // the reverse receiver, which ends the exit's reader tasks and closes their real sockets;
+    // if the exit ended, dropping `forward` closes the upstream. `join!` would leak the sockets.
+    tokio::select! {
+        _ = forward => {},
+        _ = reverse_loop => {},
+    }
 }

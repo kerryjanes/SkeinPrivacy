@@ -67,6 +67,8 @@ ExecStart=/opt/weft/target/release/weft-vpn vless 0.0.0.0:443 --uuid ${UUID} \\
 Restart=always
 RestartSec=3
 AmbientCapabilities=CAP_NET_BIND_SERVICE
+# A busy VPN node holds many concurrent connections — the 1024 default is far too low.
+LimitNOFILE=1048576
 
 [Install]
 WantedBy=multi-user.target

@@ -86,6 +86,9 @@ async fn streaming_circuit_pushes_a_full_http_response() {
     let origin = listener.local_addr().unwrap();
     let body: Vec<u8> = (0..40_000u32).map(|i| i as u8).collect();
     let body_for_origin = body.clone();
+    // The origin stays open after replying and signals when it observes the client side close
+    // — proving the circuit teardown cascaded all the way to the exit's real socket (no leak).
+    let (eof_tx, eof_rx) = tokio::sync::oneshot::channel::<()>();
     tokio::spawn(async move {
         let (mut s, _) = listener.accept().await.unwrap();
         let mut buf = [0u8; 64];
@@ -93,6 +96,15 @@ async fn streaming_circuit_pushes_a_full_http_response() {
         let mut resp = b"HTTP/1.1 200 OK\r\n\r\n".to_vec();
         resp.extend_from_slice(&body_for_origin);
         s.write_all(&resp).await.unwrap();
+        // Read until EOF: the exit closes this when the client tears the circuit down.
+        let mut sink = [0u8; 256];
+        loop {
+            match s.read(&mut sink).await {
+                Ok(0) | Err(_) => break,
+                Ok(_) => {}
+            }
+        }
+        let _ = eof_tx.send(());
     });
 
     let nodes = make_nodes(3);
@@ -205,4 +217,13 @@ async fn streaming_circuit_pushes_a_full_http_response() {
         let metered = h.lock().unwrap().metered_total();
         assert!(metered > 0, "hop {i} should meter traffic, got {metered}");
     }
+
+    // Tear the circuit down from the client and assert the exit closed its real socket (the
+    // origin sees EOF). A leaked join! would pin the socket open and this would time out.
+    drop(r);
+    drop(w);
+    tokio::time::timeout(Duration::from_secs(10), eof_rx)
+        .await
+        .expect("exit did not close the origin socket — circuit teardown leaked")
+        .expect("origin task dropped");
 }
