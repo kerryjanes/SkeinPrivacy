@@ -32,14 +32,6 @@ Weft works with the popular VLESS clients — on phone **and** computer:
 Download the app from [**Releases**](https://github.com/kerryjanes/WeftNetwork/releases),
 open it, and press **Connect**. Nothing to paste.
 
-### 3. From the command line
-
-```sh
-./scripts/connect.sh        # runs a local proxy at 127.0.0.1:1080
-```
-
-Point your browser/apps at that SOCKS5 address.
-
 ---
 
 ## Run a node

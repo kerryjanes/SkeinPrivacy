@@ -19,14 +19,9 @@ mkdir -p "$DATA"
 export WEFT_CLUSTER="${WEFT_CLUSTER:-devnet}"
 export WEFT_RPC_URL="${WEFT_RPC_URL:-https://api.devnet.solana.com}"
 
-# 1. Operator key — created once, reused forever. This single key is both your
-#    node's identity and your on-chain wallet.
-if [ ! -f "$KEY" ]; then
-  echo "→ Creating your operator key (one time)…"
-  openssl rand -hex 96 > "$KEY"
-  chmod 600 "$KEY"
-fi
-export WEFT_OPERATOR_KEY="$(cat "$KEY")"
+# 1. Your operator key lives at $KEY. The node creates it here on first run and
+#    reuses it after — this one key is both your node's identity and your wallet.
+export WEFT_OPERATOR_KEY="$KEY"
 export WEFT_MANIFEST="$MANIFEST"
 
 # 2. Build (first run takes a few minutes; instant afterwards).
