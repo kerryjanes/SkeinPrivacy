@@ -50,7 +50,9 @@ node directory (see `services/indexer`).
 
 ---
 
-## Run a node (and earn `$WEFT`)
+## Run a node
+
+Run a node, route traffic, and earn `$WEFT`.
 
 A node registers itself on-chain as a compressed NFT, joins the DHT, and relays/exits traffic.
 The operator's key is **both** its on-chain identity and the daemon's identity — one keypair.
