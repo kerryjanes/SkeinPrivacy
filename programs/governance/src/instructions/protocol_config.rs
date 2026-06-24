@@ -164,7 +164,7 @@ pub struct MigrateProtocolConfig<'info> {
 impl MigrateProtocolConfig<'_> {
     pub fn migrate_protocol_config(&mut self) -> Result<()> {
         let acc = self.protocol_config.to_account_info();
-        let new_len = 8 + ProtocolConfig::INIT_SPACE as usize;
+        let new_len = 8 + ProtocolConfig::INIT_SPACE;
 
         // Verify this really is a ProtocolConfig and decide whether work is needed.
         {
