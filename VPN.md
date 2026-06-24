@@ -1,17 +1,19 @@
 # How to connect to Weft
 
-## The easy way — the app
+## 1. With an app you already use (recommended)
 
-1. [Download the Weft app](https://github.com/kerryjanes/WeftNetwork/releases) for your computer.
-2. Open it and press **Connect**.
+Weft works with the popular VPN clients — on your **phone or your computer**:
+**V2Box**, **Happ**, **sing-box**, **Hiddify**.
 
-That's it — you're now online through Weft.
+1. Install any one of them (free, from your app store or their site).
+2. Get your **connection link** — from the Weft app, or run `./scripts/share-link.sh` to use your
+   own node.
+3. In the client: **＋ Add → Import from clipboard**, then **Connect**.
 
-## On your phone
+## 2. The Weft app
 
-1. Install **V2Box** or **Happ** (free, from the App Store or Google Play).
-2. Open the Weft app and **copy your connection link**.
-3. In V2Box / Happ: tap **＋ → Import from clipboard**, then **Connect**.
+Prefer one click? [Download the Weft app](https://github.com/kerryjanes/WeftNetwork/releases),
+open it, and press **Connect**. Nothing to paste.
 
 ## Did it work?
 
@@ -20,4 +22,4 @@ your traffic is going through Weft.
 
 ---
 
-*Want to run a node and earn `$WEFT` instead? See the [README](README.md#run-a-node).*
+*Want to run a node and earn `$WEFT`? See the [README](README.md#run-a-node) — it's one script.*

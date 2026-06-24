@@ -16,70 +16,49 @@ sing-box, Hiddify** — on any OS, or with the Weft desktop app.
 
 ## Use Weft as a VPN
 
-You don't need to run a node to use the network. Pick whichever fits you.
+You don't need to run a node to use the network.
 
-### 1. Any VLESS client (phone, desktop — any OS)
+### 1. With an app you already use (recommended)
 
-1. Install a VLESS client: **V2Box**, **Happ**, **sing-box**, or **Hiddify** (iOS · Android · macOS · Windows · Linux).
-2. Get a `vless://` link from a node operator (or from your own node — see below).
-3. Paste it into the client and connect. Your traffic now exits the Weft network.
+Weft works with the popular VLESS clients — on phone **and** computer:
+**V2Box**, **Happ**, **sing-box**, **Hiddify** (iOS · Android · macOS · Windows · Linux).
 
-### 2. Desktop app (macOS / Windows / Linux)
+1. Install any one of them.
+2. Get a connection link (from the Weft app, or run `./scripts/share-link.sh` to use your own node).
+3. Import the link into the client and press **Connect**.
 
-Download the latest build from [**Releases**](https://github.com/kerryjanes/WeftNetwork/releases),
-open it, and click **Connect**. It bundles the engine and routes everything through Weft —
-proxy mode (no admin) or full-tunnel. No link to paste.
+### 2. The Weft app
+
+Download the app from [**Releases**](https://github.com/kerryjanes/WeftNetwork/releases),
+open it, and press **Connect**. Nothing to paste.
 
 ### 3. From the command line
 
-Run a local SOCKS5 proxy backed by a self-contained circuit, then point any app at it:
-
 ```sh
-cargo run -p weft-vpn --release -- socks 127.0.0.1:1080
-curl --proxy socks5h://127.0.0.1:1080 https://example.com
+./scripts/connect.sh        # runs a local proxy at 127.0.0.1:1080
 ```
 
-Or expose a VLESS gateway (what V2Box/Happ dial into):
-
-```sh
-cargo run -p weft-vpn --release -- vless 0.0.0.0:8443 --tls   # prints a vless:// link
-```
-
-To route through a real, multi-node network instead of a local circuit, set `WEFT_PEERS` to a
-node directory (see `services/indexer`).
+Point your browser/apps at that SOCKS5 address.
 
 ---
 
 ## Run a node
 
-Run a node, route traffic, and earn `$WEFT`.
+Run a node, route traffic, and earn `$WEFT`. Rewards settle every ~10 minutes, weighted by
+traffic, reputation (0.5×–2.0×), geo demand (up to +50%) and stake (+20% at 10,000 `$WEFT`).
 
-A node registers itself on-chain as a compressed NFT, joins the DHT, and relays/exits traffic.
-The operator's key is **both** its on-chain identity and the daemon's identity — one keypair.
-
-### Via the CLI / SDK
+### 1. With one script (recommended)
 
 ```sh
-# 1. Build the daemon
-cargo build -p weft-node --release
-
-# 2. Generate (or reuse) the operator key and start the node
-export WEFT_OPERATOR_KEY=$(openssl rand -hex 96)     # operator‖static‖onion seeds
-target/release/weft-node                              # joins the DHT, starts relaying
-
-# 3. Register on-chain (mints your node's cNFT in the registry)
-export WEFT_RPC_URL=<a DAS-capable Solana RPC>        # cNFTs require a DAS RPC (e.g. Helius)
-pnpm --filter @weft/registry-provision node:register
-pnpm --filter @weft/registry-provision node:status    # verify it's live
+./scripts/run-node.sh
 ```
 
-Rewards settle every epoch (~10 min): the off-chain aggregator posts a Merkle root on-chain and
-you `claim` your `$WEFT`, weighted by traffic, reputation (0.5×–2.0×), geo demand (up to +50%) and
-stake (+20% at 10,000 `$WEFT`). See `services/aggregator` and `@weft/sdk`.
+That's it. The script creates your key, builds the node, registers it on-chain, and starts
+relaying — no extra commands, no keys to manage. Re-run it any time to start your node again.
 
-### Via the desktop app
+### 2. With the Weft app
 
-The desktop app can register your machine as a node and run it for you — no terminal required.
+The desktop app can register your machine as a node and run it for you — no terminal at all.
 
 ---
 
