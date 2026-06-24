@@ -44,4 +44,3 @@ public/
 scripts/build-web.sh
 *.key
 node.json
-/[0-9a-f][0-9a-f]*
