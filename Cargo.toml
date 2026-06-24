@@ -64,6 +64,25 @@ solana-instruction = "3.0.0"
 overflow-checks = true
 lto = "fat"
 codegen-units = 1
+strip = true
+
+# On-chain programs optimize for size — smaller bytecode = lower deploy rent (a
+# refundable deposit, but less SOL to lock up front). Host crates (weft-vpn/net/node)
+# keep opt-level=3 for throughput; only these packages switch to "z".
+[profile.release.package.governance]
+opt-level = "z"
+[profile.release.package.node-registry]
+opt-level = "z"
+[profile.release.package.reputation]
+opt-level = "z"
+[profile.release.package.rewards-settlement]
+opt-level = "z"
+[profile.release.package.weft-vesting]
+opt-level = "z"
+[profile.release.package.staking]
+opt-level = "z"
+[profile.release.package.token-distributor]
+opt-level = "z"
 
 [profile.release.build-override]
 opt-level = 3
