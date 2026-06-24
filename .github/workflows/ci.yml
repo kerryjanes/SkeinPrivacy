@@ -49,9 +49,12 @@ jobs:
       # on-chain ids are unchanged in the repo; tests only need the ids to be self-consistent.
       - name: Sync program keys
         run: anchor keys sync
-      # Build first so program test binaries can `include_bytes!` the .so.
+      # Build the program .so files first so the LiteSVM test binaries can `include_bytes!`
+      # sibling programs. `--no-idl`: the IDL phase recompiles each program's test target,
+      # which include_bytes! a sibling .so that isn't built yet at that point (cross-program
+      # ordering) — and the committed SDK already carries the IDLs, so regenerating is moot.
       - name: Anchor build
-        run: anchor build
+        run: anchor build --no-idl
       - name: Clippy
         run: cargo clippy --all-targets -- -D warnings
       - name: Tests (programs + host crates, LiteSVM)
