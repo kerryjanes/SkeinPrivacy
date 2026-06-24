@@ -11,6 +11,8 @@ export interface NodeParams {
   capabilities: number;
   availability: number;
   metadataUri: string;
+  /** On-chain commitment over the node's stable identity. Defaults to zeros if omitted. */
+  endpointHash?: Uint8Array;
 }
 
 /** Register a node through the node-registry program (CPIs Bubblegum mintV2). */
@@ -36,7 +38,7 @@ export async function registerNode(
     nodeId: params.nodeId,
     geo: params.geo,
     capabilities: params.capabilities,
-    endpointHash: new Uint8Array(32),
+    endpointHash: params.endpointHash ?? new Uint8Array(32),
     availability: params.availability,
     metadataUri: params.metadataUri,
   });
