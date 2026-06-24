@@ -31,7 +31,7 @@ weft-vesting = { path = "programs/weft-vesting", features = ["cpi"] }
 # --- M6 networking data plane (host-only crates; NOT SBF) ---
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "sync", "time", "io-util", "net", "signal"] }
 futures = "0.3"
-libp2p = { version = "0.54", features = ["tokio", "kad", "noise", "yamux", "tcp", "identify", "request-response", "cbor", "macros"] }
+libp2p = { version = "0.54", features = ["tokio", "kad", "noise", "yamux", "tcp", "identify", "request-response", "cbor", "macros", "relay", "dcutr", "autonat"] }
 snow = { version = "0.9", default-features = false, features = ["default-resolver"] }
 x25519-dalek = { version = "2", features = ["static_secrets"] }
 curve25519-dalek = { version = "4", features = ["rand_core"] }

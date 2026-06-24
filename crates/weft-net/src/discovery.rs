@@ -10,7 +10,7 @@
 use libp2p::identity;
 use libp2p::kad::{self, store::MemoryStore, RecordKey};
 use libp2p::swarm::NetworkBehaviour;
-use libp2p::{identify, Swarm, SwarmBuilder};
+use libp2p::{autonat, dcutr, identify, relay, Swarm, SwarmBuilder};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
@@ -175,9 +175,17 @@ pub struct WeftBehaviour {
     pub kad: kad::Behaviour<MemoryStore>,
     pub identify: identify::Behaviour,
     pub cell: crate::cell_transport::CellBehaviour,
+    // NAT traversal so home nodes behind NAT are reachable without a public IP or any
+    // user setup: `autonat` learns whether we're publicly reachable; `relay` (server)
+    // lets public nodes relay for others; `relay_client` lets an unreachable node be
+    // dialed through a relay; `dcutr` then upgrades that to a direct, hole-punched link.
+    pub relay: relay::Behaviour,
+    pub relay_client: relay::client::Behaviour,
+    pub dcutr: dcutr::Behaviour,
+    pub autonat: autonat::Behaviour,
 }
 
-fn make_behaviour(key: &identity::Keypair) -> WeftBehaviour {
+fn make_behaviour(key: &identity::Keypair, relay_client: relay::client::Behaviour) -> WeftBehaviour {
     let peer_id = key.public().to_peer_id();
     WeftBehaviour {
         kad: kad::Behaviour::new(peer_id, MemoryStore::new(peer_id)),
@@ -186,6 +194,10 @@ fn make_behaviour(key: &identity::Keypair) -> WeftBehaviour {
             key.public(),
         )),
         cell: crate::cell_transport::cell_behaviour(),
+        relay: relay::Behaviour::new(peer_id, relay::Config::default()),
+        relay_client,
+        dcutr: dcutr::Behaviour::new(peer_id),
+        autonat: autonat::Behaviour::new(peer_id, autonat::Config::default()),
     }
 }
 
@@ -216,6 +228,8 @@ pub fn build_swarm(
                     .multiplex(yamux::Config::default()))
             })
             .map_err(|e| NetError::Noise(format!("{e:?}")))?
+            .with_relay_client(libp2p::noise::Config::new, libp2p::yamux::Config::default)
+            .map_err(|e| NetError::Noise(format!("{e:?}")))?
             .with_behaviour(make_behaviour)
             .map_err(|e| NetError::Noise(format!("{e:?}")))?
             .with_swarm_config(idle)
@@ -228,6 +242,8 @@ pub fn build_swarm(
                 libp2p::noise::Config::new,
                 libp2p::yamux::Config::default,
             )
+            .map_err(|e| NetError::Noise(format!("{e:?}")))?
+            .with_relay_client(libp2p::noise::Config::new, libp2p::yamux::Config::default)
             .map_err(|e| NetError::Noise(format!("{e:?}")))?
             .with_behaviour(make_behaviour)
             .map_err(|e| NetError::Noise(format!("{e:?}")))?

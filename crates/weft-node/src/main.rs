@@ -104,6 +104,30 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     swarm.listen_on(listen.parse()?)?;
     swarm.behaviour_mut().kad.set_mode(Some(kad::Mode::Server));
 
+    // NAT traversal: a node behind NAT (most home users) isn't directly reachable. If
+    // public relay nodes are configured in WEFT_RELAYS (comma-separated multiaddrs like
+    // /ip4/<ip>/tcp/<port>/p2p/<peer-id>), reserve a slot through each so peers can reach
+    // this node via the relay; `dcutr` then upgrades that to a direct hole-punched link.
+    // Public nodes need no relays — they listen directly and relay for others automatically.
+    if let Ok(relays) = env::var("WEFT_RELAYS") {
+        use libp2p::multiaddr::Protocol;
+        for entry in relays.split(',').map(str::trim).filter(|s| !s.is_empty()) {
+            match entry.parse::<libp2p::Multiaddr>() {
+                Ok(addr) => {
+                    if let Some(Protocol::P2p(peer)) = addr.iter().last() {
+                        swarm.behaviour_mut().kad.add_address(&peer, addr.clone());
+                    }
+                    let _ = swarm.dial(addr.clone());
+                    match swarm.listen_on(addr.with(Protocol::P2pCircuit)) {
+                        Ok(_) => println!("[weft-node] reserving a relay slot via {entry}"),
+                        Err(e) => eprintln!("[weft-node] relay reservation failed for {entry}: {e}"),
+                    }
+                }
+                Err(e) => eprintln!("[weft-node] bad WEFT_RELAYS entry '{entry}': {e}"),
+            }
+        }
+    }
+
     // Learn the actual bound address (the configured port may be 0 = auto-assigned). Fail
     // fast on a bind error (e.g. port in use) instead of hanging.
     use futures::StreamExt;
