@@ -30,7 +30,7 @@ pub enum Clock {
 }
 
 impl Clock {
-    fn now(&self) -> u64 {
+    pub(crate) fn now(&self) -> u64 {
         match self {
             Clock::System => SystemTime::now()
                 .duration_since(UNIX_EPOCH)
@@ -253,7 +253,7 @@ impl RelayService {
 
 /// A relay's metered upstream client key = the libp2p peer id bytes (multihash → its
 /// 32-byte ed25519 digest tail for our deterministic ed25519 peers).
-fn peer_bytes(peer: &PeerId) -> [u8; 32] {
+pub(crate) fn peer_bytes(peer: &PeerId) -> [u8; 32] {
     let b = peer.to_bytes();
     let mut out = [0u8; 32];
     let tail = &b[b.len().saturating_sub(32)..];

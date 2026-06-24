@@ -8,9 +8,12 @@ use std::io;
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 
+use weft_net::circuit_relay::{CircuitExit, ExitChannels};
 use weft_net::exit::{Exit, ExitFuture};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use tokio::net::TcpStream;
+use tokio::net::tcp::OwnedWriteHalf;
+use tokio::net::{TcpStream, UdpSocket};
+use tokio::sync::mpsc;
 
 use crate::stream::{exit_err, ClientFrame, ExitFrame};
 
@@ -268,6 +271,148 @@ impl Exit for InternetExit {
             };
             reply.encode()
         })
+    }
+}
+
+/// A circuit's open write side at the exit (the read side lives in a spawned reader task that
+/// PUSHES bytes back through the circuit's reverse channel).
+enum WriteHandle {
+    Tcp(OwnedWriteHalf),
+    Udp(std::sync::Arc<UdpSocket>),
+}
+
+/// Streaming (push) exit over a persistent circuit. Each circuit gets its own task that owns
+/// the live sockets and a reader per socket; readers push [`ExitFrame`]-encoded bytes into the
+/// reverse channel the moment the real connection produces them — no client `Poll`, no
+/// per-cell round-trip. The [`EgressPolicy`] is enforced identically to the legacy path.
+impl CircuitExit for InternetExit {
+    fn open(&self, _client: [u8; 32]) -> ExitChannels {
+        let (fwd_tx, mut fwd_rx) = mpsc::unbounded_channel::<Vec<u8>>();
+        let (rev_tx, rev_rx) = mpsc::unbounded_channel::<Vec<u8>>();
+        let policy = self.policy.clone();
+        let max_conns = self.max_conns;
+
+        tokio::spawn(async move {
+            let mut streams: HashMap<u64, WriteHandle> = HashMap::new();
+            while let Some(payload) = fwd_rx.recv().await {
+                let Some(frame) = ClientFrame::decode(&payload) else {
+                    let _ = rev_tx.send(ExitFrame::Err(exit_err::BAD_FRAME).encode());
+                    continue;
+                };
+                match frame {
+                    ClientFrame::Open { stream_id, dst, udp } => {
+                        if !policy.permits(&dst) {
+                            let _ = rev_tx.send(ExitFrame::Err(exit_err::POLICY_BLOCKED).encode());
+                            continue;
+                        }
+                        if streams.len() >= max_conns {
+                            let _ = rev_tx.send(ExitFrame::Err(exit_err::IO).encode());
+                            continue;
+                        }
+                        if udp {
+                            match Self::connect_udp(dst).await {
+                                Ok(sock) => {
+                                    let sock = std::sync::Arc::new(sock);
+                                    streams.insert(stream_id, WriteHandle::Udp(sock.clone()));
+                                    tokio::spawn(udp_reader(sock, rev_tx.clone()));
+                                }
+                                Err(_) => {
+                                    let _ = rev_tx
+                                        .send(ExitFrame::Err(exit_err::CONNECT_FAILED).encode());
+                                }
+                            }
+                        } else {
+                            match tokio::time::timeout(CONNECT_TIMEOUT, Self::connect(dst)).await {
+                                Ok(Ok(sock)) => {
+                                    let _ = sock.set_nodelay(true);
+                                    let (r, w) = sock.into_split();
+                                    streams.insert(stream_id, WriteHandle::Tcp(w));
+                                    tokio::spawn(tcp_reader(r, rev_tx.clone()));
+                                }
+                                Ok(Err(e)) => {
+                                    eprintln!("[weft-vpn] exit: connect {dst} failed: {e}");
+                                    let _ = rev_tx
+                                        .send(ExitFrame::Err(exit_err::CONNECT_FAILED).encode());
+                                }
+                                Err(_) => {
+                                    eprintln!("[weft-vpn] exit: connect {dst} timed out");
+                                    let _ = rev_tx
+                                        .send(ExitFrame::Err(exit_err::CONNECT_FAILED).encode());
+                                }
+                            }
+                        }
+                    }
+                    ClientFrame::Data { stream_id, data, .. } => {
+                        if data.is_empty() {
+                            continue;
+                        }
+                        let Some(h) = streams.get_mut(&stream_id) else {
+                            let _ = rev_tx.send(ExitFrame::Err(exit_err::NO_STREAM).encode());
+                            continue;
+                        };
+                        let w = match h {
+                            WriteHandle::Tcp(sock) => sock.write_all(&data).await,
+                            WriteHandle::Udp(sock) => sock.send(&data).await.map(|_| ()),
+                        };
+                        if w.is_err() {
+                            streams.remove(&stream_id);
+                            let _ = rev_tx.send(ExitFrame::Err(exit_err::IO).encode());
+                        }
+                    }
+                    // No polling in the push model; a stray Poll is a no-op.
+                    ClientFrame::Poll { .. } => {}
+                    ClientFrame::Close { stream_id } => {
+                        streams.remove(&stream_id); // dropping the write half ends the reader
+                    }
+                }
+            }
+        });
+
+        ExitChannels {
+            forward: fwd_tx,
+            reverse: rev_rx,
+        }
+    }
+}
+
+/// Read a TCP connection to EOF, pushing each chunk as an `ExitFrame::Data` and finishing with
+/// `Eof`. Stops when the circuit's reverse channel is dropped (circuit torn down).
+async fn tcp_reader(mut r: tokio::net::tcp::OwnedReadHalf, rev_tx: mpsc::UnboundedSender<Vec<u8>>) {
+    let mut buf = vec![0u8; MAX_READ_PER_TICK];
+    loop {
+        match r.read(&mut buf).await {
+            Ok(0) => {
+                let _ = rev_tx.send(ExitFrame::Eof.encode());
+                break;
+            }
+            Ok(n) => {
+                if rev_tx.send(ExitFrame::Data(buf[..n].to_vec()).encode()).is_err() {
+                    break;
+                }
+            }
+            Err(_) => {
+                let _ = rev_tx.send(ExitFrame::Err(exit_err::IO).encode());
+                break;
+            }
+        }
+    }
+}
+
+/// Push each received UDP datagram as an `ExitFrame::Data`.
+async fn udp_reader(sock: std::sync::Arc<UdpSocket>, rev_tx: mpsc::UnboundedSender<Vec<u8>>) {
+    let mut buf = vec![0u8; 65_535];
+    loop {
+        match sock.recv(&mut buf).await {
+            Ok(n) => {
+                if rev_tx.send(ExitFrame::Data(buf[..n].to_vec()).encode()).is_err() {
+                    break;
+                }
+            }
+            Err(_) => {
+                let _ = rev_tx.send(ExitFrame::Err(exit_err::IO).encode());
+                break;
+            }
+        }
     }
 }
 

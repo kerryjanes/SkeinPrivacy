@@ -8,6 +8,7 @@
 
 pub mod cell_transport;
 pub mod circuit;
+pub mod circuit_relay;
 pub mod client;
 pub mod discovery;
 pub mod error;

@@ -171,7 +171,7 @@ fn frame_payload(data: &[u8]) -> Result<[u8; INNER_LEN]> {
     out[2..2 + data.len()].copy_from_slice(data);
     Ok(out)
 }
-fn unframe_payload(inner: &[u8]) -> Result<Vec<u8>> {
+pub(crate) fn unframe_payload(inner: &[u8]) -> Result<Vec<u8>> {
     if inner.len() < 2 {
         return Err(NetError::Malformed("inner too short"));
     }
