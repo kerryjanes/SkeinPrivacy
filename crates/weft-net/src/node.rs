@@ -13,7 +13,7 @@ use crate::receipt::ReceiptCore;
 use crate::sphinx::{peel, Cell, Peeled};
 
 /// Exit-node content policy: destinations the operator has opted out of serving
-/// (`SPEC.md` "opt-out mechanism for node operators by content type").
+/// (the protocol spec "opt-out mechanism for node operators by content type").
 #[derive(Default)]
 pub struct ExitPolicy {
     blocked: Vec<[u8; 32]>,

@@ -5,7 +5,7 @@ export const DECIMALS = 9;
 export const ONE_WEFT = 1_000_000_000n; // 10^DECIMALS
 export const TOTAL_SUPPLY = 1_000_000_000n * ONE_WEFT; // 1e18 base units
 
-// Allocation buckets (base units) — SPEC.md token distribution table.
+// Allocation buckets (base units) — the protocol spec token distribution table.
 export const AMOUNTS = {
   nodeEmissions: 400_000_000n * ONE_WEFT, // 40%
   idoTge: 37_500_000n * ONE_WEFT, //  25% of the 15% IDO bucket (liquid at TGE)

@@ -1,4 +1,4 @@
-//! Node discovery over a libp2p **Kademlia** DHT (`SPEC.md`: "Kademlia DHT for node
+//! Node discovery over a libp2p **Kademlia** DHT (the protocol spec: "Kademlia DHT for node
 //! discovery"). Each node PUTs a self-authenticating, operator-signed [`NodeDescriptor`]
 //! keyed by `sha256(operator ‖ node_id_le)` — the same preimage as the on-chain
 //! `NodeState.endpoint_hash`, so a client that read the chain can derive the DHT key and

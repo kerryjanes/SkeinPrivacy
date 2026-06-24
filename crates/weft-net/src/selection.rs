@@ -1,4 +1,4 @@
-//! Circuit selection (`SPEC.md`: "the protocol selects 3–5 nodes based on
+//! Circuit selection (the protocol spec: "the protocol selects 3–5 nodes based on
 //! geolocation, ping, and reputation"). A pure, seeded function over the node
 //! directory (the M2 indexer `/nodes` shape) so circuits are reproducible in tests:
 //! filter by capability + availability, weight by `reputation × geo-proximity`, and

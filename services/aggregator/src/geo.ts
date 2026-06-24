@@ -1,5 +1,5 @@
 // Governance geo-demand table. The protocol pays up to +50% for traffic served
-// from under-supplied regions (`SPEC.md` > Node Economics). The table maps a
+// from under-supplied regions (the protocol spec > Node Economics). The table maps a
 // geo-region prefix (the high bits of a node's packed geohash) to a bonus in
 // basis points; lookups clamp to the on-chain ceiling so a misconfigured table
 // can never inflate a payout beyond what `traffic_reward` allows.

@@ -37,3 +37,8 @@ public/
 .vercel
 .env*
 .env*.local
+/site/
+/clients/web/
+/vercel.json
+/.vercelignore
+scripts/build-web.sh

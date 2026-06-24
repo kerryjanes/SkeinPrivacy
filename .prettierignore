@@ -3,6 +3,3 @@ node_modules
 dist
 pnpm-lock.yaml
 sdk/src/generated
-
-# Canonical spec — kept verbatim, not auto-formatted.
-SPEC.md

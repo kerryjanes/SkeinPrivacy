@@ -1,7 +1,7 @@
 //! Shared Weft protocol primitives.
 //!
 //! Single source of truth for tokenomics constants and the reward / payment-split
-//! math defined in `SPEC.md`. All arithmetic is integer-only (no floating point)
+//! math defined in the protocol spec. All arithmetic is integer-only (no floating point)
 //! and `no_std` so the exact same code runs on-chain (SBF programs), in the
 //! off-chain settlement aggregator, and in tests — guaranteeing the four
 //! components never disagree on how much a node is owed.
@@ -28,13 +28,13 @@ pub const DECIMALS: u8 = 9;
 /// Base units in one whole $WEFT (`10^DECIMALS`).
 pub const ONE_WEFT: u64 = 1_000_000_000;
 
-/// Maximum total supply in whole tokens (`SPEC.md`: 1,000,000,000).
+/// Maximum total supply in whole tokens (the protocol spec: 1,000,000,000).
 pub const TOTAL_SUPPLY: u64 = 1_000_000_000;
 
 /// Maximum total supply expressed in base units (`10^18`, fits in `u64`).
 pub const TOTAL_SUPPLY_BASE_UNITS: u64 = TOTAL_SUPPLY * ONE_WEFT;
 
-/// Token distribution buckets, in basis points of [`TOTAL_SUPPLY`] (`SPEC.md`).
+/// Token distribution buckets, in basis points of [`TOTAL_SUPPLY`] (the protocol spec).
 pub mod allocation_bps {
     /// Node operator rewards — emission pool for network operation.
     pub const NODE_OPERATORS: u32 = 4_000;
@@ -56,7 +56,7 @@ pub const fn allocation_amount(bps: u32) -> u64 {
 }
 
 // ---------------------------------------------------------------------------
-// Node reward formula (`SPEC.md` > Node Economics)
+// Node reward formula (the protocol spec > Node Economics)
 // ---------------------------------------------------------------------------
 
 /// Base emission rate: 0.1 $WEFT per 1 GB of transferred traffic.
@@ -128,7 +128,7 @@ pub fn traffic_reward(
 }
 
 /// Default cap on the number of early nodes eligible for the cold-start bonus
-/// (`SPEC.md` > Cold Start: "the first 10,000 nodes"). Governance can override it via
+/// (the protocol spec > Cold Start: "the first 10,000 nodes"). Governance can override it via
 /// `ProtocolConfig.bootstrap_node_limit`.
 pub const BOOTSTRAP_NODE_LIMIT: u64 = 10_000;
 
@@ -141,7 +141,7 @@ pub fn clamp_bootstrap_bonus_bps(bootstrap_bonus_bps: u32) -> u32 {
 }
 
 /// Reward for `bytes` of relayed traffic with the cold-start bonus applied on top of the
-/// base [`traffic_reward`] (`SPEC.md` > Cold Start: "increased rewards from the emissions
+/// base [`traffic_reward`] (the protocol spec > Cold Start: "increased rewards from the emissions
 /// pool" for the first 10,000 nodes). The bonus is the *last* multiplier so the base
 /// formula and its golden vectors stay unchanged; the caller decides eligibility (node
 /// sequence ≤ limit, before the bonus end timestamp) and passes `0` when ineligible.
@@ -209,7 +209,7 @@ pub fn receipt_window_in_epoch(epoch: u64, window_start: u64, window_end: u64) -
 }
 
 // ---------------------------------------------------------------------------
-// User traffic-payment split (`SPEC.md` > Burn Mechanism)
+// User traffic-payment split (the protocol spec > Burn Mechanism)
 // ---------------------------------------------------------------------------
 
 /// Share of a user traffic payment routed to relay nodes.
@@ -256,7 +256,7 @@ pub fn split_payment_bps(amount: u64, nodes_bps: u32, burn_bps: u32) -> PaymentS
 }
 
 // ---------------------------------------------------------------------------
-// IDO / TGE distribution (`SPEC.md` > Token Distribution: "25% at TGE, rest 12mo")
+// IDO / TGE distribution (the protocol spec > Token Distribution: "25% at TGE, rest 12mo")
 // ---------------------------------------------------------------------------
 
 /// Default share of an IDO allocation released immediately at TGE: 25%.
@@ -272,7 +272,7 @@ pub fn split_tge(allocation: u64, tge_bps: u32) -> (u64, u64) {
 }
 
 // ---------------------------------------------------------------------------
-// Token vesting (`SPEC.md` > Token Distribution)
+// Token vesting (the protocol spec > Token Distribution)
 // ---------------------------------------------------------------------------
 
 /// Seconds in one vesting month (30 days). Schedule durations are whole months
@@ -280,7 +280,7 @@ pub fn split_tge(allocation: u64, tge_bps: u32) -> (u64, u64) {
 pub const MONTH_SECONDS: i64 = 30 * 24 * 60 * 60;
 
 /// Cliff and total durations (seconds) for each genesis vesting schedule
-/// (`SPEC.md` token distribution table). Tokens unlock linearly from `start_ts`
+/// (the protocol spec token distribution table). Tokens unlock linearly from `start_ts`
 /// to `start_ts + duration`; nothing is claimable until `start_ts + cliff`, at
 /// which point the elapsed share unlocks as a lump.
 pub mod vesting {
@@ -341,7 +341,7 @@ pub fn vested_amount(
 }
 
 // ---------------------------------------------------------------------------
-// Node registry (`SPEC.md` > Node registry) — M2
+// Node registry (the protocol spec > Node registry) — M2
 // ---------------------------------------------------------------------------
 
 /// Bits of geohash stored on-chain: 6 base-32 chars x 5 bits ~= 1.2 km cells.
@@ -404,7 +404,7 @@ pub fn availability_is_valid(availability: u8) -> bool {
 }
 
 // ---------------------------------------------------------------------------
-// Reputation scoring (`SPEC.md` > Reputation) — M3
+// Reputation scoring (the protocol spec > Reputation) — M3
 // ---------------------------------------------------------------------------
 
 /// Reputation signal weights (bps of [`BPS`]; sum to `BPS`).
