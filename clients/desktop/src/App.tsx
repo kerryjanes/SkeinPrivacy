@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 
 type Conn = 'off' | 'connecting' | 'on' | 'disconnecting';
+type Mode = 'proxy' | 'tun';
 
 interface Status {
   state: Conn;
-  socksAddr: string | null;
+  mode: Mode | null;
+  inbound: string | null;
   hops: number;
   exitMode: string;
   bytesUp: number;
@@ -25,12 +28,14 @@ const fmtBytes = (n: number): string => {
 export function App() {
   const [status, setStatus] = useState<Status>({
     state: 'off',
-    socksAddr: null,
+    mode: null,
+    inbound: null,
     hops: 3,
     exitMode: '—',
     bytesUp: 0,
     bytesDown: 0,
   });
+  const [mode, setMode] = useState<Mode>('proxy');
   const [wallet, setWallet] = useState<Wallet>({ address: null });
   const [keyInput, setKeyInput] = useState('');
   const [err, setErr] = useState<string | null>(null);
@@ -38,21 +43,33 @@ export function App() {
   const logRef = useRef<HTMLDivElement>(null);
 
   const append = useCallback((line: string) => {
-    setLog((l) => [...l.slice(-50), `${new Date().toLocaleTimeString()}  ${line}`]);
+    setLog((l) => [...l.slice(-80), `${new Date().toLocaleTimeString()}  ${line}`]);
   }, []);
 
   // Poll status while connected so the byte counters stay live.
   useEffect(() => {
     const t = setInterval(async () => {
       try {
-        const s = await invoke<Status>('status');
-        setStatus(s);
+        setStatus(await invoke<Status>('status'));
       } catch {
         /* ignore */
       }
     }, 1000);
     return () => clearInterval(t);
   }, []);
+
+  // Stream the sing-box core's own logs + exit notice into the log panel.
+  useEffect(() => {
+    const uns = [
+      listen<string>('singbox-log', (e) => append(`core · ${e.payload}`)),
+      listen<number | null>('singbox-exit', (e) =>
+        append(`core exited (${e.payload ?? 'killed'})`),
+      ),
+    ];
+    return () => {
+      uns.forEach((u) => u.then((f) => f()));
+    };
+  }, [append]);
 
   useEffect(() => {
     logRef.current?.scrollTo(0, logRef.current.scrollHeight);
@@ -62,11 +79,13 @@ export function App() {
     setErr(null);
     if (status.state === 'off') {
       setStatus((s) => ({ ...s, state: 'connecting' }));
-      append('connecting — building onion circuit…');
+      append(`connecting (${mode}) — building onion circuit + starting core…`);
       try {
-        const s = await invoke<Status>('connect');
+        const s = await invoke<Status>('connect', { mode });
         setStatus(s);
-        append(`connected · SOCKS5 on ${s.socksAddr} · ${s.hops} hops · exit ${s.exitMode}`);
+        append(
+          `connected · ${s.mode === 'tun' ? 'system tunnel' : `proxy ${s.inbound}`} · ${s.hops} hops · exit ${s.exitMode}`,
+        );
       } catch (e) {
         setErr(String(e));
         setStatus((s) => ({ ...s, state: 'off' }));
@@ -76,8 +95,7 @@ export function App() {
       setStatus((s) => ({ ...s, state: 'disconnecting' }));
       append('disconnecting…');
       try {
-        const s = await invoke<Status>('disconnect');
-        setStatus(s);
+        setStatus(await invoke<Status>('disconnect'));
         append('disconnected');
       } catch (e) {
         setErr(String(e));
@@ -107,6 +125,7 @@ export function App() {
         : status.state === 'disconnecting'
           ? 'STOPPING'
           : 'CONNECT';
+  const idle = status.state === 'off';
 
   return (
     <div className="app">
@@ -131,6 +150,26 @@ export function App() {
         </div>
       </div>
 
+      {/* Capture mode: a local proxy (no admin) or a system-wide tunnel (admin). */}
+      <div className="modes">
+        <button
+          className={`mode ${mode === 'proxy' ? 'sel' : ''}`}
+          onClick={() => idle && setMode('proxy')}
+          disabled={!idle}
+        >
+          Proxy
+          <small>local SOCKS/HTTP · no admin</small>
+        </button>
+        <button
+          className={`mode ${mode === 'tun' ? 'sel' : ''}`}
+          onClick={() => idle && setMode('tun')}
+          disabled={!idle}
+        >
+          System tunnel
+          <small>all traffic · needs admin</small>
+        </button>
+      </div>
+
       {err && <div className="err">{err}</div>}
 
       <div className="panel">
@@ -140,8 +179,12 @@ export function App() {
           <b>{status.state}</b>
         </div>
         <div className="row">
-          <span>SOCKS5 proxy</span>
-          <b className="addr">{status.socksAddr ?? '—'}</b>
+          <span>Mode</span>
+          <b>{status.mode ?? mode}</b>
+        </div>
+        <div className="row">
+          <span>Inbound</span>
+          <b className="addr">{status.inbound ?? '—'}</b>
         </div>
         <div className="row">
           <span>Exit egress</span>
@@ -166,9 +209,14 @@ export function App() {
             <span className="hop">internet</span>
           </div>
         )}
-        {status.socksAddr && (
+        {status.state === 'on' && status.mode === 'proxy' && status.inbound && (
           <div className="state" style={{ marginTop: 8 }}>
-            Point your browser/OS SOCKS proxy at <b>{status.socksAddr}</b>.
+            Point your browser/OS proxy at <b>{status.inbound}</b> (SOCKS5 or HTTP).
+          </div>
+        )}
+        {status.state === 'on' && status.mode === 'tun' && (
+          <div className="state" style={{ marginTop: 8 }}>
+            All system traffic is captured via the Weft tunnel interface.
           </div>
         )}
       </div>
