@@ -1,11 +1,14 @@
-//! `weft-node` — the node operator daemon. Derives a stable libp2p identity from the
-//! operator key, joins the Kademlia DHT over the production tcp+noise+yamux transport,
-//! publishes its signed descriptor, and then runs the [`weft_net::relay::RelayService`]
-//! event loop so it relays onion cells over the `/weft/cell/1.0.0` transport. Real exit
-//! egress to the internet (OS TUN / socket routing) is the deferred M8 step; this build
-//! delivers an in-protocol ack at the exit.
+//! `weft-node` — the node operator daemon. Derives a stable libp2p identity from a
+//! **persisted** operator key, joins the Kademlia DHT over the production tcp+noise+yamux
+//! transport, publishes its signed descriptor, and then runs the
+//! [`weft_net::relay::RelayService`] event loop so it relays onion cells over the
+//! `/weft/cell/1.0.0` transport and **egresses real internet traffic at the exit**
+//! ([`weft_vpn::exit::InternetExit`]). To become a registered, reward-earning node, persist
+//! the key (`WEFT_OPERATOR_KEY`) and register it on-chain from the written manifest (see
+//! `services/registry-provision` `register-node`).
 
 use std::env;
+use std::path::Path;
 
 use libp2p::kad;
 use rand::rngs::StdRng;
@@ -14,6 +17,63 @@ use weft_net::discovery::{
     build_swarm, descriptor_signing_bytes, record_key, sign_descriptor, NodeDescriptor,
 };
 use weft_net::keys::WeftKeypair;
+
+/// Load the operator key from `WEFT_OPERATOR_KEY` (96-byte hex: operator‖static‖onion seeds),
+/// creating + saving a fresh one if the file is absent so the node keeps a **stable identity**
+/// across restarts (required to be registered on-chain and accrue rewards). With the env unset
+/// a throwaway key is used (fine for tests/demos, but the node can't be registered).
+fn load_or_create_keypair() -> WeftKeypair {
+    let Ok(path) = env::var("WEFT_OPERATOR_KEY") else {
+        println!("[weft-node] no WEFT_OPERATOR_KEY — using an ephemeral key (not registerable)");
+        return WeftKeypair::generate(&mut StdRng::from_entropy());
+    };
+    let p = Path::new(&path);
+    if p.exists() {
+        match std::fs::read_to_string(p)
+            .ok()
+            .and_then(|s| parse_key(s.trim()))
+        {
+            Some(kp) => {
+                println!("[weft-node] loaded operator key from {path}");
+                return kp;
+            }
+            None => eprintln!("[weft-node] WARNING: {path} unreadable/invalid — generating anew"),
+        }
+    }
+    let kp = WeftKeypair::generate(&mut StdRng::from_entropy());
+    let mut bytes = Vec::with_capacity(96);
+    bytes.extend_from_slice(&kp.operator_seed());
+    bytes.extend_from_slice(&kp.static_secret_bytes());
+    bytes.extend_from_slice(&kp.onion_secret_bytes());
+    match write_key(p, &hex::encode(bytes)) {
+        Ok(()) => println!("[weft-node] generated + saved a new operator key → {path}"),
+        Err(e) => eprintln!("[weft-node] WARNING: could not save key to {path}: {e}"),
+    }
+    kp
+}
+
+/// Parse a 96-byte hex key file (operator ed25519 seed ‖ x25519 static ‖ onion scalar).
+fn parse_key(s: &str) -> Option<WeftKeypair> {
+    let b = hex::decode(s).ok()?;
+    if b.len() != 96 {
+        return None;
+    }
+    let op: [u8; 32] = b[0..32].try_into().ok()?;
+    let st: [u8; 32] = b[32..64].try_into().ok()?;
+    let on: [u8; 32] = b[64..96].try_into().ok()?;
+    Some(WeftKeypair::from_bytes(&op, &st, &on))
+}
+
+/// Write the key file, restricting it to owner-only on unix (best-effort).
+fn write_key(p: &Path, hexs: &str) -> std::io::Result<()> {
+    std::fs::write(p, hexs)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(p, std::fs::Permissions::from_mode(0o600));
+    }
+    Ok(())
+}
 
 mod daemon;
 use weft_net::relay::{self, Clock, RelayService};
@@ -33,9 +93,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         | weft_primitives::capability::RELAY
         | weft_primitives::capability::EXIT;
 
-    // NB: a production deployment loads a persisted operator key; we generate one here.
-    let mut rng = StdRng::from_entropy();
-    let kp = WeftKeypair::generate(&mut rng);
+    let kp = load_or_create_keypair();
     println!(
         "[weft-node] operator {}",
         hex::encode(kp.operator_pubkey())
@@ -67,6 +125,14 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     // Write a bootstrap manifest so a VPN client / other relays can find us (the real,
     // distributed path). In production this comes from the on-chain registry + indexer.
     if let Ok(path) = env::var("WEFT_MANIFEST") {
+        let endpoint_hash = hex::encode(weft_net::discovery::endpoint_commitment_parts(
+            &kp.operator_pubkey(),
+            node_id,
+            &kp.static_public(),
+            &kp.onion_public(),
+            caps,
+            geo,
+        ));
         let m = weft_vpn::manifest::NodeManifest {
             operator: hex::encode(kp.operator_pubkey()),
             node_id,
@@ -78,6 +144,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
             multiaddr: bound.clone(),
             availability: 100,
             reputation_bps: 10_000,
+            endpoint_hash,
         };
         m.write(std::path::Path::new(&path))?;
         println!("[weft-node] wrote manifest → {path}");

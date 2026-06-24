@@ -91,13 +91,34 @@ pub fn routing_addr(operator: &[u8; 32], node_id: u64) -> [u8; 32] {
 /// (not the volatile multiaddr). Written to `NodeState.endpoint_hash` at registration;
 /// re-derivable by a client from a DHT descriptor to detect inconsistency.
 pub fn endpoint_commitment(desc: &NodeDescriptor) -> [u8; 32] {
-    sha256(&[
+    endpoint_commitment_parts(
         &desc.operator,
-        &desc.node_id.to_le_bytes(),
+        desc.node_id,
         &desc.noise_static_pub,
         &desc.onion_pub,
-        &desc.capabilities.to_le_bytes(),
-        &desc.geo.to_le_bytes(),
+        desc.capabilities,
+        desc.geo,
+    )
+}
+
+/// The [`endpoint_commitment`] over raw stable fields, so callers that hold the identity
+/// fields (e.g. a node manifest) can derive the same on-chain commitment without a full
+/// [`NodeDescriptor`]. This is the single source of truth for the commitment's field order.
+pub fn endpoint_commitment_parts(
+    operator: &[u8; 32],
+    node_id: u64,
+    noise_static_pub: &[u8; 32],
+    onion_pub: &[u8; 32],
+    capabilities: u32,
+    geo: u32,
+) -> [u8; 32] {
+    sha256(&[
+        operator,
+        &node_id.to_le_bytes(),
+        noise_static_pub,
+        onion_pub,
+        &capabilities.to_le_bytes(),
+        &geo.to_le_bytes(),
     ])
 }
 

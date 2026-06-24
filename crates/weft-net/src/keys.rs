@@ -71,6 +71,11 @@ impl WeftKeypair {
         self.onion_secret
     }
 
+    /// The 32-byte onion (Ristretto) secret scalar, for persisting the node identity.
+    pub fn onion_secret_bytes(&self) -> [u8; 32] {
+        self.onion_secret.to_bytes()
+    }
+
     /// The 32-byte ed25519 operator seed (private). Used to derive a stable libp2p
     /// identity so the node's `PeerId` is a deterministic function of its operator key.
     pub fn operator_seed(&self) -> [u8; 32] {
