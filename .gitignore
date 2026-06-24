@@ -33,3 +33,4 @@ clients/desktop/src-tauri/gen
 
 # Bundled sing-box sidecar binaries (fetched via scripts/fetch-singbox.sh)
 clients/desktop/src-tauri/binaries/
+public/
