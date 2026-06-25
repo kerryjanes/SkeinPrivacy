@@ -26,6 +26,9 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
     privateKey: cfg.realityPrivateKey,
     shortIds: [cfg.shortId],
   };
+  // A home node is 1-hop ONLY (hopnPort <= 0): it never runs Tor and never becomes a multihop relay.
+  // Multihop is always served over Tor by infrastructure nodes that set a real hopnPort.
+  const multihop = cfg.hopnPort > 0;
   // founder stays present + unmetered so the original launch link never breaks
   const hop1Clients: Client[] = [
     { id: cfg.founderUuid, email: 'founder', flow: 'xtls-rprx-vision' },
@@ -59,28 +62,36 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
         settings: { clients: hop1Clients, decryption: 'none' },
         streamSettings: { network: 'tcp', security: 'reality', realitySettings: reality },
       },
-      {
-        tag: 'hopN',
-        listen: '0.0.0.0',
-        port: cfg.hopnPort,
-        protocol: 'vless',
-        settings: { clients: hopnClients, decryption: 'none' },
-        streamSettings: { network: 'tcp', security: 'reality', realitySettings: reality },
-      },
+      ...(multihop
+        ? [
+            {
+              tag: 'hopN',
+              listen: '0.0.0.0',
+              port: cfg.hopnPort,
+              protocol: 'vless',
+              settings: { clients: hopnClients, decryption: 'none' },
+              streamSettings: { network: 'tcp', security: 'reality', realitySettings: reality },
+            },
+          ]
+        : []),
     ],
     outbounds: [
       { tag: 'direct', protocol: 'freedom' },
-      {
-        tag: 'tor',
-        protocol: 'socks',
-        settings: { servers: [{ address: '127.0.0.1', port: 9050 }] },
-      },
+      ...(multihop
+        ? [
+            {
+              tag: 'tor',
+              protocol: 'socks',
+              settings: { servers: [{ address: '127.0.0.1', port: 9050 }] },
+            },
+          ]
+        : []),
     ],
     routing: {
       rules: [
         { type: 'field', inboundTag: ['api'], outboundTag: 'api' },
         { type: 'field', inboundTag: ['hop1'], outboundTag: 'direct' },
-        { type: 'field', inboundTag: ['hopN'], outboundTag: 'tor' },
+        ...(multihop ? [{ type: 'field', inboundTag: ['hopN'], outboundTag: 'tor' }] : []),
       ],
     },
   };

@@ -60,36 +60,33 @@ Nothing to paste.
 
 ## Run a node & earn
 
-A node carries traffic under **your wallet** and earns `$WEFT` **for the bytes it actually serves**
-(metered at the node). Rewards are weighted by **reputation** (0.5×–2.0×), **geo demand** (up to
-+50%), and **stake** (+20% at 10,000 `$WEFT`).
+A home device becomes a **1-hop node** that carries traffic under **your wallet** and earns `$WEFT`
+**for the bytes it actually serves** (metered at the node). Rewards are weighted by **reputation**
+(0.5×–2.0×), **geo demand** (up to +50%), and **stake** (+20% at 10,000 `$WEFT`). Multihop is always
+served over **Tor** by infrastructure nodes — your device never becomes a Tor/relay node.
 
-**Step 1 — start the node software.** It installs Xray (VLESS+Reality) + Tor + the control plane and
-prints your public endpoint.
+**Step 1 — register + pay on the site.** In the cabinet → **deploy**, connect your wallet and press
+**Register** (your wallet covers the one-time on-chain rent; the region is auto-detected). You get
+back a single **node key** — copy it. This is the only step that touches the chain.
 
-- **Home device** (PC / router / always-on box, behind NAT) — zero config, just run:
+**Step 2 — start the node software.** On the device you want to turn into a node (PC / router /
+always-on box, behind NAT), pass the key **once**:
 
-  ```sh
-  ./scripts/run-node.sh
-  ```
+```sh
+./scripts/run-node.sh <your-node-key>      # first run only
+./scripts/run-node.sh                      # afterwards — the key is saved locally
+```
 
-  A home device can't accept inbound connections, so the agent does what Tailscale-DERP /
-  Cloudflare-Tunnel / Tor relays do: it dials **out** to a public **rendezvous relay** (`frpc`),
-  which exposes your node at a public `relay:port`. Users connect there; the relay forwards to your
-  home Xray; your traffic exits at home.
+A home device can't accept inbound connections, so the script does what Tailscale-DERP /
+Cloudflare-Tunnel / Tor relays do: it dials **out** to a public **rendezvous relay** (`frpc`), which
+exposes your node at the public `relay:port` your registration committed. Users connect there; the
+relay forwards to your home Xray; your traffic exits at home (1-hop). It installs Xray + `frpc` + the
+control plane as **persistent services** (systemd on Linux, launchd on macOS), so the node survives
+reboots, crashes, and closing the terminal (auto-restart).
 
-  It installs everything as **persistent services** (systemd on Linux, launchd on macOS), so the
-  node survives reboots, crashes, and closing the terminal (auto-restart). Geo is auto-detected
-  from your IP. Stop the node any time: `./scripts/stop-node.sh` (add `--purge` to remove it).
-
-- **Public VPS** (has its own IP) — serves both modes directly, no relay needed:
-
-  ```sh
-  sudo ./scripts/deploy-node.sh            # add `ya.ru` as an arg for DPI-heavy markets (e.g. Russia)
-  ```
-
-**Step 2 — register it.** In the cabinet → **deploy**, paste the endpoint it printed → it mints your
-node as a cNFT in the registry, under your connected wallet. (No keys typed anywhere.)
+Stop being a node any time with `./scripts/stop-node.sh` (no key needed — it leaves the live list but
+stays registered, so restarting with `./scripts/run-node.sh` never re-pays; add `--purge` to remove
+it entirely). A **public VPS** can serve both modes directly with `sudo ./scripts/deploy-node.sh`.
 
 **Step 3 — claim earnings.** In the cabinet → **rewards**, once the network has settled an epoch:
 pick your node + an epoch and claim your `$WEFT`.
@@ -99,15 +96,17 @@ pick your node + an epoch and claim your `$WEFT`.
 ## How it works
 
 ```
-[user] --VLESS+Reality--> [relay:port] --frp tunnel--> [home node Xray] --(1-hop)--> internet
-                                                                         \--(multihop)--> Tor --> exit
+1-hop:    [user] --VLESS+Reality--> [relay:port] --frp tunnel--> [home node Xray] --> internet
+multihop: [user] --VLESS+Reality--> [infra node Xray] --> Tor network --> exit
 ```
 
 - **Transport:** Xray-core (VLESS + Reality) for DPI resistance; the Tor daemon provides the
   multihop onion path. No custom data-plane code.
+- **1-hop vs multihop:** home devices register as **1-hop** nodes only (fast, direct exit) — they
+  never run Tor. **Multihop** is always served over the **Tor network** by infrastructure nodes, so a
+  home operator never becomes a Tor/relay node.
 - **Relay layer:** home nodes behind NAT are reached via public **relays** (reverse tunnel, the
-  Tailscale-DERP / Tor-relay model). Public-IP nodes can advertise the `relay` capability and earn
-  for the traffic they forward.
+  Tailscale-DERP / Tor-relay model) that expose them at a public `relay:port`.
 - **Token-gating:** each node's control plane mints a personal link per wallet, meters its traffic,
   and cuts a user off when their `$WEFT` is spent — restoring them on top-up.
 - **Settlement:** traffic is paid via `pay_traffic` (split **70% nodes / 20% burn / 10% treasury**);
@@ -122,7 +121,7 @@ pick your node + an epoch and claim your `$WEFT`.
 | ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
 | `programs/`               | 7 Anchor programs: vesting, node registry (cNFT), staking, reputation, rewards settlement, governance, IDO distributor.   |
 | `crates/weft-primitives` | Shared tokenomics + reward/split/merkle math (single source of truth, on- and off-chain).                                 |
-| `scripts/run-node.sh`     | Turn a **home device behind NAT** into a node (persistent service): Xray + Tor + `frpc` (reverse tunnel) + control plane. |
+| `scripts/run-node.sh`     | Turn a **home device behind NAT** into a 1-hop node (persistent service): Xray + `frpc` (reverse tunnel) + control plane. Takes the node key from cabinet → deploy. |
 | `scripts/stop-node.sh`    | Stop a home node started by `run-node.sh` (`--purge` to remove it entirely).                                              |
 | `scripts/deploy-node.sh`  | One-command **VPS** node: Xray (VLESS+Reality) + Tor + control plane, both modes.                                         |
 | `services/control-plane/` | Per-node token-gating: mints personal links, meters traffic (Xray stats), enforces the `$WEFT` budget.                   |

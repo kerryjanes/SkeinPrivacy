@@ -1,57 +1,85 @@
 #!/usr/bin/env bash
 #
-# Turn a HOME device (PC / router / always-on box) into a Weft node — under your own wallet,
-# earning $WEFT for the traffic you actually serve. A home device is behind NAT, so it can't
-# accept inbound connections; like Tailscale-DERP / Cloudflare-Tunnel / Tor relays, it dials OUT
-# to a public **rendezvous relay** (frp) which exposes it at a public `relay:port`. Users connect
-# there; the relay forwards to your home Xray; your traffic exits at home.
+# Turn a HOME device (PC / router / always-on box) into a Weft **1-hop node**, earning $WEFT for
+# the traffic you serve. You register + pay ONCE on the website (cabinet → deploy) and copy your
+# node key from there; this script just brings the node up under that registration. A home device is
+# behind NAT, so it can't accept inbound connections; like Tailscale-DERP / Cloudflare-Tunnel / Tor
+# relays it dials OUT to a public **rendezvous relay** (frp), which exposes it at a public relay:port.
+# Users connect there; the relay forwards to your home Xray; your traffic exits at home (1-hop).
 #
-#   [user] --VLESS+Reality--> [relay:port] --frp--> [home Xray] --(1-hop)--> internet / --(multihop)--> Tor
+#   [user] --VLESS+Reality--> [relay:port] --frp--> [home Xray] --(1-hop)--> internet
 #
-# Installs xray + tor + frpc + the control plane as **persistent services** (systemd on Linux,
-# launchd on macOS) so the node survives reboots, crashes, and closing the terminal. Stop it any
-# time with ./scripts/stop-node.sh.
+# (Multihop is always served over Tor by infrastructure nodes — your device never becomes a Tor node.)
 #
-# Usage:  ./scripts/run-node.sh <your-wallet.json>
-# Pass your Solana wallet keypair — the node registers + earns under it (same wallet you use in the
-# cabinet). Its SOL pays the one-time on-chain registration; restarting never re-pays. The relay
-# token / SNI / ports all have working defaults.
-#   devnet: fund the wallet with `solana airdrop 1 <addr> -u devnet` first.
-# Optional overrides: WEFT_RELAY · WEFT_RELAY_PORT · WEFT_RELAY_TOKEN · WEFT_SNI
+# Installs xray + frpc + the control plane as **persistent services** (systemd on Linux, launchd on
+# macOS) so the node survives reboots, crashes, and closing the terminal.
+#
+# Usage:
+#   First run:   ./scripts/run-node.sh <your-node-key>     # the key copied from cabinet → deploy
+#   After that:  ./scripts/run-node.sh                     # the key is saved; no need to pass it
+#   Stop:        ./scripts/stop-node.sh                    # stop being a node (no key needed)
+#
+# The node key already contains the identity, region, and relay port — there is nothing else to type.
+# Registration + payment happened on the website; this script never touches the chain.
 set -euo pipefail
 
-KEYPAIR="${1:-${WEFT_KEYPAIR:-}}"
-[ -n "$KEYPAIR" ] && [ -f "$KEYPAIR" ] || {
-  echo "usage: ./scripts/run-node.sh <your-wallet.json>   (the wallet the node registers + earns under)"
-  exit 1
-}
-KEYPAIR="$(cd "$(dirname "$KEYPAIR")" && pwd)/$(basename "$KEYPAIR")" # absolutize
-RELAY="${WEFT_RELAY:-vpn.weftnetwork.net}"
-RELAY_PORT="${WEFT_RELAY_PORT:-7000}"
-# The public launch relay is open (like a Tor relay) — its token is not a secret. Baked in so a
-# node operator just runs the script; override WEFT_RELAY_TOKEN only when running a private relay.
-TOKEN="${WEFT_RELAY_TOKEN:-a40b1ab498a37ba6bbaa70791ac62287}"
-SNI="${WEFT_SNI:-www.microsoft.com}"
-LOCAL_HOP1=14430
-LOCAL_HOPN=18443
-FRP_VER="0.69.1"
-RAW="https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main"
 SK="$HOME/.weft"
 mkdir -p "$SK"
+TOKEN="${1:-${WEFT_NODE_KEY:-}}"
 
 OS=$(uname -s)
 echo "→ dependencies…"
 if [ "$OS" = "Linux" ]; then
   sudo apt-get update -y >/dev/null
-  DEBIAN_FRONTEND=noninteractive sudo apt-get install -y curl tor openssl python3 >/dev/null
-  sudo systemctl enable --now tor >/dev/null 2>&1 || true
+  DEBIAN_FRONTEND=noninteractive sudo apt-get install -y curl openssl python3 >/dev/null
   command -v node >/dev/null 2>&1 || { curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash - >/dev/null 2>&1; sudo apt-get install -y nodejs >/dev/null 2>&1; }
   command -v xray >/dev/null 2>&1 || sudo bash -c "$(curl -L -s https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version 1.8.24 >/dev/null
   XRAY=/usr/local/bin/xray; ARCH=linux_amd64; NODE=$(command -v node)
 else
-  echo "  (macOS: ensure xray, tor, node are installed via brew: brew install xray tor node)"
+  echo "  (macOS: ensure xray, node are installed via brew: brew install xray node)"
   XRAY=$(command -v xray); ARCH=darwin_$( [ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64 ); NODE=$(command -v node)
 fi
+
+# --- node identity: decode the key (first run) or reuse the saved one (restart) -------------------
+if [ -n "$TOKEN" ]; then
+  python3 - "$TOKEN" > "$SK/node.json" <<'PY'
+import sys, base64, json
+t = sys.argv[1]
+raw = base64.b64decode(t + "=" * (-len(t) % 4))
+d = json.loads(raw)
+for k in ("realityPriv", "realityPub", "uuid", "sid", "port", "relay", "geo"):
+    if k not in d:
+        sys.exit(f"node key is missing '{k}' — copy it again from the cabinet → deploy page")
+json.dump(d, sys.stdout)
+PY
+elif [ ! -f "$SK/node.json" ]; then
+  echo "no node key. Register your device on the website (cabinet → deploy), copy the key, then:"
+  echo "  ./scripts/run-node.sh <your-node-key>"
+  exit 1
+fi
+
+eval "$(python3 - "$SK/node.json" <<'PY'
+import sys, json
+d = json.load(open(sys.argv[1]))
+print(f'PRIV={d["realityPriv"]}')
+print(f'PUB={d["realityPub"]}')
+print(f'UUID={d["uuid"]}')
+print(f'SID={d["sid"]}')
+print(f'PORT={int(d["port"])}')
+print(f'RELAY={d["relay"]}')
+print(f'GEO={int(d["geo"])}')
+PY
+)"
+
+RELAY="${WEFT_RELAY:-$RELAY}"
+RELAY_PORT="${WEFT_RELAY_PORT:-7000}"
+# The public launch relay is open (like a Tor relay) — its token is not a secret. Baked in so a node
+# operator just runs the script; override WEFT_RELAY_TOKEN only when running a private relay.
+RELAY_TOKEN="${WEFT_RELAY_TOKEN:-a40b1ab498a37ba6bbaa70791ac62287}"
+SNI="${WEFT_SNI:-www.microsoft.com}"
+LOCAL_HOP1=14430
+FRP_VER="0.69.1"
+RAW="https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main"
 
 echo "→ frpc (reverse tunnel)…"
 if [ ! -x "$SK/frpc" ]; then
@@ -59,62 +87,18 @@ if [ ! -x "$SK/frpc" ]; then
   tar xzf "$SK/frp.tgz" -C "$SK" && cp "$SK/frp_${FRP_VER}_${ARCH}/frpc" "$SK/frpc" && chmod +x "$SK/frpc" && rm -rf "$SK/frp.tgz" "$SK/frp_${FRP_VER}_${ARCH}"
 fi
 
-# Identity + a stable pair of public relay ports derived from this node's key.
-KEYS=$("$XRAY" x25519); PRIV=$(echo "$KEYS"|grep -i privat|awk '{print $NF}'); PUB=$(echo "$KEYS"|grep -iE 'public|password'|awk '{print $NF}')
-UUID=$("$XRAY" uuid); SID=$(openssl rand -hex 8)
-SEED=$(echo "$PUB" | python3 -c "import sys,hashlib;print(int(hashlib.sha256(sys.stdin.read().strip().encode()).hexdigest(),16)%40)")
-PUB_HOP1=$((20000 + SEED * 2)); PUB_HOPN=$((PUB_HOP1 + 1))
-
-# Auto-detect GEO (packed 6-char geohash) from this node's public IP — no manual region code.
-GEO=$(python3 - <<'PY'
-import json,urllib.request
-try:
-    d=json.load(urllib.request.urlopen("http://ip-api.com/json/?fields=lat,lon",timeout=8))
-    lat,lon=float(d["lat"]),float(d["lon"])
-except Exception:
-    print(0); raise SystemExit
-B32="0123456789bcdefghjkmnpqrstuvwxyz"
-def geohash(lat,lon,prec=6):
-    latr=[-90.0,90.0]; lonr=[-180.0,180.0]; bits=[16,8,4,2,1]; out=[]; even=True; bit=0; ch=0
-    while len(out)<prec:
-        if even:
-            mid=(lonr[0]+lonr[1])/2
-            if lon>mid: ch|=bits[bit]; lonr[0]=mid
-            else: lonr[1]=mid
-        else:
-            mid=(latr[0]+latr[1])/2
-            if lat>mid: ch|=bits[bit]; latr[0]=mid
-            else: latr[1]=mid
-        even=not even
-        if bit<4: bit+=1
-        else: out.append(B32[ch]); bit=0; ch=0
-    return "".join(out)
-gh=geohash(lat,lon)
-packed=0
-for c in gh: packed=packed*32+B32.index(c)
-print(packed)
-PY
-)
-GEO="${GEO:-0}"
-
 echo "→ configs…"
 cat > "$SK/frpc.toml" <<TOML
 serverAddr = "${RELAY}"
 serverPort = ${RELAY_PORT}
 auth.method = "token"
-auth.token = "${TOKEN}"
+auth.token = "${RELAY_TOKEN}"
 [[proxies]]
 name = "weft-1hop-${UUID:0:8}"
 type = "tcp"
 localIP = "127.0.0.1"
 localPort = ${LOCAL_HOP1}
-remotePort = ${PUB_HOP1}
-[[proxies]]
-name = "weft-multihop-${UUID:0:8}"
-type = "tcp"
-localIP = "127.0.0.1"
-localPort = ${LOCAL_HOPN}
-remotePort = ${PUB_HOPN}
+remotePort = ${PORT}
 TOML
 
 curl -fsSL "${RAW}/services/control-plane/dist/control-plane.mjs" -o "$SK/control-plane.mjs"
@@ -124,6 +108,7 @@ if [ "$OS" = "Linux" ]; then
 else
   RELOAD="launchctl kickstart -k gui/$(id -u)/com.weft.node.xray"
 fi
+# 1-hop ONLY: WEFT_HOPN_PORT=0 so the control plane renders no Tor inbound/route on this device.
 cat > "$SK/node.env" <<ENV
 WEFT_HOST=${RELAY}
 WEFT_REALITY_PBK=${PUB}
@@ -131,9 +116,8 @@ WEFT_REALITY_PRIV=${PRIV}
 WEFT_SID=${SID}
 WEFT_SNI=${SNI}
 WEFT_HOP1_PORT=${LOCAL_HOP1}
-WEFT_HOPN_PORT=${LOCAL_HOPN}
-WEFT_PUBLIC_HOP1_PORT=${PUB_HOP1}
-WEFT_PUBLIC_HOPN_PORT=${PUB_HOPN}
+WEFT_HOPN_PORT=0
+WEFT_PUBLIC_HOP1_PORT=${PORT}
 WEFT_FOUNDER_UUID=${UUID}
 WEFT_GEO=${GEO}
 WEFT_XRAY_CONFIG=${SK}/xray.json
@@ -185,22 +169,12 @@ else
   printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.cp</string><key>ProgramArguments</key><array><string>%s</string><string>%s/control-plane.mjs</string></array><key>EnvironmentVariables</key><dict><key>WEFT_ENVFILE</key><string>%s/node.env</string></dict><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$NODE" "$SK" "$SK" | plist cp
 fi
 
-sleep 4
-
-# Auto-register on-chain (one-time) under YOUR wallet — idempotent (restart never re-pays). No
-# website, no manual data entry. Your wallet's SOL pays the one-time registration.
-echo "→ registering node on-chain under your wallet (one-time)…"
-curl -fsSL "${RAW}/services/registry-provision/dist/node-agent.mjs" -o "$SK/node-agent.mjs"
-WEFT_NODE_ENDPOINT="${RELAY}:${PUB_HOP1}" WEFT_GEO="${GEO}" WEFT_KEYPAIR="${KEYPAIR}" \
-  WEFT_RPC="https://api.devnet.solana.com" \
-  "$NODE" "$SK/node-agent.mjs" || echo "  (registration didn't complete — it retries next run)"
-
 cat <<DONE
 
-✅ Weft home node is up + registered (persistent — survives reboot, crash, closing the terminal).
-   Public endpoint:  ${RELAY}:${PUB_HOP1}   ·   region (auto): ${GEO}
+✅ Weft 1-hop node is up (persistent — survives reboot, crash, closing the terminal).
+   Public endpoint:  ${RELAY}:${PORT}   ·   region: ${GEO}
 
-Your node is now LIVE and earning \$WEFT for traffic it carries — see it in the cabinet → network.
-Stop it any time:  ./scripts/stop-node.sh   (it leaves the live list but stays registered, so
-restarting never re-pays).
+It was registered + paid for on the website, so this never touches the chain — restarting is free.
+Your node is LIVE and earning \$WEFT for the traffic it carries — see it in the cabinet → network.
+Stop being a node any time:  ./scripts/stop-node.sh   (no key needed; restart with run-node.sh).
 DONE

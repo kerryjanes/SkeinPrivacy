@@ -57,7 +57,7 @@ export async function becomeNode(
   const signature = await registerNode(conn, operator, manifest, {
     nodeId,
     geo: input.geo ?? 0,
-    capabilities: input.capabilities ?? CAP_1HOP | CAP_MULTIHOP,
+    capabilities: input.capabilities ?? CAP_1HOP,
     availability: input.availability ?? 100,
     metadataUri: input.metadataUri ?? `weft://node/${input.endpoint}`,
     endpointHash: endpointHash(input.endpoint),

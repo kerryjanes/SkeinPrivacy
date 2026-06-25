@@ -15137,6 +15137,7 @@ function renderConfig(cfg2, activeUsers) {
     privateKey: cfg2.realityPrivateKey,
     shortIds: [cfg2.shortId]
   };
+  const multihop = cfg2.hopnPort > 0;
   const hop1Clients = [
     { id: cfg2.founderUuid, email: "founder", flow: "xtls-rprx-vision" },
     ...activeUsers.map((u) => ({ id: u.uuid, email: u.email, flow: "xtls-rprx-vision" }))
@@ -15169,28 +15170,32 @@ function renderConfig(cfg2, activeUsers) {
         settings: { clients: hop1Clients, decryption: "none" },
         streamSettings: { network: "tcp", security: "reality", realitySettings: reality }
       },
-      {
-        tag: "hopN",
-        listen: "0.0.0.0",
-        port: cfg2.hopnPort,
-        protocol: "vless",
-        settings: { clients: hopnClients, decryption: "none" },
-        streamSettings: { network: "tcp", security: "reality", realitySettings: reality }
-      }
+      ...multihop ? [
+        {
+          tag: "hopN",
+          listen: "0.0.0.0",
+          port: cfg2.hopnPort,
+          protocol: "vless",
+          settings: { clients: hopnClients, decryption: "none" },
+          streamSettings: { network: "tcp", security: "reality", realitySettings: reality }
+        }
+      ] : []
     ],
     outbounds: [
       { tag: "direct", protocol: "freedom" },
-      {
-        tag: "tor",
-        protocol: "socks",
-        settings: { servers: [{ address: "127.0.0.1", port: 9050 }] }
-      }
+      ...multihop ? [
+        {
+          tag: "tor",
+          protocol: "socks",
+          settings: { servers: [{ address: "127.0.0.1", port: 9050 }] }
+        }
+      ] : []
     ],
     routing: {
       rules: [
         { type: "field", inboundTag: ["api"], outboundTag: "api" },
         { type: "field", inboundTag: ["hop1"], outboundTag: "direct" },
-        { type: "field", inboundTag: ["hopN"], outboundTag: "tor" }
+        ...multihop ? [{ type: "field", inboundTag: ["hopN"], outboundTag: "tor" }] : []
       ]
     }
   };
@@ -15268,7 +15273,11 @@ var Controller = class {
       unsettledBytes: unsettled.toString(),
       owedWeft: fmtWeft(costBaseUnits(unsettled)),
       remainingBytes: (quota > unsettled ? quota - unsettled : 0n).toString(),
-      links: { oneHop: oneHopLink(this.cfg, u.uuid), multiHop: multiHopLink(this.cfg, u.uuid) }
+      links: {
+        oneHop: oneHopLink(this.cfg, u.uuid),
+        // 1-hop-only home node → no multihop link (multihop is served over Tor by infra nodes).
+        multiHop: this.cfg.hopnPort > 0 ? multiHopLink(this.cfg, u.uuid) : ""
+      }
     };
   }
   /** Create the user if new, refresh their quota from chain, and return their personal links. */
