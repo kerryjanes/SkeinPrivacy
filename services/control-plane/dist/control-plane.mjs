@@ -7728,15 +7728,25 @@ async function verifyPayTraffic(r, signature, expectedPayer) {
   if (!tx) throw new Error("transaction not found / not finalized");
   if (tx.meta?.err) throw new Error("transaction failed on chain");
   const msg = tx.transaction.message;
-  const keys = msg.accountKeys.map((k) => String(k));
+  return decodePayTraffic(
+    msg.accountKeys.map((k) => String(k)),
+    msg.instructions.map((ix) => ({
+      programIdIndex: ix.programIdIndex,
+      accounts: [...ix.accounts],
+      data: ix.data
+    })),
+    expectedPayer
+  );
+}
+function decodePayTraffic(accountKeys, instructions, expectedPayer) {
   const programId = String(generated_exports.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
   const disc = generated_exports.PAY_TRAFFIC_DISCRIMINATOR;
-  for (const ix of msg.instructions) {
-    if (keys[ix.programIdIndex] !== programId) continue;
+  for (const ix of instructions) {
+    if (accountKeys[ix.programIdIndex] !== programId) continue;
     const data = bs58Decode(ix.data);
     if (data.length < 16) continue;
     if (!data.slice(0, 8).every((b, i) => b === disc[i])) continue;
-    const payer = keys[ix.accounts[0]];
+    const payer = accountKeys[ix.accounts[0]];
     if (payer !== expectedPayer) throw new Error("payment not signed by this wallet");
     const amount = readU64LE(data, 8);
     return { payer: address(payer), amount };
@@ -7850,7 +7860,11 @@ function renderConfig(cfg2, activeUsers) {
     ],
     outbounds: [
       { tag: "direct", protocol: "freedom" },
-      { tag: "tor", protocol: "socks", settings: { servers: [{ address: "127.0.0.1", port: 9050 }] } }
+      {
+        tag: "tor",
+        protocol: "socks",
+        settings: { servers: [{ address: "127.0.0.1", port: 9050 }] }
+      }
     ],
     routing: {
       rules: [

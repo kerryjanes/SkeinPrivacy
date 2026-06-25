@@ -63,17 +63,43 @@ export async function verifyPayTraffic(
   if (tx.meta?.err) throw new Error('transaction failed on chain');
 
   const msg = tx.transaction.message;
-  const keys = msg.accountKeys.map((k) => String(k));
+  return decodePayTraffic(
+    msg.accountKeys.map((k) => String(k)),
+    msg.instructions.map((ix) => ({
+      programIdIndex: ix.programIdIndex,
+      accounts: [...ix.accounts],
+      data: ix.data,
+    })),
+    expectedPayer,
+  );
+}
+
+export interface RawInstruction {
+  programIdIndex: number;
+  accounts: number[];
+  data: string; // base58 (json encoding)
+}
+
+/**
+ * Pure decode: find the `pay_traffic` instruction to the settlement program, confirm the payer
+ * (accounts[0]) is `expectedPayer`, and read the u64 amount after the 8-byte discriminator.
+ * Extracted from the RPC fetch so it's deterministically testable.
+ */
+export function decodePayTraffic(
+  accountKeys: string[],
+  instructions: RawInstruction[],
+  expectedPayer: string,
+): VerifiedPayment {
   const programId = String(rewardsSettlement.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
   const disc = rewardsSettlement.PAY_TRAFFIC_DISCRIMINATOR;
 
-  for (const ix of msg.instructions) {
-    if (keys[ix.programIdIndex] !== programId) continue;
+  for (const ix of instructions) {
+    if (accountKeys[ix.programIdIndex] !== programId) continue;
     const data = bs58Decode(ix.data);
     if (data.length < 16) continue;
     if (!data.slice(0, 8).every((b, i) => b === disc[i])) continue;
     // accounts[0] is the payer (signer) per the generated PayTraffic layout
-    const payer = keys[ix.accounts[0]];
+    const payer = accountKeys[ix.accounts[0]];
     if (payer !== expectedPayer) throw new Error('payment not signed by this wallet');
     const amount = readU64LE(data, 8);
     return { payer: address(payer), amount };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { rewardsSettlement } from '@weft/sdk';
 import { loadConfig } from '../src/config.js';
-import { costBaseUnits, quotaBytes } from '../src/chain.js';
+import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
 import { multiHopLink, oneHopLink } from '../src/links.js';
 import { parseUsage, renderConfig } from '../src/xray.js';
 import type { User } from '../src/store.js';
@@ -68,6 +69,53 @@ describe('xray config render', () => {
     const hop1 = c.inbounds.find((i: any) => i.tag === 'hop1');
     expect(hop1.settings.clients).toHaveLength(1);
     expect(hop1.settings.clients[0].email).toBe('founder');
+  });
+});
+
+describe('pay_traffic settlement verification', () => {
+  const PROGRAM = String(rewardsSettlement.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
+  const PAYER = '2m5CoAk7ioZJbRYqHV9PJMNZN2gwpTPKQXR4GKyVifL7';
+  const OTHER = 'FdLn2UPCmGGxzRDvX54qcQSrCyHSTzmaNeYdxY21FxNt';
+
+  const B58 = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+  function b58(bytes: Uint8Array): string {
+    let n = 0n;
+    for (const b of bytes) n = n * 256n + BigInt(b);
+    let s = '';
+    while (n > 0n) {
+      s = B58[Number(n % 58n)] + s;
+      n /= 58n;
+    }
+    return s || '1';
+  }
+  // The real on-chain instruction data (8-byte discriminator + u64 amount), as the SDK encodes it.
+  function payTrafficData(amount: bigint): string {
+    const bytes = rewardsSettlement.getPayTrafficInstructionDataEncoder().encode({ amount });
+    return b58(new Uint8Array(bytes));
+  }
+
+  it('decodes the payer + amount from a genuine pay_traffic instruction', () => {
+    const keys = [PAYER, 'distributor', 'cfg', 'mint', 'ata', 'vault', 'treasury', PROGRAM];
+    const ix = {
+      programIdIndex: 7,
+      accounts: [0, 1, 2, 3, 4, 5, 6],
+      data: payTrafficData(1_234_567n),
+    };
+    const r = decodePayTraffic(keys, [ix], PAYER);
+    expect(r.amount).toBe(1_234_567n);
+    expect(String(r.payer)).toBe(PAYER);
+  });
+
+  it('rejects a payment whose signer is not the expected wallet (no spoofing another wallet)', () => {
+    const keys = [PAYER, 'x', 'y', 'z', 'a', 'b', 'c', PROGRAM];
+    const ix = { programIdIndex: 7, accounts: [0, 1, 2, 3, 4, 5, 6], data: payTrafficData(10n) };
+    expect(() => decodePayTraffic(keys, [ix], OTHER)).toThrow(/not signed by this wallet/);
+  });
+
+  it('rejects a tx that contains no settlement instruction', () => {
+    const keys = [PAYER, '11111111111111111111111111111111'];
+    const ix = { programIdIndex: 1, accounts: [0], data: payTrafficData(10n) };
+    expect(() => decodePayTraffic(keys, [ix], PAYER)).toThrow(/no pay_traffic/);
   });
 });
 
