@@ -3976,6 +3976,9 @@ var require_websocket_server = __commonJS({
   }
 });
 
+// src/index.ts
+import { readFileSync as readFileSync3 } from "node:fs";
+
 // src/config.ts
 function env(key, fallback) {
   const v = process.env[key];
@@ -4001,7 +4004,10 @@ function loadConfig() {
     port: Number(env("WEFT_PORT", "8088")),
     pollMs: Number(env("WEFT_POLL_MS", "10000")),
     rpcUrl: env("WEFT_RPC", "https://api.devnet.solana.com"),
-    wsUrl: env("WEFT_WS", env("WEFT_RPC", "https://api.devnet.solana.com").replace(/^http/, "ws")),
+    wsUrl: env(
+      "WEFT_WS",
+      env("WEFT_RPC", "https://api.devnet.solana.com").replace(/^http/, "ws")
+    ),
     weftMint: env("WEFT_MINT", "8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i"),
     faucetKeypairPath: env("WEFT_FAUCET_KEYPAIR", ""),
     faucetAmount: BigInt(env("WEFT_FAUCET_AMOUNT", "1000000"))
@@ -15362,7 +15368,11 @@ var Faucet = class {
     });
     const mint = address(this.mint);
     const owner = address(wallet);
-    const [ata] = await findAssociatedTokenPda({ owner, mint, tokenProgram: TOKEN_PROGRAM_ADDRESS });
+    const [ata] = await findAssociatedTokenPda({
+      owner,
+      mint,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS
+    });
     const createAta = await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer: faucet2,
       owner,
@@ -15382,7 +15392,9 @@ var Faucet = class {
       (m) => appendTransactionMessageInstructions([createAta, mintTo], m)
     );
     const signed = await signTransactionMessageWithSigners(msg);
-    await sendAndConfirm(signed, { commitment: "confirmed" });
+    await sendAndConfirm(signed, {
+      commitment: "confirmed"
+    });
     lastDrip.set(wallet, now);
     return { signature: getSignatureFromTransaction(signed), amount: this.amount.toString() };
   }
@@ -15468,6 +15480,13 @@ function startServer(cfg2, ctrl2, faucet2) {
 }
 
 // src/index.ts
+var envFile = process.env.WEFT_ENVFILE;
+if (envFile) {
+  for (const line of readFileSync3(envFile, "utf8").split("\n")) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m && process.env[m[1]] === void 0) process.env[m[1]] = m[2];
+  }
+}
 var cfg = loadConfig();
 var store = new Store(cfg.storePath);
 var ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl));

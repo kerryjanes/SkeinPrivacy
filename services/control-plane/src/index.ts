@@ -5,8 +5,19 @@
 // it folds each user's new traffic into their tab, re-reads $WEFT balances, and turns links
 // on/off so a user only stays connected while their balance covers what they've used.
 
+import { readFileSync } from 'node:fs';
 import { loadConfig } from './config.js';
 import { Store } from './store.js';
+
+// launchd (macOS) can't pass an EnvironmentFile, so honor WEFT_ENVFILE: load KEY=VALUE lines
+// into process.env before reading config. (systemd uses EnvironmentFile directly.)
+const envFile = process.env.WEFT_ENVFILE;
+if (envFile) {
+  for (const line of readFileSync(envFile, 'utf8').split('\n')) {
+    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
+    if (m && process.env[m[1]] === undefined) process.env[m[1]] = m[2];
+  }
+}
 import { rpc } from './chain.js';
 import { Controller } from './controller.js';
 import { Faucet } from './faucet.js';
