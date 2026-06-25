@@ -8027,7 +8027,14 @@ var Controller = class {
 import { createServer } from "node:http";
 function send(res, code, body) {
   const data = JSON.stringify(body);
-  res.writeHead(code, { "content-type": "application/json", "access-control-allow-origin": "*" });
+  res.writeHead(code, {
+    "content-type": "application/json",
+    "access-control-allow-origin": "*",
+    // the cabinet POSTs JSON cross-origin → the browser preflights and needs these
+    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-headers": "content-type",
+    "access-control-max-age": "86400"
+  });
   res.end(data);
 }
 function readJson(req) {
