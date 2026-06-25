@@ -78,6 +78,10 @@ prints your public endpoint.
   which exposes your node at a public `relay:port`. Users connect there; the relay forwards to your
   home Xray; your traffic exits at home.
 
+  It installs everything as **persistent services** (systemd on Linux, launchd on macOS), so the
+  node survives reboots, crashes, and closing the terminal (auto-restart). Geo is auto-detected
+  from your IP. Stop the node any time: `./scripts/stop-node.sh` (add `--purge` to remove it).
+
 - **Public VPS** (has its own IP) — serves both modes directly, no relay needed:
 
   ```sh
@@ -114,16 +118,17 @@ pick your node + an epoch and claim your `$WEFT`.
 
 ## Repository layout
 
-| Path                      | What                                                                                                                    |
-| ------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `programs/`               | 7 Anchor programs: vesting, node registry (cNFT), staking, reputation, rewards settlement, governance, IDO distributor. |
-| `crates/weft-primitives` | Shared tokenomics + reward/split/merkle math (single source of truth, on- and off-chain).                               |
-| `scripts/run-node.sh`     | Turn a **home device behind NAT** into a node: Xray + Tor + `frpc` (reverse tunnel to a relay) + control plane.         |
-| `scripts/deploy-node.sh`  | One-command **VPS** node: Xray (VLESS+Reality) + Tor + control plane, both modes.                                       |
-| `services/control-plane/` | Per-node token-gating: mints personal links, meters traffic (Xray stats), enforces the `$WEFT` budget.                 |
-| `services/`               | The rest: registry provisioning, the settlement aggregator, the node-directory indexer, governance tooling, genesis.    |
-| `sdk/`                    | `@weft/sdk` — typed Solana clients for every program + the shared math.                                                |
-| `clients/desktop/`        | The cross-platform desktop VPN app.                                                                                     |
+| Path                      | What                                                                                                                      |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `programs/`               | 7 Anchor programs: vesting, node registry (cNFT), staking, reputation, rewards settlement, governance, IDO distributor.   |
+| `crates/weft-primitives` | Shared tokenomics + reward/split/merkle math (single source of truth, on- and off-chain).                                 |
+| `scripts/run-node.sh`     | Turn a **home device behind NAT** into a node (persistent service): Xray + Tor + `frpc` (reverse tunnel) + control plane. |
+| `scripts/stop-node.sh`    | Stop a home node started by `run-node.sh` (`--purge` to remove it entirely).                                              |
+| `scripts/deploy-node.sh`  | One-command **VPS** node: Xray (VLESS+Reality) + Tor + control plane, both modes.                                         |
+| `services/control-plane/` | Per-node token-gating: mints personal links, meters traffic (Xray stats), enforces the `$WEFT` budget.                   |
+| `services/`               | The rest: registry provisioning, the settlement aggregator, the node-directory indexer, governance tooling, genesis.      |
+| `sdk/`                    | `@weft/sdk` — typed Solana clients for every program + the shared math.                                                  |
+| `clients/desktop/`        | The cross-platform desktop VPN app.                                                                                       |
 
 ### On-chain program IDs (Solana devnet)
 

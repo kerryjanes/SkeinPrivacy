@@ -6,16 +6,15 @@ Weft works with the popular VLESS clients — on your **phone or your computer**
 **V2Box**, **Happ**, **sing-box**, **Hiddify**, **Streisand**.
 
 1. Install any one of them (free, from your app store or their site).
-2. Get your **personal connection link**. Weft is token-gated: your `$WEFT` balance is your
-   traffic budget (0.1 `$WEFT`/GB), so each wallet gets its own metered link from a node:
+2. Get your **personal connection link** from the **cabinet** →
+   [weftnetwork.net/app](https://www.weftnetwork.net/app): connect your wallet, open **access**.
+   Weft is token-gated — your `$WEFT` balance is your traffic budget (0.1 `$WEFT`/GB), so each
+   wallet gets its own metered link. You get two: **1-hop** (fast, direct exit) and **multihop**
+   (routed through the Tor network, onion, max privacy, slower). Copy one. When you've used what
+   your `$WEFT` pays for, the link stops; top up (or earn `$WEFT` by running a node) and it
+   resumes. On devnet, click **Get test $WEFT** in the cabinet to try it.
 
-   ```sh
-   curl -X POST http://<node>:8088/provision -d '{"wallet":"<YOUR_SOLANA_PUBKEY>"}'
-   ```
-
-   You get two links back — **1-hop** (fast, direct exit) and **multihop** (routed through the Tor
-   network, onion, maximum privacy, slower). When you've used what your `$WEFT` pays for, the link
-   stops; top up your wallet (or earn `$WEFT` by running a node) and it works again.
+   _Scripted alternative:_ `curl -X POST https://<node>:8089/provision -d '{"wallet":"<PUBKEY>"}'`.
 
 3. In the client: **＋ Add → Import from clipboard**, then **Connect**.
 
