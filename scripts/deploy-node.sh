@@ -1,91 +1,77 @@
 #!/usr/bin/env bash
 #
-# Deploy a public Weft entry node on a fresh Ubuntu/Debian VPS, fronted by a real
-# Let's Encrypt TLS certificate on port 443 — so phones connect on standard settings,
-# exactly like a normal VPN (the connection looks like ordinary HTTPS).
+# Deploy a Weft VPN node on a fresh Ubuntu/Debian VPS. The node offers TWO connection modes,
+# both over standard VLESS + Reality, so any stock client (Happ / V2Box / sing-box / Hiddify /
+# Streisand) connects with a single pasted link:
 #
-# Before running: point an A record for <domain> at this server's public IP.
+#   1-HOP     — direct VLESS + Reality exit. Fast. Traffic egresses at this node.
+#   MULTIHOP  — VLESS + Reality, then routed through the Tor network. Onion, max privacy,
+#               slower; traffic egresses at a Tor exit, not this node.
+#
+# The data plane is the battle-tested Xray-core (Reality) + the Tor daemon — no custom code.
+# Weft's value-add is the polished setup + the on-chain $WEFT incentive/registry layer.
 #
 # Usage (as root):
-#   ./scripts/deploy-node.sh vpn.example.com
-#
+#   ./scripts/deploy-node.sh [reality-sni]
+#     reality-sni: a real TLS1.3 site to masquerade as (default www.microsoft.com). For markets
+#     with heavy DPI (e.g. Russia), use a DOMESTIC domain (e.g. ya.ru) — foreign SNIs get flagged.
 set -euo pipefail
-DOMAIN="${1:?usage: deploy-node.sh <domain whose A record points at this server>}"
+[ "$(id -u)" -eq 0 ] || { echo "run as root"; exit 1; }
 
-if [ "$(id -u)" -ne 0 ]; then echo "run as root (needs port 443 + cert)"; exit 1; fi
+SNI="${1:-www.microsoft.com}"
+HOP1_PORT="${HOP1_PORT:-443}"
+HOPN_PORT="${HOPN_PORT:-8443}"
 
-# A small (1–2 GB) VPS needs swap to compile Rust without running out of memory.
-RAM_MB="$(free -m | awk '/^Mem:/{print $2}')"
-if [ "${RAM_MB:-0}" -lt 3000 ] && [ ! -f /swapfile ]; then
-  echo "→ Adding 4 GB swap (small RAM)…"
-  fallocate -l 4G /swapfile 2>/dev/null || dd if=/dev/zero of=/swapfile bs=1M count=4096
-  chmod 600 /swapfile && mkswap /swapfile >/dev/null && swapon /swapfile
-fi
+echo "→ dependencies (tor provides the multihop egress)…"
+apt-get update -y >/dev/null
+DEBIAN_FRONTEND=noninteractive apt-get install -y curl tor qrencode openssl >/dev/null
+systemctl enable --now tor >/dev/null 2>&1
 
-echo "→ Installing dependencies…"
-apt-get update -y
-# libsqlite3-dev: Arti (the Tor client) links against system SQLite for its directory cache.
-apt-get install -y curl git build-essential pkg-config libssl-dev libsqlite3-dev socat
+echo "→ Xray-core (stable 1.8.24 — newer 26.x breaks the vision flow)…"
+bash -c "$(curl -L -s https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version 1.8.24 >/dev/null
 
-if ! command -v cargo >/dev/null 2>&1; then
-  echo "→ Installing Rust…"
-  curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-fi
-. "$HOME/.cargo/env"
-# The repo pins rustc 1.89 for the Solana/Anchor programs, but the Tor data plane (Arti)
-# needs a modern rustc — build the host VPN crate with the stable toolchain.
-rustup toolchain install stable --profile minimal -y
+KEYS=$(/usr/local/bin/xray x25519)
+PRIV=$(echo "$KEYS" | grep -i privat | awk '{print $NF}')
+PUB=$(echo "$KEYS" | grep -iE 'public|password' | awk '{print $NF}')
+UUID=$(/usr/local/bin/xray uuid)
+SID=$(openssl rand -hex 8)
+RS="{ \"show\": false, \"dest\": \"${SNI}:443\", \"xver\": 0, \"serverNames\": [\"${SNI}\"], \"privateKey\": \"${PRIV}\", \"shortIds\": [\"${SID}\"] }"
 
-echo "→ Fetching Weft…"
-[ -d /opt/weft ] || git clone https://github.com/kerryjanes/WeftNetwork.git /opt/weft
-cd /opt/weft && git pull --ff-only || true
-echo "→ Building (a few minutes on a small server)…"
-# Disable LTO + use more codegen units: much lighter on RAM/CPU for a small VPS.
-CARGO_PROFILE_RELEASE_LTO=false CARGO_PROFILE_RELEASE_CODEGEN_UNITS=16 \
-  cargo +stable build -p weft-vpn --release
+cat > /usr/local/etc/xray/config.json <<CONF
+{
+  "log": { "loglevel": "warning" },
+  "inbounds": [
+    { "tag": "hop1", "listen": "0.0.0.0", "port": ${HOP1_PORT}, "protocol": "vless",
+      "settings": { "clients": [ { "id": "${UUID}", "flow": "xtls-rprx-vision" } ], "decryption": "none" },
+      "streamSettings": { "network": "tcp", "security": "reality", "realitySettings": ${RS} } },
+    { "tag": "hopN", "listen": "0.0.0.0", "port": ${HOPN_PORT}, "protocol": "vless",
+      "settings": { "clients": [ { "id": "${UUID}" } ], "decryption": "none" },
+      "streamSettings": { "network": "tcp", "security": "reality", "realitySettings": ${RS} } }
+  ],
+  "outbounds": [
+    { "tag": "direct", "protocol": "freedom" },
+    { "tag": "tor", "protocol": "socks", "settings": { "servers": [ { "address": "127.0.0.1", "port": 9050 } ] } }
+  ],
+  "routing": { "rules": [
+    { "type": "field", "inboundTag": ["hop1"], "outboundTag": "direct" },
+    { "type": "field", "inboundTag": ["hopN"], "outboundTag": "tor" }
+  ] }
+}
+CONF
 
-echo "→ Getting a real TLS certificate for ${DOMAIN} (Let's Encrypt)…"
-curl -s https://get.acme.sh | sh -s email="admin@${DOMAIN}"
-~/.acme.sh/acme.sh --set-default-ca --server letsencrypt
-~/.acme.sh/acme.sh --issue --standalone -d "${DOMAIN}"
-install -d /etc/weft/tls
-~/.acme.sh/acme.sh --install-cert -d "${DOMAIN}" \
-  --fullchain-file /etc/weft/tls/fullchain.pem \
-  --key-file       /etc/weft/tls/key.pem
+systemctl enable xray >/dev/null 2>&1
+systemctl restart xray
 
-# A fixed UUID for this node (clients connect with it).
-UUID_FILE=/etc/weft/uuid
-[ -f "$UUID_FILE" ] || cat /proc/sys/kernel/random/uuid > "$UUID_FILE"
-UUID="$(cat "$UUID_FILE")"
-
-echo "→ Installing the gateway as a systemd service on :443…"
-cat > /etc/systemd/system/weft-gateway.service <<UNIT
-[Unit]
-Description=Weft VLESS entry gateway
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-ExecStart=/opt/weft/target/release/weft-vpn vless 0.0.0.0:443 --uuid ${UUID} \\
-  --tls-cert /etc/weft/tls/fullchain.pem --tls-key /etc/weft/tls/key.pem --tls-sni ${DOMAIN}
-Restart=always
-RestartSec=3
-AmbientCapabilities=CAP_NET_BIND_SERVICE
-# A busy VPN gateway holds many concurrent connections — the 1024 default is far too low.
-LimitNOFILE=1048576
-# Arti (the Tor client) stores its directory cache under \$HOME; systemd starts with none.
-Environment=HOME=/root
-
-[Install]
-WantedBy=multi-user.target
-UNIT
-systemctl daemon-reload
-systemctl enable --now weft-gateway
+HOST=$(curl -s --max-time 10 https://api.ipify.org)
+H1="vless://${UUID}@${HOST}:${HOP1_PORT}?flow=xtls-rprx-vision&type=tcp&security=reality&fp=firefox&sni=${SNI}&pbk=${PUB}&sid=${SID}&spx=%2F#Weft-1hop"
+HN="vless://${UUID}@${HOST}:${HOPN_PORT}?type=tcp&security=reality&fp=firefox&sni=${SNI}&pbk=${PUB}&sid=${SID}&spx=%2F#Weft-multihop"
 
 echo
-echo "✅ Weft entry node is live on ${DOMAIN}:443 (real TLS)."
-echo "   Connection link (paste into V2Box / Happ — standard settings, valid cert):"
+echo "✅ Weft node live (masquerading as ${SNI}). Import either link into Happ / V2Box / any VLESS client:"
 echo
-echo "   vless://${UUID}@${DOMAIN}:443?type=tcp&security=tls&sni=${DOMAIN}#Weft"
+echo "  1-HOP (fast):      ${H1}"
 echo
-echo "   Logs:   journalctl -u weft-gateway -f"
+echo "  MULTIHOP (Tor):    ${HN}"
+echo
+echo "QR for the 1-hop link:"
+qrencode -t ansiutf8 "${H1}"

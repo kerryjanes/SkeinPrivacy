@@ -1,18 +1,21 @@
 # Weft
 
-**A decentralized VPN on Solana.** Weft is a DePIN network: traffic is onion-routed over the
-**Tor network** — multi-hop, so every relay only knows the next one and the exit never learns
-who you are — and `$WEFT` rewards people for running relays. It's incentivized Tor: the
-strongest, most battle-tested anonymity network as the data plane, with an on-chain incentive
-and registry layer on top.
+**A decentralized VPN on Solana.** Weft is a DePIN network: anyone runs a node, carries other
+people's traffic, and earns `$WEFT`. Each node offers **two connection modes**:
 
-- **Token:** `$WEFT` (SPL), used to reward relay operators, stake on nodes, and vote in governance.
+- **1-hop** — direct VLESS + Reality exit. Fast; traffic egresses at the node.
+- **multihop** — VLESS + Reality, then routed through the **Tor network**. Onion routing, maximum
+  privacy (the exit never learns who you are); slower, egresses at a Tor exit.
+
+- **Data plane:** battle-tested **Xray-core (VLESS + Reality)** for DPI-resistant transport +
+  the **Tor** daemon for the multihop onion path. No custom protocol — Weft's value-add is the
+  polished node + the on-chain incentive/registry layer.
+- **Token:** `$WEFT` (SPL), used to reward node operators, stake on nodes, and vote in governance.
 - **Registry:** every node is a compressed NFT on Solana, carrying its geo, capabilities, stake and reputation.
-- **Data plane:** the Tor network, embedded via [Arti](https://gitlab.torproject.org/tpo/core/arti) (the
-  pure-Rust Tor client) — 20 years of hardened multi-hop onion routing, flow control, and NAT traversal.
 
-The protocol speaks **VLESS**, so you can connect with apps you already trust — **V2Box, Happ,
-sing-box, Hiddify** — on any OS, or with the Weft desktop app.
+The protocol speaks **VLESS + Reality**, so you connect with apps you already trust — **V2Box,
+Happ, sing-box, Hiddify, Streisand** — on any OS. Reality masquerades the connection as ordinary
+HTTPS to a real site, so DPI (incl. Russia's TSPU) can't tell it from normal traffic.
 
 ---
 
@@ -38,20 +41,19 @@ open it, and press **Connect**. Nothing to paste.
 
 ## Run a node
 
-A Weft node is a **Tor relay**: run one, carry traffic for the network Weft routes over, and
-earn `$WEFT`. Rewards are weighted by reputation (0.5×–2.0×), geo demand (up to +50%) and
-stake (+20% at 10,000 `$WEFT`).
+A Weft node is a VPS that serves both connection modes and earns `$WEFT`. Rewards are weighted
+by reputation (0.5×–2.0×), geo demand (up to +50%) and stake (+20% at 10,000 `$WEFT`).
 
 ### With one script (recommended)
 
 ```sh
-./scripts/run-relay.sh
+sudo ./scripts/deploy-node.sh            # or: sudo ./scripts/deploy-node.sh ya.ru   (DPI-heavy markets)
 ```
 
-The script installs Tor, configures a **non-exit relay** (safe to run from home — it never
-sends traffic to the open internet on your behalf), creates your operator key, registers the
-relay on-chain, and starts it. Re-run it any time. To run an exit relay instead (extra demand,
-extra reward, but you egress others' traffic), pass `--exit` and read the printed warning first.
+On a fresh Ubuntu/Debian VPS the script installs **Xray-core** (VLESS + Reality) and the **Tor**
+daemon, configures both modes (1-hop direct + multihop via Tor), and prints two ready connection
+links (+ a QR) to paste into Happ / V2Box / any VLESS client. The data plane is standard,
+battle-tested Xray + Tor — nothing to maintain by hand.
 
 ---
 
@@ -61,7 +63,7 @@ extra reward, but you egress others' traffic), pass `--exit` and read the printe
 | --- | --- |
 | `programs/` | 7 Anchor programs: token vesting, node registry (cNFT), staking, reputation, rewards settlement, governance (DAO), IDO/token distributor. |
 | `crates/weft-primitives` | Shared tokenomics + reward/split/merkle math (single source of truth, on- and off-chain). |
-| `crates/weft-vpn` | The data plane: routes traffic through Tor (Arti) behind a VLESS gateway + SOCKS5 front-end (`weft-vpn` CLI). |
+| `scripts/deploy-node.sh` | One-command node setup: Xray (VLESS+Reality) + Tor, both connection modes, prints the links. |
 | `services/` | TypeScript services + CLIs: registry provisioning, the settlement aggregator, the node-directory indexer, governance tooling, and genesis. |
 | `sdk/` | `@weft/sdk` — typed Solana clients for every program, plus the shared math. |
 | `clients/desktop/` | The cross-platform desktop VPN app. |

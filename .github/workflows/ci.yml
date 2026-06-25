@@ -104,12 +104,12 @@ jobs:
         if: ${{ !matrix.target }}
         shell: bash
         run: |
-          cargo clippy -p weft-vpn -p weft-net -p weft-node -p weft-primitives --all-targets -- -D warnings
-          cargo test -p weft-vpn -p weft-net -p weft-node -p weft-primitives
-      # Mobile: cross-build the client core for the device target.
-      - name: Build client core (mobile)
+          cargo clippy -p weft-primitives --all-targets -- -D warnings
+          cargo test -p weft-primitives
+      # Mobile: cross-build the shared crate for the device target.
+      - name: Build shared crate (mobile)
         if: matrix.target
-        run: cargo build -p weft-vpn -p weft-net --target ${{ matrix.target }}
+        run: cargo build -p weft-primitives --target ${{ matrix.target }}
 
   typescript:
     name: TypeScript (SDK)
