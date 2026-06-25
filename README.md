@@ -30,7 +30,7 @@ A node carries traffic under **your wallet** and earns `$WEFT` **for the bytes i
 serves** (weighted by reputation 0.5×–2.0×, geo demand up to +50%, stake +20% at 10k `$WEFT`).
 
 1. **Start the node software** on your machine:
-   - **Home device** (PC / router, behind NAT): `WEFT_RELAY_TOKEN=<token> ./scripts/run-node.sh`
+   - **Home device** (PC / router, behind NAT): `./scripts/run-node.sh`
    - **Public VPS** (has its own IP): `sudo ./scripts/deploy-node.sh` (add `ya.ru` for DPI-heavy markets)
 
    Either way it installs Xray (VLESS+Reality) + Tor + the control plane and prints your public

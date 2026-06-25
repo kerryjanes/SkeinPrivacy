@@ -12,21 +12,20 @@
 # Stack (all battle-tested, no custom data-plane code): Xray-core (VLESS+Reality) + Tor (multihop)
 # + frpc (reverse tunnel) + the Weft control plane (meters your served traffic, gates by $WEFT).
 #
-# Usage (Ubuntu/Debian/macOS, as a user who can sudo):
-#   WEFT_RELAY_TOKEN=<token>  ./scripts/run-node.sh
-# Env:
-#   WEFT_RELAY        rendezvous host (default vpn.weftnetwork.net)
-#   WEFT_RELAY_PORT   rendezvous frps bind port (default 7000)
-#   WEFT_RELAY_TOKEN  rendezvous auth token (REQUIRED — ask the relay operator)
-#   WEFT_SNI          Reality SNI to masquerade as (default www.microsoft.com; ya.ru for RU)
-#   WEFT_WALLET       your Solana pubkey (for the operator/earnings identity in the cabinet)
+# Just run it — no flags, no tokens, no config (Ubuntu/Debian/macOS, user who can sudo):
+#   ./scripts/run-node.sh
+# Then register the endpoint it prints in the cabinet (your connected wallet = your earnings).
+#
+# Optional overrides (all have working defaults; only for running your own private relay):
+#   WEFT_RELAY (host) · WEFT_RELAY_PORT · WEFT_RELAY_TOKEN · WEFT_SNI
 set -euo pipefail
 
 RELAY="${WEFT_RELAY:-vpn.weftnetwork.net}"
 RELAY_PORT="${WEFT_RELAY_PORT:-7000}"
-TOKEN="${WEFT_RELAY_TOKEN:?set WEFT_RELAY_TOKEN (the rendezvous auth token)}"
+# The public launch relay is open (like a Tor relay) — its token is not a secret. Baked in so a
+# node operator just runs the script; override WEFT_RELAY_TOKEN only when running a private relay.
+TOKEN="${WEFT_RELAY_TOKEN:-a40b1ab498a37ba6bbaa70791ac62287}"
 SNI="${WEFT_SNI:-www.microsoft.com}"
-WALLET="${WEFT_WALLET:-}"
 LOCAL_HOP1=14430   # local Xray listen ports (loopback; frpc forwards the relay onto these)
 LOCAL_HOPN=18443
 FRP_VER="0.69.1"
