@@ -58,19 +58,32 @@ wallet, and press **Connect** — it provisions your personal link and shows you
 
 ## Run a node
 
-A Weft node is a VPS that serves both connection modes and earns `$WEFT`. Rewards are weighted
-by reputation (0.5×–2.0×), geo demand (up to +50%) and stake (+20% at 10,000 `$WEFT`).
+A node serves both connection modes under **your wallet** and earns `$WEFT` **for the traffic it
+actually carries** (metered at the node). Rewards are weighted by reputation (0.5×–2.0×), geo
+demand (up to +50%) and stake (+20% at 10,000 `$WEFT`). Two ways to run one:
 
-### With one script (recommended)
+### A home device behind NAT (PC · router · always-on box)
+
+```sh
+WEFT_RELAY_TOKEN=<token> ./scripts/run-node.sh
+```
+
+A home device can't accept inbound connections, so the agent does what Tailscale-DERP /
+Cloudflare-Tunnel / Tor relays do: it dials **out** to a public **rendezvous relay** which exposes
+your node at a public `relay:port`. Users connect there; the relay forwards to your home Xray; your
+traffic exits at home. The agent runs Xray (VLESS+Reality) + Tor + `frpc` (the tunnel) + the Weft
+control plane (meters your served traffic, gates users by `$WEFT`), then prints your public
+endpoint — register it on-chain in the cabinet to start earning.
+
+### A public VPS (has its own IP)
 
 ```sh
 sudo ./scripts/deploy-node.sh            # or: sudo ./scripts/deploy-node.sh ya.ru   (DPI-heavy markets)
 ```
 
-On a fresh Ubuntu/Debian VPS the script installs **Xray-core** (VLESS + Reality) and the **Tor**
-daemon, configures both modes (1-hop direct + multihop via Tor), and prints two ready connection
-links (+ a QR) to paste into Happ / V2Box / any VLESS client. The data plane is standard,
-battle-tested Xray + Tor — nothing to maintain by hand.
+On a fresh Ubuntu/Debian VPS the script installs **Xray-core** (VLESS + Reality), the **Tor**
+daemon, and the control plane, serving both modes directly (no relay needed). The data plane is
+standard, battle-tested Xray + Tor — nothing to maintain by hand.
 
 ---
 
@@ -80,7 +93,8 @@ battle-tested Xray + Tor — nothing to maintain by hand.
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `programs/`               | 7 Anchor programs: token vesting, node registry (cNFT), staking, reputation, rewards settlement, governance (DAO), IDO/token distributor.          |
 | `crates/weft-primitives` | Shared tokenomics + reward/split/merkle math (single source of truth, on- and off-chain).                                                          |
-| `scripts/deploy-node.sh`  | One-command node setup: Xray (VLESS+Reality) + Tor + the control plane; both connection modes; prints the links.                                   |
+| `scripts/run-node.sh`     | Turn a **home device behind NAT** into a node: Xray + Tor + `frpc` (reverse tunnel to a relay) + control plane. Earns `$WEFT` for traffic served. |
+| `scripts/deploy-node.sh`  | One-command **VPS** node setup: Xray (VLESS+Reality) + Tor + the control plane; both connection modes; prints the links.                           |
 | `services/control-plane/` | Per-node token-gating service: mints personal links, meters traffic (Xray stats), enforces the `$WEFT` budget, verifies `pay_traffic` settlement. |
 | `services/`               | Other TypeScript services + CLIs: registry provisioning, the settlement aggregator, the node-directory indexer, governance tooling, and genesis.   |
 | `sdk/`                    | `@weft/sdk` — typed Solana clients for every program, plus the shared math.                                                                       |

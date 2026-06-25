@@ -4,13 +4,19 @@
 
 export interface NodeConfig {
   // --- the Reality node this control plane fronts ---
-  host: string; // public hostname clients dial
+  host: string; // public hostname clients dial (= relay host for a home node behind NAT)
   realityPublicKey: string; // pbk in the vless:// link (the x25519 PUBLIC key)
   realityPrivateKey: string; // server private key (written into the rendered xray config)
   shortId: string; // sid
   sni: string; // Reality serverName / dest (a real TLS1.3 site; ya.ru for RU)
+  // Xray LISTEN ports (local on this box). For a VPS node these equal the public ports; for a
+  // home node behind NAT, frpc maps the relay's public ports onto these local ones.
   hop1Port: number; // direct VLESS+Reality (vision flow)
   hopnPort: number; // VLESS+Reality routed through Tor at the node (no flow)
+  // PUBLIC endpoint advertised in the vless:// links. Defaults to host/hop1Port/hopnPort (VPS);
+  // a home node sets these to the relay host + its assigned relay ports.
+  publicHop1Port: number;
+  publicHopnPort: number;
   founderUuid: string; // the always-on, unmetered founder link (kept working through migrations)
 
   // --- node plumbing ---
@@ -41,6 +47,8 @@ export function loadConfig(): NodeConfig {
     sni: env('WEFT_SNI', 'ya.ru'),
     hop1Port: Number(env('WEFT_HOP1_PORT', '443')),
     hopnPort: Number(env('WEFT_HOPN_PORT', '8443')),
+    publicHop1Port: Number(env('WEFT_PUBLIC_HOP1_PORT', env('WEFT_HOP1_PORT', '443'))),
+    publicHopnPort: Number(env('WEFT_PUBLIC_HOPN_PORT', env('WEFT_HOPN_PORT', '8443'))),
     founderUuid: env('WEFT_FOUNDER_UUID', 'b5ced6eb-0cba-4001-9679-65f8ba69e74b'),
 
     xrayConfigPath: env('WEFT_XRAY_CONFIG', '/usr/local/etc/xray/config.json'),

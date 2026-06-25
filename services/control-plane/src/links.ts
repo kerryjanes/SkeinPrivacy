@@ -14,7 +14,7 @@ export function oneHopLink(cfg: NodeConfig, uuid: string): string {
     sid: cfg.shortId,
     spx: '/',
   });
-  return `vless://${uuid}@${cfg.host}:${cfg.hop1Port}?${q}#Weft-1hop`;
+  return `vless://${uuid}@${cfg.host}:${cfg.publicHop1Port}?${q}#Weft-1hop`;
 }
 
 export function multiHopLink(cfg: NodeConfig, uuid: string): string {
@@ -27,5 +27,5 @@ export function multiHopLink(cfg: NodeConfig, uuid: string): string {
     sid: cfg.shortId,
     spx: '/',
   });
-  return `vless://${uuid}@${cfg.host}:${cfg.hopnPort}?${q}#Weft-multihop`;
+  return `vless://${uuid}@${cfg.host}:${cfg.publicHopnPort}?${q}#Weft-multihop`;
 }

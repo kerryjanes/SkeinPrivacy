@@ -20,6 +20,8 @@ function loadConfig() {
     sni: env("WEFT_SNI", "ya.ru"),
     hop1Port: Number(env("WEFT_HOP1_PORT", "443")),
     hopnPort: Number(env("WEFT_HOPN_PORT", "8443")),
+    publicHop1Port: Number(env("WEFT_PUBLIC_HOP1_PORT", env("WEFT_HOP1_PORT", "443"))),
+    publicHopnPort: Number(env("WEFT_PUBLIC_HOPN_PORT", env("WEFT_HOPN_PORT", "8443"))),
     founderUuid: env("WEFT_FOUNDER_UUID", "b5ced6eb-0cba-4001-9679-65f8ba69e74b"),
     xrayConfigPath: env("WEFT_XRAY_CONFIG", "/usr/local/etc/xray/config.json"),
     xrayApi: env("WEFT_XRAY_API", "127.0.0.1:10085"),
@@ -7790,7 +7792,7 @@ function oneHopLink(cfg2, uuid) {
     sid: cfg2.shortId,
     spx: "/"
   });
-  return `vless://${uuid}@${cfg2.host}:${cfg2.hop1Port}?${q}#Weft-1hop`;
+  return `vless://${uuid}@${cfg2.host}:${cfg2.publicHop1Port}?${q}#Weft-1hop`;
 }
 function multiHopLink(cfg2, uuid) {
   const q = new URLSearchParams({
@@ -7802,7 +7804,7 @@ function multiHopLink(cfg2, uuid) {
     sid: cfg2.shortId,
     spx: "/"
   });
-  return `vless://${uuid}@${cfg2.host}:${cfg2.hopnPort}?${q}#Weft-multihop`;
+  return `vless://${uuid}@${cfg2.host}:${cfg2.publicHopnPort}?${q}#Weft-multihop`;
 }
 
 // src/xray.ts
