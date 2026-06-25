@@ -1,7 +1,7 @@
-// Cross-language receipt parity: the TS `encodeReceiptCore` must reproduce, byte for
-// byte, the 104-byte preimage emitted by the Rust data plane
-// (`cargo run -p weft-net --example receipt_golden`). If this drifts, a Rust-minted
-// receipt would not verify in this aggregator (or on-chain).
+// Cross-language receipt parity: the TS `encodeReceiptCore` must reproduce, byte for byte,
+// the canonical 104-byte receipt-core preimage the on-chain program verifies. The golden
+// vectors below are pinned; if `encodeReceiptCore` drifts from them, a node-minted receipt
+// would not verify in this aggregator (or on-chain).
 
 import { readFileSync } from 'node:fs';
 import { address } from '@solana/kit';
