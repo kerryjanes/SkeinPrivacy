@@ -35,16 +35,14 @@ Weft works with the popular VLESS clients — on phone **and** computer:
 **V2Box**, **Happ**, **sing-box**, **Hiddify**, **Streisand** (iOS · Android · macOS · Windows · Linux).
 
 1. Install any one of them.
-2. Get your **personal** link from a node's control plane (each wallet gets its own, metered):
+2. Open the **cabinet** (the web app at `/app`), connect your Solana wallet, and go to **VPN
+   access** — it shows your `$WEFT` budget and your two **personal** links (`1-hop` = fast,
+   `multihop` = Tor / max privacy), each metered to your wallet. Copy one. When you've used what
+   your `$WEFT` covers the link stops working — top up your wallet (or earn `$WEFT` by running a
+   node) and it comes back.
 
-   ```sh
-   curl -X POST http://<node>:8088/provision -d '{"wallet":"<YOUR_SOLANA_PUBKEY>"}'
-   # → { active, balanceWeft, quotaBytes, remainingBytes, links: { oneHop, multiHop } }
-   ```
-
-   Pick `oneHop` (fast) or `multiHop` (Tor, max privacy). When you've used what your `$WEFT`
-   covers the link stops working — top up your wallet (or earn `$WEFT` by running a node) and it
-   comes back.
+   _Advanced / scripted:_ the cabinet just calls a node's control plane —
+   `curl -X POST https://<node>:8089/provision -d '{"wallet":"<YOUR_SOLANA_PUBKEY>"}'`.
 
 3. Import the link into the client and press **Connect**.
 
