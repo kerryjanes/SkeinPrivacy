@@ -6,8 +6,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
     "provision": "tsx src/cli.ts",
-    "node:register": "tsx src/nodeOperatorCli.ts register",
-    "node:status": "tsx src/nodeOperatorCli.ts status"
+    "node:register": "tsx src/becomeNodeCli.ts"
   },
   "devDependencies": {
     "@types/node": "^25.9.3",
