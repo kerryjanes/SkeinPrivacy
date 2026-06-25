@@ -9879,57 +9879,6 @@ function isResolvedInstructionAccountSigner(value) {
   return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
 }
 
-// ../../node_modules/.pnpm/@solana-program+system@0.12.2_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/system/dist/src/index.mjs
-var TRANSFER_SOL_DISCRIMINATOR = 2;
-function getTransferSolInstructionDataEncoder() {
-  return transformEncoder(
-    getStructEncoder([
-      ["discriminator", getU32Encoder()],
-      ["amount", getU64Encoder()]
-    ]),
-    (value) => ({ ...value, discriminator: TRANSFER_SOL_DISCRIMINATOR })
-  );
-}
-function getTransferSolInstruction(input, config) {
-  const programAddress = config?.programAddress ?? SYSTEM_PROGRAM_ADDRESS2;
-  const originalAccounts = {
-    source: { value: input.source ?? null, isWritable: true },
-    destination: { value: input.destination ?? null, isWritable: true }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory(programAddress, "omitted");
-  return Object.freeze({
-    accounts: [getAccountMeta("source", accounts.source), getAccountMeta("destination", accounts.destination)],
-    data: getTransferSolInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-var SYSTEM_PROGRAM_ADDRESS2 = "11111111111111111111111111111111";
-var SYSTEM_ERROR__ACCOUNT_ALREADY_IN_USE = 0;
-var SYSTEM_ERROR__RESULT_WITH_NEGATIVE_LAMPORTS = 1;
-var SYSTEM_ERROR__INVALID_PROGRAM_ID = 2;
-var SYSTEM_ERROR__INVALID_ACCOUNT_DATA_LENGTH = 3;
-var SYSTEM_ERROR__MAX_SEED_LENGTH_EXCEEDED = 4;
-var SYSTEM_ERROR__ADDRESS_WITH_SEED_MISMATCH = 5;
-var SYSTEM_ERROR__NONCE_NO_RECENT_BLOCKHASHES = 6;
-var SYSTEM_ERROR__NONCE_BLOCKHASH_NOT_EXPIRED = 7;
-var SYSTEM_ERROR__NONCE_UNEXPECTED_BLOCKHASH_VALUE = 8;
-var systemErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  systemErrorMessages = {
-    [SYSTEM_ERROR__ACCOUNT_ALREADY_IN_USE]: `an account with the same address already exists`,
-    [SYSTEM_ERROR__ADDRESS_WITH_SEED_MISMATCH]: `provided address does not match addressed derived from seed`,
-    [SYSTEM_ERROR__INVALID_ACCOUNT_DATA_LENGTH]: `cannot allocate account data of this length`,
-    [SYSTEM_ERROR__INVALID_PROGRAM_ID]: `cannot assign account to this program id`,
-    [SYSTEM_ERROR__MAX_SEED_LENGTH_EXCEEDED]: `length of requested seed is too long`,
-    [SYSTEM_ERROR__NONCE_BLOCKHASH_NOT_EXPIRED]: `stored nonce is still in recent_blockhashes`,
-    [SYSTEM_ERROR__NONCE_NO_RECENT_BLOCKHASHES]: `advancing stored nonce requires a populated RecentBlockhashes sysvar`,
-    [SYSTEM_ERROR__NONCE_UNEXPECTED_BLOCKHASH_VALUE]: `specified nonce does not match stored nonce`,
-    [SYSTEM_ERROR__RESULT_WITH_NEGATIVE_LAMPORTS]: `account does not have enough SOL to perform the operation`
-  };
-}
-
 // ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/token/dist/src/index.mjs
 async function findAssociatedTokenPda(seeds, config = {}) {
   const {
@@ -15438,13 +15387,12 @@ var Faucet = class {
       mintAuthority: faucet2,
       amount: this.amount
     });
-    const sol = getTransferSolInstruction({ source: faucet2, destination: owner, amount: 20000000n });
     const { value: bh } = await rpc2.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),
       (m) => setTransactionMessageFeePayerSigner(faucet2, m),
       (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
-      (m) => appendTransactionMessageInstructions([sol, createAta, mintTo], m)
+      (m) => appendTransactionMessageInstructions([createAta, mintTo], m)
     );
     const signed = await signTransactionMessageWithSigners(msg);
     await sendAndConfirm(signed, {

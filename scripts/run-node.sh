@@ -12,13 +12,20 @@
 # launchd on macOS) so the node survives reboots, crashes, and closing the terminal. Stop it any
 # time with ./scripts/stop-node.sh.
 #
-# Just run it — no flags, no tokens, no config:  ./scripts/run-node.sh
-# Then register the endpoint it prints in the cabinet (your connected wallet = your earnings).
-#
-# Optional overrides (all have working defaults): WEFT_RELAY · WEFT_RELAY_PORT ·
-# WEFT_RELAY_TOKEN · WEFT_SNI
+# Usage:  ./scripts/run-node.sh <your-wallet.json>
+# Pass your Solana wallet keypair — the node registers + earns under it (same wallet you use in the
+# cabinet). Its SOL pays the one-time on-chain registration; restarting never re-pays. The relay
+# token / SNI / ports all have working defaults.
+#   devnet: fund the wallet with `solana airdrop 1 <addr> -u devnet` first.
+# Optional overrides: WEFT_RELAY · WEFT_RELAY_PORT · WEFT_RELAY_TOKEN · WEFT_SNI
 set -euo pipefail
 
+KEYPAIR="${1:-${WEFT_KEYPAIR:-}}"
+[ -n "$KEYPAIR" ] && [ -f "$KEYPAIR" ] || {
+  echo "usage: ./scripts/run-node.sh <your-wallet.json>   (the wallet the node registers + earns under)"
+  exit 1
+}
+KEYPAIR="$(cd "$(dirname "$KEYPAIR")" && pwd)/$(basename "$KEYPAIR")" # absolutize
 RELAY="${WEFT_RELAY:-vpn.weftnetwork.net}"
 RELAY_PORT="${WEFT_RELAY_PORT:-7000}"
 # The public launch relay is open (like a Tor relay) — its token is not a secret. Baked in so a
@@ -180,12 +187,12 @@ fi
 
 sleep 4
 
-# Auto-register on-chain (one-time) — generates the node's operator key, tops it up from the relay
-# faucet on devnet, and registers iff not already registered. No website, no manual data entry.
-echo "→ registering node on-chain (automatic, one-time)…"
+# Auto-register on-chain (one-time) under YOUR wallet — idempotent (restart never re-pays). No
+# website, no manual data entry. Your wallet's SOL pays the one-time registration.
+echo "→ registering node on-chain under your wallet (one-time)…"
 curl -fsSL "${RAW}/services/registry-provision/dist/node-agent.mjs" -o "$SK/node-agent.mjs"
-WEFT_NODE_ENDPOINT="${RELAY}:${PUB_HOP1}" WEFT_GEO="${GEO}" WEFT_KEYPAIR="$SK/operator.json" \
-  WEFT_RPC="https://api.devnet.solana.com" WEFT_FAUCET_URL="https://${RELAY}:8089" \
+WEFT_NODE_ENDPOINT="${RELAY}:${PUB_HOP1}" WEFT_GEO="${GEO}" WEFT_KEYPAIR="${KEYPAIR}" \
+  WEFT_RPC="https://api.devnet.solana.com" \
   "$NODE" "$SK/node-agent.mjs" || echo "  (registration didn't complete — it retries next run)"
 
 cat <<DONE
