@@ -91,6 +91,13 @@ pub async fn serve(
     let task = tokio::spawn(async move {
         while let Ok((sock, _)) = listener.accept().await {
             let _ = sock.set_nodelay(true);
+            // Detect dead clients fast (mobile connections drop without a clean close, which
+            // would otherwise leave the tunnel — and its Tor stream — hanging forever).
+            let _ = socket2::SockRef::from(&sock).set_tcp_keepalive(
+                &socket2::TcpKeepalive::new()
+                    .with_time(std::time::Duration::from_secs(60))
+                    .with_interval(std::time::Duration::from_secs(15)),
+            );
             let eng = engine.clone();
             let acc = acceptor.clone();
             tokio::spawn(async move {

@@ -16,6 +16,7 @@ path = "src/bin/weft_vpn.rs"
 [dependencies]
 tokio = { workspace = true }
 tokio-util = { version = "0.7", features = ["compat"] }
+socket2 = "0.5"
 rand = { workspace = true }
 hex = { workspace = true }
 # The data plane: the Tor network via Arti (pure-Rust Tor client). Multi-hop onion routing,

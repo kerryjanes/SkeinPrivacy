@@ -59,13 +59,30 @@ impl TorBackend {
             return Err(io::Error::other("UDP egress is not supported over Tor (TCP only)"));
         }
         // Connect through Tor to the destination. The front-end already resolved the address;
-        // we hand Tor the IP:port and it builds a fresh onion circuit to it.
+        // we hand Tor the IP:port and it builds an onion circuit to it. Transient circuit
+        // failures ("Circuit closed" / "Stream not connected") often succeed on a retry over a
+        // fresh circuit, so try a few times before giving up.
         let host = dst.ip().to_string();
-        let stream = self
-            .tor
-            .connect((host.as_str(), dst.port()))
-            .await
-            .map_err(|e| io::Error::other(format!("tor connect {dst}: {e}")))?;
+        let mut stream = None;
+        let mut last_err = None;
+        for _ in 0..3 {
+            match self.tor.connect((host.as_str(), dst.port())).await {
+                Ok(s) => {
+                    stream = Some(s);
+                    break;
+                }
+                Err(e) => last_err = Some(e),
+            }
+        }
+        let stream = match stream {
+            Some(s) => s,
+            None => {
+                return Err(io::Error::other(format!(
+                    "tor connect {dst}: {}",
+                    last_err.expect("error set on failure")
+                )))
+            }
+        };
         let mut tor_stream = stream.compat();
         let mut io = io;
         // Full-duplex copy with proper half-close handling (one direction ending shuts down
