@@ -62,6 +62,11 @@ export function startServer(cfg: NodeConfig, ctrl: Controller): void {
       return send(res, 200, await ctrl.provision(wallet));
     }
 
+    if (req.method === 'GET' && url.pathname === '/node/stats') {
+      // The operator's earnings basis: total traffic this node has served → $WEFT owed.
+      return send(res, 200, { host: cfg.host, ...ctrl.nodeStats() });
+    }
+
     if (req.method === 'GET' && url.pathname === '/price') {
       return send(res, 200, {
         weftPerGb: Number(math.BASE_RATE_PER_GB) / 1e9,

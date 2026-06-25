@@ -7963,6 +7963,7 @@ var Controller = class {
         email: wallet,
         // unique stats key
         unsettledBytes: "0",
+        servedBytesLifetime: "0",
         balanceBaseUnits: "0",
         quotaBytes: "0",
         active: false,
@@ -7989,12 +7990,31 @@ var Controller = class {
     this.reconcile();
     return this.status(u);
   }
+  /**
+   * What this node has earned: total bytes served across all users → the $WEFT reward the
+   * operator is owed. Uses the same `trafficReward` math the aggregator applies on-chain (here at
+   * baseline reputation; the on-chain reputation/geo/stake multipliers are applied at settlement).
+   * This is the per-node served-traffic total the reward pipeline (aggregator → claim) consumes.
+   */
+  nodeStats() {
+    const served = this.store.all().reduce((sum, u) => sum + BigInt(u.servedBytesLifetime ?? "0"), 0n);
+    const earned = math_exports.trafficReward(served, 10000n, 0n, 0n);
+    return {
+      users: this.store.all().length,
+      servedBytes: served.toString(),
+      earnedWeft: fmtWeft(earned),
+      earnedBaseUnits: earned.toString()
+    };
+  }
   /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray. */
   async tick() {
     const usage = pollUsage(this.cfg);
     for (const u of this.store.all()) {
       const delta = usage.get(u.email) ?? 0n;
-      if (delta > 0n) u.unsettledBytes = (BigInt(u.unsettledBytes) + delta).toString();
+      if (delta > 0n) {
+        u.unsettledBytes = (BigInt(u.unsettledBytes) + delta).toString();
+        u.servedBytesLifetime = (BigInt(u.servedBytesLifetime ?? "0") + delta).toString();
+      }
       await this.refreshBalance(u);
       u.active = this.computeActive(u);
       this.store.put(u);
@@ -8048,6 +8068,9 @@ function startServer(cfg2, ctrl2) {
       const wallet = url.searchParams.get("wallet");
       if (!wallet) return send(res, 400, { error: "wallet required" });
       return send(res, 200, await ctrl2.provision(wallet));
+    }
+    if (req.method === "GET" && url.pathname === "/node/stats") {
+      return send(res, 200, { host: cfg2.host, ...ctrl2.nodeStats() });
     }
     if (req.method === "GET" && url.pathname === "/price") {
       return send(res, 200, {

@@ -9,6 +9,8 @@ export interface User {
   uuid: string; // VLESS id baked into this user's personal link
   email: string; // xray stats key (`user>>>email>>>traffic>>>…`)
   unsettledBytes: string; // metered consumption not yet paid for (bigint as string)
+  servedBytesLifetime: string; // cumulative bytes this node served this user — never reset; the
+  // basis for the operator's $WEFT earnings (settlement clears the tab, but earnings keep counting)
   balanceBaseUnits: string; // last observed $WEFT balance
   quotaBytes: string; // bytes that balance buys
   active: boolean; // currently present in the xray config (link works)

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { rewardsSettlement } from '@weft/sdk';
 import { loadConfig } from '../src/config.js';
+import { math } from '@weft/sdk';
 import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
 import { multiHopLink, oneHopLink } from '../src/links.js';
 import { parseUsage, renderConfig } from '../src/xray.js';
@@ -12,6 +13,7 @@ const user = (over: Partial<User> = {}): User => ({
   uuid: '11111111-2222-3333-4444-555555555555',
   email: 'Wa11et1111111111111111111111111111111111111',
   unsettledBytes: '0',
+  servedBytesLifetime: '0',
   balanceBaseUnits: '0',
   quotaBytes: '0',
   active: true,
@@ -29,6 +31,18 @@ describe('pricing (0.1 WEFT/GB)', () => {
   it('cost is the inverse of quota', () => {
     expect(costBaseUnits(10_000_000_000n)).toBe(1_000_000_000n); // 10 GB costs 1 WEFT
     expect(costBaseUnits(quotaBytes(5_000_000_000n))).toBe(5_000_000_000n);
+  });
+});
+
+describe('node earnings (earn for usage)', () => {
+  it('a node earns 0.1 $WEFT per GB it serves (baseline multipliers)', () => {
+    // 1 GB served at baseline reputation (1.0×), no geo/stake bonus → 0.1 WEFT
+    expect(math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n)).toBe(100_000_000n); // 0.1 WEFT
+  });
+  it('earnings scale with served traffic', () => {
+    const oneGb = math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n);
+    const tenGb = math.trafficReward(10_000_000_000n, 10_000n, 0n, 0n);
+    expect(tenGb).toBe(oneGb * 10n);
   });
 });
 
