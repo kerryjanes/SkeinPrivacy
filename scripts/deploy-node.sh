@@ -24,7 +24,8 @@ fi
 
 echo "→ Installing dependencies…"
 apt-get update -y
-apt-get install -y curl git build-essential pkg-config libssl-dev socat
+# libsqlite3-dev: Arti (the Tor client) links against system SQLite for its directory cache.
+apt-get install -y curl git build-essential pkg-config libssl-dev libsqlite3-dev socat
 
 if ! command -v cargo >/dev/null 2>&1; then
   echo "→ Installing Rust…"
