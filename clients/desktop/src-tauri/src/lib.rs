@@ -1,42 +1,39 @@
-//! Weft VPN desktop backend. Connect starts a self-contained Weft circuit (relays + a real
-//! internet exit) fronted by a local **VLESS gateway**, then launches the bundled **sing-box**
-//! core (the engine V2Box/Happ/Hiddify wrap) as a sidecar, pointed at that gateway. sing-box
-//! provides OS capture — a local **proxy** (mixed SOCKS+HTTP, no admin) or a system **TUN**
-//! (all traffic, admin) — so we reuse a battle-tested tunnel/DNS stack instead of hand-rolling
-//! one. Disconnect kills the core and tears the circuit down.
-
-use std::net::SocketAddr;
-use std::sync::atomic::{AtomicUsize, Ordering};
+//! Weft VPN desktop backend. Connect launches the bundled **sing-box** core (the engine
+//! V2Box / Happ / Hiddify wrap) as a sidecar, configured to tunnel through a Weft node via
+//! **VLESS + Reality**. Two modes — **1-hop** (direct, fast) and **multihop** (routed through
+//! the Tor network at the node, maximum privacy). sing-box provides OS capture as a local
+//! **proxy** (mixed SOCKS5 + HTTP on 127.0.0.1, no admin). Disconnect kills the core.
 
 use serde::Serialize;
 use serde_json::json;
-use weft_vpn::client_engine::Counters;
-use weft_vpn::exit::EgressPolicy;
-use weft_vpn::{localnet, vless};
 use tauri::{Emitter, Manager};
 use tauri_plugin_shell::process::{CommandChild, CommandEvent};
 use tauri_plugin_shell::ShellExt;
 use tokio::sync::Mutex;
 
-/// Local proxy port for `mixed` (SOCKS+HTTP) mode.
+/// Local proxy port (mixed SOCKS5 + HTTP). Point your browser/OS at `127.0.0.1:<PROXY_PORT>`.
 const PROXY_PORT: u16 = 2080;
-const HOPS: usize = 3;
+
+// The Weft node this app connects through (a deployed VLESS + Reality node). In the full
+// network these come from the on-chain registry; pinned here for the launch node.
+const NODE_HOST: &str = "vpn.weftnetwork.net";
+const NODE_UUID: &str = "b5ced6eb-0cba-4001-9679-65f8ba69e74b";
+const NODE_PBK: &str = "ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw";
+const NODE_SID: &str = "4ce4af1305de920f";
+const NODE_SNI: &str = "ya.ru";
+const HOP1_PORT: u16 = 443; // direct VLESS+Reality (vision flow)
+const HOPN_PORT: u16 = 8443; // VLESS+Reality routed through Tor at the node (no flow)
 
 #[derive(Default)]
 struct Inner {
-    net: Option<localnet::LocalNet>,
-    gateway_task: Option<tokio::task::JoinHandle<()>>,
     singbox: Option<CommandChild>,
-    counters: Option<Counters>,
-    mode: Option<String>,   // "proxy" | "tun"
-    inbound: Option<String>, // e.g. "127.0.0.1:2080" or "tun: weft0"
+    mode: Option<String>, // "1hop" | "multihop"
     wallet: Option<String>,
 }
 
 #[derive(Default)]
 struct AppState {
     inner: Mutex<Inner>,
-    base: AtomicUsize,
 }
 
 #[derive(Serialize, Clone)]
@@ -45,10 +42,6 @@ struct Status {
     state: String,
     mode: Option<String>,
     inbound: Option<String>,
-    hops: usize,
-    exit_mode: String,
-    bytes_up: u64,
-    bytes_down: u64,
 }
 
 #[derive(Serialize, Clone)]
@@ -58,77 +51,47 @@ struct Wallet {
 }
 
 fn snapshot(inner: &Inner) -> Status {
-    let (up, down) = inner
-        .counters
-        .as_ref()
-        .map(|c| (c.up.load(Ordering::Relaxed), c.down.load(Ordering::Relaxed)))
-        .unwrap_or((0, 0));
-    let on = inner.net.is_some() && inner.singbox.is_some();
+    let on = inner.singbox.is_some();
     Status {
         state: if on { "on" } else { "off" }.into(),
         mode: inner.mode.clone(),
-        inbound: inner.inbound.clone(),
-        hops: HOPS,
-        exit_mode: if on { "open internet".into() } else { "—".into() },
-        bytes_up: up,
-        bytes_down: down,
+        inbound: if on {
+            Some(format!("127.0.0.1:{PROXY_PORT}"))
+        } else {
+            None
+        },
     }
 }
 
-/// Generate the sing-box config that points the chosen inbound at the local Weft VLESS gateway.
-///
-/// - `proxy`: a `mixed` (SOCKS5 + HTTP) inbound on 127.0.0.1:PROXY_PORT — no admin.
-/// - `tun`: a system `tun` inbound capturing all OS traffic — needs admin. A route rule bypasses
-///   this app's own process so the **in-process Weft exit's** egress isn't recaptured (which
-///   would loop back through the gateway); loopback is also kept direct.
-fn vpn_config(mode: &str, gateway: SocketAddr, uuid: &str) -> serde_json::Value {
-    let vless_out = json!({
+/// Build the sing-box config: a local mixed (SOCKS5 + HTTP) proxy → VLESS + Reality to the
+/// Weft node. `multihop` targets the node's Tor-routed port (plain Reality, no vision flow —
+/// vision can't splice through the node's onward SOCKS hop); `1hop` is the direct vision flow.
+fn vpn_config(mode: &str) -> serde_json::Value {
+    let multihop = mode == "multihop";
+    let mut outbound = json!({
         "type": "vless",
         "tag": "weft",
-        "server": gateway.ip().to_string(),
-        "server_port": gateway.port(),
-        "uuid": uuid,
-        "network": "tcp",
+        "server": NODE_HOST,
+        "server_port": if multihop { HOPN_PORT } else { HOP1_PORT },
+        "uuid": NODE_UUID,
+        "tls": {
+            "enabled": true,
+            "server_name": NODE_SNI,
+            "utls": { "enabled": true, "fingerprint": "firefox" },
+            "reality": { "enabled": true, "public_key": NODE_PBK, "short_id": NODE_SID }
+        }
     });
-    let outbounds = json!([vless_out, { "type": "direct", "tag": "direct" }]);
-
-    if mode == "tun" {
-        json!({
-            "log": { "level": "info" },
-            // No fixed interface_name: macOS requires `utunN`, Linux allows any — let sing-box
-            // auto-assign a valid name per platform.
-            "inbounds": [{
-                "type": "tun",
-                "tag": "tun-in",
-                "address": ["172.19.0.1/30"],
-                "auto_route": true,
-                "strict_route": true,
-                "stack": "gvisor"
-            }],
-            "outbounds": outbounds,
-            "route": {
-                "rules": [
-                    // The in-process exit (this app) must egress directly, not back through the
-                    // tunnel — otherwise the self-contained circuit loops on itself.
-                    { "process_name": ["weft-desktop", "Weft VPN"], "action": "route", "outbound": "direct" },
-                    { "ip_cidr": ["127.0.0.0/8", "::1/128"], "action": "route", "outbound": "direct" }
-                ],
-                "final": "weft"
-            }
-        })
-    } else {
-        json!({
-            "log": { "level": "info" },
-            "inbounds": [{
-                "type": "mixed",
-                "tag": "in",
-                "listen": "127.0.0.1",
-                "listen_port": PROXY_PORT
-            }],
-            "outbounds": outbounds,
-            "route": { "final": "weft" }
-        })
+    if !multihop {
+        outbound["flow"] = json!("xtls-rprx-vision");
     }
+    json!({
+        "log": { "level": "warn" },
+        "inbounds": [ {
+            "type": "mixed", "tag": "in", "listen": "127.0.0.1", "listen_port": PROXY_PORT
+        } ],
+        "outbounds": [ outbound, { "type": "direct", "tag": "direct" } ],
+        "route": { "final": "weft" }
+    })
 }
 
 #[tauri::command]
@@ -137,37 +100,17 @@ async fn connect(
     state: tauri::State<'_, AppState>,
     mode: Option<String>,
 ) -> Result<Status, String> {
-    let mode = mode.unwrap_or_else(|| "proxy".into());
-    if mode != "proxy" && mode != "tun" {
-        return Err(format!("unknown mode '{mode}' (want proxy|tun)"));
+    let mode = mode.unwrap_or_else(|| "1hop".into());
+    if mode != "1hop" && mode != "multihop" {
+        return Err(format!("unknown mode '{mode}' (want 1hop|multihop)"));
     }
     let mut inner = state.inner.lock().await;
-    if inner.net.is_some() {
+    if inner.singbox.is_some() {
         return Ok(snapshot(&inner));
     }
 
-    // 1. Self-contained Weft circuit (relays + real exit). Fresh base per connect.
-    let base = 40_000 + state.base.fetch_add(1, Ordering::Relaxed) * 1000;
-    let net = localnet::spawn(HOPS, EgressPolicy::open(), base)
-        .await
-        .map_err(|e| format!("circuit failed: {e}"))?;
-    let counters = net.engine.counters();
-
-    // 2. Local VLESS gateway in front of the circuit (random UUID, plain TCP on loopback).
-    let mut uuid = [0u8; 16];
-    rand::RngCore::fill_bytes(&mut rand::thread_rng(), &mut uuid);
-    let uuid_str = vless::format_uuid(&uuid);
-    let (gw_addr, gw_task) = vless::serve(
-        net.engine.clone(),
-        "127.0.0.1:0".parse().unwrap(),
-        uuid,
-        vless::Security::None,
-    )
-    .await
-    .map_err(|e| format!("gateway failed: {e}"))?;
-
-    // 3. Write the sing-box config + launch the bundled core as a sidecar.
-    let cfg = vpn_config(&mode, gw_addr, &uuid_str);
+    // Write the sing-box config + launch the bundled core as a sidecar.
+    let cfg = vpn_config(&mode);
     let cfg_path = std::env::temp_dir().join("weft-singbox.json");
     std::fs::write(&cfg_path, serde_json::to_vec_pretty(&cfg).unwrap())
         .map_err(|e| format!("write config: {e}"))?;
@@ -181,7 +124,7 @@ async fn connect(
         .spawn()
         .map_err(|e| format!("spawn sing-box: {e}"))?;
 
-    // Pump the core's logs to the UI; note its exit.
+    // Pump the core's logs to the UI; clear the session if it exits.
     let app_log = app.clone();
     tauri::async_runtime::spawn(async move {
         while let Some(ev) = rx.recv().await {
@@ -194,18 +137,10 @@ async fn connect(
                 }
                 CommandEvent::Terminated(payload) => {
                     let _ = app_log.emit("singbox-exit", payload.code);
-                    // The core died (e.g. TUN needs admin) — clear the session so the UI
-                    // flips back to "off" instead of falsely showing "connected".
                     let st = app_log.state::<AppState>();
                     let mut inner = st.inner.lock().await;
                     inner.singbox = None;
-                    if let Some(t) = inner.gateway_task.take() {
-                        t.abort();
-                    }
-                    inner.net = None;
-                    inner.counters = None;
                     inner.mode = None;
-                    inner.inbound = None;
                     break;
                 }
                 _ => {}
@@ -213,16 +148,8 @@ async fn connect(
         }
     });
 
-    inner.net = Some(net);
-    inner.gateway_task = Some(gw_task);
     inner.singbox = Some(child);
-    inner.counters = Some(counters);
-    inner.mode = Some(mode.clone());
-    inner.inbound = Some(if mode == "tun" {
-        "system tunnel".into()
-    } else {
-        format!("127.0.0.1:{PROXY_PORT}")
-    });
+    inner.mode = Some(mode);
     Ok(snapshot(&inner))
 }
 
@@ -232,13 +159,7 @@ async fn disconnect(state: tauri::State<'_, AppState>) -> Result<Status, String>
     if let Some(child) = inner.singbox.take() {
         let _ = child.kill();
     }
-    if let Some(t) = inner.gateway_task.take() {
-        t.abort();
-    }
-    inner.net = None; // Drop tears down relays + the client swarm task.
-    inner.counters = None;
     inner.mode = None;
-    inner.inbound = None;
     Ok(snapshot(&inner))
 }
 
@@ -286,28 +207,25 @@ mod tests {
     use super::*;
 
     #[test]
-    fn proxy_config_has_mixed_inbound_and_vless_to_gateway() {
-        let gw: SocketAddr = "127.0.0.1:51820".parse().unwrap();
-        let c = vpn_config("proxy", gw, "b831e9b8-6e2f-4e7a-8c2d-1f3a5b7c9e10");
+    fn one_hop_config_is_direct_vision_reality_on_443() {
+        let c = vpn_config("1hop");
         assert_eq!(c["inbounds"][0]["type"], "mixed");
         assert_eq!(c["inbounds"][0]["listen_port"], PROXY_PORT);
-        assert_eq!(c["outbounds"][0]["type"], "vless");
-        assert_eq!(c["outbounds"][0]["server_port"], 51820);
-        assert_eq!(c["outbounds"][0]["uuid"], "b831e9b8-6e2f-4e7a-8c2d-1f3a5b7c9e10");
+        let out = &c["outbounds"][0];
+        assert_eq!(out["type"], "vless");
+        assert_eq!(out["server_port"], HOP1_PORT);
+        assert_eq!(out["flow"], "xtls-rprx-vision");
+        assert_eq!(out["tls"]["reality"]["enabled"], true);
+        assert_eq!(out["tls"]["server_name"], NODE_SNI);
         assert_eq!(c["route"]["final"], "weft");
     }
 
     #[test]
-    fn tun_config_captures_all_and_bypasses_own_process() {
-        let gw: SocketAddr = "127.0.0.1:51820".parse().unwrap();
-        let c = vpn_config("tun", gw, "b831e9b8-6e2f-4e7a-8c2d-1f3a5b7c9e10");
-        assert_eq!(c["inbounds"][0]["type"], "tun");
-        assert_eq!(c["inbounds"][0]["auto_route"], true);
-        // The first route rule must bypass our own process so the in-process exit doesn't loop.
-        let rule0 = &c["route"]["rules"][0];
-        assert_eq!(rule0["outbound"], "direct");
-        let procs = rule0["process_name"].as_array().unwrap();
-        assert!(procs.iter().any(|p| p == "weft-desktop"));
-        assert_eq!(c["route"]["final"], "weft");
+    fn multihop_config_targets_tor_port_without_vision_flow() {
+        let c = vpn_config("multihop");
+        let out = &c["outbounds"][0];
+        assert_eq!(out["server_port"], HOPN_PORT);
+        assert!(out["flow"].is_null(), "multihop must not set the vision flow");
+        assert_eq!(out["tls"]["reality"]["enabled"], true);
     }
 }

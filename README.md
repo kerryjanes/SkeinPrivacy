@@ -26,10 +26,11 @@ You don't need to run a node to use the network.
 ### 1. With an app you already use (recommended)
 
 Weft works with the popular VLESS clients — on phone **and** computer:
-**V2Box**, **Happ**, **sing-box**, **Hiddify** (iOS · Android · macOS · Windows · Linux).
+**V2Box**, **Happ**, **sing-box**, **Hiddify**, **Streisand** (iOS · Android · macOS · Windows · Linux).
 
 1. Install any one of them.
-2. Get a connection link (from the Weft app, or run `./scripts/share-link.sh` to use your own node).
+2. Get a `vless://` link for a node — its **1-hop** (fast) or **multihop** (Tor, max privacy) link.
+   (Running your own node? `deploy-node.sh` prints both.)
 3. Import the link into the client and press **Connect**.
 
 ### 2. The Weft app

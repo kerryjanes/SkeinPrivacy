@@ -3,27 +3,17 @@ import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
 
 type Conn = 'off' | 'connecting' | 'on' | 'disconnecting';
-type Mode = 'proxy' | 'tun';
+type Mode = '1hop' | 'multihop';
 
 interface Status {
   state: Conn;
   mode: Mode | null;
   inbound: string | null;
-  hops: number;
-  exitMode: string;
-  bytesUp: number;
-  bytesDown: number;
 }
 
 interface Wallet {
   address: string | null;
 }
-
-const fmtBytes = (n: number): string => {
-  if (n < 1024) return `${n} B`;
-  if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
-  return `${(n / 1024 / 1024).toFixed(2)} MB`;
-};
 
 /** The brand mark — the site's reticle/bracket motif. */
 const Mark = ({ size = 22 }: { size?: number }) => (
@@ -74,12 +64,8 @@ export function App() {
     state: 'off',
     mode: null,
     inbound: null,
-    hops: 3,
-    exitMode: '—',
-    bytesUp: 0,
-    bytesDown: 0,
   });
-  const [mode, setMode] = useState<Mode>('proxy');
+  const [mode, setMode] = useState<Mode>('1hop');
   const [wallet, setWallet] = useState<Wallet>({ address: null });
   const [keyInput, setKeyInput] = useState('');
   const [err, setErr] = useState<string | null>(null);
@@ -93,7 +79,7 @@ export function App() {
     setLog((l) => [...l.slice(-120), `[${ts}] ${line}`]);
   }, []);
 
-  // Live byte counters.
+  // Poll live status.
   useEffect(() => {
     const t = setInterval(async () => {
       try {
@@ -173,12 +159,12 @@ export function App() {
   const connect = async () => {
     setErr(null);
     setStatus((s) => ({ ...s, state: 'connecting' }));
-    append(`negotiating circuit · mode=${mode} · building 3-hop onion + starting core…`);
+    append(`starting core · mode=${mode}…`);
     try {
       const s = await invoke<Status>('connect', { mode });
       setStatus(s);
       append(
-        `secured · ${s.mode === 'tun' ? 'system tunnel' : `socks/http ${s.inbound}`} · routed through ${s.hops} strangers`,
+        `connected · ${s.mode}${s.mode === 'multihop' ? ' · via Tor' : ''} · proxy ${s.inbound}`,
       );
     } catch (e) {
       setErr(String(e));
@@ -255,21 +241,24 @@ export function App() {
 
           <div className="modes">
             <button
-              className={`mode ${mode === 'proxy' ? 'sel' : ''}`}
-              onClick={() => idle && setMode('proxy')}
+              className={`mode ${mode === '1hop' ? 'sel' : ''}`}
+              onClick={() => idle && setMode('1hop')}
               disabled={!idle}
             >
-              PROXY
-              <small>local socks/http · no admin</small>
+              1-HOP
+              <small>fast · direct exit</small>
             </button>
             <button
-              className={`mode ${mode === 'tun' ? 'sel' : ''}`}
-              onClick={() => idle && setMode('tun')}
+              className={`mode ${mode === 'multihop' ? 'sel' : ''}`}
+              onClick={() => idle && setMode('multihop')}
               disabled={!idle}
             >
-              SYSTEM
-              <small>full tunnel · needs admin</small>
+              MULTIHOP
+              <small>max privacy · via Tor · slower</small>
             </button>
+          </div>
+          <div className="substate" style={{ marginTop: 6 }}>
+            1-hop is fast with a direct exit · multihop routes through Tor for max privacy, slower
           </div>
 
           <button
@@ -306,30 +295,7 @@ export function App() {
               <span className="k">inbound</span>
               <span className="v">{status.inbound ?? '—'}</span>
             </div>
-            <div className="row">
-              <span className="k">exit egress</span>
-              <span className="v">{status.exitMode}</span>
-            </div>
-            <div className="row">
-              <span className="k">↑ sent / ↓ recv</span>
-              <span className="v">
-                {fmtBytes(status.bytesUp)} / {fmtBytes(status.bytesDown)}
-              </span>
-            </div>
-            {on && (
-              <div className="hops">
-                <span className="hop">you</span>
-                {Array.from({ length: status.hops }).map((_, i) => (
-                  <span key={i} style={{ display: 'contents' }}>
-                    <span className="arrow">→</span>
-                    <span className="hop">{i === status.hops - 1 ? 'exit' : `relay${i + 1}`}</span>
-                  </span>
-                ))}
-                <span className="arrow">→</span>
-                <span className="hop">net</span>
-              </div>
-            )}
-            {on && status.mode === 'proxy' && status.inbound && (
+            {on && status.inbound && (
               <div className="substate" style={{ marginTop: 10 }}>
                 point your browser / OS proxy at <b style={{ color: '#fff' }}>{status.inbound}</b>
               </div>
