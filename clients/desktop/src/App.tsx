@@ -15,6 +15,26 @@ interface Wallet {
   address: string | null;
 }
 
+/** The control-plane response: this wallet's $WEFT-gated traffic budget. */
+interface Account {
+  wallet: string;
+  active: boolean;
+  balanceWeft: string;
+  quotaBytes: string;
+  unsettledBytes: string;
+  owedWeft: string;
+  remainingBytes: string;
+  links: { oneHop: string; multiHop: string };
+}
+
+function formatBytes(n: string | number): string {
+  const b = Number(n);
+  if (b < 1024) return `${b} B`;
+  if (b < 1_000_000) return `${(b / 1024).toFixed(1)} KB`;
+  if (b < 1_000_000_000) return `${(b / 1_000_000).toFixed(2)} MB`;
+  return `${(b / 1_000_000_000).toFixed(2)} GB`;
+}
+
 /** The brand mark — the site's reticle/bracket motif. */
 const Mark = ({ size = 22 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: 'block', flex: 'none' }}>
@@ -67,6 +87,7 @@ export function App() {
   });
   const [mode, setMode] = useState<Mode>('1hop');
   const [wallet, setWallet] = useState<Wallet>({ address: null });
+  const [account, setAccount] = useState<Account | null>(null);
   const [keyInput, setKeyInput] = useState('');
   const [err, setErr] = useState<string | null>(null);
   const [log, setLog] = useState<string[]>([]);
@@ -185,6 +206,24 @@ export function App() {
     }
   };
 
+  const provision = useCallback(
+    async (announce = false) => {
+      try {
+        const a = await invoke<Account>('provision');
+        setAccount(a);
+        if (announce)
+          append(
+            a.active
+              ? `provisioned · budget ${formatBytes(a.quotaBytes)} (${a.balanceWeft} $WEFT)`
+              : `out of $WEFT · top up to connect`,
+          );
+      } catch (e) {
+        if (announce) setErr(String(e));
+      }
+    },
+    [append],
+  );
+
   const importWallet = async () => {
     setErr(null);
     try {
@@ -192,14 +231,23 @@ export function App() {
       setWallet(w);
       setKeyInput('');
       append(`identity loaded · ${w.address}`);
+      await provision(true); // fetch the $WEFT-gated budget + personal link
     } catch (e) {
       setErr(String(e));
     }
   };
 
+  // Keep the budget fresh (re-reads the on-chain $WEFT balance) while a wallet is loaded.
+  useEffect(() => {
+    if (!wallet.address) return;
+    const t = setInterval(() => void provision(false), 15000);
+    return () => clearInterval(t);
+  }, [wallet.address, provision]);
+
   const on = status.state === 'on';
   const busy = status.state === 'connecting' || status.state === 'disconnecting';
   const idle = status.state === 'off';
+  const canConnect = !!account && account.active; // gated by $WEFT budget
 
   const headline =
     status.state === 'on'
@@ -263,7 +311,8 @@ export function App() {
 
           <button
             className={`connect ${busy ? 'busy' : on ? 'on' : 'off'}`}
-            onClick={on ? disconnect : idle ? connect : undefined}
+            onClick={on ? disconnect : idle && canConnect ? connect : undefined}
+            disabled={!on && !busy && !canConnect}
           >
             {status.state === 'connecting'
               ? '◌ NEGOTIATING…'
@@ -271,8 +320,20 @@ export function App() {
                 ? '◌ CLOSING…'
                 : on
                   ? '■ DISCONNECT'
-                  : '▸ CONNECT'}
+                  : !wallet.address
+                    ? '▸ LOAD IDENTITY FIRST'
+                    : !account
+                      ? '◌ CHECKING BUDGET…'
+                      : !account.active
+                        ? '✕ OUT OF $WEFT — TOP UP'
+                        : '▸ CONNECT'}
           </button>
+          {account && !account.active && idle && (
+            <div className="substate" style={{ marginTop: 8 }}>
+              you've used {formatBytes(account.unsettledBytes)} of {formatBytes(account.quotaBytes)}{' '}
+              · top up $WEFT in your wallet to reconnect
+            </div>
+          )}
         </div>
 
         {err && <div className="err">! {err}</div>}
@@ -302,6 +363,61 @@ export function App() {
             )}
           </div>
         </div>
+
+        {/* $WEFT budget */}
+        {account && (
+          <div className="panel">
+            <div className="eyebrow">
+              <b>//</b> budget · 0.1 $WEFT / GB
+            </div>
+            <div className="bx">
+              <div className="row">
+                <span className="k">balance</span>
+                <span className="v acc">{account.balanceWeft} $WEFT</span>
+              </div>
+              <div className="row">
+                <span className="k">used</span>
+                <span className="v">
+                  {formatBytes(account.unsettledBytes)} / {formatBytes(account.quotaBytes)}
+                </span>
+              </div>
+              <div className="row">
+                <span className="k">remaining</span>
+                <span className={`v ${account.active ? 'acc' : ''}`}>
+                  {formatBytes(account.remainingBytes)}
+                </span>
+              </div>
+              {Number(account.owedWeft) > 0 && (
+                <div className="row">
+                  <span className="k">owed</span>
+                  <span className="v">{account.owedWeft} $WEFT</span>
+                </div>
+              )}
+              <div
+                style={{
+                  height: 4,
+                  marginTop: 10,
+                  background: '#1d2a24',
+                  borderRadius: 2,
+                  overflow: 'hidden',
+                }}
+              >
+                <div
+                  style={{
+                    height: '100%',
+                    width: `${Math.min(100, (Number(account.unsettledBytes) / Math.max(1, Number(account.quotaBytes))) * 100)}%`,
+                    background: account.active ? '#3FE3A4' : '#e3633f',
+                  }}
+                />
+              </div>
+              <div className="substate" style={{ marginTop: 10 }}>
+                {account.active
+                  ? 'metered at the node · cut off when your $WEFT runs out'
+                  : 'budget spent — top up $WEFT to reconnect'}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* identity / wallet */}
         <div className="panel">

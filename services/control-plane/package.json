@@ -1,0 +1,27 @@
+{
+  "name": "@weft/control-plane",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "bin": {
+    "weft-control-plane": "src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json --noEmit",
+    "bundle": "esbuild src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/control-plane.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
+    "start": "tsx src/index.ts",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@weft/sdk": "workspace:*",
+    "@solana-program/token": "^0.14.0",
+    "@solana/kit": "^6.10.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.3",
+    "esbuild": "^0.25.0",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  }
+}
