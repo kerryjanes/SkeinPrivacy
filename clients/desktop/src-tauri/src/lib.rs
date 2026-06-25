@@ -22,7 +22,7 @@ const PROXY_PORT: u16 = 2080;
 
 /// The launch node's control plane (mints personal links + meters them). In the full network the
 /// client picks a node from the on-chain registry; pinned here for the launch node.
-const CONTROL_PLANE: &str = "http://vpn.weftnetwork.net:8088";
+const CONTROL_PLANE: &str = "https://vpn.weftnetwork.net:8089";
 
 /// Connection parameters parsed from a provisioned `vless://` link.
 #[derive(Default, Clone)]
