@@ -158,12 +158,14 @@ RestartSec=3
 [Install]
 WantedBy=multi-user.target" | unit weft-node-cp
   sudo systemctl daemon-reload
-  sudo systemctl enable --now weft-node-cp     # writes xray.json + (re)starts xray
-  sudo systemctl enable --now weft-node-frpc
-  sudo systemctl enable weft-node-xray
+  sudo systemctl enable weft-node-cp weft-node-frpc weft-node-xray >/dev/null 2>&1 || true
+  # restart (not just --now) so a re-run actually re-applies config changes (SNI, port, keys).
+  sudo systemctl restart weft-node-cp     # writes xray.json + restarts xray
+  sudo systemctl restart weft-node-frpc
 else
   LA="$HOME/Library/LaunchAgents"; mkdir -p "$LA"
-  plist() { cat > "$LA/com.weft.node.$1.plist"; launchctl load -w "$LA/com.weft.node.$1.plist" 2>/dev/null || true; }
+  # unload-then-load so a re-run actually restarts the service with the new config (SNI, port, keys).
+  plist() { local p="$LA/com.weft.node.$1.plist"; cat > "$p"; launchctl unload "$p" 2>/dev/null || true; launchctl load -w "$p" 2>/dev/null || true; }
   printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.xray</string><key>ProgramArguments</key><array><string>%s</string><string>run</string><string>-c</string><string>%s/xray.json</string></array><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$XRAY" "$SK" | plist xray
   printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.frpc</string><key>ProgramArguments</key><array><string>%s/frpc</string><string>-c</string><string>%s/frpc.toml</string></array><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$SK" "$SK" | plist frpc
   printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.cp</string><key>ProgramArguments</key><array><string>%s</string><string>%s/control-plane.mjs</string></array><key>EnvironmentVariables</key><dict><key>WEFT_ENVFILE</key><string>%s/node.env</string></dict><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$NODE" "$SK" "$SK" | plist cp
