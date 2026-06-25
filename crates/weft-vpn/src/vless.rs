@@ -146,10 +146,18 @@ where
     let port = u16::from_be_bytes(port);
     let mut atyp = [0u8; 1];
     s.read_exact(&mut atyp).await?;
-    let dst = match read_addr(&mut s, atyp[0], port).await? {
+    let atyp_v = atyp[0];
+    let dst = match read_addr(&mut s, atyp_v, port).await? {
         Some(d) => d,
-        None => return Err(io::Error::other("unresolvable vless target")),
+        None => {
+            eprintln!("[vless] unresolvable udp={udp} atyp={atyp_v} port={port}");
+            return Err(io::Error::other("unresolvable vless target"));
+        }
     };
+    eprintln!(
+        "[vless] {} dst={dst} atyp={atyp_v}",
+        if udp { "UDP" } else { "TCP" }
+    );
 
     // Response header: ver(1)=0, addons_len(1)=0. Sent before the payload so the client can
     // start its own stream; the rest of `s` in both directions is the tunnelled payload.
@@ -158,10 +166,15 @@ where
     if udp {
         // Tor carries TCP streams only; UDP egress (e.g. QUIC) is unsupported. Stock clients
         // fall back to TCP when the UDP association fails.
+        eprintln!("[vless] REJECT udp dst={dst} (Tor is TCP-only)");
         return Err(io::Error::other("UDP egress is not supported over Tor"));
     }
     let seed: u64 = rand::thread_rng().gen();
-    engine.tunnel(dst, seed, s, false).await
+    let r = engine.tunnel(dst, seed, s, false).await;
+    if let Err(e) = &r {
+        eprintln!("[vless] tunnel dst={dst} err: {e}");
+    }
+    r
 }
 
 async fn read_addr<S>(s: &mut S, atyp: u8, port: u16) -> io::Result<Option<SocketAddr>>
