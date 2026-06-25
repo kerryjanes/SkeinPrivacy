@@ -30,7 +30,12 @@ export interface NodeConfig {
 
   // --- chain ---
   rpcUrl: string;
+  wsUrl: string;
   weftMint: string;
+
+  // --- devnet faucet (absent on mainnet) ---
+  faucetKeypairPath: string; // empty = faucet disabled
+  faucetAmount: bigint; // base units minted per drip
 }
 
 function env(key: string, fallback: string): string {
@@ -60,6 +65,12 @@ export function loadConfig(): NodeConfig {
     pollMs: Number(env('WEFT_POLL_MS', '10000')),
 
     rpcUrl: env('WEFT_RPC', 'https://api.devnet.solana.com'),
+    wsUrl: env(
+      'WEFT_WS',
+      env('WEFT_RPC', 'https://api.devnet.solana.com').replace(/^http/, 'ws'),
+    ),
     weftMint: env('WEFT_MINT', '8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i'),
+    faucetKeypairPath: env('WEFT_FAUCET_KEYPAIR', ''),
+    faucetAmount: BigInt(env('WEFT_FAUCET_AMOUNT', '1000000')), // 0.001 $WEFT → ~10 MB quota
   };
 }

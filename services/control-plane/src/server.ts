@@ -8,6 +8,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { NodeConfig } from './config.js';
 import type { Controller } from './controller.js';
+import type { Faucet } from './faucet.js';
 import { math } from '@weft/sdk';
 
 function send(res: ServerResponse, code: number, body: unknown): void {
@@ -40,7 +41,7 @@ function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
   });
 }
 
-export function startServer(cfg: NodeConfig, ctrl: Controller): void {
+export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet): void {
   const server = createServer((req, res) => {
     void handle(req, res).catch((e) => send(res, 400, { error: String(e?.message ?? e) }));
   });
@@ -69,6 +70,13 @@ export function startServer(cfg: NodeConfig, ctrl: Controller): void {
       return send(res, 200, await ctrl.provision(wallet));
     }
 
+    if (req.method === 'POST' && url.pathname === '/faucet') {
+      if (!faucet) return send(res, 404, { error: 'faucet disabled (not a test-mint node)' });
+      const { wallet } = await readJson(req);
+      if (typeof wallet !== 'string') return send(res, 400, { error: 'wallet required' });
+      return send(res, 200, await faucet.drip(wallet));
+    }
+
     if (req.method === 'GET' && url.pathname === '/node/stats') {
       // The operator's earnings basis: total traffic this node has served → $WEFT owed.
       return send(res, 200, { host: cfg.host, ...ctrl.nodeStats() });
@@ -80,6 +88,7 @@ export function startServer(cfg: NodeConfig, ctrl: Controller): void {
         mint: cfg.weftMint,
         host: cfg.host,
         modes: ['1hop', 'multihop'],
+        faucet: !!faucet, // devnet test-$WEFT faucet available?
       });
     }
 

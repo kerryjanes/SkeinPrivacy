@@ -9,14 +9,18 @@ import { loadConfig } from './config.js';
 import { Store } from './store.js';
 import { rpc } from './chain.js';
 import { Controller } from './controller.js';
+import { Faucet } from './faucet.js';
 import { startServer } from './server.js';
 
 const cfg = loadConfig();
 const store = new Store(cfg.storePath);
 const ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl));
+const faucet = cfg.faucetKeypairPath
+  ? new Faucet(cfg.rpcUrl, cfg.wsUrl, cfg.faucetKeypairPath, cfg.weftMint, cfg.faucetAmount)
+  : undefined;
 
 ctrl.bootstrap(); // sync xray to saved state on boot
-startServer(cfg, ctrl);
+startServer(cfg, ctrl, faucet);
 
 async function loop(): Promise<void> {
   for (;;) {
