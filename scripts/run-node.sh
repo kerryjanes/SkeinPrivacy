@@ -179,14 +179,21 @@ else
 fi
 
 sleep 4
+
+# Auto-register on-chain (one-time) — generates the node's operator key, tops it up from the relay
+# faucet on devnet, and registers iff not already registered. No website, no manual data entry.
+echo "→ registering node on-chain (automatic, one-time)…"
+curl -fsSL "${RAW}/services/registry-provision/dist/node-agent.mjs" -o "$SK/node-agent.mjs"
+WEFT_NODE_ENDPOINT="${RELAY}:${PUB_HOP1}" WEFT_GEO="${GEO}" WEFT_KEYPAIR="$SK/operator.json" \
+  WEFT_RPC="https://api.devnet.solana.com" WEFT_FAUCET_URL="https://${RELAY}:8089" \
+  "$NODE" "$SK/node-agent.mjs" || echo "  (registration didn't complete — it retries next run)"
+
 cat <<DONE
 
-✅ Weft home node is up (persistent — survives reboot, crash, and closing the terminal).
-   Public endpoint:  ${RELAY}:${PUB_HOP1}   ·   geo (auto): ${GEO}
-   Control plane:    http://127.0.0.1:8088
+✅ Weft home node is up + registered (persistent — survives reboot, crash, closing the terminal).
+   Public endpoint:  ${RELAY}:${PUB_HOP1}   ·   region (auto): ${GEO}
 
-NEXT — register it on-chain to start earning \$WEFT:
-   open the cabinet → connect your wallet → "deploy" → paste:  ${RELAY}:${PUB_HOP1}
-
-Stop the node any time:  ./scripts/stop-node.sh
+Your node is now LIVE and earning \$WEFT for traffic it carries — see it in the cabinet → network.
+Stop it any time:  ./scripts/stop-node.sh   (it leaves the live list but stays registered, so
+restarting never re-pays).
 DONE

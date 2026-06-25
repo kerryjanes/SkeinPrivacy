@@ -12,8 +12,8 @@ var __require = /* @__PURE__ */ ((x) => typeof require !== "undefined" ? require
   if (typeof require !== "undefined") return require.apply(this, arguments);
   throw Error('Dynamic require of "' + x + '" is not supported');
 });
-var __commonJS = (cb, mod3) => function __require2() {
-  return mod3 || (0, cb[__getOwnPropNames(cb)[0]])((mod3 = { exports: {} }).exports, mod3), mod3.exports;
+var __commonJS = (cb, mod4) => function __require2() {
+  return mod4 || (0, cb[__getOwnPropNames(cb)[0]])((mod4 = { exports: {} }).exports, mod4), mod4.exports;
 };
 var __export = (target, all) => {
   for (var name in all)
@@ -27,13 +27,13 @@ var __copyProps = (to, from, except, desc) => {
   }
   return to;
 };
-var __toESM = (mod3, isNodeMode, target) => (target = mod3 != null ? __create(__getProtoOf(mod3)) : {}, __copyProps(
+var __toESM = (mod4, isNodeMode, target) => (target = mod4 != null ? __create(__getProtoOf(mod4)) : {}, __copyProps(
   // If the importer is in node compatibility mode or this is not an ESM
   // file that has been converted to a CommonJS file using a Babel-
   // compatible transform (i.e. "__esModule" has not been set), then set
   // "default" to the CommonJS "module.exports" for node compatibility.
-  isNodeMode || !mod3 || !mod3.__esModule ? __defProp(target, "default", { value: mod3, enumerable: true }) : target,
-  mod3
+  isNodeMode || !mod4 || !mod4.__esModule ? __defProp(target, "default", { value: mod4, enumerable: true }) : target,
+  mod4
 ));
 
 // ../../node_modules/.pnpm/ws@8.21.0_bufferutil@4.1.0_utf-8-validate@6.0.6/node_modules/ws/lib/constants.js
@@ -76,23 +76,23 @@ var require_node_gyp_build = __commonJS({
     var armv = process.env.ARM_VERSION || (arch === "arm64" ? "8" : vars.arm_version) || "";
     var uv = (process.versions.uv || "").split(".")[0];
     module.exports = load;
-    function load(dir) {
-      return runtimeRequire(load.resolve(dir));
+    function load(dir2) {
+      return runtimeRequire(load.resolve(dir2));
     }
-    load.resolve = load.path = function(dir) {
-      dir = path.resolve(dir || ".");
+    load.resolve = load.path = function(dir2) {
+      dir2 = path.resolve(dir2 || ".");
       try {
-        var name = runtimeRequire(path.join(dir, "package.json")).name.toUpperCase().replace(/-/g, "_");
-        if (process.env[name + "_PREBUILD"]) dir = process.env[name + "_PREBUILD"];
+        var name = runtimeRequire(path.join(dir2, "package.json")).name.toUpperCase().replace(/-/g, "_");
+        if (process.env[name + "_PREBUILD"]) dir2 = process.env[name + "_PREBUILD"];
       } catch (err) {
       }
       if (!prebuildsOnly) {
-        var release = getFirst(path.join(dir, "build/Release"), matchBuild);
+        var release = getFirst(path.join(dir2, "build/Release"), matchBuild);
         if (release) return release;
-        var debug = getFirst(path.join(dir, "build/Debug"), matchBuild);
+        var debug = getFirst(path.join(dir2, "build/Debug"), matchBuild);
         if (debug) return debug;
       }
-      var prebuild = resolve(dir);
+      var prebuild = resolve(dir2);
       if (prebuild) return prebuild;
       var nearby = resolve(path.dirname(process.execPath));
       if (nearby) return nearby;
@@ -109,28 +109,28 @@ var require_node_gyp_build = __commonJS({
         typeof __webpack_require__ === "function" ? "webpack=true" : ""
         // eslint-disable-line
       ].filter(Boolean).join(" ");
-      throw new Error("No native build was found for " + target + "\n    loaded from: " + dir + "\n");
-      function resolve(dir2) {
-        var tuples = readdirSync(path.join(dir2, "prebuilds")).map(parseTuple);
+      throw new Error("No native build was found for " + target + "\n    loaded from: " + dir2 + "\n");
+      function resolve(dir3) {
+        var tuples = readdirSync(path.join(dir3, "prebuilds")).map(parseTuple);
         var tuple = tuples.filter(matchTuple(platform, arch)).sort(compareTuples)[0];
         if (!tuple) return;
-        var prebuilds = path.join(dir2, "prebuilds", tuple.name);
+        var prebuilds = path.join(dir3, "prebuilds", tuple.name);
         var parsed = readdirSync(prebuilds).map(parseTags);
         var candidates = parsed.filter(matchTags(runtime, abi));
         var winner = candidates.sort(compareTags(runtime))[0];
         if (winner) return path.join(prebuilds, winner.file);
       }
     };
-    function readdirSync(dir) {
+    function readdirSync(dir2) {
       try {
-        return fs.readdirSync(dir);
+        return fs.readdirSync(dir2);
       } catch (err) {
         return [];
       }
     }
-    function getFirst(dir, filter) {
-      var files = readdirSync(dir).filter(filter);
-      return files[0] && path.join(dir, files[0]);
+    function getFirst(dir2, filter) {
+      var files = readdirSync(dir2).filter(filter);
+      return files[0] && path.join(dir2, files[0]);
     }
     function matchBuild(name) {
       return /\.node$/.test(name);
@@ -664,9 +664,9 @@ var require_permessage_deflate = __commonJS({
        * @private
        */
       _decompress(data, fin, callback) {
-        const endpoint = this._isServer ? "client" : "server";
+        const endpoint2 = this._isServer ? "client" : "server";
         if (!this._inflate) {
-          const key = `${endpoint}_max_window_bits`;
+          const key = `${endpoint2}_max_window_bits`;
           const windowBits = typeof this.params[key] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key];
           this._inflate = zlib.createInflateRaw({
             ...this._options.zlibInflateOptions,
@@ -699,7 +699,7 @@ var require_permessage_deflate = __commonJS({
           } else {
             this._inflate[kTotalLength] = 0;
             this._inflate[kBuffers] = [];
-            if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+            if (fin && this.params[`${endpoint2}_no_context_takeover`]) {
               this._inflate.reset();
             }
           }
@@ -715,9 +715,9 @@ var require_permessage_deflate = __commonJS({
        * @private
        */
       _compress(data, fin, callback) {
-        const endpoint = this._isServer ? "server" : "client";
+        const endpoint2 = this._isServer ? "server" : "client";
         if (!this._deflate) {
-          const key = `${endpoint}_max_window_bits`;
+          const key = `${endpoint2}_max_window_bits`;
           const windowBits = typeof this.params[key] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key];
           this._deflate = zlib.createDeflateRaw({
             ...this._options.zlibDeflateOptions,
@@ -743,7 +743,7 @@ var require_permessage_deflate = __commonJS({
           this._deflate[kCallback] = null;
           this._deflate[kTotalLength] = 0;
           this._deflate[kBuffers] = [];
-          if (fin && this.params[`${endpoint}_no_context_takeover`]) {
+          if (fin && this.params[`${endpoint2}_no_context_takeover`]) {
             this._deflate.reset();
           }
           callback(null, data2);
@@ -2545,7 +2545,7 @@ var require_websocket = __commonJS({
     var http = __require("http");
     var net = __require("net");
     var tls = __require("tls");
-    var { randomBytes, createHash: createHash2 } = __require("crypto");
+    var { randomBytes: randomBytes2, createHash: createHash2 } = __require("crypto");
     var { Duplex, Readable } = __require("stream");
     var { URL: URL2 } = __require("url");
     var PerMessageDeflate2 = require_permessage_deflate();
@@ -3083,7 +3083,7 @@ var require_websocket = __commonJS({
         }
       }
       const defaultPort = isSecure ? 443 : 80;
-      const key = randomBytes(16).toString("base64");
+      const key = randomBytes2(16).toString("base64");
       const request = isSecure ? https.request : http.request;
       const protocolSet = /* @__PURE__ */ new Set();
       let perMessageDeflate;
@@ -3976,76 +3976,9 @@ var require_websocket_server = __commonJS({
   }
 });
 
-// src/index.ts
-import { readFileSync as readFileSync3 } from "node:fs";
-
-// src/config.ts
-function env(key, fallback) {
-  const v = process.env[key];
-  return v === void 0 || v === "" ? fallback : v;
-}
-function loadConfig() {
-  return {
-    host: env("WEFT_HOST", "vpn.weftnetwork.net"),
-    realityPublicKey: env("WEFT_REALITY_PBK", "ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw"),
-    realityPrivateKey: env("WEFT_REALITY_PRIV", "YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE"),
-    shortId: env("WEFT_SID", "4ce4af1305de920f"),
-    sni: env("WEFT_SNI", "ya.ru"),
-    hop1Port: Number(env("WEFT_HOP1_PORT", "443")),
-    hopnPort: Number(env("WEFT_HOPN_PORT", "8443")),
-    publicHop1Port: Number(env("WEFT_PUBLIC_HOP1_PORT", env("WEFT_HOP1_PORT", "443"))),
-    publicHopnPort: Number(env("WEFT_PUBLIC_HOPN_PORT", env("WEFT_HOPN_PORT", "8443"))),
-    founderUuid: env("WEFT_FOUNDER_UUID", "b5ced6eb-0cba-4001-9679-65f8ba69e74b"),
-    xrayConfigPath: env("WEFT_XRAY_CONFIG", "/usr/local/etc/xray/config.json"),
-    xrayApi: env("WEFT_XRAY_API", "127.0.0.1:10085"),
-    xrayBin: env("WEFT_XRAY_BIN", "/usr/local/bin/xray"),
-    reloadCmd: env("WEFT_XRAY_RELOAD", "systemctl restart xray"),
-    storePath: env("WEFT_STORE", "/var/lib/weft/users.json"),
-    port: Number(env("WEFT_PORT", "8088")),
-    pollMs: Number(env("WEFT_POLL_MS", "10000")),
-    rpcUrl: env("WEFT_RPC", "https://api.devnet.solana.com"),
-    wsUrl: env(
-      "WEFT_WS",
-      env("WEFT_RPC", "https://api.devnet.solana.com").replace(/^http/, "ws")
-    ),
-    weftMint: env("WEFT_MINT", "8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i"),
-    faucetKeypairPath: env("WEFT_FAUCET_KEYPAIR", ""),
-    faucetAmount: BigInt(env("WEFT_FAUCET_AMOUNT", "1000000")),
-    // 0.001 $WEFT → ~10 MB quota
-    frpsApi: env("WEFT_FRPS_API", ""),
-    frpsUser: env("WEFT_FRPS_USER", ""),
-    frpsPass: env("WEFT_FRPS_PASS", "")
-  };
-}
-
-// src/store.ts
-import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
-import { dirname } from "node:path";
-var Store = class {
-  constructor(path) {
-    this.path = path;
-    this.data = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { users: {} };
-    if (!this.data.users) this.data.users = {};
-  }
-  data;
-  get(wallet) {
-    return this.data.users[wallet];
-  }
-  all() {
-    return Object.values(this.data.users);
-  }
-  put(user) {
-    this.data.users[user.wallet] = user;
-    this.save();
-  }
-  save() {
-    const dir = dirname(this.path);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    const tmp = `${this.path}.tmp`;
-    writeFileSync(tmp, JSON.stringify(this.data, null, 2));
-    renameSync(tmp, this.path);
-  }
-};
+// src/nodeAgent.ts
+import { existsSync as existsSync2, mkdirSync as mkdirSync2, readFileSync as readFileSync2, writeFileSync as writeFileSync2 } from "node:fs";
+import { dirname as dirname2 } from "node:path";
 
 // ../../node_modules/.pnpm/@solana+errors@6.10.0_typescript@6.0.3/node_modules/@solana/errors/dist/index.node.mjs
 var SOLANA_ERROR__BLOCK_HEIGHT_EXCEEDED = 1;
@@ -5891,7 +5824,6 @@ var AccountRole = /* @__PURE__ */ ((AccountRole22) => {
   0] = "READONLY";
   return AccountRole22;
 })(AccountRole || {});
-var IS_SIGNER_BITMASK = 2;
 var IS_WRITABLE_BITMASK = 1;
 function isSignerRole(role) {
   return role >= 2;
@@ -5901,9 +5833,6 @@ function isWritableRole(role) {
 }
 function mergeRoles(roleA, roleB) {
   return roleA | roleB;
-}
-function upgradeRoleToSigner(role) {
-  return role | IS_SIGNER_BITMASK;
 }
 
 // ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
@@ -6979,10 +6908,10 @@ async function createKeyPairFromBytes(bytes, extractable = false) {
     ),
     createPrivateKeyFromBytes(bytes.slice(0, 32), extractable)
   ]);
-  const randomBytes = new Uint8Array(32);
-  crypto.getRandomValues(randomBytes);
-  const signedData = await signBytes(privateKey, randomBytes);
-  const isValid = await verifySignature(publicKey, signedData, randomBytes);
+  const randomBytes2 = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes2);
+  const signedData = await signBytes(privateKey, randomBytes2);
+  const isValid = await verifySignature(publicKey, signedData, randomBytes2);
   if (!isValid) {
     throw new SolanaError(SOLANA_ERROR__KEYS__PUBLIC_KEY_MUST_MATCH_PRIVATE_KEY);
   }
@@ -7479,7 +7408,7 @@ function createReactiveStoreFromDataPublisherFactory({
   function notify() {
     subscribers.forEach((cb) => cb());
   }
-  function connect() {
+  function connect2() {
     if (outerController.signal.aborted) return;
     const innerController = new e2();
     const forwardAbort = () => innerController.abort(outerController.signal.reason);
@@ -7514,7 +7443,7 @@ function createReactiveStoreFromDataPublisherFactory({
       }
     );
   }
-  connect();
+  connect2();
   return {
     getError() {
       return currentState.error;
@@ -7530,7 +7459,7 @@ function createReactiveStoreFromDataPublisherFactory({
       if (currentState.status !== "error") return;
       currentState = { data: currentState.data, error: void 0, status: "retrying" };
       notify();
-      connect();
+      connect2();
     },
     subscribe(callback) {
       subscribers.add(callback);
@@ -7660,9 +7589,9 @@ function makeProxy(rpcConfig) {
 function createPendingRpcRequest({ transport }, plan) {
   return {
     reactiveStore() {
-      const store2 = createReactiveActionStore((signal) => plan.execute({ signal, transport }));
-      store2.dispatch();
-      return store2;
+      const store = createReactiveActionStore((signal) => plan.execute({ signal, transport }));
+      store.dispatch();
+      return store;
     },
     async send(options) {
       return await plan.execute({ signal: options?.abortSignal, transport });
@@ -9599,7 +9528,7 @@ var e6 = class extends globalThis.AbortController {
   }
 };
 function createBlockHeightExceedencePromiseFactory({
-  rpc: rpc2,
+  rpc,
   rpcSubscriptions
 }) {
   return async function getBlockHeightExceedencePromise({
@@ -9614,7 +9543,7 @@ function createBlockHeightExceedencePromiseFactory({
     };
     callerAbortSignal.addEventListener("abort", handleAbort, { signal: abortController.signal });
     async function getBlockHeightAndDifferenceBetweenSlotHeightAndBlockHeight() {
-      const { absoluteSlot, blockHeight } = await rpc2.getEpochInfo({ commitment }).send({ abortSignal: abortController.signal });
+      const { absoluteSlot, blockHeight } = await rpc.getEpochInfo({ commitment }).send({ abortSignal: abortController.signal });
       return {
         blockHeight,
         differenceBetweenSlotHeightAndBlockHeight: absoluteSlot - blockHeight
@@ -9659,7 +9588,7 @@ var NONCE_VALUE_OFFSET = 4 + // version(u32)
 4 + // state(u32)
 32;
 function createRecentSignatureConfirmationPromiseFactory({
-  rpc: rpc2,
+  rpc,
   rpcSubscriptions
 }) {
   return async function getRecentSignatureConfirmationPromise({
@@ -9683,7 +9612,7 @@ function createRecentSignatureConfirmationPromiseFactory({
       }
     })();
     const signatureStatusLookupPromise = (async () => {
-      const { value: signatureStatusResults } = await rpc2.getSignatureStatuses([signature]).send({ abortSignal: abortController.signal });
+      const { value: signatureStatusResults } = await rpc.getSignatureStatuses([signature]).send({ abortSignal: abortController.signal });
       const signatureStatus = signatureStatusResults[0];
       if (signatureStatus?.err) {
         throw getSolanaErrorFromTransactionError(signatureStatus.err);
@@ -9780,12 +9709,12 @@ function getSendTransactionConfigWithAdjustedPreflightCommitment(commitment, con
 async function sendTransaction_INTERNAL_ONLY_DO_NOT_EXPORT({
   abortSignal,
   commitment,
-  rpc: rpc2,
+  rpc,
   transaction,
   ...sendTransactionConfig
 }) {
   const base64EncodedWireTransaction = getBase64EncodedWireTransaction(transaction);
-  return await rpc2.sendTransaction(base64EncodedWireTransaction, {
+  return await rpc.sendTransaction(base64EncodedWireTransaction, {
     ...getSendTransactionConfigWithAdjustedPreflightCommitment(commitment, sendTransactionConfig),
     encoding: "base64"
   }).send({ abortSignal });
@@ -9794,7 +9723,7 @@ async function sendAndConfirmTransactionWithBlockhashLifetime_INTERNAL_ONLY_DO_N
   abortSignal,
   commitment,
   confirmRecentTransaction,
-  rpc: rpc2,
+  rpc,
   transaction,
   ...sendTransactionConfig
 }) {
@@ -9802,7 +9731,7 @@ async function sendAndConfirmTransactionWithBlockhashLifetime_INTERNAL_ONLY_DO_N
     ...sendTransactionConfig,
     abortSignal,
     commitment,
-    rpc: rpc2,
+    rpc,
     transaction
   });
   await confirmRecentTransaction({
@@ -9813,15 +9742,15 @@ async function sendAndConfirmTransactionWithBlockhashLifetime_INTERNAL_ONLY_DO_N
   return transactionSignature;
 }
 function sendAndConfirmTransactionFactory({
-  rpc: rpc2,
+  rpc,
   rpcSubscriptions
 }) {
   const getBlockHeightExceedencePromise = createBlockHeightExceedencePromiseFactory({
-    rpc: rpc2,
+    rpc,
     rpcSubscriptions
   });
   const getRecentSignatureConfirmationPromise = createRecentSignatureConfirmationPromiseFactory({
-    rpc: rpc2,
+    rpc,
     rpcSubscriptions
   });
   async function confirmRecentTransaction(config) {
@@ -9835,250 +9764,1978 @@ function sendAndConfirmTransactionFactory({
     await sendAndConfirmTransactionWithBlockhashLifetime_INTERNAL_ONLY_DO_NOT_EXPORT({
       ...config,
       confirmRecentTransaction,
-      rpc: rpc2,
+      rpc,
       transaction
     });
   };
 }
 
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
-function getNonNullResolvedInstructionInput(inputName, value) {
-  if (value === null || value === void 0) {
-    throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL, {
-      inputName
-    });
+// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/cryptoNode.js
+import * as nc from "node:crypto";
+var crypto2 = nc && typeof nc === "object" && "webcrypto" in nc ? nc.webcrypto : nc && typeof nc === "object" && "randomBytes" in nc ? nc : void 0;
+
+// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/utils.js
+function isBytes(a) {
+  return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
+}
+function anumber(n) {
+  if (!Number.isSafeInteger(n) || n < 0)
+    throw new Error("positive integer expected, got " + n);
+}
+function abytes(b, ...lengths) {
+  if (!isBytes(b))
+    throw new Error("Uint8Array expected");
+  if (lengths.length > 0 && !lengths.includes(b.length))
+    throw new Error("Uint8Array expected of length " + lengths + ", got length=" + b.length);
+}
+function aexists(instance, checkFinished = true) {
+  if (instance.destroyed)
+    throw new Error("Hash instance has been destroyed");
+  if (checkFinished && instance.finished)
+    throw new Error("Hash#digest() has already been called");
+}
+function aoutput(out, instance) {
+  abytes(out);
+  const min = instance.outputLen;
+  if (out.length < min) {
+    throw new Error("digestInto() expects output buffer of length at least " + min);
+  }
+}
+function clean(...arrays) {
+  for (let i = 0; i < arrays.length; i++) {
+    arrays[i].fill(0);
+  }
+}
+function createView(arr) {
+  return new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
+}
+var hasHexBuiltin = /* @__PURE__ */ (() => (
+  // @ts-ignore
+  typeof Uint8Array.from([]).toHex === "function" && typeof Uint8Array.fromHex === "function"
+))();
+var hexes = /* @__PURE__ */ Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"));
+function bytesToHex(bytes) {
+  abytes(bytes);
+  if (hasHexBuiltin)
+    return bytes.toHex();
+  let hex = "";
+  for (let i = 0; i < bytes.length; i++) {
+    hex += hexes[bytes[i]];
+  }
+  return hex;
+}
+var asciis = { _0: 48, _9: 57, A: 65, F: 70, a: 97, f: 102 };
+function asciiToBase16(ch) {
+  if (ch >= asciis._0 && ch <= asciis._9)
+    return ch - asciis._0;
+  if (ch >= asciis.A && ch <= asciis.F)
+    return ch - (asciis.A - 10);
+  if (ch >= asciis.a && ch <= asciis.f)
+    return ch - (asciis.a - 10);
+  return;
+}
+function hexToBytes(hex) {
+  if (typeof hex !== "string")
+    throw new Error("hex string expected, got " + typeof hex);
+  if (hasHexBuiltin)
+    return Uint8Array.fromHex(hex);
+  const hl = hex.length;
+  const al = hl / 2;
+  if (hl % 2)
+    throw new Error("hex string expected, got unpadded hex of length " + hl);
+  const array = new Uint8Array(al);
+  for (let ai = 0, hi = 0; ai < al; ai++, hi += 2) {
+    const n1 = asciiToBase16(hex.charCodeAt(hi));
+    const n2 = asciiToBase16(hex.charCodeAt(hi + 1));
+    if (n1 === void 0 || n2 === void 0) {
+      const char = hex[hi] + hex[hi + 1];
+      throw new Error('hex string expected, got non-hex character "' + char + '" at index ' + hi);
+    }
+    array[ai] = n1 * 16 + n2;
+  }
+  return array;
+}
+function utf8ToBytes(str) {
+  if (typeof str !== "string")
+    throw new Error("string expected");
+  return new Uint8Array(new TextEncoder().encode(str));
+}
+function toBytes(data) {
+  if (typeof data === "string")
+    data = utf8ToBytes(data);
+  abytes(data);
+  return data;
+}
+function concatBytes(...arrays) {
+  let sum = 0;
+  for (let i = 0; i < arrays.length; i++) {
+    const a = arrays[i];
+    abytes(a);
+    sum += a.length;
+  }
+  const res = new Uint8Array(sum);
+  for (let i = 0, pad = 0; i < arrays.length; i++) {
+    const a = arrays[i];
+    res.set(a, pad);
+    pad += a.length;
+  }
+  return res;
+}
+var Hash = class {
+};
+function createHasher(hashCons) {
+  const hashC = (msg) => hashCons().update(toBytes(msg)).digest();
+  const tmp = hashCons();
+  hashC.outputLen = tmp.outputLen;
+  hashC.blockLen = tmp.blockLen;
+  hashC.create = () => hashCons();
+  return hashC;
+}
+function randomBytes(bytesLength = 32) {
+  if (crypto2 && typeof crypto2.getRandomValues === "function") {
+    return crypto2.getRandomValues(new Uint8Array(bytesLength));
+  }
+  if (crypto2 && typeof crypto2.randomBytes === "function") {
+    return Uint8Array.from(crypto2.randomBytes(bytesLength));
+  }
+  throw new Error("crypto.getRandomValues must be defined");
+}
+
+// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/_md.js
+function setBigUint64(view, byteOffset, value, isLE) {
+  if (typeof view.setBigUint64 === "function")
+    return view.setBigUint64(byteOffset, value, isLE);
+  const _32n2 = BigInt(32);
+  const _u32_max = BigInt(4294967295);
+  const wh = Number(value >> _32n2 & _u32_max);
+  const wl = Number(value & _u32_max);
+  const h = isLE ? 4 : 0;
+  const l2 = isLE ? 0 : 4;
+  view.setUint32(byteOffset + h, wh, isLE);
+  view.setUint32(byteOffset + l2, wl, isLE);
+}
+var HashMD = class extends Hash {
+  constructor(blockLen, outputLen, padOffset, isLE) {
+    super();
+    this.finished = false;
+    this.length = 0;
+    this.pos = 0;
+    this.destroyed = false;
+    this.blockLen = blockLen;
+    this.outputLen = outputLen;
+    this.padOffset = padOffset;
+    this.isLE = isLE;
+    this.buffer = new Uint8Array(blockLen);
+    this.view = createView(this.buffer);
+  }
+  update(data) {
+    aexists(this);
+    data = toBytes(data);
+    abytes(data);
+    const { view, buffer, blockLen } = this;
+    const len = data.length;
+    for (let pos = 0; pos < len; ) {
+      const take = Math.min(blockLen - this.pos, len - pos);
+      if (take === blockLen) {
+        const dataView = createView(data);
+        for (; blockLen <= len - pos; pos += blockLen)
+          this.process(dataView, pos);
+        continue;
+      }
+      buffer.set(data.subarray(pos, pos + take), this.pos);
+      this.pos += take;
+      pos += take;
+      if (this.pos === blockLen) {
+        this.process(view, 0);
+        this.pos = 0;
+      }
+    }
+    this.length += data.length;
+    this.roundClean();
+    return this;
+  }
+  digestInto(out) {
+    aexists(this);
+    aoutput(out, this);
+    this.finished = true;
+    const { buffer, view, blockLen, isLE } = this;
+    let { pos } = this;
+    buffer[pos++] = 128;
+    clean(this.buffer.subarray(pos));
+    if (this.padOffset > blockLen - pos) {
+      this.process(view, 0);
+      pos = 0;
+    }
+    for (let i = pos; i < blockLen; i++)
+      buffer[i] = 0;
+    setBigUint64(view, blockLen - 8, BigInt(this.length * 8), isLE);
+    this.process(view, 0);
+    const oview = createView(out);
+    const len = this.outputLen;
+    if (len % 4)
+      throw new Error("_sha2: outputLen should be aligned to 32bit");
+    const outLen = len / 4;
+    const state = this.get();
+    if (outLen > state.length)
+      throw new Error("_sha2: outputLen bigger than state");
+    for (let i = 0; i < outLen; i++)
+      oview.setUint32(4 * i, state[i], isLE);
+  }
+  digest() {
+    const { buffer, outputLen } = this;
+    this.digestInto(buffer);
+    const res = buffer.slice(0, outputLen);
+    this.destroy();
+    return res;
+  }
+  _cloneInto(to) {
+    to || (to = new this.constructor());
+    to.set(...this.get());
+    const { blockLen, buffer, length, finished, destroyed, pos } = this;
+    to.destroyed = destroyed;
+    to.finished = finished;
+    to.length = length;
+    to.pos = pos;
+    if (length % blockLen)
+      to.buffer.set(buffer);
+    return to;
+  }
+  clone() {
+    return this._cloneInto();
+  }
+};
+var SHA512_IV = /* @__PURE__ */ Uint32Array.from([
+  1779033703,
+  4089235720,
+  3144134277,
+  2227873595,
+  1013904242,
+  4271175723,
+  2773480762,
+  1595750129,
+  1359893119,
+  2917565137,
+  2600822924,
+  725511199,
+  528734635,
+  4215389547,
+  1541459225,
+  327033209
+]);
+
+// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/_u64.js
+var U32_MASK64 = /* @__PURE__ */ BigInt(2 ** 32 - 1);
+var _32n = /* @__PURE__ */ BigInt(32);
+function fromBig(n, le = false) {
+  if (le)
+    return { h: Number(n & U32_MASK64), l: Number(n >> _32n & U32_MASK64) };
+  return { h: Number(n >> _32n & U32_MASK64) | 0, l: Number(n & U32_MASK64) | 0 };
+}
+function split(lst, le = false) {
+  const len = lst.length;
+  let Ah = new Uint32Array(len);
+  let Al = new Uint32Array(len);
+  for (let i = 0; i < len; i++) {
+    const { h, l: l2 } = fromBig(lst[i], le);
+    [Ah[i], Al[i]] = [h, l2];
+  }
+  return [Ah, Al];
+}
+var shrSH = (h, _l, s3) => h >>> s3;
+var shrSL = (h, l2, s3) => h << 32 - s3 | l2 >>> s3;
+var rotrSH = (h, l2, s3) => h >>> s3 | l2 << 32 - s3;
+var rotrSL = (h, l2, s3) => h << 32 - s3 | l2 >>> s3;
+var rotrBH = (h, l2, s3) => h << 64 - s3 | l2 >>> s3 - 32;
+var rotrBL = (h, l2, s3) => h >>> s3 - 32 | l2 << 64 - s3;
+function add(Ah, Al, Bh, Bl) {
+  const l2 = (Al >>> 0) + (Bl >>> 0);
+  return { h: Ah + Bh + (l2 / 2 ** 32 | 0) | 0, l: l2 | 0 };
+}
+var add3L = (Al, Bl, Cl) => (Al >>> 0) + (Bl >>> 0) + (Cl >>> 0);
+var add3H = (low, Ah, Bh, Ch) => Ah + Bh + Ch + (low / 2 ** 32 | 0) | 0;
+var add4L = (Al, Bl, Cl, Dl) => (Al >>> 0) + (Bl >>> 0) + (Cl >>> 0) + (Dl >>> 0);
+var add4H = (low, Ah, Bh, Ch, Dh) => Ah + Bh + Ch + Dh + (low / 2 ** 32 | 0) | 0;
+var add5L = (Al, Bl, Cl, Dl, El) => (Al >>> 0) + (Bl >>> 0) + (Cl >>> 0) + (Dl >>> 0) + (El >>> 0);
+var add5H = (low, Ah, Bh, Ch, Dh, Eh) => Ah + Bh + Ch + Dh + Eh + (low / 2 ** 32 | 0) | 0;
+
+// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/sha2.js
+var K512 = /* @__PURE__ */ (() => split([
+  "0x428a2f98d728ae22",
+  "0x7137449123ef65cd",
+  "0xb5c0fbcfec4d3b2f",
+  "0xe9b5dba58189dbbc",
+  "0x3956c25bf348b538",
+  "0x59f111f1b605d019",
+  "0x923f82a4af194f9b",
+  "0xab1c5ed5da6d8118",
+  "0xd807aa98a3030242",
+  "0x12835b0145706fbe",
+  "0x243185be4ee4b28c",
+  "0x550c7dc3d5ffb4e2",
+  "0x72be5d74f27b896f",
+  "0x80deb1fe3b1696b1",
+  "0x9bdc06a725c71235",
+  "0xc19bf174cf692694",
+  "0xe49b69c19ef14ad2",
+  "0xefbe4786384f25e3",
+  "0x0fc19dc68b8cd5b5",
+  "0x240ca1cc77ac9c65",
+  "0x2de92c6f592b0275",
+  "0x4a7484aa6ea6e483",
+  "0x5cb0a9dcbd41fbd4",
+  "0x76f988da831153b5",
+  "0x983e5152ee66dfab",
+  "0xa831c66d2db43210",
+  "0xb00327c898fb213f",
+  "0xbf597fc7beef0ee4",
+  "0xc6e00bf33da88fc2",
+  "0xd5a79147930aa725",
+  "0x06ca6351e003826f",
+  "0x142929670a0e6e70",
+  "0x27b70a8546d22ffc",
+  "0x2e1b21385c26c926",
+  "0x4d2c6dfc5ac42aed",
+  "0x53380d139d95b3df",
+  "0x650a73548baf63de",
+  "0x766a0abb3c77b2a8",
+  "0x81c2c92e47edaee6",
+  "0x92722c851482353b",
+  "0xa2bfe8a14cf10364",
+  "0xa81a664bbc423001",
+  "0xc24b8b70d0f89791",
+  "0xc76c51a30654be30",
+  "0xd192e819d6ef5218",
+  "0xd69906245565a910",
+  "0xf40e35855771202a",
+  "0x106aa07032bbd1b8",
+  "0x19a4c116b8d2d0c8",
+  "0x1e376c085141ab53",
+  "0x2748774cdf8eeb99",
+  "0x34b0bcb5e19b48a8",
+  "0x391c0cb3c5c95a63",
+  "0x4ed8aa4ae3418acb",
+  "0x5b9cca4f7763e373",
+  "0x682e6ff3d6b2b8a3",
+  "0x748f82ee5defb2fc",
+  "0x78a5636f43172f60",
+  "0x84c87814a1f0ab72",
+  "0x8cc702081a6439ec",
+  "0x90befffa23631e28",
+  "0xa4506cebde82bde9",
+  "0xbef9a3f7b2c67915",
+  "0xc67178f2e372532b",
+  "0xca273eceea26619c",
+  "0xd186b8c721c0c207",
+  "0xeada7dd6cde0eb1e",
+  "0xf57d4f7fee6ed178",
+  "0x06f067aa72176fba",
+  "0x0a637dc5a2c898a6",
+  "0x113f9804bef90dae",
+  "0x1b710b35131c471b",
+  "0x28db77f523047d84",
+  "0x32caab7b40c72493",
+  "0x3c9ebe0a15c9bebc",
+  "0x431d67c49c100d4c",
+  "0x4cc5d4becb3e42b6",
+  "0x597f299cfc657e2a",
+  "0x5fcb6fab3ad6faec",
+  "0x6c44198c4a475817"
+].map((n) => BigInt(n))))();
+var SHA512_Kh = /* @__PURE__ */ (() => K512[0])();
+var SHA512_Kl = /* @__PURE__ */ (() => K512[1])();
+var SHA512_W_H = /* @__PURE__ */ new Uint32Array(80);
+var SHA512_W_L = /* @__PURE__ */ new Uint32Array(80);
+var SHA512 = class extends HashMD {
+  constructor(outputLen = 64) {
+    super(128, outputLen, 16, false);
+    this.Ah = SHA512_IV[0] | 0;
+    this.Al = SHA512_IV[1] | 0;
+    this.Bh = SHA512_IV[2] | 0;
+    this.Bl = SHA512_IV[3] | 0;
+    this.Ch = SHA512_IV[4] | 0;
+    this.Cl = SHA512_IV[5] | 0;
+    this.Dh = SHA512_IV[6] | 0;
+    this.Dl = SHA512_IV[7] | 0;
+    this.Eh = SHA512_IV[8] | 0;
+    this.El = SHA512_IV[9] | 0;
+    this.Fh = SHA512_IV[10] | 0;
+    this.Fl = SHA512_IV[11] | 0;
+    this.Gh = SHA512_IV[12] | 0;
+    this.Gl = SHA512_IV[13] | 0;
+    this.Hh = SHA512_IV[14] | 0;
+    this.Hl = SHA512_IV[15] | 0;
+  }
+  // prettier-ignore
+  get() {
+    const { Ah, Al, Bh, Bl, Ch, Cl, Dh, Dl, Eh, El, Fh, Fl, Gh, Gl, Hh, Hl } = this;
+    return [Ah, Al, Bh, Bl, Ch, Cl, Dh, Dl, Eh, El, Fh, Fl, Gh, Gl, Hh, Hl];
+  }
+  // prettier-ignore
+  set(Ah, Al, Bh, Bl, Ch, Cl, Dh, Dl, Eh, El, Fh, Fl, Gh, Gl, Hh, Hl) {
+    this.Ah = Ah | 0;
+    this.Al = Al | 0;
+    this.Bh = Bh | 0;
+    this.Bl = Bl | 0;
+    this.Ch = Ch | 0;
+    this.Cl = Cl | 0;
+    this.Dh = Dh | 0;
+    this.Dl = Dl | 0;
+    this.Eh = Eh | 0;
+    this.El = El | 0;
+    this.Fh = Fh | 0;
+    this.Fl = Fl | 0;
+    this.Gh = Gh | 0;
+    this.Gl = Gl | 0;
+    this.Hh = Hh | 0;
+    this.Hl = Hl | 0;
+  }
+  process(view, offset) {
+    for (let i = 0; i < 16; i++, offset += 4) {
+      SHA512_W_H[i] = view.getUint32(offset);
+      SHA512_W_L[i] = view.getUint32(offset += 4);
+    }
+    for (let i = 16; i < 80; i++) {
+      const W15h = SHA512_W_H[i - 15] | 0;
+      const W15l = SHA512_W_L[i - 15] | 0;
+      const s0h = rotrSH(W15h, W15l, 1) ^ rotrSH(W15h, W15l, 8) ^ shrSH(W15h, W15l, 7);
+      const s0l = rotrSL(W15h, W15l, 1) ^ rotrSL(W15h, W15l, 8) ^ shrSL(W15h, W15l, 7);
+      const W2h = SHA512_W_H[i - 2] | 0;
+      const W2l = SHA512_W_L[i - 2] | 0;
+      const s1h = rotrSH(W2h, W2l, 19) ^ rotrBH(W2h, W2l, 61) ^ shrSH(W2h, W2l, 6);
+      const s1l = rotrSL(W2h, W2l, 19) ^ rotrBL(W2h, W2l, 61) ^ shrSL(W2h, W2l, 6);
+      const SUMl = add4L(s0l, s1l, SHA512_W_L[i - 7], SHA512_W_L[i - 16]);
+      const SUMh = add4H(SUMl, s0h, s1h, SHA512_W_H[i - 7], SHA512_W_H[i - 16]);
+      SHA512_W_H[i] = SUMh | 0;
+      SHA512_W_L[i] = SUMl | 0;
+    }
+    let { Ah, Al, Bh, Bl, Ch, Cl, Dh, Dl, Eh, El, Fh, Fl, Gh, Gl, Hh, Hl } = this;
+    for (let i = 0; i < 80; i++) {
+      const sigma1h = rotrSH(Eh, El, 14) ^ rotrSH(Eh, El, 18) ^ rotrBH(Eh, El, 41);
+      const sigma1l = rotrSL(Eh, El, 14) ^ rotrSL(Eh, El, 18) ^ rotrBL(Eh, El, 41);
+      const CHIh = Eh & Fh ^ ~Eh & Gh;
+      const CHIl = El & Fl ^ ~El & Gl;
+      const T1ll = add5L(Hl, sigma1l, CHIl, SHA512_Kl[i], SHA512_W_L[i]);
+      const T1h = add5H(T1ll, Hh, sigma1h, CHIh, SHA512_Kh[i], SHA512_W_H[i]);
+      const T1l = T1ll | 0;
+      const sigma0h = rotrSH(Ah, Al, 28) ^ rotrBH(Ah, Al, 34) ^ rotrBH(Ah, Al, 39);
+      const sigma0l = rotrSL(Ah, Al, 28) ^ rotrBL(Ah, Al, 34) ^ rotrBL(Ah, Al, 39);
+      const MAJh = Ah & Bh ^ Ah & Ch ^ Bh & Ch;
+      const MAJl = Al & Bl ^ Al & Cl ^ Bl & Cl;
+      Hh = Gh | 0;
+      Hl = Gl | 0;
+      Gh = Fh | 0;
+      Gl = Fl | 0;
+      Fh = Eh | 0;
+      Fl = El | 0;
+      ({ h: Eh, l: El } = add(Dh | 0, Dl | 0, T1h | 0, T1l | 0));
+      Dh = Ch | 0;
+      Dl = Cl | 0;
+      Ch = Bh | 0;
+      Cl = Bl | 0;
+      Bh = Ah | 0;
+      Bl = Al | 0;
+      const All = add3L(T1l, sigma0l, MAJl);
+      Ah = add3H(All, T1h, sigma0h, MAJh);
+      Al = All | 0;
+    }
+    ({ h: Ah, l: Al } = add(this.Ah | 0, this.Al | 0, Ah | 0, Al | 0));
+    ({ h: Bh, l: Bl } = add(this.Bh | 0, this.Bl | 0, Bh | 0, Bl | 0));
+    ({ h: Ch, l: Cl } = add(this.Ch | 0, this.Cl | 0, Ch | 0, Cl | 0));
+    ({ h: Dh, l: Dl } = add(this.Dh | 0, this.Dl | 0, Dh | 0, Dl | 0));
+    ({ h: Eh, l: El } = add(this.Eh | 0, this.El | 0, Eh | 0, El | 0));
+    ({ h: Fh, l: Fl } = add(this.Fh | 0, this.Fl | 0, Fh | 0, Fl | 0));
+    ({ h: Gh, l: Gl } = add(this.Gh | 0, this.Gl | 0, Gh | 0, Gl | 0));
+    ({ h: Hh, l: Hl } = add(this.Hh | 0, this.Hl | 0, Hh | 0, Hl | 0));
+    this.set(Ah, Al, Bh, Bl, Ch, Cl, Dh, Dl, Eh, El, Fh, Fl, Gh, Gl, Hh, Hl);
+  }
+  roundClean() {
+    clean(SHA512_W_H, SHA512_W_L);
+  }
+  destroy() {
+    clean(this.buffer);
+    this.set(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+  }
+};
+var sha512 = /* @__PURE__ */ createHasher(() => new SHA512());
+
+// ../../node_modules/.pnpm/@noble+curves@1.9.7/node_modules/@noble/curves/esm/utils.js
+var _0n = /* @__PURE__ */ BigInt(0);
+var _1n = /* @__PURE__ */ BigInt(1);
+function _abool2(value, title = "") {
+  if (typeof value !== "boolean") {
+    const prefix = title && `"${title}"`;
+    throw new Error(prefix + "expected boolean, got type=" + typeof value);
   }
   return value;
 }
-function getAddressFromResolvedInstructionAccount(inputName, value) {
-  const nonNullValue = getNonNullResolvedInstructionInput(inputName, value);
-  if (typeof value === "object" && "address" in nonNullValue) {
-    return nonNullValue.address;
+function _abytes2(value, length, title = "") {
+  const bytes = isBytes(value);
+  const len = value?.length;
+  const needsLen = length !== void 0;
+  if (!bytes || needsLen && len !== length) {
+    const prefix = title && `"${title}" `;
+    const ofLen = needsLen ? ` of length ${length}` : "";
+    const got = bytes ? `length=${len}` : `type=${typeof value}`;
+    throw new Error(prefix + "expected Uint8Array" + ofLen + ", got " + got);
   }
-  if (Array.isArray(nonNullValue)) {
-    return nonNullValue[0];
-  }
-  return nonNullValue;
+  return value;
 }
-function getAccountMetaFactory(programAddress, optionalAccountStrategy) {
-  return (inputName, account) => {
-    if (!account.value) {
-      if (optionalAccountStrategy === "omitted") return;
-      return Object.freeze({ address: programAddress, role: AccountRole.READONLY });
+function hexToNumber(hex) {
+  if (typeof hex !== "string")
+    throw new Error("hex string expected, got " + typeof hex);
+  return hex === "" ? _0n : BigInt("0x" + hex);
+}
+function bytesToNumberBE(bytes) {
+  return hexToNumber(bytesToHex(bytes));
+}
+function bytesToNumberLE(bytes) {
+  abytes(bytes);
+  return hexToNumber(bytesToHex(Uint8Array.from(bytes).reverse()));
+}
+function numberToBytesBE(n, len) {
+  return hexToBytes(n.toString(16).padStart(len * 2, "0"));
+}
+function numberToBytesLE(n, len) {
+  return numberToBytesBE(n, len).reverse();
+}
+function ensureBytes(title, hex, expectedLength) {
+  let res;
+  if (typeof hex === "string") {
+    try {
+      res = hexToBytes(hex);
+    } catch (e8) {
+      throw new Error(title + " must be hex string or Uint8Array, cause: " + e8);
     }
-    const writableRole = account.isWritable ? AccountRole.WRITABLE : AccountRole.READONLY;
-    const isSigner = isResolvedInstructionAccountSigner(account.value);
-    return Object.freeze({
-      address: getAddressFromResolvedInstructionAccount(inputName, account.value),
-      role: isSigner ? upgradeRoleToSigner(writableRole) : writableRole,
-      ...isSigner ? { signer: account.value } : {}
-    });
-  };
+  } else if (isBytes(hex)) {
+    res = Uint8Array.from(hex);
+  } else {
+    throw new Error(title + " must be hex string or Uint8Array");
+  }
+  const len = res.length;
+  if (typeof expectedLength === "number" && len !== expectedLength)
+    throw new Error(title + " of length " + expectedLength + " expected, got " + len);
+  return res;
 }
-function isResolvedInstructionAccountSigner(value) {
-  return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
+function equalBytes(a, b) {
+  if (a.length !== b.length)
+    return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++)
+    diff |= a[i] ^ b[i];
+  return diff === 0;
+}
+function copyBytes(bytes) {
+  return Uint8Array.from(bytes);
+}
+var isPosBig = (n) => typeof n === "bigint" && _0n <= n;
+function inRange(n, min, max) {
+  return isPosBig(n) && isPosBig(min) && isPosBig(max) && min <= n && n < max;
+}
+function aInRange(title, n, min, max) {
+  if (!inRange(n, min, max))
+    throw new Error("expected valid " + title + ": " + min + " <= n < " + max + ", got " + n);
+}
+function bitLen(n) {
+  let len;
+  for (len = 0; n > _0n; n >>= _1n, len += 1)
+    ;
+  return len;
+}
+var bitMask = (n) => (_1n << BigInt(n)) - _1n;
+function _validateObject(object, fields, optFields = {}) {
+  if (!object || typeof object !== "object")
+    throw new Error("expected valid options object");
+  function checkField(fieldName, expectedType, isOpt) {
+    const val = object[fieldName];
+    if (isOpt && val === void 0)
+      return;
+    const current = typeof val;
+    if (current !== expectedType || val === null)
+      throw new Error(`param "${fieldName}" is invalid: expected ${expectedType}, got ${current}`);
+  }
+  Object.entries(fields).forEach(([k, v]) => checkField(k, v, false));
+  Object.entries(optFields).forEach(([k, v]) => checkField(k, v, true));
+}
+var notImplemented = () => {
+  throw new Error("not implemented");
+};
+function memoized(fn) {
+  const map = /* @__PURE__ */ new WeakMap();
+  return (arg, ...args) => {
+    const val = map.get(arg);
+    if (val !== void 0)
+      return val;
+    const computed = fn(arg, ...args);
+    map.set(arg, computed);
+    return computed;
+  };
 }
 
-// ../../node_modules/.pnpm/@solana-program+system@0.12.2_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/system/dist/src/index.mjs
-var TRANSFER_SOL_DISCRIMINATOR = 2;
-function getTransferSolInstructionDataEncoder() {
-  return transformEncoder(
-    getStructEncoder([
-      ["discriminator", getU32Encoder()],
-      ["amount", getU64Encoder()]
-    ]),
-    (value) => ({ ...value, discriminator: TRANSFER_SOL_DISCRIMINATOR })
-  );
+// ../../node_modules/.pnpm/@noble+curves@1.9.7/node_modules/@noble/curves/esm/abstract/modular.js
+var _0n2 = BigInt(0);
+var _1n2 = BigInt(1);
+var _2n = /* @__PURE__ */ BigInt(2);
+var _3n = /* @__PURE__ */ BigInt(3);
+var _4n = /* @__PURE__ */ BigInt(4);
+var _5n = /* @__PURE__ */ BigInt(5);
+var _7n = /* @__PURE__ */ BigInt(7);
+var _8n = /* @__PURE__ */ BigInt(8);
+var _9n = /* @__PURE__ */ BigInt(9);
+var _16n = /* @__PURE__ */ BigInt(16);
+function mod2(a, b) {
+  const result = a % b;
+  return result >= _0n2 ? result : b + result;
 }
-function getTransferSolInstruction(input, config) {
-  const programAddress = config?.programAddress ?? SYSTEM_PROGRAM_ADDRESS2;
-  const originalAccounts = {
-    source: { value: input.source ?? null, isWritable: true },
-    destination: { value: input.destination ?? null, isWritable: true }
+function pow22(x, power, modulo) {
+  let res = x;
+  while (power-- > _0n2) {
+    res *= res;
+    res %= modulo;
+  }
+  return res;
+}
+function invert(number, modulo) {
+  if (number === _0n2)
+    throw new Error("invert: expected non-zero number");
+  if (modulo <= _0n2)
+    throw new Error("invert: expected positive modulus, got " + modulo);
+  let a = mod2(number, modulo);
+  let b = modulo;
+  let x = _0n2, y = _1n2, u = _1n2, v = _0n2;
+  while (a !== _0n2) {
+    const q = b / a;
+    const r = b % a;
+    const m = x - u * q;
+    const n = y - v * q;
+    b = a, a = r, x = u, y = v, u = m, v = n;
+  }
+  const gcd = b;
+  if (gcd !== _1n2)
+    throw new Error("invert: does not exist");
+  return mod2(x, modulo);
+}
+function assertIsSquare(Fp2, root, n) {
+  if (!Fp2.eql(Fp2.sqr(root), n))
+    throw new Error("Cannot find square root");
+}
+function sqrt3mod4(Fp2, n) {
+  const p1div4 = (Fp2.ORDER + _1n2) / _4n;
+  const root = Fp2.pow(n, p1div4);
+  assertIsSquare(Fp2, root, n);
+  return root;
+}
+function sqrt5mod8(Fp2, n) {
+  const p5div8 = (Fp2.ORDER - _5n) / _8n;
+  const n2 = Fp2.mul(n, _2n);
+  const v = Fp2.pow(n2, p5div8);
+  const nv = Fp2.mul(n, v);
+  const i = Fp2.mul(Fp2.mul(nv, _2n), v);
+  const root = Fp2.mul(nv, Fp2.sub(i, Fp2.ONE));
+  assertIsSquare(Fp2, root, n);
+  return root;
+}
+function sqrt9mod16(P3) {
+  const Fp_ = Field(P3);
+  const tn = tonelliShanks(P3);
+  const c1 = tn(Fp_, Fp_.neg(Fp_.ONE));
+  const c2 = tn(Fp_, c1);
+  const c3 = tn(Fp_, Fp_.neg(c1));
+  const c4 = (P3 + _7n) / _16n;
+  return (Fp2, n) => {
+    let tv1 = Fp2.pow(n, c4);
+    let tv2 = Fp2.mul(tv1, c1);
+    const tv3 = Fp2.mul(tv1, c2);
+    const tv4 = Fp2.mul(tv1, c3);
+    const e1 = Fp2.eql(Fp2.sqr(tv2), n);
+    const e22 = Fp2.eql(Fp2.sqr(tv3), n);
+    tv1 = Fp2.cmov(tv1, tv2, e1);
+    tv2 = Fp2.cmov(tv4, tv3, e22);
+    const e32 = Fp2.eql(Fp2.sqr(tv2), n);
+    const root = Fp2.cmov(tv1, tv2, e32);
+    assertIsSquare(Fp2, root, n);
+    return root;
   };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory(programAddress, "omitted");
-  return Object.freeze({
-    accounts: [getAccountMeta("source", accounts.source), getAccountMeta("destination", accounts.destination)],
-    data: getTransferSolInstructionDataEncoder().encode(args),
-    programAddress
+}
+function tonelliShanks(P3) {
+  if (P3 < _3n)
+    throw new Error("sqrt is not defined for small field");
+  let Q = P3 - _1n2;
+  let S = 0;
+  while (Q % _2n === _0n2) {
+    Q /= _2n;
+    S++;
+  }
+  let Z = _2n;
+  const _Fp = Field(P3);
+  while (FpLegendre(_Fp, Z) === 1) {
+    if (Z++ > 1e3)
+      throw new Error("Cannot find square root: probably non-prime P");
+  }
+  if (S === 1)
+    return sqrt3mod4;
+  let cc = _Fp.pow(Z, Q);
+  const Q1div2 = (Q + _1n2) / _2n;
+  return function tonelliSlow(Fp2, n) {
+    if (Fp2.is0(n))
+      return n;
+    if (FpLegendre(Fp2, n) !== 1)
+      throw new Error("Cannot find square root");
+    let M = S;
+    let c = Fp2.mul(Fp2.ONE, cc);
+    let t = Fp2.pow(n, Q);
+    let R = Fp2.pow(n, Q1div2);
+    while (!Fp2.eql(t, Fp2.ONE)) {
+      if (Fp2.is0(t))
+        return Fp2.ZERO;
+      let i = 1;
+      let t_tmp = Fp2.sqr(t);
+      while (!Fp2.eql(t_tmp, Fp2.ONE)) {
+        i++;
+        t_tmp = Fp2.sqr(t_tmp);
+        if (i === M)
+          throw new Error("Cannot find square root");
+      }
+      const exponent = _1n2 << BigInt(M - i - 1);
+      const b = Fp2.pow(c, exponent);
+      M = i;
+      c = Fp2.sqr(b);
+      t = Fp2.mul(t, c);
+      R = Fp2.mul(R, b);
+    }
+    return R;
+  };
+}
+function FpSqrt(P3) {
+  if (P3 % _4n === _3n)
+    return sqrt3mod4;
+  if (P3 % _8n === _5n)
+    return sqrt5mod8;
+  if (P3 % _16n === _9n)
+    return sqrt9mod16(P3);
+  return tonelliShanks(P3);
+}
+var isNegativeLE = (num, modulo) => (mod2(num, modulo) & _1n2) === _1n2;
+var FIELD_FIELDS = [
+  "create",
+  "isValid",
+  "is0",
+  "neg",
+  "inv",
+  "sqrt",
+  "sqr",
+  "eql",
+  "add",
+  "sub",
+  "mul",
+  "pow",
+  "div",
+  "addN",
+  "subN",
+  "mulN",
+  "sqrN"
+];
+function validateField(field) {
+  const initial = {
+    ORDER: "bigint",
+    MASK: "bigint",
+    BYTES: "number",
+    BITS: "number"
+  };
+  const opts = FIELD_FIELDS.reduce((map, val) => {
+    map[val] = "function";
+    return map;
+  }, initial);
+  _validateObject(field, opts);
+  return field;
+}
+function FpPow(Fp2, num, power) {
+  if (power < _0n2)
+    throw new Error("invalid exponent, negatives unsupported");
+  if (power === _0n2)
+    return Fp2.ONE;
+  if (power === _1n2)
+    return num;
+  let p = Fp2.ONE;
+  let d = num;
+  while (power > _0n2) {
+    if (power & _1n2)
+      p = Fp2.mul(p, d);
+    d = Fp2.sqr(d);
+    power >>= _1n2;
+  }
+  return p;
+}
+function FpInvertBatch(Fp2, nums, passZero = false) {
+  const inverted = new Array(nums.length).fill(passZero ? Fp2.ZERO : void 0);
+  const multipliedAcc = nums.reduce((acc, num, i) => {
+    if (Fp2.is0(num))
+      return acc;
+    inverted[i] = acc;
+    return Fp2.mul(acc, num);
+  }, Fp2.ONE);
+  const invertedAcc = Fp2.inv(multipliedAcc);
+  nums.reduceRight((acc, num, i) => {
+    if (Fp2.is0(num))
+      return acc;
+    inverted[i] = Fp2.mul(acc, inverted[i]);
+    return Fp2.mul(acc, num);
+  }, invertedAcc);
+  return inverted;
+}
+function FpLegendre(Fp2, n) {
+  const p1mod2 = (Fp2.ORDER - _1n2) / _2n;
+  const powered = Fp2.pow(n, p1mod2);
+  const yes = Fp2.eql(powered, Fp2.ONE);
+  const zero = Fp2.eql(powered, Fp2.ZERO);
+  const no = Fp2.eql(powered, Fp2.neg(Fp2.ONE));
+  if (!yes && !zero && !no)
+    throw new Error("invalid Legendre symbol result");
+  return yes ? 1 : zero ? 0 : -1;
+}
+function nLength(n, nBitLength) {
+  if (nBitLength !== void 0)
+    anumber(nBitLength);
+  const _nBitLength = nBitLength !== void 0 ? nBitLength : n.toString(2).length;
+  const nByteLength = Math.ceil(_nBitLength / 8);
+  return { nBitLength: _nBitLength, nByteLength };
+}
+function Field(ORDER, bitLenOrOpts, isLE = false, opts = {}) {
+  if (ORDER <= _0n2)
+    throw new Error("invalid field: expected ORDER > 0, got " + ORDER);
+  let _nbitLength = void 0;
+  let _sqrt = void 0;
+  let modFromBytes = false;
+  let allowedLengths = void 0;
+  if (typeof bitLenOrOpts === "object" && bitLenOrOpts != null) {
+    if (opts.sqrt || isLE)
+      throw new Error("cannot specify opts in two arguments");
+    const _opts = bitLenOrOpts;
+    if (_opts.BITS)
+      _nbitLength = _opts.BITS;
+    if (_opts.sqrt)
+      _sqrt = _opts.sqrt;
+    if (typeof _opts.isLE === "boolean")
+      isLE = _opts.isLE;
+    if (typeof _opts.modFromBytes === "boolean")
+      modFromBytes = _opts.modFromBytes;
+    allowedLengths = _opts.allowedLengths;
+  } else {
+    if (typeof bitLenOrOpts === "number")
+      _nbitLength = bitLenOrOpts;
+    if (opts.sqrt)
+      _sqrt = opts.sqrt;
+  }
+  const { nBitLength: BITS, nByteLength: BYTES } = nLength(ORDER, _nbitLength);
+  if (BYTES > 2048)
+    throw new Error("invalid field: expected ORDER of <= 2048 bytes");
+  let sqrtP;
+  const f = Object.freeze({
+    ORDER,
+    isLE,
+    BITS,
+    BYTES,
+    MASK: bitMask(BITS),
+    ZERO: _0n2,
+    ONE: _1n2,
+    allowedLengths,
+    create: (num) => mod2(num, ORDER),
+    isValid: (num) => {
+      if (typeof num !== "bigint")
+        throw new Error("invalid field element: expected bigint, got " + typeof num);
+      return _0n2 <= num && num < ORDER;
+    },
+    is0: (num) => num === _0n2,
+    // is valid and invertible
+    isValidNot0: (num) => !f.is0(num) && f.isValid(num),
+    isOdd: (num) => (num & _1n2) === _1n2,
+    neg: (num) => mod2(-num, ORDER),
+    eql: (lhs, rhs) => lhs === rhs,
+    sqr: (num) => mod2(num * num, ORDER),
+    add: (lhs, rhs) => mod2(lhs + rhs, ORDER),
+    sub: (lhs, rhs) => mod2(lhs - rhs, ORDER),
+    mul: (lhs, rhs) => mod2(lhs * rhs, ORDER),
+    pow: (num, power) => FpPow(f, num, power),
+    div: (lhs, rhs) => mod2(lhs * invert(rhs, ORDER), ORDER),
+    // Same as above, but doesn't normalize
+    sqrN: (num) => num * num,
+    addN: (lhs, rhs) => lhs + rhs,
+    subN: (lhs, rhs) => lhs - rhs,
+    mulN: (lhs, rhs) => lhs * rhs,
+    inv: (num) => invert(num, ORDER),
+    sqrt: _sqrt || ((n) => {
+      if (!sqrtP)
+        sqrtP = FpSqrt(ORDER);
+      return sqrtP(f, n);
+    }),
+    toBytes: (num) => isLE ? numberToBytesLE(num, BYTES) : numberToBytesBE(num, BYTES),
+    fromBytes: (bytes, skipValidation = true) => {
+      if (allowedLengths) {
+        if (!allowedLengths.includes(bytes.length) || bytes.length > BYTES) {
+          throw new Error("Field.fromBytes: expected " + allowedLengths + " bytes, got " + bytes.length);
+        }
+        const padded = new Uint8Array(BYTES);
+        padded.set(bytes, isLE ? 0 : padded.length - bytes.length);
+        bytes = padded;
+      }
+      if (bytes.length !== BYTES)
+        throw new Error("Field.fromBytes: expected " + BYTES + " bytes, got " + bytes.length);
+      let scalar = isLE ? bytesToNumberLE(bytes) : bytesToNumberBE(bytes);
+      if (modFromBytes)
+        scalar = mod2(scalar, ORDER);
+      if (!skipValidation) {
+        if (!f.isValid(scalar))
+          throw new Error("invalid field element: outside of range 0..ORDER");
+      }
+      return scalar;
+    },
+    // TODO: we don't need it here, move out to separate fn
+    invertBatch: (lst) => FpInvertBatch(f, lst),
+    // We can't move this out because Fp6, Fp12 implement it
+    // and it's unclear what to return in there.
+    cmov: (a, b, c) => c ? b : a
   });
-}
-var SYSTEM_PROGRAM_ADDRESS2 = "11111111111111111111111111111111";
-var SYSTEM_ERROR__ACCOUNT_ALREADY_IN_USE = 0;
-var SYSTEM_ERROR__RESULT_WITH_NEGATIVE_LAMPORTS = 1;
-var SYSTEM_ERROR__INVALID_PROGRAM_ID = 2;
-var SYSTEM_ERROR__INVALID_ACCOUNT_DATA_LENGTH = 3;
-var SYSTEM_ERROR__MAX_SEED_LENGTH_EXCEEDED = 4;
-var SYSTEM_ERROR__ADDRESS_WITH_SEED_MISMATCH = 5;
-var SYSTEM_ERROR__NONCE_NO_RECENT_BLOCKHASHES = 6;
-var SYSTEM_ERROR__NONCE_BLOCKHASH_NOT_EXPIRED = 7;
-var SYSTEM_ERROR__NONCE_UNEXPECTED_BLOCKHASH_VALUE = 8;
-var systemErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  systemErrorMessages = {
-    [SYSTEM_ERROR__ACCOUNT_ALREADY_IN_USE]: `an account with the same address already exists`,
-    [SYSTEM_ERROR__ADDRESS_WITH_SEED_MISMATCH]: `provided address does not match addressed derived from seed`,
-    [SYSTEM_ERROR__INVALID_ACCOUNT_DATA_LENGTH]: `cannot allocate account data of this length`,
-    [SYSTEM_ERROR__INVALID_PROGRAM_ID]: `cannot assign account to this program id`,
-    [SYSTEM_ERROR__MAX_SEED_LENGTH_EXCEEDED]: `length of requested seed is too long`,
-    [SYSTEM_ERROR__NONCE_BLOCKHASH_NOT_EXPIRED]: `stored nonce is still in recent_blockhashes`,
-    [SYSTEM_ERROR__NONCE_NO_RECENT_BLOCKHASHES]: `advancing stored nonce requires a populated RecentBlockhashes sysvar`,
-    [SYSTEM_ERROR__NONCE_UNEXPECTED_BLOCKHASH_VALUE]: `specified nonce does not match stored nonce`,
-    [SYSTEM_ERROR__RESULT_WITH_NEGATIVE_LAMPORTS]: `account does not have enough SOL to perform the operation`
-  };
+  return Object.freeze(f);
 }
 
-// ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/token/dist/src/index.mjs
-async function findAssociatedTokenPda(seeds, config = {}) {
-  const {
-    programAddress = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-  } = config;
-  return await getProgramDerivedAddress({
-    programAddress,
-    seeds: [
-      getAddressEncoder().encode(seeds.owner),
-      getAddressEncoder().encode(seeds.tokenProgram),
-      getAddressEncoder().encode(seeds.mint)
-    ]
+// ../../node_modules/.pnpm/@noble+curves@1.9.7/node_modules/@noble/curves/esm/abstract/curve.js
+var _0n3 = BigInt(0);
+var _1n3 = BigInt(1);
+function negateCt(condition, item) {
+  const neg = item.negate();
+  return condition ? neg : item;
+}
+function normalizeZ(c, points) {
+  const invertedZs = FpInvertBatch(c.Fp, points.map((p) => p.Z));
+  return points.map((p, i) => c.fromAffine(p.toAffine(invertedZs[i])));
+}
+function validateW(W, bits) {
+  if (!Number.isSafeInteger(W) || W <= 0 || W > bits)
+    throw new Error("invalid window size, expected [1.." + bits + "], got W=" + W);
+}
+function calcWOpts(W, scalarBits) {
+  validateW(W, scalarBits);
+  const windows = Math.ceil(scalarBits / W) + 1;
+  const windowSize = 2 ** (W - 1);
+  const maxNumber = 2 ** W;
+  const mask = bitMask(W);
+  const shiftBy = BigInt(W);
+  return { windows, windowSize, mask, maxNumber, shiftBy };
+}
+function calcOffsets(n, window2, wOpts) {
+  const { windowSize, mask, maxNumber, shiftBy } = wOpts;
+  let wbits = Number(n & mask);
+  let nextN = n >> shiftBy;
+  if (wbits > windowSize) {
+    wbits -= maxNumber;
+    nextN += _1n3;
+  }
+  const offsetStart = window2 * windowSize;
+  const offset = offsetStart + Math.abs(wbits) - 1;
+  const isZero = wbits === 0;
+  const isNeg = wbits < 0;
+  const isNegF = window2 % 2 !== 0;
+  const offsetF = offsetStart;
+  return { nextN, offset, isZero, isNeg, isNegF, offsetF };
+}
+function validateMSMPoints(points, c) {
+  if (!Array.isArray(points))
+    throw new Error("array expected");
+  points.forEach((p, i) => {
+    if (!(p instanceof c))
+      throw new Error("invalid point at index " + i);
   });
 }
-var CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR = 1;
-function getCreateAssociatedTokenIdempotentInstructionDataEncoder() {
-  return transformEncoder(getStructEncoder([["discriminator", getU8Encoder()]]), (value) => ({
-    ...value,
-    discriminator: CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR
-  }));
+function validateMSMScalars(scalars, field) {
+  if (!Array.isArray(scalars))
+    throw new Error("array of scalars expected");
+  scalars.forEach((s3, i) => {
+    if (!field.isValid(s3))
+      throw new Error("invalid scalar at index " + i);
+  });
 }
-async function getCreateAssociatedTokenIdempotentInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? ASSOCIATED_TOKEN_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    payer: { value: input.payer ?? null, isWritable: true },
-    ata: { value: input.ata ?? null, isWritable: true },
-    owner: { value: input.owner ?? null, isWritable: false },
-    mint: { value: input.mint ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+var pointPrecomputes = /* @__PURE__ */ new WeakMap();
+var pointWindowSizes = /* @__PURE__ */ new WeakMap();
+function getW(P3) {
+  return pointWindowSizes.get(P3) || 1;
+}
+function assert0(n) {
+  if (n !== _0n3)
+    throw new Error("invalid wNAF");
+}
+var wNAF = class {
+  // Parametrized with a given Point class (not individual point)
+  constructor(Point, bits) {
+    this.BASE = Point.BASE;
+    this.ZERO = Point.ZERO;
+    this.Fn = Point.Fn;
+    this.bits = bits;
+  }
+  // non-const time multiplication ladder
+  _unsafeLadder(elm, n, p = this.ZERO) {
+    let d = elm;
+    while (n > _0n3) {
+      if (n & _1n3)
+        p = p.add(d);
+      d = d.double();
+      n >>= _1n3;
+    }
+    return p;
+  }
+  /**
+   * Creates a wNAF precomputation window. Used for caching.
+   * Default window size is set by `utils.precompute()` and is equal to 8.
+   * Number of precomputed points depends on the curve size:
+   * 2^(𝑊−1) * (Math.ceil(𝑛 / 𝑊) + 1), where:
+   * - 𝑊 is the window size
+   * - 𝑛 is the bitlength of the curve order.
+   * For a 256-bit curve and window size 8, the number of precomputed points is 128 * 33 = 4224.
+   * @param point Point instance
+   * @param W window size
+   * @returns precomputed point tables flattened to a single array
+   */
+  precomputeWindow(point, W) {
+    const { windows, windowSize } = calcWOpts(W, this.bits);
+    const points = [];
+    let p = point;
+    let base = p;
+    for (let window2 = 0; window2 < windows; window2++) {
+      base = p;
+      points.push(base);
+      for (let i = 1; i < windowSize; i++) {
+        base = base.add(p);
+        points.push(base);
+      }
+      p = base.double();
+    }
+    return points;
+  }
+  /**
+   * Implements ec multiplication using precomputed tables and w-ary non-adjacent form.
+   * More compact implementation:
+   * https://github.com/paulmillr/noble-secp256k1/blob/47cb1669b6e506ad66b35fe7d76132ae97465da2/index.ts#L502-L541
+   * @returns real and fake (for const-time) points
+   */
+  wNAF(W, precomputes, n) {
+    if (!this.Fn.isValid(n))
+      throw new Error("invalid scalar");
+    let p = this.ZERO;
+    let f = this.BASE;
+    const wo = calcWOpts(W, this.bits);
+    for (let window2 = 0; window2 < wo.windows; window2++) {
+      const { nextN, offset, isZero, isNeg, isNegF, offsetF } = calcOffsets(n, window2, wo);
+      n = nextN;
+      if (isZero) {
+        f = f.add(negateCt(isNegF, precomputes[offsetF]));
+      } else {
+        p = p.add(negateCt(isNeg, precomputes[offset]));
+      }
+    }
+    assert0(n);
+    return { p, f };
+  }
+  /**
+   * Implements ec unsafe (non const-time) multiplication using precomputed tables and w-ary non-adjacent form.
+   * @param acc accumulator point to add result of multiplication
+   * @returns point
+   */
+  wNAFUnsafe(W, precomputes, n, acc = this.ZERO) {
+    const wo = calcWOpts(W, this.bits);
+    for (let window2 = 0; window2 < wo.windows; window2++) {
+      if (n === _0n3)
+        break;
+      const { nextN, offset, isZero, isNeg } = calcOffsets(n, window2, wo);
+      n = nextN;
+      if (isZero) {
+        continue;
+      } else {
+        const item = precomputes[offset];
+        acc = acc.add(isNeg ? item.negate() : item);
+      }
+    }
+    assert0(n);
+    return acc;
+  }
+  getPrecomputes(W, point, transform) {
+    let comp = pointPrecomputes.get(point);
+    if (!comp) {
+      comp = this.precomputeWindow(point, W);
+      if (W !== 1) {
+        if (typeof transform === "function")
+          comp = transform(comp);
+        pointPrecomputes.set(point, comp);
+      }
+    }
+    return comp;
+  }
+  cached(point, scalar, transform) {
+    const W = getW(point);
+    return this.wNAF(W, this.getPrecomputes(W, point, transform), scalar);
+  }
+  unsafe(point, scalar, transform, prev) {
+    const W = getW(point);
+    if (W === 1)
+      return this._unsafeLadder(point, scalar, prev);
+    return this.wNAFUnsafe(W, this.getPrecomputes(W, point, transform), scalar, prev);
+  }
+  // We calculate precomputes for elliptic curve point multiplication
+  // using windowed method. This specifies window size and
+  // stores precomputed values. Usually only base point would be precomputed.
+  createCache(P3, W) {
+    validateW(W, this.bits);
+    pointWindowSizes.set(P3, W);
+    pointPrecomputes.delete(P3);
+  }
+  hasCache(elm) {
+    return getW(elm) !== 1;
+  }
+};
+function pippenger(c, fieldN, points, scalars) {
+  validateMSMPoints(points, c);
+  validateMSMScalars(scalars, fieldN);
+  const plength = points.length;
+  const slength = scalars.length;
+  if (plength !== slength)
+    throw new Error("arrays of points and scalars must have equal length");
+  const zero = c.ZERO;
+  const wbits = bitLen(BigInt(plength));
+  let windowSize = 1;
+  if (wbits > 12)
+    windowSize = wbits - 3;
+  else if (wbits > 4)
+    windowSize = wbits - 2;
+  else if (wbits > 0)
+    windowSize = 2;
+  const MASK = bitMask(windowSize);
+  const buckets = new Array(Number(MASK) + 1).fill(zero);
+  const lastBits = Math.floor((fieldN.BITS - 1) / windowSize) * windowSize;
+  let sum = zero;
+  for (let i = lastBits; i >= 0; i -= windowSize) {
+    buckets.fill(zero);
+    for (let j = 0; j < slength; j++) {
+      const scalar = scalars[j];
+      const wbits2 = Number(scalar >> BigInt(i) & MASK);
+      buckets[wbits2] = buckets[wbits2].add(points[j]);
+    }
+    let resI = zero;
+    for (let j = buckets.length - 1, sumI = zero; j > 0; j--) {
+      sumI = sumI.add(buckets[j]);
+      resI = resI.add(sumI);
+    }
+    sum = sum.add(resI);
+    if (i !== 0)
+      for (let j = 0; j < windowSize; j++)
+        sum = sum.double();
+  }
+  return sum;
+}
+function createField(order, field, isLE) {
+  if (field) {
+    if (field.ORDER !== order)
+      throw new Error("Field.ORDER must match order: Fp == p, Fn == n");
+    validateField(field);
+    return field;
+  } else {
+    return Field(order, { isLE });
+  }
+}
+function _createCurveFields(type, CURVE, curveOpts = {}, FpFnLE) {
+  if (FpFnLE === void 0)
+    FpFnLE = type === "edwards";
+  if (!CURVE || typeof CURVE !== "object")
+    throw new Error(`expected valid ${type} CURVE object`);
+  for (const p of ["p", "n", "h"]) {
+    const val = CURVE[p];
+    if (!(typeof val === "bigint" && val > _0n3))
+      throw new Error(`CURVE.${p} must be positive bigint`);
+  }
+  const Fp2 = createField(CURVE.p, curveOpts.Fp, FpFnLE);
+  const Fn2 = createField(CURVE.n, curveOpts.Fn, FpFnLE);
+  const _b = type === "weierstrass" ? "b" : "d";
+  const params = ["Gx", "Gy", "a", _b];
+  for (const p of params) {
+    if (!Fp2.isValid(CURVE[p]))
+      throw new Error(`CURVE.${p} must be valid field element of CURVE.Fp`);
+  }
+  CURVE = Object.freeze(Object.assign({}, CURVE));
+  return { CURVE, Fp: Fp2, Fn: Fn2 };
+}
+
+// ../../node_modules/.pnpm/@noble+curves@1.9.7/node_modules/@noble/curves/esm/abstract/edwards.js
+var _0n4 = BigInt(0);
+var _1n4 = BigInt(1);
+var _2n2 = BigInt(2);
+var _8n2 = BigInt(8);
+function isEdValidXY(Fp2, CURVE, x, y) {
+  const x2 = Fp2.sqr(x);
+  const y2 = Fp2.sqr(y);
+  const left = Fp2.add(Fp2.mul(CURVE.a, x2), y2);
+  const right = Fp2.add(Fp2.ONE, Fp2.mul(CURVE.d, Fp2.mul(x2, y2)));
+  return Fp2.eql(left, right);
+}
+function edwards(params, extraOpts = {}) {
+  const validated = _createCurveFields("edwards", params, extraOpts, extraOpts.FpFnLE);
+  const { Fp: Fp2, Fn: Fn2 } = validated;
+  let CURVE = validated.CURVE;
+  const { h: cofactor } = CURVE;
+  _validateObject(extraOpts, {}, { uvRatio: "function" });
+  const MASK = _2n2 << BigInt(Fn2.BYTES * 8) - _1n4;
+  const modP = (n) => Fp2.create(n);
+  const uvRatio4 = extraOpts.uvRatio || ((u, v) => {
+    try {
+      return { isValid: true, value: Fp2.sqrt(Fp2.div(u, v)) };
+    } catch (e8) {
+      return { isValid: false, value: _0n4 };
+    }
+  });
+  if (!isEdValidXY(Fp2, CURVE, CURVE.Gx, CURVE.Gy))
+    throw new Error("bad curve params: generator point");
+  function acoord(title, n, banZero = false) {
+    const min = banZero ? _1n4 : _0n4;
+    aInRange("coordinate " + title, n, min, MASK);
+    return n;
+  }
+  function aextpoint(other) {
+    if (!(other instanceof Point))
+      throw new Error("ExtendedPoint expected");
+  }
+  const toAffineMemo = memoized((p, iz) => {
+    const { X, Y, Z } = p;
+    const is0 = p.is0();
+    if (iz == null)
+      iz = is0 ? _8n2 : Fp2.inv(Z);
+    const x = modP(X * iz);
+    const y = modP(Y * iz);
+    const zz = Fp2.mul(Z, iz);
+    if (is0)
+      return { x: _0n4, y: _1n4 };
+    if (zz !== _1n4)
+      throw new Error("invZ was invalid");
+    return { x, y };
+  });
+  const assertValidMemo = memoized((p) => {
+    const { a, d } = CURVE;
+    if (p.is0())
+      throw new Error("bad point: ZERO");
+    const { X, Y, Z, T } = p;
+    const X2 = modP(X * X);
+    const Y2 = modP(Y * Y);
+    const Z2 = modP(Z * Z);
+    const Z4 = modP(Z2 * Z2);
+    const aX2 = modP(X2 * a);
+    const left = modP(Z2 * modP(aX2 + Y2));
+    const right = modP(Z4 + modP(d * modP(X2 * Y2)));
+    if (left !== right)
+      throw new Error("bad point: equation left != right (1)");
+    const XY = modP(X * Y);
+    const ZT = modP(Z * T);
+    if (XY !== ZT)
+      throw new Error("bad point: equation left != right (2)");
+    return true;
+  });
+  class Point {
+    constructor(X, Y, Z, T) {
+      this.X = acoord("x", X);
+      this.Y = acoord("y", Y);
+      this.Z = acoord("z", Z, true);
+      this.T = acoord("t", T);
+      Object.freeze(this);
+    }
+    static CURVE() {
+      return CURVE;
+    }
+    static fromAffine(p) {
+      if (p instanceof Point)
+        throw new Error("extended point not allowed");
+      const { x, y } = p || {};
+      acoord("x", x);
+      acoord("y", y);
+      return new Point(x, y, _1n4, modP(x * y));
+    }
+    // Uses algo from RFC8032 5.1.3.
+    static fromBytes(bytes, zip215 = false) {
+      const len = Fp2.BYTES;
+      const { a, d } = CURVE;
+      bytes = copyBytes(_abytes2(bytes, len, "point"));
+      _abool2(zip215, "zip215");
+      const normed = copyBytes(bytes);
+      const lastByte = bytes[len - 1];
+      normed[len - 1] = lastByte & ~128;
+      const y = bytesToNumberLE(normed);
+      const max = zip215 ? MASK : Fp2.ORDER;
+      aInRange("point.y", y, _0n4, max);
+      const y2 = modP(y * y);
+      const u = modP(y2 - _1n4);
+      const v = modP(d * y2 - a);
+      let { isValid, value: x } = uvRatio4(u, v);
+      if (!isValid)
+        throw new Error("bad point: invalid y coordinate");
+      const isXOdd = (x & _1n4) === _1n4;
+      const isLastByteOdd = (lastByte & 128) !== 0;
+      if (!zip215 && x === _0n4 && isLastByteOdd)
+        throw new Error("bad point: x=0 and x_0=1");
+      if (isLastByteOdd !== isXOdd)
+        x = modP(-x);
+      return Point.fromAffine({ x, y });
+    }
+    static fromHex(bytes, zip215 = false) {
+      return Point.fromBytes(ensureBytes("point", bytes), zip215);
+    }
+    get x() {
+      return this.toAffine().x;
+    }
+    get y() {
+      return this.toAffine().y;
+    }
+    precompute(windowSize = 8, isLazy = true) {
+      wnaf.createCache(this, windowSize);
+      if (!isLazy)
+        this.multiply(_2n2);
+      return this;
+    }
+    // Useful in fromAffine() - not for fromBytes(), which always created valid points.
+    assertValidity() {
+      assertValidMemo(this);
+    }
+    // Compare one point to another.
+    equals(other) {
+      aextpoint(other);
+      const { X: X1, Y: Y1, Z: Z1 } = this;
+      const { X: X2, Y: Y2, Z: Z2 } = other;
+      const X1Z2 = modP(X1 * Z2);
+      const X2Z1 = modP(X2 * Z1);
+      const Y1Z2 = modP(Y1 * Z2);
+      const Y2Z1 = modP(Y2 * Z1);
+      return X1Z2 === X2Z1 && Y1Z2 === Y2Z1;
+    }
+    is0() {
+      return this.equals(Point.ZERO);
+    }
+    negate() {
+      return new Point(modP(-this.X), this.Y, this.Z, modP(-this.T));
+    }
+    // Fast algo for doubling Extended Point.
+    // https://hyperelliptic.org/EFD/g1p/auto-twisted-extended.html#doubling-dbl-2008-hwcd
+    // Cost: 4M + 4S + 1*a + 6add + 1*2.
+    double() {
+      const { a } = CURVE;
+      const { X: X1, Y: Y1, Z: Z1 } = this;
+      const A = modP(X1 * X1);
+      const B = modP(Y1 * Y1);
+      const C = modP(_2n2 * modP(Z1 * Z1));
+      const D3 = modP(a * A);
+      const x1y1 = X1 + Y1;
+      const E = modP(modP(x1y1 * x1y1) - A - B);
+      const G = D3 + B;
+      const F = G - C;
+      const H = D3 - B;
+      const X3 = modP(E * F);
+      const Y3 = modP(G * H);
+      const T3 = modP(E * H);
+      const Z3 = modP(F * G);
+      return new Point(X3, Y3, Z3, T3);
+    }
+    // Fast algo for adding 2 Extended Points.
+    // https://hyperelliptic.org/EFD/g1p/auto-twisted-extended.html#addition-add-2008-hwcd
+    // Cost: 9M + 1*a + 1*d + 7add.
+    add(other) {
+      aextpoint(other);
+      const { a, d } = CURVE;
+      const { X: X1, Y: Y1, Z: Z1, T: T1 } = this;
+      const { X: X2, Y: Y2, Z: Z2, T: T2 } = other;
+      const A = modP(X1 * X2);
+      const B = modP(Y1 * Y2);
+      const C = modP(T1 * d * T2);
+      const D3 = modP(Z1 * Z2);
+      const E = modP((X1 + Y1) * (X2 + Y2) - A - B);
+      const F = D3 - C;
+      const G = D3 + C;
+      const H = modP(B - a * A);
+      const X3 = modP(E * F);
+      const Y3 = modP(G * H);
+      const T3 = modP(E * H);
+      const Z3 = modP(F * G);
+      return new Point(X3, Y3, Z3, T3);
+    }
+    subtract(other) {
+      return this.add(other.negate());
+    }
+    // Constant-time multiplication.
+    multiply(scalar) {
+      if (!Fn2.isValidNot0(scalar))
+        throw new Error("invalid scalar: expected 1 <= sc < curve.n");
+      const { p, f } = wnaf.cached(this, scalar, (p2) => normalizeZ(Point, p2));
+      return normalizeZ(Point, [p, f])[0];
+    }
+    // Non-constant-time multiplication. Uses double-and-add algorithm.
+    // It's faster, but should only be used when you don't care about
+    // an exposed private key e.g. sig verification.
+    // Does NOT allow scalars higher than CURVE.n.
+    // Accepts optional accumulator to merge with multiply (important for sparse scalars)
+    multiplyUnsafe(scalar, acc = Point.ZERO) {
+      if (!Fn2.isValid(scalar))
+        throw new Error("invalid scalar: expected 0 <= sc < curve.n");
+      if (scalar === _0n4)
+        return Point.ZERO;
+      if (this.is0() || scalar === _1n4)
+        return this;
+      return wnaf.unsafe(this, scalar, (p) => normalizeZ(Point, p), acc);
+    }
+    // Checks if point is of small order.
+    // If you add something to small order point, you will have "dirty"
+    // point with torsion component.
+    // Multiplies point by cofactor and checks if the result is 0.
+    isSmallOrder() {
+      return this.multiplyUnsafe(cofactor).is0();
+    }
+    // Multiplies point by curve order and checks if the result is 0.
+    // Returns `false` is the point is dirty.
+    isTorsionFree() {
+      return wnaf.unsafe(this, CURVE.n).is0();
+    }
+    // Converts Extended point to default (x, y) coordinates.
+    // Can accept precomputed Z^-1 - for example, from invertBatch.
+    toAffine(invertedZ) {
+      return toAffineMemo(this, invertedZ);
+    }
+    clearCofactor() {
+      if (cofactor === _1n4)
+        return this;
+      return this.multiplyUnsafe(cofactor);
+    }
+    toBytes() {
+      const { x, y } = this.toAffine();
+      const bytes = Fp2.toBytes(y);
+      bytes[bytes.length - 1] |= x & _1n4 ? 128 : 0;
+      return bytes;
+    }
+    toHex() {
+      return bytesToHex(this.toBytes());
+    }
+    toString() {
+      return `<Point ${this.is0() ? "ZERO" : this.toHex()}>`;
+    }
+    // TODO: remove
+    get ex() {
+      return this.X;
+    }
+    get ey() {
+      return this.Y;
+    }
+    get ez() {
+      return this.Z;
+    }
+    get et() {
+      return this.T;
+    }
+    static normalizeZ(points) {
+      return normalizeZ(Point, points);
+    }
+    static msm(points, scalars) {
+      return pippenger(Point, Fn2, points, scalars);
+    }
+    _setWindowSize(windowSize) {
+      this.precompute(windowSize);
+    }
+    toRawBytes() {
+      return this.toBytes();
+    }
+  }
+  Point.BASE = new Point(CURVE.Gx, CURVE.Gy, _1n4, modP(CURVE.Gx * CURVE.Gy));
+  Point.ZERO = new Point(_0n4, _1n4, _1n4, _0n4);
+  Point.Fp = Fp2;
+  Point.Fn = Fn2;
+  const wnaf = new wNAF(Point, Fn2.BITS);
+  Point.BASE.precompute(8);
+  return Point;
+}
+var PrimeEdwardsPoint = class {
+  constructor(ep) {
+    this.ep = ep;
+  }
+  // Static methods that must be implemented by subclasses
+  static fromBytes(_bytes) {
+    notImplemented();
+  }
+  static fromHex(_hex) {
+    notImplemented();
+  }
+  get x() {
+    return this.toAffine().x;
+  }
+  get y() {
+    return this.toAffine().y;
+  }
+  // Common implementations
+  clearCofactor() {
+    return this;
+  }
+  assertValidity() {
+    this.ep.assertValidity();
+  }
+  toAffine(invertedZ) {
+    return this.ep.toAffine(invertedZ);
+  }
+  toHex() {
+    return bytesToHex(this.toBytes());
+  }
+  toString() {
+    return this.toHex();
+  }
+  isTorsionFree() {
+    return true;
+  }
+  isSmallOrder() {
+    return false;
+  }
+  add(other) {
+    this.assertSame(other);
+    return this.init(this.ep.add(other.ep));
+  }
+  subtract(other) {
+    this.assertSame(other);
+    return this.init(this.ep.subtract(other.ep));
+  }
+  multiply(scalar) {
+    return this.init(this.ep.multiply(scalar));
+  }
+  multiplyUnsafe(scalar) {
+    return this.init(this.ep.multiplyUnsafe(scalar));
+  }
+  double() {
+    return this.init(this.ep.double());
+  }
+  negate() {
+    return this.init(this.ep.negate());
+  }
+  precompute(windowSize, isLazy) {
+    return this.init(this.ep.precompute(windowSize, isLazy));
+  }
+  /** @deprecated use `toBytes` */
+  toRawBytes() {
+    return this.toBytes();
+  }
+};
+function eddsa(Point, cHash, eddsaOpts = {}) {
+  if (typeof cHash !== "function")
+    throw new Error('"hash" function param is required');
+  _validateObject(eddsaOpts, {}, {
+    adjustScalarBytes: "function",
+    randomBytes: "function",
+    domain: "function",
+    prehash: "function",
+    mapToCurve: "function"
+  });
+  const { prehash } = eddsaOpts;
+  const { BASE, Fp: Fp2, Fn: Fn2 } = Point;
+  const randomBytes2 = eddsaOpts.randomBytes || randomBytes;
+  const adjustScalarBytes2 = eddsaOpts.adjustScalarBytes || ((bytes) => bytes);
+  const domain = eddsaOpts.domain || ((data, ctx, phflag) => {
+    _abool2(phflag, "phflag");
+    if (ctx.length || phflag)
+      throw new Error("Contexts/pre-hash are not supported");
+    return data;
+  });
+  function modN_LE(hash) {
+    return Fn2.create(bytesToNumberLE(hash));
+  }
+  function getPrivateScalar(key) {
+    const len = lengths.secretKey;
+    key = ensureBytes("private key", key, len);
+    const hashed = ensureBytes("hashed private key", cHash(key), 2 * len);
+    const head = adjustScalarBytes2(hashed.slice(0, len));
+    const prefix = hashed.slice(len, 2 * len);
+    const scalar = modN_LE(head);
+    return { head, prefix, scalar };
+  }
+  function getExtendedPublicKey(secretKey) {
+    const { head, prefix, scalar } = getPrivateScalar(secretKey);
+    const point = BASE.multiply(scalar);
+    const pointBytes = point.toBytes();
+    return { head, prefix, scalar, point, pointBytes };
+  }
+  function getPublicKey(secretKey) {
+    return getExtendedPublicKey(secretKey).pointBytes;
+  }
+  function hashDomainToScalar(context = Uint8Array.of(), ...msgs) {
+    const msg = concatBytes(...msgs);
+    return modN_LE(cHash(domain(msg, ensureBytes("context", context), !!prehash)));
+  }
+  function sign(msg, secretKey, options = {}) {
+    msg = ensureBytes("message", msg);
+    if (prehash)
+      msg = prehash(msg);
+    const { prefix, scalar, pointBytes } = getExtendedPublicKey(secretKey);
+    const r = hashDomainToScalar(options.context, prefix, msg);
+    const R = BASE.multiply(r).toBytes();
+    const k = hashDomainToScalar(options.context, R, pointBytes, msg);
+    const s3 = Fn2.create(r + k * scalar);
+    if (!Fn2.isValid(s3))
+      throw new Error("sign failed: invalid s");
+    const rs = concatBytes(R, Fn2.toBytes(s3));
+    return _abytes2(rs, lengths.signature, "result");
+  }
+  const verifyOpts = { zip215: true };
+  function verify(sig, msg, publicKey, options = verifyOpts) {
+    const { context, zip215 } = options;
+    const len = lengths.signature;
+    sig = ensureBytes("signature", sig, len);
+    msg = ensureBytes("message", msg);
+    publicKey = ensureBytes("publicKey", publicKey, lengths.publicKey);
+    if (zip215 !== void 0)
+      _abool2(zip215, "zip215");
+    if (prehash)
+      msg = prehash(msg);
+    const mid = len / 2;
+    const r = sig.subarray(0, mid);
+    const s3 = bytesToNumberLE(sig.subarray(mid, len));
+    let A, R, SB;
+    try {
+      A = Point.fromBytes(publicKey, zip215);
+      R = Point.fromBytes(r, zip215);
+      SB = BASE.multiplyUnsafe(s3);
+    } catch (error) {
+      return false;
+    }
+    if (!zip215 && A.isSmallOrder())
+      return false;
+    const k = hashDomainToScalar(context, R.toBytes(), A.toBytes(), msg);
+    const RkA = R.add(A.multiplyUnsafe(k));
+    return RkA.subtract(SB).clearCofactor().is0();
+  }
+  const _size = Fp2.BYTES;
+  const lengths = {
+    secretKey: _size,
+    publicKey: _size,
+    signature: 2 * _size,
+    seed: _size
   };
-  const accounts = originalAccounts;
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  function randomSecretKey(seed = randomBytes2(lengths.seed)) {
+    return _abytes2(seed, lengths.seed, "seed");
   }
-  if (!accounts.ata.value) {
-    accounts.ata.value = await findAssociatedTokenPda({
-      owner: getAddressFromResolvedInstructionAccount("owner", accounts.owner.value),
-      tokenProgram: getAddressFromResolvedInstructionAccount("tokenProgram", accounts.tokenProgram.value),
-      mint: getAddressFromResolvedInstructionAccount("mint", accounts.mint.value)
-    });
+  function keygen(seed) {
+    const secretKey = utils.randomSecretKey(seed);
+    return { secretKey, publicKey: getPublicKey(secretKey) };
   }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
+  function isValidSecretKey(key) {
+    return isBytes(key) && key.length === Fn2.BYTES;
   }
-  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  function isValidPublicKey(key, zip215) {
+    try {
+      return !!Point.fromBytes(key, zip215);
+    } catch (error) {
+      return false;
+    }
+  }
+  const utils = {
+    getExtendedPublicKey,
+    randomSecretKey,
+    isValidSecretKey,
+    isValidPublicKey,
+    /**
+     * Converts ed public key to x public key. Uses formula:
+     * - ed25519:
+     *   - `(u, v) = ((1+y)/(1-y), sqrt(-486664)*u/x)`
+     *   - `(x, y) = (sqrt(-486664)*u/v, (u-1)/(u+1))`
+     * - ed448:
+     *   - `(u, v) = ((y-1)/(y+1), sqrt(156324)*u/x)`
+     *   - `(x, y) = (sqrt(156324)*u/v, (1+u)/(1-u))`
+     */
+    toMontgomery(publicKey) {
+      const { y } = Point.fromBytes(publicKey);
+      const size = lengths.publicKey;
+      const is25519 = size === 32;
+      if (!is25519 && size !== 57)
+        throw new Error("only defined for 25519 and 448");
+      const u = is25519 ? Fp2.div(_1n4 + y, _1n4 - y) : Fp2.div(y - _1n4, y + _1n4);
+      return Fp2.toBytes(u);
+    },
+    toMontgomerySecret(secretKey) {
+      const size = lengths.secretKey;
+      _abytes2(secretKey, size);
+      const hashed = cHash(secretKey.subarray(0, size));
+      return adjustScalarBytes2(hashed).subarray(0, size);
+    },
+    /** @deprecated */
+    randomPrivateKey: randomSecretKey,
+    /** @deprecated */
+    precompute(windowSize = 8, point = Point.BASE) {
+      return point.precompute(windowSize, false);
+    }
+  };
   return Object.freeze({
-    accounts: [
-      getAccountMeta("payer", accounts.payer),
-      getAccountMeta("ata", accounts.ata),
-      getAccountMeta("owner", accounts.owner),
-      getAccountMeta("mint", accounts.mint),
-      getAccountMeta("systemProgram", accounts.systemProgram),
-      getAccountMeta("tokenProgram", accounts.tokenProgram)
-    ],
-    data: getCreateAssociatedTokenIdempotentInstructionDataEncoder().encode({}),
-    programAddress
+    keygen,
+    getPublicKey,
+    sign,
+    verify,
+    utils,
+    Point,
+    lengths
   });
 }
-var MINT_TO_DISCRIMINATOR = 7;
-function getMintToInstructionDataEncoder() {
-  return transformEncoder(
-    getStructEncoder([
-      ["discriminator", getU8Encoder()],
-      ["amount", getU64Encoder()]
-    ]),
-    (value) => ({ ...value, discriminator: MINT_TO_DISCRIMINATOR })
-  );
-}
-function getMintToInstruction(input, config) {
-  const programAddress = config?.programAddress ?? TOKEN_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    mint: { value: input.mint ?? null, isWritable: true },
-    token: { value: input.token ?? null, isWritable: true },
-    mintAuthority: { value: input.mintAuthority ?? null, isWritable: false }
+function _eddsa_legacy_opts_to_new(c) {
+  const CURVE = {
+    a: c.a,
+    d: c.d,
+    p: c.Fp.ORDER,
+    n: c.n,
+    h: c.h,
+    Gx: c.Gx,
+    Gy: c.Gy
   };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const remainingAccounts = (args.multiSigners ?? []).map((signer) => ({
-    address: signer.address,
-    role: AccountRole.READONLY_SIGNER,
-    signer
-  }));
-  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("mint", accounts.mint),
-      getAccountMeta("token", accounts.token),
-      getAccountMeta("mintAuthority", accounts.mintAuthority),
-      ...remainingAccounts
-    ],
-    data: getMintToInstructionDataEncoder().encode(args),
-    programAddress
+  const Fp2 = c.Fp;
+  const Fn2 = Field(CURVE.n, c.nBitLength, true);
+  const curveOpts = { Fp: Fp2, Fn: Fn2, uvRatio: c.uvRatio };
+  const eddsaOpts = {
+    randomBytes: c.randomBytes,
+    adjustScalarBytes: c.adjustScalarBytes,
+    domain: c.domain,
+    prehash: c.prehash,
+    mapToCurve: c.mapToCurve
+  };
+  return { CURVE, curveOpts, hash: c.hash, eddsaOpts };
+}
+function _eddsa_new_output_to_legacy(c, eddsa2) {
+  const Point = eddsa2.Point;
+  const legacy = Object.assign({}, eddsa2, {
+    ExtendedPoint: Point,
+    CURVE: c,
+    nBitLength: Point.Fn.BITS,
+    nByteLength: Point.Fn.BYTES
   });
+  return legacy;
 }
-var ASSOCIATED_TOKEN_PROGRAM_ADDRESS = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
-var TOKEN_PROGRAM_ADDRESS = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-var ASSOCIATED_TOKEN_ERROR__INVALID_OWNER = 0;
-var associatedTokenErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  associatedTokenErrorMessages = {
-    [ASSOCIATED_TOKEN_ERROR__INVALID_OWNER]: `Associated token account owner does not match address derivation`
-  };
+function twistedEdwards(c) {
+  const { CURVE, curveOpts, hash, eddsaOpts } = _eddsa_legacy_opts_to_new(c);
+  const Point = edwards(CURVE, curveOpts);
+  const EDDSA = eddsa(Point, hash, eddsaOpts);
+  return _eddsa_new_output_to_legacy(c, EDDSA);
 }
-var TOKEN_ERROR__NOT_RENT_EXEMPT = 0;
-var TOKEN_ERROR__INSUFFICIENT_FUNDS = 1;
-var TOKEN_ERROR__INVALID_MINT = 2;
-var TOKEN_ERROR__MINT_MISMATCH = 3;
-var TOKEN_ERROR__OWNER_MISMATCH = 4;
-var TOKEN_ERROR__FIXED_SUPPLY = 5;
-var TOKEN_ERROR__ALREADY_IN_USE = 6;
-var TOKEN_ERROR__INVALID_NUMBER_OF_PROVIDED_SIGNERS = 7;
-var TOKEN_ERROR__INVALID_NUMBER_OF_REQUIRED_SIGNERS = 8;
-var TOKEN_ERROR__UNINITIALIZED_STATE = 9;
-var TOKEN_ERROR__NATIVE_NOT_SUPPORTED = 10;
-var TOKEN_ERROR__NON_NATIVE_HAS_BALANCE = 11;
-var TOKEN_ERROR__INVALID_INSTRUCTION = 12;
-var TOKEN_ERROR__INVALID_STATE = 13;
-var TOKEN_ERROR__OVERFLOW = 14;
-var TOKEN_ERROR__AUTHORITY_TYPE_NOT_SUPPORTED = 15;
-var TOKEN_ERROR__MINT_CANNOT_FREEZE = 16;
-var TOKEN_ERROR__ACCOUNT_FROZEN = 17;
-var TOKEN_ERROR__MINT_DECIMALS_MISMATCH = 18;
-var TOKEN_ERROR__NON_NATIVE_NOT_SUPPORTED = 19;
-var tokenErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  tokenErrorMessages = {
-    [TOKEN_ERROR__ACCOUNT_FROZEN]: `Account is frozen`,
-    [TOKEN_ERROR__ALREADY_IN_USE]: `Already in use`,
-    [TOKEN_ERROR__AUTHORITY_TYPE_NOT_SUPPORTED]: `Account does not support specified authority type`,
-    [TOKEN_ERROR__FIXED_SUPPLY]: `Fixed supply`,
-    [TOKEN_ERROR__INSUFFICIENT_FUNDS]: `Insufficient funds`,
-    [TOKEN_ERROR__INVALID_INSTRUCTION]: `Invalid instruction`,
-    [TOKEN_ERROR__INVALID_MINT]: `Invalid Mint`,
-    [TOKEN_ERROR__INVALID_NUMBER_OF_PROVIDED_SIGNERS]: `Invalid number of provided signers`,
-    [TOKEN_ERROR__INVALID_NUMBER_OF_REQUIRED_SIGNERS]: `Invalid number of required signers`,
-    [TOKEN_ERROR__INVALID_STATE]: `State is invalid for requested operation`,
-    [TOKEN_ERROR__MINT_CANNOT_FREEZE]: `This token mint cannot freeze accounts`,
-    [TOKEN_ERROR__MINT_DECIMALS_MISMATCH]: `The provided decimals value different from the Mint decimals`,
-    [TOKEN_ERROR__MINT_MISMATCH]: `Account not associated with this Mint`,
-    [TOKEN_ERROR__NATIVE_NOT_SUPPORTED]: `Instruction does not support native tokens`,
-    [TOKEN_ERROR__NON_NATIVE_HAS_BALANCE]: `Non-native account can only be closed if its balance is zero`,
-    [TOKEN_ERROR__NON_NATIVE_NOT_SUPPORTED]: `Instruction does not support non-native tokens`,
-    [TOKEN_ERROR__NOT_RENT_EXEMPT]: `Lamport balance below rent-exempt threshold`,
-    [TOKEN_ERROR__OVERFLOW]: `Operation overflowed`,
-    [TOKEN_ERROR__OWNER_MISMATCH]: `Owner does not match`,
-    [TOKEN_ERROR__UNINITIALIZED_STATE]: `State is unititialized`
-  };
+
+// ../../node_modules/.pnpm/@noble+curves@1.9.7/node_modules/@noble/curves/esm/ed25519.js
+var _0n5 = /* @__PURE__ */ BigInt(0);
+var _1n5 = BigInt(1);
+var _2n3 = BigInt(2);
+var _3n2 = BigInt(3);
+var _5n2 = BigInt(5);
+var _8n3 = BigInt(8);
+var ed25519_CURVE_p = BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffed");
+var ed25519_CURVE = /* @__PURE__ */ (() => ({
+  p: ed25519_CURVE_p,
+  n: BigInt("0x1000000000000000000000000000000014def9dea2f79cd65812631a5cf5d3ed"),
+  h: _8n3,
+  a: BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffec"),
+  d: BigInt("0x52036cee2b6ffe738cc740797779e89800700a4d4141d8ab75eb4dca135978a3"),
+  Gx: BigInt("0x216936d3cd6e53fec0a4e231fdd6dc5c692cc7609525a7b2c9562d608f25d51a"),
+  Gy: BigInt("0x6666666666666666666666666666666666666666666666666666666666666658")
+}))();
+function ed25519_pow_2_252_3(x) {
+  const _10n = BigInt(10), _20n = BigInt(20), _40n = BigInt(40), _80n = BigInt(80);
+  const P3 = ed25519_CURVE_p;
+  const x2 = x * x % P3;
+  const b2 = x2 * x % P3;
+  const b4 = pow22(b2, _2n3, P3) * b2 % P3;
+  const b5 = pow22(b4, _1n5, P3) * x % P3;
+  const b10 = pow22(b5, _5n2, P3) * b5 % P3;
+  const b20 = pow22(b10, _10n, P3) * b10 % P3;
+  const b40 = pow22(b20, _20n, P3) * b20 % P3;
+  const b80 = pow22(b40, _40n, P3) * b40 % P3;
+  const b160 = pow22(b80, _80n, P3) * b80 % P3;
+  const b240 = pow22(b160, _80n, P3) * b80 % P3;
+  const b250 = pow22(b240, _10n, P3) * b10 % P3;
+  const pow_p_5_8 = pow22(b250, _2n3, P3) * x % P3;
+  return { pow_p_5_8, b2 };
 }
+function adjustScalarBytes(bytes) {
+  bytes[0] &= 248;
+  bytes[31] &= 127;
+  bytes[31] |= 64;
+  return bytes;
+}
+var ED25519_SQRT_M1 = /* @__PURE__ */ BigInt("19681161376707505956807079304988542015446066515923890162744021073123829784752");
+function uvRatio2(u, v) {
+  const P3 = ed25519_CURVE_p;
+  const v3 = mod2(v * v * v, P3);
+  const v7 = mod2(v3 * v3 * v, P3);
+  const pow = ed25519_pow_2_252_3(u * v7).pow_p_5_8;
+  let x = mod2(u * v3 * pow, P3);
+  const vx2 = mod2(v * x * x, P3);
+  const root1 = x;
+  const root2 = mod2(x * ED25519_SQRT_M1, P3);
+  const useRoot1 = vx2 === u;
+  const useRoot2 = vx2 === mod2(-u, P3);
+  const noRoot = vx2 === mod2(-u * ED25519_SQRT_M1, P3);
+  if (useRoot1)
+    x = root1;
+  if (useRoot2 || noRoot)
+    x = root2;
+  if (isNegativeLE(x, P3))
+    x = mod2(-x, P3);
+  return { isValid: useRoot1 || useRoot2, value: x };
+}
+var Fp = /* @__PURE__ */ (() => Field(ed25519_CURVE.p, { isLE: true }))();
+var Fn = /* @__PURE__ */ (() => Field(ed25519_CURVE.n, { isLE: true }))();
+var ed25519Defaults = /* @__PURE__ */ (() => ({
+  ...ed25519_CURVE,
+  Fp,
+  hash: sha512,
+  adjustScalarBytes,
+  // dom2
+  // Ratio of u to v. Allows us to combine inversion and square root. Uses algo from RFC8032 5.1.3.
+  // Constant-time, u/√v
+  uvRatio: uvRatio2
+}))();
+var ed25519 = /* @__PURE__ */ (() => twistedEdwards(ed25519Defaults))();
+var SQRT_M1 = ED25519_SQRT_M1;
+var SQRT_AD_MINUS_ONE = /* @__PURE__ */ BigInt("25063068953384623474111414158702152701244531502492656460079210482610430750235");
+var INVSQRT_A_MINUS_D = /* @__PURE__ */ BigInt("54469307008909316920995813868745141605393597292927456921205312896311721017578");
+var ONE_MINUS_D_SQ = /* @__PURE__ */ BigInt("1159843021668779879193775521855586647937357759715417654439879720876111806838");
+var D_MINUS_ONE_SQ = /* @__PURE__ */ BigInt("40440834346308536858101042469323190826248399146238708352240133220865137265952");
+var invertSqrt = (number) => uvRatio2(_1n5, number);
+var MAX_255B = /* @__PURE__ */ BigInt("0x7fffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+var bytes255ToNumberLE = (bytes) => ed25519.Point.Fp.create(bytesToNumberLE(bytes) & MAX_255B);
+function calcElligatorRistrettoMap(r0) {
+  const { d } = ed25519_CURVE;
+  const P3 = ed25519_CURVE_p;
+  const mod4 = (n) => Fp.create(n);
+  const r = mod4(SQRT_M1 * r0 * r0);
+  const Ns = mod4((r + _1n5) * ONE_MINUS_D_SQ);
+  let c = BigInt(-1);
+  const D3 = mod4((c - d * r) * mod4(r + d));
+  let { isValid: Ns_D_is_sq, value: s3 } = uvRatio2(Ns, D3);
+  let s_ = mod4(s3 * r0);
+  if (!isNegativeLE(s_, P3))
+    s_ = mod4(-s_);
+  if (!Ns_D_is_sq)
+    s3 = s_;
+  if (!Ns_D_is_sq)
+    c = r;
+  const Nt = mod4(c * (r - _1n5) * D_MINUS_ONE_SQ - D3);
+  const s22 = s3 * s3;
+  const W0 = mod4((s3 + s3) * D3);
+  const W1 = mod4(Nt * SQRT_AD_MINUS_ONE);
+  const W2 = mod4(_1n5 - s22);
+  const W3 = mod4(_1n5 + s22);
+  return new ed25519.Point(mod4(W0 * W3), mod4(W2 * W1), mod4(W1 * W3), mod4(W0 * W2));
+}
+function ristretto255_map(bytes) {
+  abytes(bytes, 64);
+  const r1 = bytes255ToNumberLE(bytes.subarray(0, 32));
+  const R1 = calcElligatorRistrettoMap(r1);
+  const r2 = bytes255ToNumberLE(bytes.subarray(32, 64));
+  const R2 = calcElligatorRistrettoMap(r2);
+  return new _RistrettoPoint(R1.add(R2));
+}
+var _RistrettoPoint = class __RistrettoPoint extends PrimeEdwardsPoint {
+  constructor(ep) {
+    super(ep);
+  }
+  static fromAffine(ap) {
+    return new __RistrettoPoint(ed25519.Point.fromAffine(ap));
+  }
+  assertSame(other) {
+    if (!(other instanceof __RistrettoPoint))
+      throw new Error("RistrettoPoint expected");
+  }
+  init(ep) {
+    return new __RistrettoPoint(ep);
+  }
+  /** @deprecated use `import { ristretto255_hasher } from '@noble/curves/ed25519.js';` */
+  static hashToCurve(hex) {
+    return ristretto255_map(ensureBytes("ristrettoHash", hex, 64));
+  }
+  static fromBytes(bytes) {
+    abytes(bytes, 32);
+    const { a, d } = ed25519_CURVE;
+    const P3 = ed25519_CURVE_p;
+    const mod4 = (n) => Fp.create(n);
+    const s3 = bytes255ToNumberLE(bytes);
+    if (!equalBytes(Fp.toBytes(s3), bytes) || isNegativeLE(s3, P3))
+      throw new Error("invalid ristretto255 encoding 1");
+    const s22 = mod4(s3 * s3);
+    const u1 = mod4(_1n5 + a * s22);
+    const u2 = mod4(_1n5 - a * s22);
+    const u1_2 = mod4(u1 * u1);
+    const u2_2 = mod4(u2 * u2);
+    const v = mod4(a * d * u1_2 - u2_2);
+    const { isValid, value: I } = invertSqrt(mod4(v * u2_2));
+    const Dx = mod4(I * u2);
+    const Dy = mod4(I * Dx * v);
+    let x = mod4((s3 + s3) * Dx);
+    if (isNegativeLE(x, P3))
+      x = mod4(-x);
+    const y = mod4(u1 * Dy);
+    const t = mod4(x * y);
+    if (!isValid || isNegativeLE(t, P3) || y === _0n5)
+      throw new Error("invalid ristretto255 encoding 2");
+    return new __RistrettoPoint(new ed25519.Point(x, y, _1n5, t));
+  }
+  /**
+   * Converts ristretto-encoded string to ristretto point.
+   * Described in [RFC9496](https://www.rfc-editor.org/rfc/rfc9496#name-decode).
+   * @param hex Ristretto-encoded 32 bytes. Not every 32-byte string is valid ristretto encoding
+   */
+  static fromHex(hex) {
+    return __RistrettoPoint.fromBytes(ensureBytes("ristrettoHex", hex, 32));
+  }
+  static msm(points, scalars) {
+    return pippenger(__RistrettoPoint, ed25519.Point.Fn, points, scalars);
+  }
+  /**
+   * Encodes ristretto point to Uint8Array.
+   * Described in [RFC9496](https://www.rfc-editor.org/rfc/rfc9496#name-encode).
+   */
+  toBytes() {
+    let { X, Y, Z, T } = this.ep;
+    const P3 = ed25519_CURVE_p;
+    const mod4 = (n) => Fp.create(n);
+    const u1 = mod4(mod4(Z + Y) * mod4(Z - Y));
+    const u2 = mod4(X * Y);
+    const u2sq = mod4(u2 * u2);
+    const { value: invsqrt } = invertSqrt(mod4(u1 * u2sq));
+    const D1 = mod4(invsqrt * u1);
+    const D22 = mod4(invsqrt * u2);
+    const zInv = mod4(D1 * D22 * T);
+    let D3;
+    if (isNegativeLE(T * zInv, P3)) {
+      let _x = mod4(Y * SQRT_M1);
+      let _y = mod4(X * SQRT_M1);
+      X = _x;
+      Y = _y;
+      D3 = mod4(D1 * INVSQRT_A_MINUS_D);
+    } else {
+      D3 = D22;
+    }
+    if (isNegativeLE(X * zInv, P3))
+      Y = mod4(-Y);
+    let s3 = mod4((Z - Y) * D3);
+    if (isNegativeLE(s3, P3))
+      s3 = mod4(-s3);
+    return Fp.toBytes(s3);
+  }
+  /**
+   * Compares two Ristretto points.
+   * Described in [RFC9496](https://www.rfc-editor.org/rfc/rfc9496#name-equals).
+   */
+  equals(other) {
+    this.assertSame(other);
+    const { X: X1, Y: Y1 } = this.ep;
+    const { X: X2, Y: Y2 } = other.ep;
+    const mod4 = (n) => Fp.create(n);
+    const one = mod4(X1 * Y2) === mod4(Y1 * X2);
+    const two = mod4(Y1 * Y2) === mod4(X1 * X2);
+    return one || two;
+  }
+  is0() {
+    return this.equals(__RistrettoPoint.ZERO);
+  }
+};
+_RistrettoPoint.BASE = /* @__PURE__ */ (() => new _RistrettoPoint(ed25519.Point.BASE))();
+_RistrettoPoint.ZERO = /* @__PURE__ */ (() => new _RistrettoPoint(ed25519.Point.ZERO))();
+_RistrettoPoint.Fp = /* @__PURE__ */ (() => Fp)();
+_RistrettoPoint.Fn = /* @__PURE__ */ (() => Fn)();
+
+// src/becomeNode.ts
+import { createHash } from "node:crypto";
 
 // ../../node_modules/.pnpm/@solana+errors@6.10.0_typescript@5.9.3/node_modules/@solana/errors/dist/index.node.mjs
 var SOLANA_ERROR__BLOCK_HEIGHT_EXCEEDED2 = 1;
@@ -10928,6 +12585,11 @@ function createDecoder2(decoder) {
 function isFixedSize2(codec) {
   return "fixedSize" in codec && typeof codec.fixedSize === "number";
 }
+function assertIsFixedSize2(codec) {
+  if (!isFixedSize2(codec)) {
+    throw new SolanaError2(SOLANA_ERROR__CODECS__EXPECTED_FIXED_LENGTH2);
+  }
+}
 function isVariableSize2(codec) {
   return !isFixedSize2(codec);
 }
@@ -10972,6 +12634,48 @@ function assertByteArrayHasEnoughBytesForCodec2(codecDescription, expected, byte
       expected
     });
   }
+}
+function addEncoderSizePrefix2(encoder, prefix) {
+  const write = ((value, bytes, offset) => {
+    const encoderBytes = encoder.encode(value);
+    offset = prefix.write(encoderBytes.length, bytes, offset);
+    bytes.set(encoderBytes, offset);
+    return offset + encoderBytes.length;
+  });
+  if (isFixedSize2(prefix) && isFixedSize2(encoder)) {
+    return createEncoder2({ ...encoder, fixedSize: prefix.fixedSize + encoder.fixedSize, write });
+  }
+  const prefixMaxSize = isFixedSize2(prefix) ? prefix.fixedSize : prefix.maxSize ?? null;
+  const encoderMaxSize = isFixedSize2(encoder) ? encoder.fixedSize : encoder.maxSize ?? null;
+  const maxSize = prefixMaxSize !== null && encoderMaxSize !== null ? prefixMaxSize + encoderMaxSize : null;
+  return createEncoder2({
+    ...encoder,
+    ...maxSize !== null ? { maxSize } : {},
+    getSizeFromValue: (value) => {
+      const encoderSize = getEncodedSize2(value, encoder);
+      return getEncodedSize2(encoderSize, prefix) + encoderSize;
+    },
+    write
+  });
+}
+function addDecoderSizePrefix2(decoder, prefix) {
+  const read = ((bytes, offset) => {
+    const [bigintSize, decoderOffset] = prefix.read(bytes, offset);
+    const size = Number(bigintSize);
+    offset = decoderOffset;
+    if (offset > 0 || bytes.length > size) {
+      bytes = bytes.slice(offset, offset + size);
+    }
+    assertByteArrayHasEnoughBytesForCodec2("addDecoderSizePrefix", size, bytes);
+    return [decoder.decode(bytes), offset + size];
+  });
+  if (isFixedSize2(prefix) && isFixedSize2(decoder)) {
+    return createDecoder2({ ...decoder, fixedSize: prefix.fixedSize + decoder.fixedSize, read });
+  }
+  const prefixMaxSize = isFixedSize2(prefix) ? prefix.fixedSize : prefix.maxSize ?? null;
+  const decoderMaxSize = isFixedSize2(decoder) ? decoder.fixedSize : decoder.maxSize ?? null;
+  const maxSize = prefixMaxSize !== null && decoderMaxSize !== null ? prefixMaxSize + decoderMaxSize : null;
+  return createDecoder2({ ...decoder, ...maxSize !== null ? { maxSize } : {}, read });
 }
 function toArrayBuffer2(bytes, offset, length) {
   const bytesOffset = bytes.byteOffset + (offset ?? 0);
@@ -11122,11 +12826,35 @@ var getBase64Encoder = () => {
     });
   }
 };
+var removeNullCharacters = (value) => (
+  // eslint-disable-next-line no-control-regex
+  value.replace(/\u0000/g, "")
+);
 var e7 = globalThis.TextDecoder;
 var o3 = globalThis.TextEncoder;
+var getUtf8Encoder = () => {
+  let textEncoder;
+  return createEncoder2({
+    getSizeFromValue: (value) => (textEncoder ||= new o3()).encode(value).length,
+    write: (value, bytes, offset) => {
+      const bytesToAdd = (textEncoder ||= new o3()).encode(value);
+      bytes.set(bytesToAdd, offset);
+      return offset + bytesToAdd.length;
+    }
+  });
+};
+var getUtf8Decoder = () => {
+  let textDecoder;
+  return createDecoder2({
+    read(bytes, offset) {
+      const value = (textDecoder ||= new e7()).decode(bytes.slice(offset));
+      return [removeNullCharacters(value), bytes.length];
+    }
+  });
+};
 
 // ../../node_modules/.pnpm/@solana+accounts@6.10.0_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
-function decodeAccount2(encodedAccount, decoder) {
+function decodeAccount(encodedAccount, decoder) {
   try {
     if ("exists" in encodedAccount && !encodedAccount.exists) {
       return encodedAccount;
@@ -11151,22 +12879,22 @@ function parseBaseAccount(rpcAccount) {
     space: rpcAccount.space
   });
 }
-async function fetchEncodedAccount2(rpc2, address3, config = {}) {
+async function fetchEncodedAccount(rpc, address3, config = {}) {
   const { abortSignal, ...rpcConfig } = config;
-  const response = await rpc2.getAccountInfo(address3, { ...rpcConfig, encoding: "base64" }).send({ abortSignal });
+  const response = await rpc.getAccountInfo(address3, { ...rpcConfig, encoding: "base64" }).send({ abortSignal });
   return parseBase64RpcAccount(address3, response.value);
 }
-async function fetchEncodedAccounts2(rpc2, addresses, config = {}) {
+async function fetchEncodedAccounts(rpc, addresses, config = {}) {
   const { abortSignal, ...rpcConfig } = config;
-  const response = await rpc2.getMultipleAccounts(addresses, { ...rpcConfig, encoding: "base64" }).send({ abortSignal });
+  const response = await rpc.getMultipleAccounts(addresses, { ...rpcConfig, encoding: "base64" }).send({ abortSignal });
   return response.value.map((account, index) => parseBase64RpcAccount(addresses[index], account));
 }
-function assertAccountExists2(account) {
+function assertAccountExists(account) {
   if (!account.exists) {
     throw new SolanaError2(SOLANA_ERROR__ACCOUNTS__ACCOUNT_NOT_FOUND2, { address: account.address });
   }
 }
-function assertAccountsExist2(accounts) {
+function assertAccountsExist(accounts) {
   const missingAccounts = accounts.filter((a) => !a.exists);
   if (missingAccounts.length > 0) {
     const missingAddresses = missingAccounts.map((a) => a.address);
@@ -11230,11 +12958,11 @@ function getAddressCodec2() {
 var D2 = 37095705934669439343138083508754565189542113879843219016388785533085940283555n;
 var P2 = 57896044618658097711785492504343953926634992332820282019728792003956564819949n;
 var RM12 = 19681161376707505956807079304988542015446066515923890162744021073123829784752n;
-function mod2(a) {
+function mod3(a) {
   const r = a % P2;
   return r >= 0n ? r : P2 + r;
 }
-function pow22(x, power) {
+function pow23(x, power) {
   let r = x;
   while (power-- > 0n) {
     r *= r;
@@ -11245,42 +12973,42 @@ function pow22(x, power) {
 function pow_2_252_32(x) {
   const x2 = x * x % P2;
   const b2 = x2 * x % P2;
-  const b4 = pow22(b2, 2n) * b2 % P2;
-  const b5 = pow22(b4, 1n) * x % P2;
-  const b10 = pow22(b5, 5n) * b5 % P2;
-  const b20 = pow22(b10, 10n) * b10 % P2;
-  const b40 = pow22(b20, 20n) * b20 % P2;
-  const b80 = pow22(b40, 40n) * b40 % P2;
-  const b160 = pow22(b80, 80n) * b80 % P2;
-  const b240 = pow22(b160, 80n) * b80 % P2;
-  const b250 = pow22(b240, 10n) * b10 % P2;
-  const pow_p_5_8 = pow22(b250, 2n) * x % P2;
+  const b4 = pow23(b2, 2n) * b2 % P2;
+  const b5 = pow23(b4, 1n) * x % P2;
+  const b10 = pow23(b5, 5n) * b5 % P2;
+  const b20 = pow23(b10, 10n) * b10 % P2;
+  const b40 = pow23(b20, 20n) * b20 % P2;
+  const b80 = pow23(b40, 40n) * b40 % P2;
+  const b160 = pow23(b80, 80n) * b80 % P2;
+  const b240 = pow23(b160, 80n) * b80 % P2;
+  const b250 = pow23(b240, 10n) * b10 % P2;
+  const pow_p_5_8 = pow23(b250, 2n) * x % P2;
   return pow_p_5_8;
 }
-function uvRatio2(u, v) {
-  const v3 = mod2(v * v * v);
-  const v7 = mod2(v3 * v3 * v);
+function uvRatio3(u, v) {
+  const v3 = mod3(v * v * v);
+  const v7 = mod3(v3 * v3 * v);
   const pow = pow_2_252_32(u * v7);
-  let x = mod2(u * v3 * pow);
-  const vx2 = mod2(v * x * x);
+  let x = mod3(u * v3 * pow);
+  const vx2 = mod3(v * x * x);
   const root1 = x;
-  const root2 = mod2(x * RM12);
+  const root2 = mod3(x * RM12);
   const useRoot1 = vx2 === u;
-  const useRoot2 = vx2 === mod2(-u);
-  const noRoot = vx2 === mod2(-u * RM12);
+  const useRoot2 = vx2 === mod3(-u);
+  const noRoot = vx2 === mod3(-u * RM12);
   if (useRoot1) x = root1;
   if (useRoot2 || noRoot) x = root2;
-  if ((mod2(x) & 1n) === 1n) x = mod2(-x);
+  if ((mod3(x) & 1n) === 1n) x = mod3(-x);
   if (!useRoot1 && !useRoot2) {
     return null;
   }
   return x;
 }
 function pointIsOnCurve2(y, lastByte) {
-  const y2 = mod2(y * y);
-  const u = mod2(y2 - 1n);
-  const v = mod2(D2 * y2 + 1n);
-  const x = uvRatio2(u, v);
+  const y2 = mod3(y * y);
+  const u = mod3(y2 - 1n);
+  const v = mod3(D2 * y2 + 1n);
+  const x = uvRatio3(u, v);
   if (x === null) {
     return false;
   }
@@ -11444,6 +13172,19 @@ var getI64Decoder = (config = {}) => numberDecoderFactory({
   name: "i64",
   size: 8
 });
+var getU16Encoder2 = (config = {}) => numberEncoderFactory2({
+  config,
+  name: "u16",
+  range: [0, Number("0xffff")],
+  set: (view, value, le) => view.setUint16(0, Number(value), le),
+  size: 2
+});
+var getU16Decoder2 = (config = {}) => numberDecoderFactory({
+  config,
+  get: (view, le) => view.getUint16(0, le),
+  name: "u16",
+  size: 2
+});
 var getU32Encoder2 = (config = {}) => numberEncoderFactory2({
   config,
   name: "u32",
@@ -11492,6 +13233,12 @@ function assertValidNumberOfItemsForCodec2(codecDescription, expected, actual) {
     });
   }
 }
+function maxCodecSizes2(sizes) {
+  return sizes.reduce(
+    (all, size) => all === null || size === null ? null : Math.max(all, size),
+    0
+  );
+}
 function sumCodecSizes2(sizes) {
   return sizes.reduce((all, size) => all === null || size === null ? null : all + size, 0);
 }
@@ -11501,72 +13248,10 @@ function getFixedSize2(codec) {
 function getMaxSize2(codec) {
   return isFixedSize2(codec) ? codec.fixedSize : codec.maxSize ?? null;
 }
-function getArrayEncoder2(item, config = {}) {
-  const size = config.size ?? getU32Encoder2();
-  const fixedSize = computeArrayLikeCodecSize2(size, getFixedSize2(item));
-  const maxSize = computeArrayLikeCodecSize2(size, getMaxSize2(item)) ?? void 0;
-  return createEncoder2({
-    ...fixedSize !== null ? { fixedSize } : {
-      getSizeFromValue: (array) => {
-        const prefixSize = typeof size === "object" ? getEncodedSize2(array.length, size) : 0;
-        return prefixSize + [...array].reduce((all, value) => all + getEncodedSize2(value, item), 0);
-      },
-      maxSize
-    },
-    write: (array, bytes, offset) => {
-      if (typeof size === "number") {
-        assertValidNumberOfItemsForCodec2(config.description ?? "array", size, array.length);
-      }
-      if (typeof size === "object") {
-        offset = size.write(array.length, bytes, offset);
-      }
-      array.forEach((value) => {
-        offset = item.write(value, bytes, offset);
-      });
-      return offset;
-    }
-  });
-}
-function getArrayDecoder2(item, config = {}) {
-  const size = config.size ?? getU32Decoder2();
-  const itemSize = getFixedSize2(item);
-  const fixedSize = computeArrayLikeCodecSize2(size, itemSize);
-  const maxSize = computeArrayLikeCodecSize2(size, getMaxSize2(item)) ?? void 0;
-  return createDecoder2({
-    ...fixedSize !== null ? { fixedSize } : { maxSize },
-    read: (bytes, offset) => {
-      const array = [];
-      if (typeof size === "object" && bytes.slice(offset).length === 0) {
-        return [array, offset];
-      }
-      if (size === "remainder") {
-        while (offset < bytes.length) {
-          const [value, newOffset2] = item.read(bytes, offset);
-          offset = newOffset2;
-          array.push(value);
-        }
-        return [array, offset];
-      }
-      const [resolvedSize, newOffset] = typeof size === "number" ? [size, offset] : size.read(bytes, offset);
-      offset = newOffset;
-      for (let i = 0; i < resolvedSize; i += 1) {
-        const [value, newOffset2] = item.read(bytes, offset);
-        offset = newOffset2;
-        array.push(value);
-      }
-      return [array, offset];
-    }
-  });
-}
-function computeArrayLikeCodecSize2(size, itemSize) {
-  if (typeof size !== "number") return null;
-  if (size === 0) return 0;
-  return itemSize === null ? null : itemSize * size;
-}
 function getBooleanEncoder2(config = {}) {
   return transformEncoder2(config.size ?? getU8Encoder2(), (value) => value ? 1 : 0);
 }
-function getBooleanDecoder2(config = {}) {
+function getBooleanDecoder(config = {}) {
   return transformDecoder2(config.size ?? getU8Decoder2(), (value) => Number(value) === 1);
 }
 function getBytesEncoder2() {
@@ -11584,6 +13269,137 @@ function getBytesDecoder2() {
       const slice = bytes.slice(offset);
       return [slice, offset + slice.length];
     }
+  });
+}
+var getBase16Decoder = () => createDecoder2({
+  read(bytes, offset) {
+    const value = bytes.slice(offset).reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+    return [value, bytes.length];
+  }
+});
+function getConstantEncoder2(constant) {
+  return createEncoder2({
+    fixedSize: constant.length,
+    write: (_, bytes, offset) => {
+      bytes.set(constant, offset);
+      return offset + constant.length;
+    }
+  });
+}
+function getConstantDecoder(constant) {
+  return createDecoder2({
+    fixedSize: constant.length,
+    read: (bytes, offset) => {
+      const base16 = getBase16Decoder();
+      if (!containsBytes2(bytes, constant, offset)) {
+        throw new SolanaError2(SOLANA_ERROR__CODECS__INVALID_CONSTANT2, {
+          constant,
+          data: bytes,
+          hexConstant: base16.decode(constant),
+          hexData: base16.decode(bytes),
+          offset
+        });
+      }
+      return [void 0, offset + constant.length];
+    }
+  });
+}
+function getTupleEncoder2(items, config) {
+  const fixedSize = sumCodecSizes2(items.map(getFixedSize2));
+  const maxSize = sumCodecSizes2(items.map(getMaxSize2)) ?? void 0;
+  return createEncoder2({
+    ...fixedSize === null ? {
+      getSizeFromValue: (value) => items.map((item, index) => getEncodedSize2(value[index], item)).reduce((all, one) => all + one, 0),
+      maxSize
+    } : { fixedSize },
+    write: (value, bytes, offset) => {
+      assertValidNumberOfItemsForCodec2(config?.description ?? "tuple", items.length, value.length);
+      items.forEach((item, index) => {
+        offset = item.write(value[index], bytes, offset);
+      });
+      return offset;
+    }
+  });
+}
+function getTupleDecoder2(items) {
+  const fixedSize = sumCodecSizes2(items.map(getFixedSize2));
+  const maxSize = sumCodecSizes2(items.map(getMaxSize2)) ?? void 0;
+  return createDecoder2({
+    ...fixedSize === null ? { maxSize } : { fixedSize },
+    read: (bytes, offset) => {
+      const values = [];
+      items.forEach((item) => {
+        const [newValue, newOffset] = item.read(bytes, offset);
+        values.push(newValue);
+        offset = newOffset;
+      });
+      return [values, offset];
+    }
+  });
+}
+function getUnionEncoder2(variants, getIndexFromValue) {
+  const fixedSize = getUnionFixedSize2(variants);
+  const write = (variant, bytes, offset) => {
+    const index = getIndexFromValue(variant);
+    assertValidVariantIndex2(variants, index);
+    return variants[index].write(variant, bytes, offset);
+  };
+  if (fixedSize !== null) {
+    return createEncoder2({ fixedSize, write });
+  }
+  const maxSize = getUnionMaxSize2(variants);
+  return createEncoder2({
+    ...maxSize !== null ? { maxSize } : {},
+    getSizeFromValue: (variant) => {
+      const index = getIndexFromValue(variant);
+      assertValidVariantIndex2(variants, index);
+      return getEncodedSize2(variant, variants[index]);
+    },
+    write
+  });
+}
+function getUnionDecoder(variants, getIndexFromBytes) {
+  const fixedSize = getUnionFixedSize2(variants);
+  const read = (bytes, offset) => {
+    const index = getIndexFromBytes(bytes, offset);
+    assertValidVariantIndex2(variants, index);
+    return variants[index].read(bytes, offset);
+  };
+  if (fixedSize !== null) {
+    return createDecoder2({ fixedSize, read });
+  }
+  const maxSize = getUnionMaxSize2(variants);
+  return createDecoder2({ ...maxSize !== null ? { maxSize } : {}, read });
+}
+function assertValidVariantIndex2(variants, index) {
+  if (typeof variants[index] === "undefined") {
+    throw new SolanaError2(SOLANA_ERROR__CODECS__UNION_VARIANT_OUT_OF_RANGE2, {
+      maxRange: variants.length - 1,
+      minRange: 0,
+      variant: index
+    });
+  }
+}
+function getUnionFixedSize2(variants) {
+  if (variants.length === 0) return 0;
+  if (!isFixedSize2(variants[0])) return null;
+  const variantSize = variants[0].fixedSize;
+  const sameSizedVariants = variants.every((variant) => isFixedSize2(variant) && variant.fixedSize === variantSize);
+  return sameSizedVariants ? variantSize : null;
+}
+function getUnionMaxSize2(variants) {
+  return maxCodecSizes2(variants.map((variant) => getMaxSize2(variant)));
+}
+function getUnitEncoder2() {
+  return createEncoder2({
+    fixedSize: 0,
+    write: (_value, _bytes, offset) => offset
+  });
+}
+function getUnitDecoder2() {
+  return createDecoder2({
+    fixedSize: 0,
+    read: (_bytes, offset) => [void 0, offset]
   });
 }
 function getStructEncoder2(fields) {
@@ -11621,8 +13437,83 @@ function getStructDecoder2(fields) {
   });
 }
 
+// ../../node_modules/.pnpm/@solana+options@6.10.0_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
+var some = (value) => ({ __option: "Some", value });
+var none = () => ({ __option: "None" });
+var isOption = (input) => !!(input && typeof input === "object" && "__option" in input && (input.__option === "Some" && "value" in input || input.__option === "None"));
+var isSome = (option) => option.__option === "Some";
+var wrapNullable = (nullable) => nullable !== null ? some(nullable) : none();
+function getOptionEncoder(item, config = {}) {
+  const prefix = (() => {
+    if (config.prefix === null) {
+      return transformEncoder2(getUnitEncoder2(), (_boolean) => void 0);
+    }
+    return getBooleanEncoder2({ size: config.prefix ?? getU8Encoder2() });
+  })();
+  const noneValue = (() => {
+    if (config.noneValue === "zeroes") {
+      assertIsFixedSize2(item);
+      return fixEncoderSize2(getUnitEncoder2(), item.fixedSize);
+    }
+    if (!config.noneValue) {
+      return getUnitEncoder2();
+    }
+    return getConstantEncoder2(config.noneValue);
+  })();
+  return getUnionEncoder2(
+    [
+      transformEncoder2(getTupleEncoder2([prefix, noneValue]), (_value) => [
+        false,
+        void 0
+      ]),
+      transformEncoder2(getTupleEncoder2([prefix, item]), (value) => [
+        true,
+        isOption(value) && isSome(value) ? value.value : value
+      ])
+    ],
+    (variant) => {
+      const option = isOption(variant) ? variant : wrapNullable(variant);
+      return Number(isSome(option));
+    }
+  );
+}
+function getOptionDecoder(item, config = {}) {
+  const prefix = (() => {
+    if (config.prefix === null) {
+      return transformDecoder2(getUnitDecoder2(), () => false);
+    }
+    return getBooleanDecoder({ size: config.prefix ?? getU8Decoder2() });
+  })();
+  const noneValue = (() => {
+    if (config.noneValue === "zeroes") {
+      assertIsFixedSize2(item);
+      return fixDecoderSize2(getUnitDecoder2(), item.fixedSize);
+    }
+    if (!config.noneValue) {
+      return getUnitDecoder2();
+    }
+    return getConstantDecoder(config.noneValue);
+  })();
+  return getUnionDecoder(
+    [
+      transformDecoder2(getTupleDecoder2([prefix, noneValue]), () => none()),
+      transformDecoder2(getTupleDecoder2([prefix, item]), ([, value]) => some(value))
+    ],
+    (bytes, offset) => {
+      if (config.prefix === null && !config.noneValue) {
+        return Number(offset < bytes.length);
+      }
+      if (config.prefix === null && config.noneValue != null) {
+        const zeroValue = config.noneValue === "zeroes" ? new Uint8Array(noneValue.fixedSize).fill(0) : config.noneValue;
+        return containsBytes2(bytes, zeroValue, offset) ? 0 : 1;
+      }
+      return Number(prefix.read(bytes, offset)[0]);
+    }
+  );
+}
+
 // ../../node_modules/.pnpm/@solana+instructions@6.10.0_typescript@5.9.3/node_modules/@solana/instructions/dist/index.node.mjs
-function assertIsInstructionWithAccounts2(instruction) {
+function assertIsInstructionWithAccounts(instruction) {
   if (instruction.accounts === void 0) {
     throw new SolanaError2(SOLANA_ERROR__INSTRUCTION__EXPECTED_TO_HAVE_ACCOUNTS2, {
       data: instruction.data,
@@ -11641,13 +13532,13 @@ var AccountRole2 = /* @__PURE__ */ ((AccountRole22) => {
   0] = "READONLY";
   return AccountRole22;
 })(AccountRole2 || {});
-var IS_SIGNER_BITMASK2 = 2;
-function upgradeRoleToSigner2(role) {
-  return role | IS_SIGNER_BITMASK2;
+var IS_SIGNER_BITMASK = 2;
+function upgradeRoleToSigner(role) {
+  return role | IS_SIGNER_BITMASK;
 }
 
 // ../../node_modules/.pnpm/@solana+plugin-core@6.10.0_typescript@5.9.3/node_modules/@solana/plugin-core/dist/index.node.mjs
-function extendClient2(client, additions) {
+function extendClient(client, additions) {
   const result = Object.defineProperties({}, toConfigurableDescriptors(Object.getOwnPropertyDescriptors(client)));
   Object.defineProperties(result, Object.getOwnPropertyDescriptors(additions));
   return Object.freeze(result);
@@ -11661,7 +13552,7 @@ function toConfigurableDescriptors(descriptors) {
 }
 
 // ../../node_modules/.pnpm/@solana+programs@6.10.0_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
-function isProgramError2(error, transactionMessage, programAddress, code) {
+function isProgramError(error, transactionMessage, programAddress, code) {
   if (!isSolanaError2(error, SOLANA_ERROR__INSTRUCTION_ERROR__CUSTOM2)) {
     return false;
   }
@@ -11700,7 +13591,7 @@ var VESTING_SCHEDULE_DISCRIMINATOR = new Uint8Array([
 ]);
 
 // ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
-function getNonNullResolvedInstructionInput2(inputName, value) {
+function getNonNullResolvedInstructionInput(inputName, value) {
   if (value === null || value === void 0) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL2, {
       inputName
@@ -11708,8 +13599,8 @@ function getNonNullResolvedInstructionInput2(inputName, value) {
   }
   return value;
 }
-function getAddressFromResolvedInstructionAccount2(inputName, value) {
-  const nonNullValue = getNonNullResolvedInstructionInput2(inputName, value);
+function getAddressFromResolvedInstructionAccount(inputName, value) {
+  const nonNullValue = getNonNullResolvedInstructionInput(inputName, value);
   if (typeof value === "object" && "address" in nonNullValue) {
     return nonNullValue.address;
   }
@@ -11718,47 +13609,47 @@ function getAddressFromResolvedInstructionAccount2(inputName, value) {
   }
   return nonNullValue;
 }
-function getAccountMetaFactory2(programAddress, optionalAccountStrategy) {
+function getAccountMetaFactory(programAddress, optionalAccountStrategy) {
   return (inputName, account) => {
     if (!account.value) {
       if (optionalAccountStrategy === "omitted") return;
       return Object.freeze({ address: programAddress, role: AccountRole2.READONLY });
     }
     const writableRole = account.isWritable ? AccountRole2.WRITABLE : AccountRole2.READONLY;
-    const isSigner = isResolvedInstructionAccountSigner2(account.value);
+    const isSigner = isResolvedInstructionAccountSigner(account.value);
     return Object.freeze({
-      address: getAddressFromResolvedInstructionAccount2(inputName, account.value),
-      role: isSigner ? upgradeRoleToSigner2(writableRole) : writableRole,
+      address: getAddressFromResolvedInstructionAccount(inputName, account.value),
+      role: isSigner ? upgradeRoleToSigner(writableRole) : writableRole,
       ...isSigner ? { signer: account.value } : {}
     });
   };
 }
-function isResolvedInstructionAccountSigner2(value) {
+function isResolvedInstructionAccountSigner(value) {
   return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner2(value);
 }
-function addSelfFetchFunctions2(client, codec) {
+function addSelfFetchFunctions(client, codec) {
   const fetchMaybe = async (address3, config) => {
-    const maybeAccount = await fetchEncodedAccount2(client.rpc, address3, config);
-    return decodeAccount2(maybeAccount, codec);
+    const maybeAccount = await fetchEncodedAccount(client.rpc, address3, config);
+    return decodeAccount(maybeAccount, codec);
   };
   const fetchAllMaybe = async (addresses, config) => {
-    const maybeAccounts = await fetchEncodedAccounts2(client.rpc, addresses, config);
-    return maybeAccounts.map((maybeAccount) => decodeAccount2(maybeAccount, codec));
+    const maybeAccounts = await fetchEncodedAccounts(client.rpc, addresses, config);
+    return maybeAccounts.map((maybeAccount) => decodeAccount(maybeAccount, codec));
   };
   const fetch2 = async (address3, config) => {
     const maybeAccount = await fetchMaybe(address3, config);
-    assertAccountExists2(maybeAccount);
+    assertAccountExists(maybeAccount);
     return maybeAccount;
   };
   const fetchAll = async (addresses, config) => {
     const maybeAccounts = await fetchAllMaybe(addresses, config);
-    assertAccountsExist2(maybeAccounts);
+    assertAccountsExist(maybeAccounts);
     return maybeAccounts;
   };
   const out = { ...codec, fetch: fetch2, fetchAll, fetchAllMaybe, fetchMaybe };
   return Object.freeze(out);
 }
-function addSelfPlanAndSendFunctions2(client, input) {
+function addSelfPlanAndSendFunctions(client, input) {
   if (isPromiseLike(input)) {
     const newInput = input;
     newInput.planTransaction = async (config) => await client.planTransaction(await input, config);
@@ -11846,6 +13737,145 @@ if (process.env["NODE_ENV"] !== "production") {
   };
 }
 
+// ../../sdk/dist/generated/node_registry/src/generated/index.js
+var generated_exports = {};
+__export(generated_exports, {
+  DEREGISTER_DISCRIMINATOR: () => DEREGISTER_DISCRIMINATOR,
+  INITIALIZE_REGISTRY_DISCRIMINATOR: () => INITIALIZE_REGISTRY_DISCRIMINATOR,
+  NODE_REGISTRY_ERROR__INVALID_AVAILABILITY: () => NODE_REGISTRY_ERROR__INVALID_AVAILABILITY,
+  NODE_REGISTRY_ERROR__INVALID_CAPABILITIES: () => NODE_REGISTRY_ERROR__INVALID_CAPABILITIES,
+  NODE_REGISTRY_ERROR__INVALID_GEO: () => NODE_REGISTRY_ERROR__INVALID_GEO,
+  NODE_REGISTRY_ERROR__INVALID_TREE: () => NODE_REGISTRY_ERROR__INVALID_TREE,
+  NODE_REGISTRY_ERROR__MATH_OVERFLOW: () => NODE_REGISTRY_ERROR__MATH_OVERFLOW,
+  NODE_REGISTRY_ERROR__NODE_NOT_ACTIVE: () => NODE_REGISTRY_ERROR__NODE_NOT_ACTIVE,
+  NODE_REGISTRY_ERROR__PAUSED: () => NODE_REGISTRY_ERROR__PAUSED,
+  NODE_REGISTRY_ERROR__TREE_FULL: () => NODE_REGISTRY_ERROR__TREE_FULL,
+  NODE_REGISTRY_ERROR__TREE_INDEX_MISMATCH: () => NODE_REGISTRY_ERROR__TREE_INDEX_MISMATCH,
+  NODE_REGISTRY_ERROR__UNAUTHORIZED: () => NODE_REGISTRY_ERROR__UNAUTHORIZED,
+  NODE_REGISTRY_PROGRAM_ADDRESS: () => NODE_REGISTRY_PROGRAM_ADDRESS,
+  NODE_STATE_DISCRIMINATOR: () => NODE_STATE_DISCRIMINATOR,
+  NodeRegistryAccount: () => NodeRegistryAccount,
+  NodeRegistryInstruction: () => NodeRegistryInstruction,
+  REGISTER_DISCRIMINATOR: () => REGISTER_DISCRIMINATOR,
+  REGISTER_TREE_DISCRIMINATOR: () => REGISTER_TREE_DISCRIMINATOR,
+  REGISTRY_DISCRIMINATOR: () => REGISTRY_DISCRIMINATOR,
+  SET_AUTHORITY_DISCRIMINATOR: () => SET_AUTHORITY_DISCRIMINATOR,
+  SET_METRICS_AUTHORITIES_DISCRIMINATOR: () => SET_METRICS_AUTHORITIES_DISCRIMINATOR,
+  SET_PAUSED_DISCRIMINATOR: () => SET_PAUSED_DISCRIMINATOR,
+  SET_REPUTATION_DISCRIMINATOR: () => SET_REPUTATION_DISCRIMINATOR,
+  SET_STAKE_DISCRIMINATOR: () => SET_STAKE_DISCRIMINATOR,
+  TREE_SHARD_DISCRIMINATOR: () => TREE_SHARD_DISCRIMINATOR,
+  UPDATE_DISCRIMINATOR: () => UPDATE_DISCRIMINATOR,
+  decodeNodeState: () => decodeNodeState,
+  decodeRegistry: () => decodeRegistry,
+  decodeTreeShard: () => decodeTreeShard,
+  fetchAllMaybeNodeState: () => fetchAllMaybeNodeState,
+  fetchAllMaybeRegistry: () => fetchAllMaybeRegistry,
+  fetchAllMaybeTreeShard: () => fetchAllMaybeTreeShard,
+  fetchAllNodeState: () => fetchAllNodeState,
+  fetchAllRegistry: () => fetchAllRegistry,
+  fetchAllTreeShard: () => fetchAllTreeShard,
+  fetchMaybeNodeState: () => fetchMaybeNodeState,
+  fetchMaybeRegistry: () => fetchMaybeRegistry,
+  fetchMaybeTreeShard: () => fetchMaybeTreeShard,
+  fetchNodeState: () => fetchNodeState,
+  fetchRegistry: () => fetchRegistry,
+  fetchTreeShard: () => fetchTreeShard,
+  findNodePda: () => findNodePda,
+  findRegistryPda: () => findRegistryPda,
+  findTreeShardPda: () => findTreeShardPda,
+  getDeregisterDiscriminatorBytes: () => getDeregisterDiscriminatorBytes,
+  getDeregisterInstruction: () => getDeregisterInstruction,
+  getDeregisterInstructionAsync: () => getDeregisterInstructionAsync,
+  getDeregisterInstructionDataCodec: () => getDeregisterInstructionDataCodec,
+  getDeregisterInstructionDataDecoder: () => getDeregisterInstructionDataDecoder,
+  getDeregisterInstructionDataEncoder: () => getDeregisterInstructionDataEncoder,
+  getInitializeRegistryDiscriminatorBytes: () => getInitializeRegistryDiscriminatorBytes,
+  getInitializeRegistryInstruction: () => getInitializeRegistryInstruction,
+  getInitializeRegistryInstructionAsync: () => getInitializeRegistryInstructionAsync,
+  getInitializeRegistryInstructionDataCodec: () => getInitializeRegistryInstructionDataCodec,
+  getInitializeRegistryInstructionDataDecoder: () => getInitializeRegistryInstructionDataDecoder,
+  getInitializeRegistryInstructionDataEncoder: () => getInitializeRegistryInstructionDataEncoder,
+  getNodeRegistryErrorMessage: () => getNodeRegistryErrorMessage,
+  getNodeStateCodec: () => getNodeStateCodec,
+  getNodeStateDecoder: () => getNodeStateDecoder,
+  getNodeStateDiscriminatorBytes: () => getNodeStateDiscriminatorBytes,
+  getNodeStateEncoder: () => getNodeStateEncoder,
+  getNodeStateSize: () => getNodeStateSize,
+  getRegisterDiscriminatorBytes: () => getRegisterDiscriminatorBytes,
+  getRegisterInstruction: () => getRegisterInstruction,
+  getRegisterInstructionAsync: () => getRegisterInstructionAsync,
+  getRegisterInstructionDataCodec: () => getRegisterInstructionDataCodec,
+  getRegisterInstructionDataDecoder: () => getRegisterInstructionDataDecoder,
+  getRegisterInstructionDataEncoder: () => getRegisterInstructionDataEncoder,
+  getRegisterTreeDiscriminatorBytes: () => getRegisterTreeDiscriminatorBytes,
+  getRegisterTreeInstruction: () => getRegisterTreeInstruction,
+  getRegisterTreeInstructionAsync: () => getRegisterTreeInstructionAsync,
+  getRegisterTreeInstructionDataCodec: () => getRegisterTreeInstructionDataCodec,
+  getRegisterTreeInstructionDataDecoder: () => getRegisterTreeInstructionDataDecoder,
+  getRegisterTreeInstructionDataEncoder: () => getRegisterTreeInstructionDataEncoder,
+  getRegistryCodec: () => getRegistryCodec,
+  getRegistryDecoder: () => getRegistryDecoder,
+  getRegistryDiscriminatorBytes: () => getRegistryDiscriminatorBytes,
+  getRegistryEncoder: () => getRegistryEncoder,
+  getRegistrySize: () => getRegistrySize,
+  getSetAuthorityDiscriminatorBytes: () => getSetAuthorityDiscriminatorBytes,
+  getSetAuthorityInstruction: () => getSetAuthorityInstruction,
+  getSetAuthorityInstructionAsync: () => getSetAuthorityInstructionAsync,
+  getSetAuthorityInstructionDataCodec: () => getSetAuthorityInstructionDataCodec,
+  getSetAuthorityInstructionDataDecoder: () => getSetAuthorityInstructionDataDecoder,
+  getSetAuthorityInstructionDataEncoder: () => getSetAuthorityInstructionDataEncoder,
+  getSetMetricsAuthoritiesDiscriminatorBytes: () => getSetMetricsAuthoritiesDiscriminatorBytes,
+  getSetMetricsAuthoritiesInstruction: () => getSetMetricsAuthoritiesInstruction,
+  getSetMetricsAuthoritiesInstructionAsync: () => getSetMetricsAuthoritiesInstructionAsync,
+  getSetMetricsAuthoritiesInstructionDataCodec: () => getSetMetricsAuthoritiesInstructionDataCodec,
+  getSetMetricsAuthoritiesInstructionDataDecoder: () => getSetMetricsAuthoritiesInstructionDataDecoder,
+  getSetMetricsAuthoritiesInstructionDataEncoder: () => getSetMetricsAuthoritiesInstructionDataEncoder,
+  getSetPausedDiscriminatorBytes: () => getSetPausedDiscriminatorBytes,
+  getSetPausedInstruction: () => getSetPausedInstruction,
+  getSetPausedInstructionAsync: () => getSetPausedInstructionAsync,
+  getSetPausedInstructionDataCodec: () => getSetPausedInstructionDataCodec,
+  getSetPausedInstructionDataDecoder: () => getSetPausedInstructionDataDecoder,
+  getSetPausedInstructionDataEncoder: () => getSetPausedInstructionDataEncoder,
+  getSetReputationDiscriminatorBytes: () => getSetReputationDiscriminatorBytes,
+  getSetReputationInstruction: () => getSetReputationInstruction,
+  getSetReputationInstructionAsync: () => getSetReputationInstructionAsync,
+  getSetReputationInstructionDataCodec: () => getSetReputationInstructionDataCodec,
+  getSetReputationInstructionDataDecoder: () => getSetReputationInstructionDataDecoder,
+  getSetReputationInstructionDataEncoder: () => getSetReputationInstructionDataEncoder,
+  getSetStakeDiscriminatorBytes: () => getSetStakeDiscriminatorBytes,
+  getSetStakeInstruction: () => getSetStakeInstruction,
+  getSetStakeInstructionAsync: () => getSetStakeInstructionAsync,
+  getSetStakeInstructionDataCodec: () => getSetStakeInstructionDataCodec,
+  getSetStakeInstructionDataDecoder: () => getSetStakeInstructionDataDecoder,
+  getSetStakeInstructionDataEncoder: () => getSetStakeInstructionDataEncoder,
+  getTreeShardCodec: () => getTreeShardCodec,
+  getTreeShardDecoder: () => getTreeShardDecoder,
+  getTreeShardDiscriminatorBytes: () => getTreeShardDiscriminatorBytes,
+  getTreeShardEncoder: () => getTreeShardEncoder,
+  getTreeShardSize: () => getTreeShardSize,
+  getUpdateDiscriminatorBytes: () => getUpdateDiscriminatorBytes,
+  getUpdateInstruction: () => getUpdateInstruction,
+  getUpdateInstructionDataCodec: () => getUpdateInstructionDataCodec,
+  getUpdateInstructionDataDecoder: () => getUpdateInstructionDataDecoder,
+  getUpdateInstructionDataEncoder: () => getUpdateInstructionDataEncoder,
+  identifyNodeRegistryAccount: () => identifyNodeRegistryAccount,
+  identifyNodeRegistryInstruction: () => identifyNodeRegistryInstruction,
+  isNodeRegistryError: () => isNodeRegistryError,
+  nodeRegistryProgram: () => nodeRegistryProgram,
+  parseDeregisterInstruction: () => parseDeregisterInstruction,
+  parseInitializeRegistryInstruction: () => parseInitializeRegistryInstruction,
+  parseNodeRegistryInstruction: () => parseNodeRegistryInstruction,
+  parseRegisterInstruction: () => parseRegisterInstruction,
+  parseRegisterTreeInstruction: () => parseRegisterTreeInstruction,
+  parseSetAuthorityInstruction: () => parseSetAuthorityInstruction,
+  parseSetMetricsAuthoritiesInstruction: () => parseSetMetricsAuthoritiesInstruction,
+  parseSetPausedInstruction: () => parseSetPausedInstruction,
+  parseSetReputationInstruction: () => parseSetReputationInstruction,
+  parseSetStakeInstruction: () => parseSetStakeInstruction,
+  parseUpdateInstruction: () => parseUpdateInstruction
+});
+
 // ../../sdk/dist/generated/node_registry/src/generated/accounts/nodeState.js
 var NODE_STATE_DISCRIMINATOR = new Uint8Array([
   8,
@@ -11857,6 +13887,78 @@ var NODE_STATE_DISCRIMINATOR = new Uint8Array([
   157,
   156
 ]);
+function getNodeStateDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(NODE_STATE_DISCRIMINATOR);
+}
+function getNodeStateEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["operator", getAddressEncoder2()],
+    ["nodeId", getU64Encoder2()],
+    ["assetId", getAddressEncoder2()],
+    ["merkleTree", getAddressEncoder2()],
+    ["leafNonce", getU64Encoder2()],
+    ["geo", getU32Encoder2()],
+    ["capabilities", getU32Encoder2()],
+    ["endpointHash", fixEncoderSize2(getBytesEncoder2(), 32)],
+    ["availability", getU8Encoder2()],
+    ["status", getU8Encoder2()],
+    ["registeredAt", getI64Encoder()],
+    ["updatedAt", getI64Encoder()],
+    ["reputation", getU16Encoder2()],
+    ["stakeAmount", getU64Encoder2()],
+    ["bump", getU8Encoder2()],
+    ["sequence", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: NODE_STATE_DISCRIMINATOR }));
+}
+function getNodeStateDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["operator", getAddressDecoder2()],
+    ["nodeId", getU64Decoder2()],
+    ["assetId", getAddressDecoder2()],
+    ["merkleTree", getAddressDecoder2()],
+    ["leafNonce", getU64Decoder2()],
+    ["geo", getU32Decoder2()],
+    ["capabilities", getU32Decoder2()],
+    ["endpointHash", fixDecoderSize2(getBytesDecoder2(), 32)],
+    ["availability", getU8Decoder2()],
+    ["status", getU8Decoder2()],
+    ["registeredAt", getI64Decoder()],
+    ["updatedAt", getI64Decoder()],
+    ["reputation", getU16Decoder2()],
+    ["stakeAmount", getU64Decoder2()],
+    ["bump", getU8Decoder2()],
+    ["sequence", getU64Decoder2()]
+  ]);
+}
+function getNodeStateCodec() {
+  return combineCodec2(getNodeStateEncoder(), getNodeStateDecoder());
+}
+function decodeNodeState(encodedAccount) {
+  return decodeAccount(encodedAccount, getNodeStateDecoder());
+}
+async function fetchNodeState(rpc, address3, config) {
+  const maybeAccount = await fetchMaybeNodeState(rpc, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeNodeState(rpc, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc, address3, config);
+  return decodeNodeState(maybeAccount);
+}
+async function fetchAllNodeState(rpc, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeNodeState(rpc, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeNodeState(rpc, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeNodeState(maybeAccount));
+}
+function getNodeStateSize() {
+  return 197;
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/accounts/registry.js
 var REGISTRY_DISCRIMINATOR = new Uint8Array([
@@ -11869,6 +13971,66 @@ var REGISTRY_DISCRIMINATOR = new Uint8Array([
   252,
   218
 ]);
+function getRegistryDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(REGISTRY_DISCRIMINATOR);
+}
+function getRegistryEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["authority", getAddressEncoder2()],
+    ["collection", getAddressEncoder2()],
+    ["activeTree", getAddressEncoder2()],
+    ["treeCount", getU16Encoder2()],
+    ["nodeCount", getU64Encoder2()],
+    ["reputationAuthority", getAddressEncoder2()],
+    ["stakingAuthority", getAddressEncoder2()],
+    ["paused", getBooleanEncoder2()],
+    ["bump", getU8Encoder2()],
+    ["nodeSequence", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: REGISTRY_DISCRIMINATOR }));
+}
+function getRegistryDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["authority", getAddressDecoder2()],
+    ["collection", getAddressDecoder2()],
+    ["activeTree", getAddressDecoder2()],
+    ["treeCount", getU16Decoder2()],
+    ["nodeCount", getU64Decoder2()],
+    ["reputationAuthority", getAddressDecoder2()],
+    ["stakingAuthority", getAddressDecoder2()],
+    ["paused", getBooleanDecoder()],
+    ["bump", getU8Decoder2()],
+    ["nodeSequence", getU64Decoder2()]
+  ]);
+}
+function getRegistryCodec() {
+  return combineCodec2(getRegistryEncoder(), getRegistryDecoder());
+}
+function decodeRegistry(encodedAccount) {
+  return decodeAccount(encodedAccount, getRegistryDecoder());
+}
+async function fetchRegistry(rpc, address3, config) {
+  const maybeAccount = await fetchMaybeRegistry(rpc, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeRegistry(rpc, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc, address3, config);
+  return decodeRegistry(maybeAccount);
+}
+async function fetchAllRegistry(rpc, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeRegistry(rpc, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeRegistry(rpc, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeRegistry(maybeAccount));
+}
+function getRegistrySize() {
+  return 188;
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/accounts/treeShard.js
 var TREE_SHARD_DISCRIMINATOR = new Uint8Array([
@@ -11881,6 +14043,92 @@ var TREE_SHARD_DISCRIMINATOR = new Uint8Array([
   59,
   169
 ]);
+function getTreeShardDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(TREE_SHARD_DISCRIMINATOR);
+}
+function getTreeShardEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["merkleTree", getAddressEncoder2()],
+    ["index", getU16Encoder2()],
+    ["minted", getU64Encoder2()],
+    ["capacity", getU64Encoder2()],
+    ["full", getBooleanEncoder2()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: TREE_SHARD_DISCRIMINATOR }));
+}
+function getTreeShardDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["merkleTree", getAddressDecoder2()],
+    ["index", getU16Decoder2()],
+    ["minted", getU64Decoder2()],
+    ["capacity", getU64Decoder2()],
+    ["full", getBooleanDecoder()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getTreeShardCodec() {
+  return combineCodec2(getTreeShardEncoder(), getTreeShardDecoder());
+}
+function decodeTreeShard(encodedAccount) {
+  return decodeAccount(encodedAccount, getTreeShardDecoder());
+}
+async function fetchTreeShard(rpc, address3, config) {
+  const maybeAccount = await fetchMaybeTreeShard(rpc, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeTreeShard(rpc, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc, address3, config);
+  return decodeTreeShard(maybeAccount);
+}
+async function fetchAllTreeShard(rpc, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeTreeShard(rpc, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeTreeShard(rpc, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeTreeShard(maybeAccount));
+}
+function getTreeShardSize() {
+  return 60;
+}
+
+// ../../sdk/dist/generated/node_registry/src/generated/pdas/node.js
+async function findNodePda(seeds, config = {}) {
+  const { programAddress = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([110, 111, 100, 101])),
+      getAddressEncoder2().encode(seeds.operator),
+      getU64Encoder2().encode(seeds.nodeId)
+    ]
+  });
+}
+
+// ../../sdk/dist/generated/node_registry/src/generated/pdas/registry.js
+async function findRegistryPda(config = {}) {
+  const { programAddress = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
+  });
+}
+
+// ../../sdk/dist/generated/node_registry/src/generated/pdas/treeShard.js
+async function findTreeShardPda(seeds, config = {}) {
+  const { programAddress = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([116, 114, 101, 101])),
+      getU16Encoder2().encode(seeds.index)
+    ]
+  });
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/deregister.js
 var DEREGISTER_DISCRIMINATOR = new Uint8Array([
@@ -11893,6 +14141,78 @@ var DEREGISTER_DISCRIMINATOR = new Uint8Array([
   13,
   187
 ]);
+function getDeregisterDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(DEREGISTER_DISCRIMINATOR);
+}
+function getDeregisterInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)]]), (value) => ({ ...value, discriminator: DEREGISTER_DISCRIMINATOR }));
+}
+function getDeregisterInstructionDataDecoder() {
+  return getStructDecoder2([["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)]]);
+}
+function getDeregisterInstructionDataCodec() {
+  return combineCodec2(getDeregisterInstructionDataEncoder(), getDeregisterInstructionDataDecoder());
+}
+async function getDeregisterInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getDeregisterInstructionDataEncoder().encode({}),
+    programAddress
+  });
+}
+function getDeregisterInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getDeregisterInstructionDataEncoder().encode({}),
+    programAddress
+  });
+}
+function parseDeregisterInstruction(instruction) {
+  if (instruction.accounts.length < 3) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 3
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: { operator: getNextAccount(), registry: getNextAccount(), node: getNextAccount() },
+    data: getDeregisterInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/initializeRegistry.js
 var INITIALIZE_REGISTRY_DISCRIMINATOR = new Uint8Array([
@@ -11905,6 +14225,98 @@ var INITIALIZE_REGISTRY_DISCRIMINATOR = new Uint8Array([
   249,
   59
 ]);
+function getInitializeRegistryDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(INITIALIZE_REGISTRY_DISCRIMINATOR);
+}
+function getInitializeRegistryInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)]]), (value) => ({ ...value, discriminator: INITIALIZE_REGISTRY_DISCRIMINATOR }));
+}
+function getInitializeRegistryInstructionDataDecoder() {
+  return getStructDecoder2([["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)]]);
+}
+function getInitializeRegistryInstructionDataCodec() {
+  return combineCodec2(getInitializeRegistryInstructionDataEncoder(), getInitializeRegistryInstructionDataDecoder());
+}
+async function getInitializeRegistryInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: true },
+    collection: { value: input.collection ?? null, isWritable: false },
+    activeTree: { value: input.activeTree ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("collection", accounts.collection),
+      getAccountMeta("activeTree", accounts.activeTree),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getInitializeRegistryInstructionDataEncoder().encode({}),
+    programAddress
+  });
+}
+function getInitializeRegistryInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: true },
+    collection: { value: input.collection ?? null, isWritable: false },
+    activeTree: { value: input.activeTree ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("collection", accounts.collection),
+      getAccountMeta("activeTree", accounts.activeTree),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getInitializeRegistryInstructionDataEncoder().encode({}),
+    programAddress
+  });
+}
+function parseInitializeRegistryInstruction(instruction) {
+  if (instruction.accounts.length < 5) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 5
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      authority: getNextAccount(),
+      collection: getNextAccount(),
+      activeTree: getNextAccount(),
+      registry: getNextAccount(),
+      systemProgram: getNextAccount()
+    },
+    data: getInitializeRegistryInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/register.js
 var REGISTER_DISCRIMINATOR = new Uint8Array([
@@ -11917,6 +14329,174 @@ var REGISTER_DISCRIMINATOR = new Uint8Array([
   178,
   240
 ]);
+function getRegisterDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(REGISTER_DISCRIMINATOR);
+}
+function getRegisterInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["nodeId", getU64Encoder2()],
+    ["geo", getU32Encoder2()],
+    ["capabilities", getU32Encoder2()],
+    ["endpointHash", fixEncoderSize2(getBytesEncoder2(), 32)],
+    ["availability", getU8Encoder2()],
+    ["metadataUri", addEncoderSizePrefix2(getUtf8Encoder(), getU32Encoder2())]
+  ]), (value) => ({ ...value, discriminator: REGISTER_DISCRIMINATOR }));
+}
+function getRegisterInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["nodeId", getU64Decoder2()],
+    ["geo", getU32Decoder2()],
+    ["capabilities", getU32Decoder2()],
+    ["endpointHash", fixDecoderSize2(getBytesDecoder2(), 32)],
+    ["availability", getU8Decoder2()],
+    ["metadataUri", addDecoderSizePrefix2(getUtf8Decoder(), getU32Decoder2())]
+  ]);
+}
+function getRegisterInstructionDataCodec() {
+  return combineCodec2(getRegisterInstructionDataEncoder(), getRegisterInstructionDataDecoder());
+}
+async function getRegisterInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true },
+    treeConfig: { value: input.treeConfig ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: true },
+    coreCollection: { value: input.coreCollection ?? null, isWritable: true },
+    mplCoreCpiSigner: { value: input.mplCoreCpiSigner ?? null, isWritable: false },
+    logWrapper: { value: input.logWrapper ?? null, isWritable: false },
+    compressionProgram: { value: input.compressionProgram ?? null, isWritable: false },
+    mplCoreProgram: { value: input.mplCoreProgram ?? null, isWritable: false },
+    bubblegumProgram: { value: input.bubblegumProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.node.value) {
+    accounts.node.value = await findNodePda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
+  }
+  if (!accounts.mplCoreProgram.value) {
+    accounts.mplCoreProgram.value = "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d";
+  }
+  if (!accounts.bubblegumProgram.value) {
+    accounts.bubblegumProgram.value = "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("treeShard", accounts.treeShard),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("treeConfig", accounts.treeConfig),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("coreCollection", accounts.coreCollection),
+      getAccountMeta("mplCoreCpiSigner", accounts.mplCoreCpiSigner),
+      getAccountMeta("logWrapper", accounts.logWrapper),
+      getAccountMeta("compressionProgram", accounts.compressionProgram),
+      getAccountMeta("mplCoreProgram", accounts.mplCoreProgram),
+      getAccountMeta("bubblegumProgram", accounts.bubblegumProgram),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getRegisterInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getRegisterInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true },
+    treeConfig: { value: input.treeConfig ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: true },
+    coreCollection: { value: input.coreCollection ?? null, isWritable: true },
+    mplCoreCpiSigner: { value: input.mplCoreCpiSigner ?? null, isWritable: false },
+    logWrapper: { value: input.logWrapper ?? null, isWritable: false },
+    compressionProgram: { value: input.compressionProgram ?? null, isWritable: false },
+    mplCoreProgram: { value: input.mplCoreProgram ?? null, isWritable: false },
+    bubblegumProgram: { value: input.bubblegumProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.mplCoreProgram.value) {
+    accounts.mplCoreProgram.value = "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d";
+  }
+  if (!accounts.bubblegumProgram.value) {
+    accounts.bubblegumProgram.value = "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("treeShard", accounts.treeShard),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("treeConfig", accounts.treeConfig),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("coreCollection", accounts.coreCollection),
+      getAccountMeta("mplCoreCpiSigner", accounts.mplCoreCpiSigner),
+      getAccountMeta("logWrapper", accounts.logWrapper),
+      getAccountMeta("compressionProgram", accounts.compressionProgram),
+      getAccountMeta("mplCoreProgram", accounts.mplCoreProgram),
+      getAccountMeta("bubblegumProgram", accounts.bubblegumProgram),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getRegisterInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseRegisterInstruction(instruction) {
+  if (instruction.accounts.length < 13) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 13
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      operator: getNextAccount(),
+      registry: getNextAccount(),
+      treeShard: getNextAccount(),
+      node: getNextAccount(),
+      treeConfig: getNextAccount(),
+      merkleTree: getNextAccount(),
+      coreCollection: getNextAccount(),
+      mplCoreCpiSigner: getNextAccount(),
+      logWrapper: getNextAccount(),
+      compressionProgram: getNextAccount(),
+      mplCoreProgram: getNextAccount(),
+      bubblegumProgram: getNextAccount(),
+      systemProgram: getNextAccount()
+    },
+    data: getRegisterInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/registerTree.js
 var REGISTER_TREE_DISCRIMINATOR = new Uint8Array([
@@ -11929,6 +14509,113 @@ var REGISTER_TREE_DISCRIMINATOR = new Uint8Array([
   87,
   252
 ]);
+function getRegisterTreeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(REGISTER_TREE_DISCRIMINATOR);
+}
+function getRegisterTreeInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["index", getU16Encoder2()],
+    ["maxDepth", getU32Encoder2()]
+  ]), (value) => ({ ...value, discriminator: REGISTER_TREE_DISCRIMINATOR }));
+}
+function getRegisterTreeInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["index", getU16Decoder2()],
+    ["maxDepth", getU32Decoder2()]
+  ]);
+}
+function getRegisterTreeInstructionDataCodec() {
+  return combineCodec2(getRegisterTreeInstructionDataEncoder(), getRegisterTreeInstructionDataDecoder());
+}
+async function getRegisterTreeInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: false },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.treeShard.value) {
+    accounts.treeShard.value = await findTreeShardPda({
+      index: getNonNullResolvedInstructionInput("index", args.index)
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("treeShard", accounts.treeShard),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getRegisterTreeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getRegisterTreeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: false },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("treeShard", accounts.treeShard),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getRegisterTreeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseRegisterTreeInstruction(instruction) {
+  if (instruction.accounts.length < 5) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 5
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      authority: getNextAccount(),
+      registry: getNextAccount(),
+      merkleTree: getNextAccount(),
+      treeShard: getNextAccount(),
+      systemProgram: getNextAccount()
+    },
+    data: getRegisterTreeInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/setAuthority.js
 var SET_AUTHORITY_DISCRIMINATOR = new Uint8Array([
@@ -11941,6 +14628,82 @@ var SET_AUTHORITY_DISCRIMINATOR = new Uint8Array([
   26,
   121
 ]);
+function getSetAuthorityDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_AUTHORITY_DISCRIMINATOR);
+}
+function getSetAuthorityInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["newAuthority", getAddressEncoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_AUTHORITY_DISCRIMINATOR }));
+}
+function getSetAuthorityInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["newAuthority", getAddressDecoder2()]
+  ]);
+}
+function getSetAuthorityInstructionDataCodec() {
+  return combineCodec2(getSetAuthorityInstructionDataEncoder(), getSetAuthorityInstructionDataDecoder());
+}
+async function getSetAuthorityInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetAuthorityInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetAuthorityInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetAuthorityInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetAuthorityInstruction(instruction) {
+  if (instruction.accounts.length < 2) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 2
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: { authority: getNextAccount(), registry: getNextAccount() },
+    data: getSetAuthorityInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/setMetricsAuthorities.js
 var SET_METRICS_AUTHORITIES_DISCRIMINATOR = new Uint8Array([
@@ -11953,6 +14716,84 @@ var SET_METRICS_AUTHORITIES_DISCRIMINATOR = new Uint8Array([
   78,
   104
 ]);
+function getSetMetricsAuthoritiesDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_METRICS_AUTHORITIES_DISCRIMINATOR);
+}
+function getSetMetricsAuthoritiesInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["reputationAuthority", getAddressEncoder2()],
+    ["stakingAuthority", getAddressEncoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_METRICS_AUTHORITIES_DISCRIMINATOR }));
+}
+function getSetMetricsAuthoritiesInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["reputationAuthority", getAddressDecoder2()],
+    ["stakingAuthority", getAddressDecoder2()]
+  ]);
+}
+function getSetMetricsAuthoritiesInstructionDataCodec() {
+  return combineCodec2(getSetMetricsAuthoritiesInstructionDataEncoder(), getSetMetricsAuthoritiesInstructionDataDecoder());
+}
+async function getSetMetricsAuthoritiesInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetMetricsAuthoritiesInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetMetricsAuthoritiesInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetMetricsAuthoritiesInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetMetricsAuthoritiesInstruction(instruction) {
+  if (instruction.accounts.length < 2) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 2
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: { authority: getNextAccount(), registry: getNextAccount() },
+    data: getSetMetricsAuthoritiesInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/setPaused.js
 var SET_PAUSED_DISCRIMINATOR = new Uint8Array([
@@ -11965,6 +14806,82 @@ var SET_PAUSED_DISCRIMINATOR = new Uint8Array([
   166,
   218
 ]);
+function getSetPausedDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_PAUSED_DISCRIMINATOR);
+}
+function getSetPausedInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["paused", getBooleanEncoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_PAUSED_DISCRIMINATOR }));
+}
+function getSetPausedInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["paused", getBooleanDecoder()]
+  ]);
+}
+function getSetPausedInstructionDataCodec() {
+  return combineCodec2(getSetPausedInstructionDataEncoder(), getSetPausedInstructionDataDecoder());
+}
+async function getSetPausedInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetPausedInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetPausedInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetPausedInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetPausedInstruction(instruction) {
+  if (instruction.accounts.length < 2) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 2
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: { authority: getNextAccount(), registry: getNextAccount() },
+    data: getSetPausedInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/setReputation.js
 var SET_REPUTATION_DISCRIMINATOR = new Uint8Array([
@@ -11977,6 +14894,90 @@ var SET_REPUTATION_DISCRIMINATOR = new Uint8Array([
   58,
   225
 ]);
+function getSetReputationDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_REPUTATION_DISCRIMINATOR);
+}
+function getSetReputationInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["reputationBps", getU16Encoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_REPUTATION_DISCRIMINATOR }));
+}
+function getSetReputationInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["reputationBps", getU16Decoder2()]
+  ]);
+}
+function getSetReputationInstructionDataCodec() {
+  return combineCodec2(getSetReputationInstructionDataEncoder(), getSetReputationInstructionDataDecoder());
+}
+async function getSetReputationInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    reputationAuthority: { value: input.reputationAuthority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("reputationAuthority", accounts.reputationAuthority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getSetReputationInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetReputationInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    reputationAuthority: { value: input.reputationAuthority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("reputationAuthority", accounts.reputationAuthority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getSetReputationInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetReputationInstruction(instruction) {
+  if (instruction.accounts.length < 3) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 3
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      reputationAuthority: getNextAccount(),
+      registry: getNextAccount(),
+      node: getNextAccount()
+    },
+    data: getSetReputationInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/setStake.js
 var SET_STAKE_DISCRIMINATOR = new Uint8Array([
@@ -11989,6 +14990,90 @@ var SET_STAKE_DISCRIMINATOR = new Uint8Array([
   103,
   254
 ]);
+function getSetStakeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_STAKE_DISCRIMINATOR);
+}
+function getSetStakeInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["amount", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_STAKE_DISCRIMINATOR }));
+}
+function getSetStakeInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["amount", getU64Decoder2()]
+  ]);
+}
+function getSetStakeInstructionDataCodec() {
+  return combineCodec2(getSetStakeInstructionDataEncoder(), getSetStakeInstructionDataDecoder());
+}
+async function getSetStakeInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    stakingAuthority: { value: input.stakingAuthority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("stakingAuthority", accounts.stakingAuthority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getSetStakeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetStakeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    stakingAuthority: { value: input.stakingAuthority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("stakingAuthority", accounts.stakingAuthority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getSetStakeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetStakeInstruction(instruction) {
+  if (instruction.accounts.length < 3) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 3
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      stakingAuthority: getNextAccount(),
+      registry: getNextAccount(),
+      node: getNextAccount()
+    },
+    data: getSetStakeInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/instructions/update.js
 var UPDATE_DISCRIMINATOR = new Uint8Array([
@@ -12001,14 +15086,92 @@ var UPDATE_DISCRIMINATOR = new Uint8Array([
   253,
   127
 ]);
+function getUpdateDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(UPDATE_DISCRIMINATOR);
+}
+function getUpdateInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["geo", getOptionEncoder(getU32Encoder2())],
+    ["capabilities", getOptionEncoder(getU32Encoder2())],
+    ["endpointHash", getOptionEncoder(fixEncoderSize2(getBytesEncoder2(), 32))],
+    ["availability", getOptionEncoder(getU8Encoder2())]
+  ]), (value) => ({ ...value, discriminator: UPDATE_DISCRIMINATOR }));
+}
+function getUpdateInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["geo", getOptionDecoder(getU32Decoder2())],
+    ["capabilities", getOptionDecoder(getU32Decoder2())],
+    ["endpointHash", getOptionDecoder(fixDecoderSize2(getBytesDecoder2(), 32))],
+    ["availability", getOptionDecoder(getU8Decoder2())]
+  ]);
+}
+function getUpdateInstructionDataCodec() {
+  return combineCodec2(getUpdateInstructionDataEncoder(), getUpdateInstructionDataDecoder());
+}
+function getUpdateInstruction(input, config) {
+  const programAddress = config?.programAddress ?? NODE_REGISTRY_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getUpdateInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseUpdateInstruction(instruction) {
+  if (instruction.accounts.length < 2) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 2
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: { operator: getNextAccount(), node: getNextAccount() },
+    data: getUpdateInstructionDataDecoder().decode(instruction.data)
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/programs/nodeRegistry.js
+var NODE_REGISTRY_PROGRAM_ADDRESS = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd";
 var NodeRegistryAccount;
 (function(NodeRegistryAccount2) {
   NodeRegistryAccount2[NodeRegistryAccount2["NodeState"] = 0] = "NodeState";
   NodeRegistryAccount2[NodeRegistryAccount2["Registry"] = 1] = "Registry";
   NodeRegistryAccount2[NodeRegistryAccount2["TreeShard"] = 2] = "TreeShard";
 })(NodeRegistryAccount || (NodeRegistryAccount = {}));
+function identifyNodeRegistryAccount(account) {
+  const data = "data" in account ? account.data : account;
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([8, 21, 101, 224, 245, 142, 157, 156])), 0)) {
+    return NodeRegistryAccount.NodeState;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([47, 174, 110, 246, 184, 182, 252, 218])), 0)) {
+    return NodeRegistryAccount.Registry;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([103, 111, 212, 23, 42, 107, 59, 169])), 0)) {
+    return NodeRegistryAccount.TreeShard;
+  }
+  throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT2, {
+    accountData: data,
+    programName: "nodeRegistry"
+  });
+}
 var NodeRegistryInstruction;
 (function(NodeRegistryInstruction2) {
   NodeRegistryInstruction2[NodeRegistryInstruction2["Deregister"] = 0] = "Deregister";
@@ -12022,6 +15185,152 @@ var NodeRegistryInstruction;
   NodeRegistryInstruction2[NodeRegistryInstruction2["SetStake"] = 8] = "SetStake";
   NodeRegistryInstruction2[NodeRegistryInstruction2["Update"] = 9] = "Update";
 })(NodeRegistryInstruction || (NodeRegistryInstruction = {}));
+function identifyNodeRegistryInstruction(instruction) {
+  const data = "data" in instruction ? instruction.data : instruction;
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([161, 178, 39, 189, 231, 224, 13, 187])), 0)) {
+    return NodeRegistryInstruction.Deregister;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([189, 181, 20, 17, 174, 57, 249, 59])), 0)) {
+    return NodeRegistryInstruction.InitializeRegistry;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([211, 124, 67, 15, 211, 194, 178, 240])), 0)) {
+    return NodeRegistryInstruction.Register;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([22, 52, 192, 74, 201, 240, 87, 252])), 0)) {
+    return NodeRegistryInstruction.RegisterTree;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([133, 250, 37, 21, 110, 163, 26, 121])), 0)) {
+    return NodeRegistryInstruction.SetAuthority;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([51, 50, 93, 210, 105, 78, 78, 104])), 0)) {
+    return NodeRegistryInstruction.SetMetricsAuthorities;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([91, 60, 125, 192, 176, 225, 166, 218])), 0)) {
+    return NodeRegistryInstruction.SetPaused;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([140, 34, 179, 36, 67, 85, 58, 225])), 0)) {
+    return NodeRegistryInstruction.SetReputation;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([86, 173, 233, 196, 120, 133, 103, 254])), 0)) {
+    return NodeRegistryInstruction.SetStake;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([219, 200, 88, 176, 158, 63, 253, 127])), 0)) {
+    return NodeRegistryInstruction.Update;
+  }
+  throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION2, {
+    instructionData: data,
+    programName: "nodeRegistry"
+  });
+}
+function parseNodeRegistryInstruction(instruction) {
+  const instructionType = identifyNodeRegistryInstruction(instruction);
+  switch (instructionType) {
+    case NodeRegistryInstruction.Deregister: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.Deregister,
+        ...parseDeregisterInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.InitializeRegistry: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.InitializeRegistry,
+        ...parseInitializeRegistryInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.Register: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.Register,
+        ...parseRegisterInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.RegisterTree: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.RegisterTree,
+        ...parseRegisterTreeInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.SetAuthority: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetAuthority,
+        ...parseSetAuthorityInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.SetMetricsAuthorities: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetMetricsAuthorities,
+        ...parseSetMetricsAuthoritiesInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.SetPaused: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetPaused,
+        ...parseSetPausedInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.SetReputation: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetReputation,
+        ...parseSetReputationInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.SetStake: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.SetStake,
+        ...parseSetStakeInstruction(instruction)
+      };
+    }
+    case NodeRegistryInstruction.Update: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: NodeRegistryInstruction.Update,
+        ...parseUpdateInstruction(instruction)
+      };
+    }
+    default:
+      throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE2, {
+        instructionType,
+        programName: "nodeRegistry"
+      });
+  }
+}
+function nodeRegistryProgram() {
+  return (client) => {
+    return extendClient(client, {
+      nodeRegistry: {
+        accounts: {
+          nodeState: addSelfFetchFunctions(client, getNodeStateCodec()),
+          registry: addSelfFetchFunctions(client, getRegistryCodec()),
+          treeShard: addSelfFetchFunctions(client, getTreeShardCodec())
+        },
+        instructions: {
+          deregister: (input) => addSelfPlanAndSendFunctions(client, getDeregisterInstructionAsync(input)),
+          initializeRegistry: (input) => addSelfPlanAndSendFunctions(client, getInitializeRegistryInstructionAsync(input)),
+          register: (input) => addSelfPlanAndSendFunctions(client, getRegisterInstructionAsync(input)),
+          registerTree: (input) => addSelfPlanAndSendFunctions(client, getRegisterTreeInstructionAsync(input)),
+          setAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetAuthorityInstructionAsync(input)),
+          setMetricsAuthorities: (input) => addSelfPlanAndSendFunctions(client, getSetMetricsAuthoritiesInstructionAsync(input)),
+          setPaused: (input) => addSelfPlanAndSendFunctions(client, getSetPausedInstructionAsync(input)),
+          setReputation: (input) => addSelfPlanAndSendFunctions(client, getSetReputationInstructionAsync(input)),
+          setStake: (input) => addSelfPlanAndSendFunctions(client, getSetStakeInstructionAsync(input)),
+          update: (input) => addSelfPlanAndSendFunctions(client, getUpdateInstruction(input))
+        },
+        pdas: { registry: findRegistryPda, node: findNodePda, treeShard: findTreeShardPda },
+        identifyAccount: identifyNodeRegistryAccount,
+        identifyInstruction: identifyNodeRegistryInstruction,
+        parseInstruction: parseNodeRegistryInstruction
+      }
+    });
+  };
+}
 
 // ../../sdk/dist/generated/node_registry/src/generated/errors/nodeRegistry.js
 var NODE_REGISTRY_ERROR__UNAUTHORIZED = 6e3;
@@ -12048,6 +15357,15 @@ if (process.env["NODE_ENV"] !== "production") {
     [NODE_REGISTRY_ERROR__TREE_INDEX_MISMATCH]: `Tree shard index must be sequential`,
     [NODE_REGISTRY_ERROR__UNAUTHORIZED]: `Caller is not the registry authority`
   };
+}
+function getNodeRegistryErrorMessage(code) {
+  if (process.env["NODE_ENV"] !== "production") {
+    return nodeRegistryErrorMessages[code];
+  }
+  return "Error message not available in production bundles.";
+}
+function isNodeRegistryError(error, transactionMessage, code) {
+  return isProgramError(error, transactionMessage, NODE_REGISTRY_PROGRAM_ADDRESS, code);
 }
 
 // ../../sdk/dist/generated/staking/src/generated/accounts/stakePosition.js
@@ -12332,144 +15650,6 @@ if (process.env["NODE_ENV"] !== "production") {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/index.js
-var generated_exports = {};
-__export(generated_exports, {
-  CLAIM_DISCRIMINATOR: () => CLAIM_DISCRIMINATOR2,
-  CLAIM_STATUS_DISCRIMINATOR: () => CLAIM_STATUS_DISCRIMINATOR,
-  DISPUTE_DISCRIMINATOR: () => DISPUTE_DISCRIMINATOR,
-  DISTRIBUTOR_DISCRIMINATOR: () => DISTRIBUTOR_DISCRIMINATOR,
-  EPOCH_DISTRIBUTION_DISCRIMINATOR: () => EPOCH_DISTRIBUTION_DISCRIMINATOR,
-  FUND_VAULT_DISCRIMINATOR: () => FUND_VAULT_DISCRIMINATOR,
-  INITIALIZE_DISTRIBUTOR_DISCRIMINATOR: () => INITIALIZE_DISTRIBUTOR_DISCRIMINATOR,
-  PAY_TRAFFIC_DISCRIMINATOR: () => PAY_TRAFFIC_DISCRIMINATOR,
-  POST_EPOCH_DISCRIMINATOR: () => POST_EPOCH_DISCRIMINATOR,
-  REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT: () => REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT,
-  REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN: () => REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN,
-  REWARDS_SETTLEMENT_ERROR__DISPUTED: () => REWARDS_SETTLEMENT_ERROR__DISPUTED,
-  REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN: () => REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN,
-  REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM: () => REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM,
-  REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT: () => REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT,
-  REWARDS_SETTLEMENT_ERROR__INVALID_PROOF: () => REWARDS_SETTLEMENT_ERROR__INVALID_PROOF,
-  REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW: () => REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW,
-  REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH: () => REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH,
-  REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED: () => REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED,
-  REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT: () => REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT,
-  REWARDS_SETTLEMENT_PROGRAM_ADDRESS: () => REWARDS_SETTLEMENT_PROGRAM_ADDRESS,
-  RewardsSettlementAccount: () => RewardsSettlementAccount,
-  RewardsSettlementInstruction: () => RewardsSettlementInstruction,
-  SET_AUTHORITIES_DISCRIMINATOR: () => SET_AUTHORITIES_DISCRIMINATOR,
-  SWEEP_EPOCH_DISCRIMINATOR: () => SWEEP_EPOCH_DISCRIMINATOR,
-  TRANSFER_AUTHORITY_DISCRIMINATOR: () => TRANSFER_AUTHORITY_DISCRIMINATOR3,
-  decodeClaimStatus: () => decodeClaimStatus,
-  decodeDistributor: () => decodeDistributor,
-  decodeEpochDistribution: () => decodeEpochDistribution,
-  fetchAllClaimStatus: () => fetchAllClaimStatus,
-  fetchAllDistributor: () => fetchAllDistributor,
-  fetchAllEpochDistribution: () => fetchAllEpochDistribution,
-  fetchAllMaybeClaimStatus: () => fetchAllMaybeClaimStatus,
-  fetchAllMaybeDistributor: () => fetchAllMaybeDistributor,
-  fetchAllMaybeEpochDistribution: () => fetchAllMaybeEpochDistribution,
-  fetchClaimStatus: () => fetchClaimStatus,
-  fetchDistributor: () => fetchDistributor,
-  fetchEpochDistribution: () => fetchEpochDistribution,
-  fetchMaybeClaimStatus: () => fetchMaybeClaimStatus,
-  fetchMaybeDistributor: () => fetchMaybeDistributor,
-  fetchMaybeEpochDistribution: () => fetchMaybeEpochDistribution,
-  findClaimStatusPda: () => findClaimStatusPda,
-  findDistributorPda: () => findDistributorPda,
-  findEpochDistributionPda: () => findEpochDistributionPda,
-  findProgramAuthorityPda: () => findProgramAuthorityPda3,
-  findRewardVaultPda: () => findRewardVaultPda,
-  getClaimDiscriminatorBytes: () => getClaimDiscriminatorBytes,
-  getClaimInstruction: () => getClaimInstruction2,
-  getClaimInstructionAsync: () => getClaimInstructionAsync,
-  getClaimInstructionDataCodec: () => getClaimInstructionDataCodec,
-  getClaimInstructionDataDecoder: () => getClaimInstructionDataDecoder,
-  getClaimInstructionDataEncoder: () => getClaimInstructionDataEncoder,
-  getClaimStatusCodec: () => getClaimStatusCodec,
-  getClaimStatusDecoder: () => getClaimStatusDecoder,
-  getClaimStatusDiscriminatorBytes: () => getClaimStatusDiscriminatorBytes,
-  getClaimStatusEncoder: () => getClaimStatusEncoder,
-  getClaimStatusSize: () => getClaimStatusSize,
-  getDisputeDiscriminatorBytes: () => getDisputeDiscriminatorBytes,
-  getDisputeInstruction: () => getDisputeInstruction,
-  getDisputeInstructionAsync: () => getDisputeInstructionAsync,
-  getDisputeInstructionDataCodec: () => getDisputeInstructionDataCodec,
-  getDisputeInstructionDataDecoder: () => getDisputeInstructionDataDecoder,
-  getDisputeInstructionDataEncoder: () => getDisputeInstructionDataEncoder,
-  getDistributorCodec: () => getDistributorCodec,
-  getDistributorDecoder: () => getDistributorDecoder,
-  getDistributorDiscriminatorBytes: () => getDistributorDiscriminatorBytes,
-  getDistributorEncoder: () => getDistributorEncoder,
-  getDistributorSize: () => getDistributorSize,
-  getEpochDistributionCodec: () => getEpochDistributionCodec,
-  getEpochDistributionDecoder: () => getEpochDistributionDecoder,
-  getEpochDistributionDiscriminatorBytes: () => getEpochDistributionDiscriminatorBytes,
-  getEpochDistributionEncoder: () => getEpochDistributionEncoder,
-  getEpochDistributionSize: () => getEpochDistributionSize,
-  getFundVaultDiscriminatorBytes: () => getFundVaultDiscriminatorBytes,
-  getFundVaultInstruction: () => getFundVaultInstruction,
-  getFundVaultInstructionAsync: () => getFundVaultInstructionAsync,
-  getFundVaultInstructionDataCodec: () => getFundVaultInstructionDataCodec,
-  getFundVaultInstructionDataDecoder: () => getFundVaultInstructionDataDecoder,
-  getFundVaultInstructionDataEncoder: () => getFundVaultInstructionDataEncoder,
-  getInitializeDistributorDiscriminatorBytes: () => getInitializeDistributorDiscriminatorBytes,
-  getInitializeDistributorInstruction: () => getInitializeDistributorInstruction,
-  getInitializeDistributorInstructionAsync: () => getInitializeDistributorInstructionAsync,
-  getInitializeDistributorInstructionDataCodec: () => getInitializeDistributorInstructionDataCodec,
-  getInitializeDistributorInstructionDataDecoder: () => getInitializeDistributorInstructionDataDecoder,
-  getInitializeDistributorInstructionDataEncoder: () => getInitializeDistributorInstructionDataEncoder,
-  getPayTrafficDiscriminatorBytes: () => getPayTrafficDiscriminatorBytes,
-  getPayTrafficInstruction: () => getPayTrafficInstruction,
-  getPayTrafficInstructionAsync: () => getPayTrafficInstructionAsync,
-  getPayTrafficInstructionDataCodec: () => getPayTrafficInstructionDataCodec,
-  getPayTrafficInstructionDataDecoder: () => getPayTrafficInstructionDataDecoder,
-  getPayTrafficInstructionDataEncoder: () => getPayTrafficInstructionDataEncoder,
-  getPostEpochDiscriminatorBytes: () => getPostEpochDiscriminatorBytes,
-  getPostEpochInstruction: () => getPostEpochInstruction,
-  getPostEpochInstructionAsync: () => getPostEpochInstructionAsync,
-  getPostEpochInstructionDataCodec: () => getPostEpochInstructionDataCodec,
-  getPostEpochInstructionDataDecoder: () => getPostEpochInstructionDataDecoder,
-  getPostEpochInstructionDataEncoder: () => getPostEpochInstructionDataEncoder,
-  getProtocolConfigCodec: () => getProtocolConfigCodec,
-  getProtocolConfigDecoder: () => getProtocolConfigDecoder,
-  getProtocolConfigEncoder: () => getProtocolConfigEncoder,
-  getRewardsSettlementErrorMessage: () => getRewardsSettlementErrorMessage,
-  getSetAuthoritiesDiscriminatorBytes: () => getSetAuthoritiesDiscriminatorBytes,
-  getSetAuthoritiesInstruction: () => getSetAuthoritiesInstruction,
-  getSetAuthoritiesInstructionAsync: () => getSetAuthoritiesInstructionAsync,
-  getSetAuthoritiesInstructionDataCodec: () => getSetAuthoritiesInstructionDataCodec,
-  getSetAuthoritiesInstructionDataDecoder: () => getSetAuthoritiesInstructionDataDecoder,
-  getSetAuthoritiesInstructionDataEncoder: () => getSetAuthoritiesInstructionDataEncoder,
-  getSweepEpochDiscriminatorBytes: () => getSweepEpochDiscriminatorBytes,
-  getSweepEpochInstruction: () => getSweepEpochInstruction,
-  getSweepEpochInstructionAsync: () => getSweepEpochInstructionAsync,
-  getSweepEpochInstructionDataCodec: () => getSweepEpochInstructionDataCodec,
-  getSweepEpochInstructionDataDecoder: () => getSweepEpochInstructionDataDecoder,
-  getSweepEpochInstructionDataEncoder: () => getSweepEpochInstructionDataEncoder,
-  getTransferAuthorityDiscriminatorBytes: () => getTransferAuthorityDiscriminatorBytes,
-  getTransferAuthorityInstruction: () => getTransferAuthorityInstruction,
-  getTransferAuthorityInstructionAsync: () => getTransferAuthorityInstructionAsync3,
-  getTransferAuthorityInstructionDataCodec: () => getTransferAuthorityInstructionDataCodec,
-  getTransferAuthorityInstructionDataDecoder: () => getTransferAuthorityInstructionDataDecoder,
-  getTransferAuthorityInstructionDataEncoder: () => getTransferAuthorityInstructionDataEncoder,
-  identifyRewardsSettlementAccount: () => identifyRewardsSettlementAccount,
-  identifyRewardsSettlementInstruction: () => identifyRewardsSettlementInstruction,
-  isRewardsSettlementError: () => isRewardsSettlementError,
-  parseClaimInstruction: () => parseClaimInstruction2,
-  parseDisputeInstruction: () => parseDisputeInstruction,
-  parseFundVaultInstruction: () => parseFundVaultInstruction,
-  parseInitializeDistributorInstruction: () => parseInitializeDistributorInstruction,
-  parsePayTrafficInstruction: () => parsePayTrafficInstruction,
-  parsePostEpochInstruction: () => parsePostEpochInstruction,
-  parseRewardsSettlementInstruction: () => parseRewardsSettlementInstruction,
-  parseSetAuthoritiesInstruction: () => parseSetAuthoritiesInstruction,
-  parseSweepEpochInstruction: () => parseSweepEpochInstruction,
-  parseTransferAuthorityInstruction: () => parseTransferAuthorityInstruction3,
-  rewardsSettlementProgram: () => rewardsSettlementProgram
-});
-
 // ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/claimStatus.js
 var CLAIM_STATUS_DISCRIMINATOR = new Uint8Array([
   22,
@@ -12481,60 +15661,6 @@ var CLAIM_STATUS_DISCRIMINATOR = new Uint8Array([
   150,
   96
 ]);
-function getClaimStatusDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(CLAIM_STATUS_DISCRIMINATOR);
-}
-function getClaimStatusEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()],
-    ["operator", getAddressEncoder2()],
-    ["nodeId", getU64Encoder2()],
-    ["amount", getU64Encoder2()],
-    ["claimedAt", getI64Encoder()],
-    ["disputed", getBooleanEncoder2()],
-    ["bump", getU8Encoder2()]
-  ]), (value) => ({ ...value, discriminator: CLAIM_STATUS_DISCRIMINATOR }));
-}
-function getClaimStatusDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()],
-    ["operator", getAddressDecoder2()],
-    ["nodeId", getU64Decoder2()],
-    ["amount", getU64Decoder2()],
-    ["claimedAt", getI64Decoder()],
-    ["disputed", getBooleanDecoder2()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getClaimStatusCodec() {
-  return combineCodec2(getClaimStatusEncoder(), getClaimStatusDecoder());
-}
-function decodeClaimStatus(encodedAccount) {
-  return decodeAccount2(encodedAccount, getClaimStatusDecoder());
-}
-async function fetchClaimStatus(rpc2, address3, config) {
-  const maybeAccount = await fetchMaybeClaimStatus(rpc2, address3, config);
-  assertAccountExists2(maybeAccount);
-  return maybeAccount;
-}
-async function fetchMaybeClaimStatus(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount2(rpc2, address3, config);
-  return decodeClaimStatus(maybeAccount);
-}
-async function fetchAllClaimStatus(rpc2, addresses, config) {
-  const maybeAccounts = await fetchAllMaybeClaimStatus(rpc2, addresses, config);
-  assertAccountsExist2(maybeAccounts);
-  return maybeAccounts;
-}
-async function fetchAllMaybeClaimStatus(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts2(rpc2, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodeClaimStatus(maybeAccount));
-}
-function getClaimStatusSize() {
-  return 74;
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/distributor.js
 var DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
@@ -12547,70 +15673,6 @@ var DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
   135,
   4
 ]);
-function getDistributorDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(DISTRIBUTOR_DISCRIMINATOR);
-}
-function getDistributorEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["authority", getAddressEncoder2()],
-    ["posterAuthority", getAddressEncoder2()],
-    ["disputeAuthority", getAddressEncoder2()],
-    ["rewardMint", getAddressEncoder2()],
-    ["rewardVault", getAddressEncoder2()],
-    ["treasury", getAddressEncoder2()],
-    ["disputeWindowSeconds", getI64Encoder()],
-    ["clawbackWindowSeconds", getI64Encoder()],
-    ["currentEpoch", getU64Encoder2()],
-    ["cumulativeObligated", getU64Encoder2()],
-    ["cumulativeClaimed", getU64Encoder2()],
-    ["bump", getU8Encoder2()]
-  ]), (value) => ({ ...value, discriminator: DISTRIBUTOR_DISCRIMINATOR }));
-}
-function getDistributorDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["authority", getAddressDecoder2()],
-    ["posterAuthority", getAddressDecoder2()],
-    ["disputeAuthority", getAddressDecoder2()],
-    ["rewardMint", getAddressDecoder2()],
-    ["rewardVault", getAddressDecoder2()],
-    ["treasury", getAddressDecoder2()],
-    ["disputeWindowSeconds", getI64Decoder()],
-    ["clawbackWindowSeconds", getI64Decoder()],
-    ["currentEpoch", getU64Decoder2()],
-    ["cumulativeObligated", getU64Decoder2()],
-    ["cumulativeClaimed", getU64Decoder2()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getDistributorCodec() {
-  return combineCodec2(getDistributorEncoder(), getDistributorDecoder());
-}
-function decodeDistributor(encodedAccount) {
-  return decodeAccount2(encodedAccount, getDistributorDecoder());
-}
-async function fetchDistributor(rpc2, address3, config) {
-  const maybeAccount = await fetchMaybeDistributor(rpc2, address3, config);
-  assertAccountExists2(maybeAccount);
-  return maybeAccount;
-}
-async function fetchMaybeDistributor(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount2(rpc2, address3, config);
-  return decodeDistributor(maybeAccount);
-}
-async function fetchAllDistributor(rpc2, addresses, config) {
-  const maybeAccounts = await fetchAllMaybeDistributor(rpc2, addresses, config);
-  assertAccountsExist2(maybeAccounts);
-  return maybeAccounts;
-}
-async function fetchAllMaybeDistributor(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts2(rpc2, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodeDistributor(maybeAccount));
-}
-function getDistributorSize() {
-  return 241;
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/epochDistribution.js
 var EPOCH_DISTRIBUTION_DISCRIMINATOR = new Uint8Array([
@@ -12623,119 +15685,6 @@ var EPOCH_DISTRIBUTION_DISCRIMINATOR = new Uint8Array([
   81,
   234
 ]);
-function getEpochDistributionDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(EPOCH_DISTRIBUTION_DISCRIMINATOR);
-}
-function getEpochDistributionEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()],
-    ["merkleRoot", fixEncoderSize2(getBytesEncoder2(), 32)],
-    ["totalReward", getU64Encoder2()],
-    ["totalClaimed", getU64Encoder2()],
-    ["numNodes", getU32Encoder2()],
-    ["postedAt", getI64Encoder()],
-    ["swept", getBooleanEncoder2()],
-    ["bump", getU8Encoder2()]
-  ]), (value) => ({ ...value, discriminator: EPOCH_DISTRIBUTION_DISCRIMINATOR }));
-}
-function getEpochDistributionDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()],
-    ["merkleRoot", fixDecoderSize2(getBytesDecoder2(), 32)],
-    ["totalReward", getU64Decoder2()],
-    ["totalClaimed", getU64Decoder2()],
-    ["numNodes", getU32Decoder2()],
-    ["postedAt", getI64Decoder()],
-    ["swept", getBooleanDecoder2()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getEpochDistributionCodec() {
-  return combineCodec2(getEpochDistributionEncoder(), getEpochDistributionDecoder());
-}
-function decodeEpochDistribution(encodedAccount) {
-  return decodeAccount2(encodedAccount, getEpochDistributionDecoder());
-}
-async function fetchEpochDistribution(rpc2, address3, config) {
-  const maybeAccount = await fetchMaybeEpochDistribution(rpc2, address3, config);
-  assertAccountExists2(maybeAccount);
-  return maybeAccount;
-}
-async function fetchMaybeEpochDistribution(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount2(rpc2, address3, config);
-  return decodeEpochDistribution(maybeAccount);
-}
-async function fetchAllEpochDistribution(rpc2, addresses, config) {
-  const maybeAccounts = await fetchAllMaybeEpochDistribution(rpc2, addresses, config);
-  assertAccountsExist2(maybeAccounts);
-  return maybeAccounts;
-}
-async function fetchAllMaybeEpochDistribution(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts2(rpc2, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodeEpochDistribution(maybeAccount));
-}
-function getEpochDistributionSize() {
-  return 78;
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/claimStatus.js
-async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
-  return await getProgramDerivedAddress2({
-    programAddress,
-    seeds: [
-      getBytesEncoder2().encode(new Uint8Array([99, 108, 97, 105, 109])),
-      getU64Encoder2().encode(seeds.epoch),
-      getAddressEncoder2().encode(seeds.operator),
-      getU64Encoder2().encode(seeds.nodeId)
-    ]
-  });
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/distributor.js
-async function findDistributorPda(config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
-  return await getProgramDerivedAddress2({
-    programAddress,
-    seeds: [
-      getBytesEncoder2().encode(new Uint8Array([100, 105, 115, 116, 114, 105, 98, 117, 116, 111, 114]))
-    ]
-  });
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/epochDistribution.js
-async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
-  return await getProgramDerivedAddress2({
-    programAddress,
-    seeds: [
-      getBytesEncoder2().encode(new Uint8Array([101, 112, 111, 99, 104])),
-      getU64Encoder2().encode(seeds.epoch)
-    ]
-  });
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/programAuthority.js
-async function findProgramAuthorityPda3(config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
-  return await getProgramDerivedAddress2({
-    programAddress,
-    seeds: [getBytesEncoder2().encode(new Uint8Array([97, 117, 116, 104, 111, 114, 105, 116, 121]))]
-  });
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/rewardVault.js
-async function findRewardVaultPda(config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
-  return await getProgramDerivedAddress2({
-    programAddress,
-    seeds: [
-      getBytesEncoder2().encode(new Uint8Array([114, 101, 119, 97, 114, 100, 95, 118, 97, 117, 108, 116]))
-    ]
-  });
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/claim.js
 var CLAIM_DISCRIMINATOR2 = new Uint8Array([
@@ -12748,155 +15697,6 @@ var CLAIM_DISCRIMINATOR2 = new Uint8Array([
   108,
   210
 ]);
-function getClaimDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(CLAIM_DISCRIMINATOR2);
-}
-function getClaimInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()],
-    ["nodeId", getU64Encoder2()],
-    ["amount", getU64Encoder2()],
-    ["proof", getArrayEncoder2(fixEncoderSize2(getBytesEncoder2(), 32))]
-  ]), (value) => ({ ...value, discriminator: CLAIM_DISCRIMINATOR2 }));
-}
-function getClaimInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()],
-    ["nodeId", getU64Decoder2()],
-    ["amount", getU64Decoder2()],
-    ["proof", getArrayDecoder2(fixDecoderSize2(getBytesDecoder2(), 32))]
-  ]);
-}
-function getClaimInstructionDataCodec() {
-  return combineCodec2(getClaimInstructionDataEncoder(), getClaimInstructionDataDecoder());
-}
-async function getClaimInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    claimant: { value: input.claimant ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true },
-    operator: { value: input.operator ?? null, isWritable: false },
-    claimStatus: { value: input.claimStatus ?? null, isWritable: true },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    operatorTokenAccount: { value: input.operatorTokenAccount ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.epochDistribution.value) {
-    accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
-    });
-  }
-  if (!accounts.claimStatus.value) {
-    accounts.claimStatus.value = await findClaimStatusPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch),
-      operator: getAddressFromResolvedInstructionAccount2("operator", accounts.operator.value),
-      nodeId: getNonNullResolvedInstructionInput2("nodeId", args.nodeId)
-    });
-  }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("claimant", accounts.claimant),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution),
-      getAccountMeta("operator", accounts.operator),
-      getAccountMeta("claimStatus", accounts.claimStatus),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("operatorTokenAccount", accounts.operatorTokenAccount),
-      getAccountMeta("tokenProgram", accounts.tokenProgram),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getClaimInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getClaimInstruction2(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    claimant: { value: input.claimant ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true },
-    operator: { value: input.operator ?? null, isWritable: false },
-    claimStatus: { value: input.claimStatus ?? null, isWritable: true },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    operatorTokenAccount: { value: input.operatorTokenAccount ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("claimant", accounts.claimant),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution),
-      getAccountMeta("operator", accounts.operator),
-      getAccountMeta("claimStatus", accounts.claimStatus),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("operatorTokenAccount", accounts.operatorTokenAccount),
-      getAccountMeta("tokenProgram", accounts.tokenProgram),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getClaimInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parseClaimInstruction2(instruction) {
-  if (instruction.accounts.length < 10) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 10
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      claimant: getNextAccount(),
-      distributor: getNextAccount(),
-      epochDistribution: getNextAccount(),
-      operator: getNextAccount(),
-      claimStatus: getNextAccount(),
-      rewardMint: getNextAccount(),
-      rewardVault: getNextAccount(),
-      operatorTokenAccount: getNextAccount(),
-      tokenProgram: getNextAccount(),
-      systemProgram: getNextAccount()
-    },
-    data: getClaimInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/dispute.js
 var DISPUTE_DISCRIMINATOR = new Uint8Array([
@@ -12909,248 +15709,6 @@ var DISPUTE_DISCRIMINATOR = new Uint8Array([
   135,
   73
 ]);
-function getDisputeDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(DISPUTE_DISCRIMINATOR);
-}
-function getDisputeInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()],
-    ["nodeId", getU64Encoder2()],
-    ["amount", getU64Encoder2()],
-    ["severityBps", getU32Encoder2()],
-    ["slashAmount", getU64Encoder2()]
-  ]), (value) => ({ ...value, discriminator: DISPUTE_DISCRIMINATOR }));
-}
-function getDisputeInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()],
-    ["nodeId", getU64Decoder2()],
-    ["amount", getU64Decoder2()],
-    ["severityBps", getU32Decoder2()],
-    ["slashAmount", getU64Decoder2()]
-  ]);
-}
-function getDisputeInstructionDataCodec() {
-  return combineCodec2(getDisputeInstructionDataEncoder(), getDisputeInstructionDataDecoder());
-}
-async function getDisputeInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: false },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: false },
-    operator: { value: input.operator ?? null, isWritable: false },
-    claimStatus: { value: input.claimStatus ?? null, isWritable: true },
-    programAuthority: { value: input.programAuthority ?? null, isWritable: false },
-    stakingProgram: { value: input.stakingProgram ?? null, isWritable: false },
-    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
-    stakingPosition: { value: input.stakingPosition ?? null, isWritable: true },
-    stakingVault: { value: input.stakingVault ?? null, isWritable: true },
-    stakingTreasury: { value: input.stakingTreasury ?? null, isWritable: true },
-    stakeMint: { value: input.stakeMint ?? null, isWritable: false },
-    stakingProgramAuthority: { value: input.stakingProgramAuthority ?? null, isWritable: false },
-    reputationProgram: { value: input.reputationProgram ?? null, isWritable: false },
-    reputationConfig: { value: input.reputationConfig ?? null, isWritable: false },
-    reputationState: { value: input.reputationState ?? null, isWritable: true },
-    reputationProgramAuthority: {
-      value: input.reputationProgramAuthority ?? null,
-      isWritable: false
-    },
-    nodeRegistryProgram: { value: input.nodeRegistryProgram ?? null, isWritable: false },
-    registry: { value: input.registry ?? null, isWritable: false },
-    node: { value: input.node ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.epochDistribution.value) {
-    accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
-    });
-  }
-  if (!accounts.claimStatus.value) {
-    accounts.claimStatus.value = await findClaimStatusPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch),
-      operator: getAddressFromResolvedInstructionAccount2("operator", accounts.operator.value),
-      nodeId: getNonNullResolvedInstructionInput2("nodeId", args.nodeId)
-    });
-  }
-  if (!accounts.programAuthority.value) {
-    accounts.programAuthority.value = await findProgramAuthorityPda3();
-  }
-  if (!accounts.stakingProgram.value) {
-    accounts.stakingProgram.value = "86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK";
-  }
-  if (!accounts.reputationProgram.value) {
-    accounts.reputationProgram.value = "6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u";
-  }
-  if (!accounts.nodeRegistryProgram.value) {
-    accounts.nodeRegistryProgram.value = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd";
-  }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("disputeAuthority", accounts.disputeAuthority),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution),
-      getAccountMeta("operator", accounts.operator),
-      getAccountMeta("claimStatus", accounts.claimStatus),
-      getAccountMeta("programAuthority", accounts.programAuthority),
-      getAccountMeta("stakingProgram", accounts.stakingProgram),
-      getAccountMeta("stakingConfig", accounts.stakingConfig),
-      getAccountMeta("stakingPosition", accounts.stakingPosition),
-      getAccountMeta("stakingVault", accounts.stakingVault),
-      getAccountMeta("stakingTreasury", accounts.stakingTreasury),
-      getAccountMeta("stakeMint", accounts.stakeMint),
-      getAccountMeta("stakingProgramAuthority", accounts.stakingProgramAuthority),
-      getAccountMeta("reputationProgram", accounts.reputationProgram),
-      getAccountMeta("reputationConfig", accounts.reputationConfig),
-      getAccountMeta("reputationState", accounts.reputationState),
-      getAccountMeta("reputationProgramAuthority", accounts.reputationProgramAuthority),
-      getAccountMeta("nodeRegistryProgram", accounts.nodeRegistryProgram),
-      getAccountMeta("registry", accounts.registry),
-      getAccountMeta("node", accounts.node),
-      getAccountMeta("tokenProgram", accounts.tokenProgram),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getDisputeInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getDisputeInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: false },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: false },
-    operator: { value: input.operator ?? null, isWritable: false },
-    claimStatus: { value: input.claimStatus ?? null, isWritable: true },
-    programAuthority: { value: input.programAuthority ?? null, isWritable: false },
-    stakingProgram: { value: input.stakingProgram ?? null, isWritable: false },
-    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
-    stakingPosition: { value: input.stakingPosition ?? null, isWritable: true },
-    stakingVault: { value: input.stakingVault ?? null, isWritable: true },
-    stakingTreasury: { value: input.stakingTreasury ?? null, isWritable: true },
-    stakeMint: { value: input.stakeMint ?? null, isWritable: false },
-    stakingProgramAuthority: { value: input.stakingProgramAuthority ?? null, isWritable: false },
-    reputationProgram: { value: input.reputationProgram ?? null, isWritable: false },
-    reputationConfig: { value: input.reputationConfig ?? null, isWritable: false },
-    reputationState: { value: input.reputationState ?? null, isWritable: true },
-    reputationProgramAuthority: {
-      value: input.reputationProgramAuthority ?? null,
-      isWritable: false
-    },
-    nodeRegistryProgram: { value: input.nodeRegistryProgram ?? null, isWritable: false },
-    registry: { value: input.registry ?? null, isWritable: false },
-    node: { value: input.node ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.stakingProgram.value) {
-    accounts.stakingProgram.value = "86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK";
-  }
-  if (!accounts.reputationProgram.value) {
-    accounts.reputationProgram.value = "6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u";
-  }
-  if (!accounts.nodeRegistryProgram.value) {
-    accounts.nodeRegistryProgram.value = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd";
-  }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("disputeAuthority", accounts.disputeAuthority),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution),
-      getAccountMeta("operator", accounts.operator),
-      getAccountMeta("claimStatus", accounts.claimStatus),
-      getAccountMeta("programAuthority", accounts.programAuthority),
-      getAccountMeta("stakingProgram", accounts.stakingProgram),
-      getAccountMeta("stakingConfig", accounts.stakingConfig),
-      getAccountMeta("stakingPosition", accounts.stakingPosition),
-      getAccountMeta("stakingVault", accounts.stakingVault),
-      getAccountMeta("stakingTreasury", accounts.stakingTreasury),
-      getAccountMeta("stakeMint", accounts.stakeMint),
-      getAccountMeta("stakingProgramAuthority", accounts.stakingProgramAuthority),
-      getAccountMeta("reputationProgram", accounts.reputationProgram),
-      getAccountMeta("reputationConfig", accounts.reputationConfig),
-      getAccountMeta("reputationState", accounts.reputationState),
-      getAccountMeta("reputationProgramAuthority", accounts.reputationProgramAuthority),
-      getAccountMeta("nodeRegistryProgram", accounts.nodeRegistryProgram),
-      getAccountMeta("registry", accounts.registry),
-      getAccountMeta("node", accounts.node),
-      getAccountMeta("tokenProgram", accounts.tokenProgram),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getDisputeInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parseDisputeInstruction(instruction) {
-  if (instruction.accounts.length < 22) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 22
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  const getNextOptionalAccount = () => {
-    const accountMeta = getNextAccount();
-    return accountMeta.address === REWARDS_SETTLEMENT_PROGRAM_ADDRESS ? void 0 : accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      disputeAuthority: getNextAccount(),
-      distributor: getNextAccount(),
-      epochDistribution: getNextAccount(),
-      operator: getNextAccount(),
-      claimStatus: getNextAccount(),
-      programAuthority: getNextAccount(),
-      stakingProgram: getNextAccount(),
-      stakingConfig: getNextAccount(),
-      stakingPosition: getNextAccount(),
-      stakingVault: getNextAccount(),
-      stakingTreasury: getNextAccount(),
-      stakeMint: getNextAccount(),
-      stakingProgramAuthority: getNextAccount(),
-      reputationProgram: getNextAccount(),
-      reputationConfig: getNextAccount(),
-      reputationState: getNextAccount(),
-      reputationProgramAuthority: getNextAccount(),
-      nodeRegistryProgram: getNextAccount(),
-      registry: getNextAccount(),
-      node: getNextOptionalAccount(),
-      tokenProgram: getNextAccount(),
-      systemProgram: getNextAccount()
-    },
-    data: getDisputeInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/fundVault.js
 var FUND_VAULT_DISCRIMINATOR = new Uint8Array([
@@ -13163,111 +15721,6 @@ var FUND_VAULT_DISCRIMINATOR = new Uint8Array([
   134,
   73
 ]);
-function getFundVaultDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(FUND_VAULT_DISCRIMINATOR);
-}
-function getFundVaultInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["amount", getU64Encoder2()]
-  ]), (value) => ({ ...value, discriminator: FUND_VAULT_DISCRIMINATOR }));
-}
-function getFundVaultInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["amount", getU64Decoder2()]
-  ]);
-}
-function getFundVaultInstructionDataCodec() {
-  return combineCodec2(getFundVaultInstructionDataEncoder(), getFundVaultInstructionDataDecoder());
-}
-async function getFundVaultInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    funder: { value: input.funder ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: false },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
-    funderTokenAccount: { value: input.funderTokenAccount ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("funder", accounts.funder),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("funderTokenAccount", accounts.funderTokenAccount),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("tokenProgram", accounts.tokenProgram)
-    ],
-    data: getFundVaultInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getFundVaultInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    funder: { value: input.funder ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: false },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
-    funderTokenAccount: { value: input.funderTokenAccount ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("funder", accounts.funder),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("funderTokenAccount", accounts.funderTokenAccount),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("tokenProgram", accounts.tokenProgram)
-    ],
-    data: getFundVaultInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parseFundVaultInstruction(instruction) {
-  if (instruction.accounts.length < 6) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 6
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      funder: getNextAccount(),
-      distributor: getNextAccount(),
-      rewardMint: getNextAccount(),
-      funderTokenAccount: getNextAccount(),
-      rewardVault: getNextAccount(),
-      tokenProgram: getNextAccount()
-    },
-    data: getFundVaultInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/initializeDistributor.js
 var INITIALIZE_DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
@@ -13280,137 +15733,6 @@ var INITIALIZE_DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
   37,
   18
 ]);
-function getInitializeDistributorDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(INITIALIZE_DISTRIBUTOR_DISCRIMINATOR);
-}
-function getInitializeDistributorInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["disputeWindowSeconds", getI64Encoder()],
-    ["clawbackWindowSeconds", getI64Encoder()]
-  ]), (value) => ({ ...value, discriminator: INITIALIZE_DISTRIBUTOR_DISCRIMINATOR }));
-}
-function getInitializeDistributorInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["disputeWindowSeconds", getI64Decoder()],
-    ["clawbackWindowSeconds", getI64Decoder()]
-  ]);
-}
-function getInitializeDistributorInstructionDataCodec() {
-  return combineCodec2(getInitializeDistributorInstructionDataEncoder(), getInitializeDistributorInstructionDataDecoder());
-}
-async function getInitializeDistributorInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: true },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
-    posterAuthority: { value: input.posterAuthority ?? null, isWritable: false },
-    disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: false },
-    treasury: { value: input.treasury ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.rewardVault.value) {
-    accounts.rewardVault.value = await findRewardVaultPda();
-  }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("posterAuthority", accounts.posterAuthority),
-      getAccountMeta("disputeAuthority", accounts.disputeAuthority),
-      getAccountMeta("treasury", accounts.treasury),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("tokenProgram", accounts.tokenProgram),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getInitializeDistributorInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getInitializeDistributorInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: true },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
-    posterAuthority: { value: input.posterAuthority ?? null, isWritable: false },
-    disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: false },
-    treasury: { value: input.treasury ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("posterAuthority", accounts.posterAuthority),
-      getAccountMeta("disputeAuthority", accounts.disputeAuthority),
-      getAccountMeta("treasury", accounts.treasury),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("tokenProgram", accounts.tokenProgram),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getInitializeDistributorInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parseInitializeDistributorInstruction(instruction) {
-  if (instruction.accounts.length < 9) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 9
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      authority: getNextAccount(),
-      rewardMint: getNextAccount(),
-      posterAuthority: getNextAccount(),
-      disputeAuthority: getNextAccount(),
-      treasury: getNextAccount(),
-      distributor: getNextAccount(),
-      rewardVault: getNextAccount(),
-      tokenProgram: getNextAccount(),
-      systemProgram: getNextAccount()
-    },
-    data: getInitializeDistributorInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/payTraffic.js
 var PAY_TRAFFIC_DISCRIMINATOR = new Uint8Array([
@@ -13423,129 +15745,6 @@ var PAY_TRAFFIC_DISCRIMINATOR = new Uint8Array([
   93,
   66
 ]);
-function getPayTrafficDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(PAY_TRAFFIC_DISCRIMINATOR);
-}
-function getPayTrafficInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["amount", getU64Encoder2()]
-  ]), (value) => ({ ...value, discriminator: PAY_TRAFFIC_DISCRIMINATOR }));
-}
-function getPayTrafficInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["amount", getU64Decoder2()]
-  ]);
-}
-function getPayTrafficInstructionDataCodec() {
-  return combineCodec2(getPayTrafficInstructionDataEncoder(), getPayTrafficInstructionDataDecoder());
-}
-async function getPayTrafficInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    payer: { value: input.payer ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: false },
-    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
-    payerTokenAccount: { value: input.payerTokenAccount ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    treasury: { value: input.treasury ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.protocolConfig.value) {
-    accounts.protocolConfig.value = await getProgramDerivedAddress2({
-      programAddress: "q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA",
-      seeds: [
-        getBytesEncoder2().encode(new Uint8Array([112, 114, 111, 116, 111, 99, 111, 108, 95, 99, 111, 110, 102, 105, 103]))
-      ]
-    });
-  }
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("payer", accounts.payer),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("protocolConfig", accounts.protocolConfig),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("payerTokenAccount", accounts.payerTokenAccount),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("treasury", accounts.treasury),
-      getAccountMeta("tokenProgram", accounts.tokenProgram)
-    ],
-    data: getPayTrafficInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getPayTrafficInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    payer: { value: input.payer ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: false },
-    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
-    payerTokenAccount: { value: input.payerTokenAccount ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
-    treasury: { value: input.treasury ?? null, isWritable: true },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("payer", accounts.payer),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("protocolConfig", accounts.protocolConfig),
-      getAccountMeta("rewardMint", accounts.rewardMint),
-      getAccountMeta("payerTokenAccount", accounts.payerTokenAccount),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("treasury", accounts.treasury),
-      getAccountMeta("tokenProgram", accounts.tokenProgram)
-    ],
-    data: getPayTrafficInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parsePayTrafficInstruction(instruction) {
-  if (instruction.accounts.length < 8) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 8
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      payer: getNextAccount(),
-      distributor: getNextAccount(),
-      protocolConfig: getNextAccount(),
-      rewardMint: getNextAccount(),
-      payerTokenAccount: getNextAccount(),
-      rewardVault: getNextAccount(),
-      treasury: getNextAccount(),
-      tokenProgram: getNextAccount()
-    },
-    data: getPayTrafficInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/postEpoch.js
 var POST_EPOCH_DISCRIMINATOR = new Uint8Array([
@@ -13558,117 +15757,6 @@ var POST_EPOCH_DISCRIMINATOR = new Uint8Array([
   200,
   51
 ]);
-function getPostEpochDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(POST_EPOCH_DISCRIMINATOR);
-}
-function getPostEpochInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()],
-    ["merkleRoot", fixEncoderSize2(getBytesEncoder2(), 32)],
-    ["totalReward", getU64Encoder2()],
-    ["numNodes", getU32Encoder2()]
-  ]), (value) => ({ ...value, discriminator: POST_EPOCH_DISCRIMINATOR }));
-}
-function getPostEpochInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()],
-    ["merkleRoot", fixDecoderSize2(getBytesDecoder2(), 32)],
-    ["totalReward", getU64Decoder2()],
-    ["numNodes", getU32Decoder2()]
-  ]);
-}
-function getPostEpochInstructionDataCodec() {
-  return combineCodec2(getPostEpochInstructionDataEncoder(), getPostEpochInstructionDataDecoder());
-}
-async function getPostEpochInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    poster: { value: input.poster ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: false },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.epochDistribution.value) {
-    accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
-    });
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("poster", accounts.poster),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("epochDistribution", accounts.epochDistribution),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getPostEpochInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getPostEpochInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    poster: { value: input.poster ?? null, isWritable: true },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    rewardVault: { value: input.rewardVault ?? null, isWritable: false },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("poster", accounts.poster),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("rewardVault", accounts.rewardVault),
-      getAccountMeta("epochDistribution", accounts.epochDistribution),
-      getAccountMeta("systemProgram", accounts.systemProgram)
-    ],
-    data: getPostEpochInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parsePostEpochInstruction(instruction) {
-  if (instruction.accounts.length < 5) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 5
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      poster: getNextAccount(),
-      distributor: getNextAccount(),
-      rewardVault: getNextAccount(),
-      epochDistribution: getNextAccount(),
-      systemProgram: getNextAccount()
-    },
-    data: getPostEpochInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/setAuthorities.js
 var SET_AUTHORITIES_DISCRIMINATOR = new Uint8Array([
@@ -13681,84 +15769,6 @@ var SET_AUTHORITIES_DISCRIMINATOR = new Uint8Array([
   190,
   107
 ]);
-function getSetAuthoritiesDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_AUTHORITIES_DISCRIMINATOR);
-}
-function getSetAuthoritiesInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["posterAuthority", getAddressEncoder2()],
-    ["disputeAuthority", getAddressEncoder2()]
-  ]), (value) => ({ ...value, discriminator: SET_AUTHORITIES_DISCRIMINATOR }));
-}
-function getSetAuthoritiesInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["posterAuthority", getAddressDecoder2()],
-    ["disputeAuthority", getAddressDecoder2()]
-  ]);
-}
-function getSetAuthoritiesInstructionDataCodec() {
-  return combineCodec2(getSetAuthoritiesInstructionDataEncoder(), getSetAuthoritiesInstructionDataDecoder());
-}
-async function getSetAuthoritiesInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor)
-    ],
-    data: getSetAuthoritiesInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getSetAuthoritiesInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor)
-    ],
-    data: getSetAuthoritiesInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parseSetAuthoritiesInstruction(instruction) {
-  if (instruction.accounts.length < 2) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 2
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: { authority: getNextAccount(), distributor: getNextAccount() },
-    data: getSetAuthoritiesInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/sweepEpoch.js
 var SWEEP_EPOCH_DISCRIMINATOR = new Uint8Array([
@@ -13771,95 +15781,6 @@ var SWEEP_EPOCH_DISCRIMINATOR = new Uint8Array([
   52,
   28
 ]);
-function getSweepEpochDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SWEEP_EPOCH_DISCRIMINATOR);
-}
-function getSweepEpochInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()]
-  ]), (value) => ({ ...value, discriminator: SWEEP_EPOCH_DISCRIMINATOR }));
-}
-function getSweepEpochInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()]
-  ]);
-}
-function getSweepEpochInstructionDataCodec() {
-  return combineCodec2(getSweepEpochInstructionDataEncoder(), getSweepEpochInstructionDataDecoder());
-}
-async function getSweepEpochInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.epochDistribution.value) {
-    accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
-    });
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution)
-    ],
-    data: getSweepEpochInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getSweepEpochInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution)
-    ],
-    data: getSweepEpochInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parseSweepEpochInstruction(instruction) {
-  if (instruction.accounts.length < 3) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 3
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: {
-      authority: getNextAccount(),
-      distributor: getNextAccount(),
-      epochDistribution: getNextAccount()
-    },
-    data: getSweepEpochInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/transferAuthority.js
 var TRANSFER_AUTHORITY_DISCRIMINATOR3 = new Uint8Array([
@@ -13872,107 +15793,14 @@ var TRANSFER_AUTHORITY_DISCRIMINATOR3 = new Uint8Array([
   55,
   161
 ]);
-function getTransferAuthorityDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(TRANSFER_AUTHORITY_DISCRIMINATOR3);
-}
-function getTransferAuthorityInstructionDataEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["newAuthority", getAddressEncoder2()]
-  ]), (value) => ({ ...value, discriminator: TRANSFER_AUTHORITY_DISCRIMINATOR3 }));
-}
-function getTransferAuthorityInstructionDataDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["newAuthority", getAddressDecoder2()]
-  ]);
-}
-function getTransferAuthorityInstructionDataCodec() {
-  return combineCodec2(getTransferAuthorityInstructionDataEncoder(), getTransferAuthorityInstructionDataDecoder());
-}
-async function getTransferAuthorityInstructionAsync3(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor)
-    ],
-    data: getTransferAuthorityInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function getTransferAuthorityInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor)
-    ],
-    data: getTransferAuthorityInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-function parseTransferAuthorityInstruction3(instruction) {
-  if (instruction.accounts.length < 2) {
-    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
-      actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 2
-    });
-  }
-  let accountIndex = 0;
-  const getNextAccount = () => {
-    const accountMeta = instruction.accounts[accountIndex];
-    accountIndex += 1;
-    return accountMeta;
-  };
-  return {
-    programAddress: instruction.programAddress,
-    accounts: { authority: getNextAccount(), distributor: getNextAccount() },
-    data: getTransferAuthorityInstructionDataDecoder().decode(instruction.data)
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/programs/rewardsSettlement.js
-var REWARDS_SETTLEMENT_PROGRAM_ADDRESS = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz";
 var RewardsSettlementAccount;
 (function(RewardsSettlementAccount2) {
   RewardsSettlementAccount2[RewardsSettlementAccount2["ClaimStatus"] = 0] = "ClaimStatus";
   RewardsSettlementAccount2[RewardsSettlementAccount2["Distributor"] = 1] = "Distributor";
   RewardsSettlementAccount2[RewardsSettlementAccount2["EpochDistribution"] = 2] = "EpochDistribution";
 })(RewardsSettlementAccount || (RewardsSettlementAccount = {}));
-function identifyRewardsSettlementAccount(account) {
-  const data = "data" in account ? account.data : account;
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([22, 183, 249, 157, 247, 95, 150, 96])), 0)) {
-    return RewardsSettlementAccount.ClaimStatus;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([90, 90, 217, 147, 6, 32, 135, 4])), 0)) {
-    return RewardsSettlementAccount.Distributor;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([44, 121, 108, 107, 92, 50, 81, 234])), 0)) {
-    return RewardsSettlementAccount.EpochDistribution;
-  }
-  throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT2, {
-    accountData: data,
-    programName: "rewardsSettlement"
-  });
-}
 var RewardsSettlementInstruction;
 (function(RewardsSettlementInstruction2) {
   RewardsSettlementInstruction2[RewardsSettlementInstruction2["Claim"] = 0] = "Claim";
@@ -13985,147 +15813,6 @@ var RewardsSettlementInstruction;
   RewardsSettlementInstruction2[RewardsSettlementInstruction2["SweepEpoch"] = 7] = "SweepEpoch";
   RewardsSettlementInstruction2[RewardsSettlementInstruction2["TransferAuthority"] = 8] = "TransferAuthority";
 })(RewardsSettlementInstruction || (RewardsSettlementInstruction = {}));
-function identifyRewardsSettlementInstruction(instruction) {
-  const data = "data" in instruction ? instruction.data : instruction;
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([62, 198, 214, 193, 213, 159, 108, 210])), 0)) {
-    return RewardsSettlementInstruction.Claim;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([216, 92, 128, 146, 202, 85, 135, 73])), 0)) {
-    return RewardsSettlementInstruction.Dispute;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([26, 33, 207, 242, 119, 108, 134, 73])), 0)) {
-    return RewardsSettlementInstruction.FundVault;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([189, 128, 103, 10, 73, 227, 37, 18])), 0)) {
-    return RewardsSettlementInstruction.InitializeDistributor;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([41, 55, 84, 58, 0, 176, 93, 66])), 0)) {
-    return RewardsSettlementInstruction.PayTraffic;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([45, 8, 238, 205, 94, 1, 200, 51])), 0)) {
-    return RewardsSettlementInstruction.PostEpoch;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([124, 254, 44, 240, 197, 70, 190, 107])), 0)) {
-    return RewardsSettlementInstruction.SetAuthorities;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([187, 9, 52, 111, 60, 24, 52, 28])), 0)) {
-    return RewardsSettlementInstruction.SweepEpoch;
-  }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([48, 169, 76, 72, 229, 180, 55, 161])), 0)) {
-    return RewardsSettlementInstruction.TransferAuthority;
-  }
-  throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION2, {
-    instructionData: data,
-    programName: "rewardsSettlement"
-  });
-}
-function parseRewardsSettlementInstruction(instruction) {
-  const instructionType = identifyRewardsSettlementInstruction(instruction);
-  switch (instructionType) {
-    case RewardsSettlementInstruction.Claim: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.Claim,
-        ...parseClaimInstruction2(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.Dispute: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.Dispute,
-        ...parseDisputeInstruction(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.FundVault: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.FundVault,
-        ...parseFundVaultInstruction(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.InitializeDistributor: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.InitializeDistributor,
-        ...parseInitializeDistributorInstruction(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.PayTraffic: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.PayTraffic,
-        ...parsePayTrafficInstruction(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.PostEpoch: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.PostEpoch,
-        ...parsePostEpochInstruction(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.SetAuthorities: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.SetAuthorities,
-        ...parseSetAuthoritiesInstruction(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.SweepEpoch: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.SweepEpoch,
-        ...parseSweepEpochInstruction(instruction)
-      };
-    }
-    case RewardsSettlementInstruction.TransferAuthority: {
-      assertIsInstructionWithAccounts2(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.TransferAuthority,
-        ...parseTransferAuthorityInstruction3(instruction)
-      };
-    }
-    default:
-      throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE2, {
-        instructionType,
-        programName: "rewardsSettlement"
-      });
-  }
-}
-function rewardsSettlementProgram() {
-  return (client) => {
-    return extendClient2(client, {
-      rewardsSettlement: {
-        accounts: {
-          claimStatus: addSelfFetchFunctions2(client, getClaimStatusCodec()),
-          distributor: addSelfFetchFunctions2(client, getDistributorCodec()),
-          epochDistribution: addSelfFetchFunctions2(client, getEpochDistributionCodec())
-        },
-        instructions: {
-          claim: (input) => addSelfPlanAndSendFunctions2(client, getClaimInstructionAsync(input)),
-          dispute: (input) => addSelfPlanAndSendFunctions2(client, getDisputeInstructionAsync(input)),
-          fundVault: (input) => addSelfPlanAndSendFunctions2(client, getFundVaultInstructionAsync(input)),
-          initializeDistributor: (input) => addSelfPlanAndSendFunctions2(client, getInitializeDistributorInstructionAsync(input)),
-          payTraffic: (input) => addSelfPlanAndSendFunctions2(client, getPayTrafficInstructionAsync({ ...input, payer: input.payer ?? client.payer })),
-          postEpoch: (input) => addSelfPlanAndSendFunctions2(client, getPostEpochInstructionAsync(input)),
-          setAuthorities: (input) => addSelfPlanAndSendFunctions2(client, getSetAuthoritiesInstructionAsync(input)),
-          sweepEpoch: (input) => addSelfPlanAndSendFunctions2(client, getSweepEpochInstructionAsync(input)),
-          transferAuthority: (input) => addSelfPlanAndSendFunctions2(client, getTransferAuthorityInstructionAsync3(input))
-        },
-        pdas: {
-          distributor: findDistributorPda,
-          epochDistribution: findEpochDistributionPda,
-          claimStatus: findClaimStatusPda,
-          programAuthority: findProgramAuthorityPda3,
-          rewardVault: findRewardVaultPda
-        },
-        identifyAccount: identifyRewardsSettlementAccount,
-        identifyInstruction: identifyRewardsSettlementInstruction,
-        parseInstruction: parseRewardsSettlementInstruction
-      }
-    });
-  };
-}
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/errors/rewardsSettlement.js
 var REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED = 6e3;
@@ -14154,54 +15841,6 @@ if (process.env["NODE_ENV"] !== "production") {
     [REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
     [REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`
   };
-}
-function getRewardsSettlementErrorMessage(code) {
-  if (process.env["NODE_ENV"] !== "production") {
-    return rewardsSettlementErrorMessages[code];
-  }
-  return "Error message not available in production bundles.";
-}
-function isRewardsSettlementError(error, transactionMessage, code) {
-  return isProgramError2(error, transactionMessage, REWARDS_SETTLEMENT_PROGRAM_ADDRESS, code);
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/types/protocolConfig.js
-function getProtocolConfigEncoder() {
-  return getStructEncoder2([
-    ["authority", getAddressEncoder2()],
-    ["splitNodesBps", getU32Encoder2()],
-    ["splitBurnBps", getU32Encoder2()],
-    ["splitTreasuryBps", getU32Encoder2()],
-    ["disputeWindowSeconds", getI64Encoder()],
-    ["clawbackWindowSeconds", getI64Encoder()],
-    ["baseRatePerGb", getU64Encoder2()],
-    ["geoBonusMaxBps", getU32Encoder2()],
-    ["reputationMinBps", getU32Encoder2()],
-    ["reputationMaxBps", getU32Encoder2()],
-    ["stakingBonusBps", getU32Encoder2()],
-    ["stakingBonusThreshold", getU64Encoder2()],
-    ["bump", getU8Encoder2()]
-  ]);
-}
-function getProtocolConfigDecoder() {
-  return getStructDecoder2([
-    ["authority", getAddressDecoder2()],
-    ["splitNodesBps", getU32Decoder2()],
-    ["splitBurnBps", getU32Decoder2()],
-    ["splitTreasuryBps", getU32Decoder2()],
-    ["disputeWindowSeconds", getI64Decoder()],
-    ["clawbackWindowSeconds", getI64Decoder()],
-    ["baseRatePerGb", getU64Decoder2()],
-    ["geoBonusMaxBps", getU32Decoder2()],
-    ["reputationMinBps", getU32Decoder2()],
-    ["reputationMaxBps", getU32Decoder2()],
-    ["stakingBonusBps", getU32Decoder2()],
-    ["stakingBonusThreshold", getU64Decoder2()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getProtocolConfigCodec() {
-  return combineCodec2(getProtocolConfigEncoder(), getProtocolConfigDecoder());
 }
 
 // ../../sdk/dist/generated/governance/src/generated/accounts/governanceConfig.js
@@ -14579,1016 +16218,209 @@ if (process.env["NODE_ENV"] !== "production") {
 }
 
 // ../../sdk/dist/math.js
-var math_exports = {};
-__export(math_exports, {
-  BASE_RATE_PER_GB: () => BASE_RATE_PER_GB,
-  BOOTSTRAP_BONUS_MAX_BPS: () => BOOTSTRAP_BONUS_MAX_BPS,
-  BOOTSTRAP_NODE_LIMIT: () => BOOTSTRAP_NODE_LIMIT,
-  BPS: () => BPS,
-  BYTES_PER_GB: () => BYTES_PER_GB,
-  GEO_BONUS_MAX_BPS: () => GEO_BONUS_MAX_BPS,
-  ONE_WEFT: () => ONE_WEFT,
-  REPUTATION_MAX_BPS: () => REPUTATION_MAX_BPS,
-  REPUTATION_MIN_BPS: () => REPUTATION_MIN_BPS,
-  SPLIT_BURN_BPS: () => SPLIT_BURN_BPS,
-  SPLIT_NODES_BPS: () => SPLIT_NODES_BPS,
-  STAKING_BONUS_BPS: () => STAKING_BONUS_BPS,
-  STAKING_BONUS_THRESHOLD: () => STAKING_BONUS_THRESHOLD,
-  TGE_UNLOCK_BPS: () => TGE_UNLOCK_BPS,
-  U64_MAX: () => U64_MAX,
-  clampGeoBonusBps: () => clampGeoBonusBps,
-  clampReputationBps: () => clampReputationBps,
-  fromHex: () => fromHex,
-  hashAllocationLeaf: () => hashAllocationLeaf,
-  hashPair: () => hashPair,
-  hashRewardLeaf: () => hashRewardLeaf,
-  merkleProof: () => merkleProof,
-  merkleRoot: () => merkleRoot,
-  merkleVerify: () => merkleVerify,
-  splitPayment: () => splitPayment,
-  splitTge: () => splitTge,
-  stakingBonusForStake: () => stakingBonusForStake,
-  toHex: () => toHex,
-  trafficReward: () => trafficReward,
-  trafficRewardWithBootstrap: () => trafficRewardWithBootstrap
-});
-
-// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/utils.js
-function isBytes(a) {
-  return a instanceof Uint8Array || ArrayBuffer.isView(a) && a.constructor.name === "Uint8Array";
-}
-function abytes(b, ...lengths) {
-  if (!isBytes(b))
-    throw new Error("Uint8Array expected");
-  if (lengths.length > 0 && !lengths.includes(b.length))
-    throw new Error("Uint8Array expected of length " + lengths + ", got length=" + b.length);
-}
-function aexists(instance, checkFinished = true) {
-  if (instance.destroyed)
-    throw new Error("Hash instance has been destroyed");
-  if (checkFinished && instance.finished)
-    throw new Error("Hash#digest() has already been called");
-}
-function aoutput(out, instance) {
-  abytes(out);
-  const min = instance.outputLen;
-  if (out.length < min) {
-    throw new Error("digestInto() expects output buffer of length at least " + min);
-  }
-}
-function clean(...arrays) {
-  for (let i = 0; i < arrays.length; i++) {
-    arrays[i].fill(0);
-  }
-}
-function createView(arr) {
-  return new DataView(arr.buffer, arr.byteOffset, arr.byteLength);
-}
-function rotr(word, shift) {
-  return word << 32 - shift | word >>> shift;
-}
-function utf8ToBytes(str) {
-  if (typeof str !== "string")
-    throw new Error("string expected");
-  return new Uint8Array(new TextEncoder().encode(str));
-}
-function toBytes(data) {
-  if (typeof data === "string")
-    data = utf8ToBytes(data);
-  abytes(data);
-  return data;
-}
-var Hash = class {
-};
-function createHasher(hashCons) {
-  const hashC = (msg) => hashCons().update(toBytes(msg)).digest();
-  const tmp = hashCons();
-  hashC.outputLen = tmp.outputLen;
-  hashC.blockLen = tmp.blockLen;
-  hashC.create = () => hashCons();
-  return hashC;
-}
-
-// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/_md.js
-function setBigUint64(view, byteOffset, value, isLE) {
-  if (typeof view.setBigUint64 === "function")
-    return view.setBigUint64(byteOffset, value, isLE);
-  const _32n = BigInt(32);
-  const _u32_max = BigInt(4294967295);
-  const wh = Number(value >> _32n & _u32_max);
-  const wl = Number(value & _u32_max);
-  const h = isLE ? 4 : 0;
-  const l2 = isLE ? 0 : 4;
-  view.setUint32(byteOffset + h, wh, isLE);
-  view.setUint32(byteOffset + l2, wl, isLE);
-}
-function Chi(a, b, c) {
-  return a & b ^ ~a & c;
-}
-function Maj(a, b, c) {
-  return a & b ^ a & c ^ b & c;
-}
-var HashMD = class extends Hash {
-  constructor(blockLen, outputLen, padOffset, isLE) {
-    super();
-    this.finished = false;
-    this.length = 0;
-    this.pos = 0;
-    this.destroyed = false;
-    this.blockLen = blockLen;
-    this.outputLen = outputLen;
-    this.padOffset = padOffset;
-    this.isLE = isLE;
-    this.buffer = new Uint8Array(blockLen);
-    this.view = createView(this.buffer);
-  }
-  update(data) {
-    aexists(this);
-    data = toBytes(data);
-    abytes(data);
-    const { view, buffer, blockLen } = this;
-    const len = data.length;
-    for (let pos = 0; pos < len; ) {
-      const take = Math.min(blockLen - this.pos, len - pos);
-      if (take === blockLen) {
-        const dataView = createView(data);
-        for (; blockLen <= len - pos; pos += blockLen)
-          this.process(dataView, pos);
-        continue;
-      }
-      buffer.set(data.subarray(pos, pos + take), this.pos);
-      this.pos += take;
-      pos += take;
-      if (this.pos === blockLen) {
-        this.process(view, 0);
-        this.pos = 0;
-      }
-    }
-    this.length += data.length;
-    this.roundClean();
-    return this;
-  }
-  digestInto(out) {
-    aexists(this);
-    aoutput(out, this);
-    this.finished = true;
-    const { buffer, view, blockLen, isLE } = this;
-    let { pos } = this;
-    buffer[pos++] = 128;
-    clean(this.buffer.subarray(pos));
-    if (this.padOffset > blockLen - pos) {
-      this.process(view, 0);
-      pos = 0;
-    }
-    for (let i = pos; i < blockLen; i++)
-      buffer[i] = 0;
-    setBigUint64(view, blockLen - 8, BigInt(this.length * 8), isLE);
-    this.process(view, 0);
-    const oview = createView(out);
-    const len = this.outputLen;
-    if (len % 4)
-      throw new Error("_sha2: outputLen should be aligned to 32bit");
-    const outLen = len / 4;
-    const state = this.get();
-    if (outLen > state.length)
-      throw new Error("_sha2: outputLen bigger than state");
-    for (let i = 0; i < outLen; i++)
-      oview.setUint32(4 * i, state[i], isLE);
-  }
-  digest() {
-    const { buffer, outputLen } = this;
-    this.digestInto(buffer);
-    const res = buffer.slice(0, outputLen);
-    this.destroy();
-    return res;
-  }
-  _cloneInto(to) {
-    to || (to = new this.constructor());
-    to.set(...this.get());
-    const { blockLen, buffer, length, finished, destroyed, pos } = this;
-    to.destroyed = destroyed;
-    to.finished = finished;
-    to.length = length;
-    to.pos = pos;
-    if (length % blockLen)
-      to.buffer.set(buffer);
-    return to;
-  }
-  clone() {
-    return this._cloneInto();
-  }
-};
-var SHA256_IV = /* @__PURE__ */ Uint32Array.from([
-  1779033703,
-  3144134277,
-  1013904242,
-  2773480762,
-  1359893119,
-  2600822924,
-  528734635,
-  1541459225
-]);
-
-// ../../node_modules/.pnpm/@noble+hashes@1.8.0/node_modules/@noble/hashes/esm/sha2.js
-var SHA256_K = /* @__PURE__ */ Uint32Array.from([
-  1116352408,
-  1899447441,
-  3049323471,
-  3921009573,
-  961987163,
-  1508970993,
-  2453635748,
-  2870763221,
-  3624381080,
-  310598401,
-  607225278,
-  1426881987,
-  1925078388,
-  2162078206,
-  2614888103,
-  3248222580,
-  3835390401,
-  4022224774,
-  264347078,
-  604807628,
-  770255983,
-  1249150122,
-  1555081692,
-  1996064986,
-  2554220882,
-  2821834349,
-  2952996808,
-  3210313671,
-  3336571891,
-  3584528711,
-  113926993,
-  338241895,
-  666307205,
-  773529912,
-  1294757372,
-  1396182291,
-  1695183700,
-  1986661051,
-  2177026350,
-  2456956037,
-  2730485921,
-  2820302411,
-  3259730800,
-  3345764771,
-  3516065817,
-  3600352804,
-  4094571909,
-  275423344,
-  430227734,
-  506948616,
-  659060556,
-  883997877,
-  958139571,
-  1322822218,
-  1537002063,
-  1747873779,
-  1955562222,
-  2024104815,
-  2227730452,
-  2361852424,
-  2428436474,
-  2756734187,
-  3204031479,
-  3329325298
-]);
-var SHA256_W = /* @__PURE__ */ new Uint32Array(64);
-var SHA256 = class extends HashMD {
-  constructor(outputLen = 32) {
-    super(64, outputLen, 8, false);
-    this.A = SHA256_IV[0] | 0;
-    this.B = SHA256_IV[1] | 0;
-    this.C = SHA256_IV[2] | 0;
-    this.D = SHA256_IV[3] | 0;
-    this.E = SHA256_IV[4] | 0;
-    this.F = SHA256_IV[5] | 0;
-    this.G = SHA256_IV[6] | 0;
-    this.H = SHA256_IV[7] | 0;
-  }
-  get() {
-    const { A, B, C, D: D3, E, F, G, H } = this;
-    return [A, B, C, D3, E, F, G, H];
-  }
-  // prettier-ignore
-  set(A, B, C, D3, E, F, G, H) {
-    this.A = A | 0;
-    this.B = B | 0;
-    this.C = C | 0;
-    this.D = D3 | 0;
-    this.E = E | 0;
-    this.F = F | 0;
-    this.G = G | 0;
-    this.H = H | 0;
-  }
-  process(view, offset) {
-    for (let i = 0; i < 16; i++, offset += 4)
-      SHA256_W[i] = view.getUint32(offset, false);
-    for (let i = 16; i < 64; i++) {
-      const W15 = SHA256_W[i - 15];
-      const W2 = SHA256_W[i - 2];
-      const s0 = rotr(W15, 7) ^ rotr(W15, 18) ^ W15 >>> 3;
-      const s1 = rotr(W2, 17) ^ rotr(W2, 19) ^ W2 >>> 10;
-      SHA256_W[i] = s1 + SHA256_W[i - 7] + s0 + SHA256_W[i - 16] | 0;
-    }
-    let { A, B, C, D: D3, E, F, G, H } = this;
-    for (let i = 0; i < 64; i++) {
-      const sigma1 = rotr(E, 6) ^ rotr(E, 11) ^ rotr(E, 25);
-      const T1 = H + sigma1 + Chi(E, F, G) + SHA256_K[i] + SHA256_W[i] | 0;
-      const sigma0 = rotr(A, 2) ^ rotr(A, 13) ^ rotr(A, 22);
-      const T2 = sigma0 + Maj(A, B, C) | 0;
-      H = G;
-      G = F;
-      F = E;
-      E = D3 + T1 | 0;
-      D3 = C;
-      C = B;
-      B = A;
-      A = T1 + T2 | 0;
-    }
-    A = A + this.A | 0;
-    B = B + this.B | 0;
-    C = C + this.C | 0;
-    D3 = D3 + this.D | 0;
-    E = E + this.E | 0;
-    F = F + this.F | 0;
-    G = G + this.G | 0;
-    H = H + this.H | 0;
-    this.set(A, B, C, D3, E, F, G, H);
-  }
-  roundClean() {
-    clean(SHA256_W);
-  }
-  destroy() {
-    this.set(0, 0, 0, 0, 0, 0, 0, 0);
-    clean(this.buffer);
-  }
-};
-var sha256 = /* @__PURE__ */ createHasher(() => new SHA256());
-
-// ../../sdk/dist/math.js
-var BPS = 10000n;
 var ONE_WEFT = 1000000000n;
 var BASE_RATE_PER_GB = ONE_WEFT / 10n;
-var BYTES_PER_GB = 1000000000n;
-var REPUTATION_MIN_BPS = 5000n;
-var REPUTATION_MAX_BPS = 20000n;
-var GEO_BONUS_MAX_BPS = 5000n;
-var STAKING_BONUS_BPS = 2000n;
 var STAKING_BONUS_THRESHOLD = 10000n * ONE_WEFT;
-var SPLIT_NODES_BPS = 7000n;
-var SPLIT_BURN_BPS = 2000n;
 var U64_MAX = 2n ** 64n - 1n;
-function clamp(x, lo, hi) {
-  return x < lo ? lo : x > hi ? hi : x;
+
+// src/config.ts
+var PROGRAMS = {
+  bubblegum: address("BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY"),
+  mplCore: address("CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d"),
+  mplNoop: address("mnoopTCrg4p8ry25e4bcWA9XZjbNjMTfgYVGGEdRsf3"),
+  mplAccountCompression: address("mcmt6YrQEMKw8Mw43FmpRLmf7BqRnFMKmAcbxE3xkAW"),
+  mplCoreCpiSigner: address("CbNY3JiXdXNE9tPNEk1aRZVEkWdj2v7kfJLNQwZZgpXk")
+};
+var NODE_REGISTRY_PROGRAM = generated_exports.NODE_REGISTRY_PROGRAM_ADDRESS;
+function deriveWsUrl(rpcUrl) {
+  const u = new URL(rpcUrl);
+  u.protocol = u.protocol === "https:" ? "wss:" : "ws:";
+  if (u.port === "8899") u.port = "8900";
+  return u.toString().replace(/\/$/, "");
 }
-function clampReputationBps(reputationBps) {
-  return clamp(reputationBps, REPUTATION_MIN_BPS, REPUTATION_MAX_BPS);
+function loadEnv(overrides = {}) {
+  const cluster = overrides.cluster ?? process.env.WEFT_CLUSTER ?? "devnet";
+  const rpcUrl = overrides.rpcUrl ?? process.env.WEFT_RPC_URL ?? (cluster === "devnet" ? "https://api.devnet.solana.com" : "http://127.0.0.1:8899");
+  return {
+    cluster,
+    rpcUrl,
+    wsUrl: overrides.wsUrl ?? deriveWsUrl(rpcUrl),
+    keypairPath: overrides.keypairPath ?? process.env.WEFT_KEYPAIR ?? `${process.env.HOME}/.config/solana/id.json`
+  };
 }
-function clampGeoBonusBps(geoBonusBps) {
-  return geoBonusBps > GEO_BONUS_MAX_BPS ? GEO_BONUS_MAX_BPS : geoBonusBps;
+var addrEnc = getAddressEncoder();
+async function treeConfigPda(merkleTree) {
+  const [pda] = await getProgramDerivedAddress({
+    programAddress: PROGRAMS.bubblegum,
+    seeds: [addrEnc.encode(merkleTree)]
+  });
+  return pda;
 }
-function stakingBonusForStake(stakedBaseUnits) {
-  return stakedBaseUnits >= STAKING_BONUS_THRESHOLD ? STAKING_BONUS_BPS : 0n;
-}
-function trafficReward(bytes, reputationBps, geoBonusBps, stakingBonusBps) {
-  const base = BASE_RATE_PER_GB * bytes / BYTES_PER_GB;
-  const reputation = clampReputationBps(reputationBps);
-  const geo = BPS + clampGeoBonusBps(geoBonusBps);
-  const staking = BPS + (stakingBonusBps > STAKING_BONUS_BPS ? STAKING_BONUS_BPS : stakingBonusBps);
-  const reward = base * reputation / BPS * geo / BPS * staking / BPS;
-  return reward > U64_MAX ? U64_MAX : reward;
-}
-var BOOTSTRAP_BONUS_MAX_BPS = 10000n;
-var BOOTSTRAP_NODE_LIMIT = 10000n;
-function trafficRewardWithBootstrap(bytes, reputationBps, geoBonusBps, stakingBonusBps, bootstrapBonusBps) {
-  const base = trafficReward(bytes, reputationBps, geoBonusBps, stakingBonusBps);
-  const bonus = BPS + (bootstrapBonusBps > BOOTSTRAP_BONUS_MAX_BPS ? BOOTSTRAP_BONUS_MAX_BPS : bootstrapBonusBps);
-  const reward = base * bonus / BPS;
-  return reward > U64_MAX ? U64_MAX : reward;
-}
-function splitPayment(amount) {
-  const nodes = amount * SPLIT_NODES_BPS / BPS;
-  const burn = amount * SPLIT_BURN_BPS / BPS;
-  const treasury = amount - nodes - burn;
-  return { nodes, burn, treasury };
-}
-var TGE_UNLOCK_BPS = 2500n;
-function splitTge(allocation, tgeBps) {
-  const tge = allocation * (tgeBps > BPS ? BPS : tgeBps) / BPS;
-  return { tge, vesting: allocation - tge };
-}
-function u64le(value) {
-  const out = new Uint8Array(8);
-  let v = value;
-  for (let i = 0; i < 8; i++) {
-    out[i] = Number(v & 0xffn);
-    v >>= 8n;
-  }
-  return out;
-}
-function concatBytes(...parts) {
-  const len = parts.reduce((n, p) => n + p.length, 0);
-  const out = new Uint8Array(len);
-  let off = 0;
-  for (const p of parts) {
-    out.set(p, off);
-    off += p.length;
-  }
-  return out;
-}
-function hashRewardLeaf(epoch, operator, nodeId, amount) {
-  if (operator.length !== 32)
-    throw new Error("operator must be 32 bytes");
-  const inner = sha256(concatBytes(operator, u64le(nodeId), u64le(amount), u64le(epoch)));
-  return sha256(concatBytes(Uint8Array.of(0), inner));
-}
-function hashAllocationLeaf(distributor, claimant, amount) {
-  if (distributor.length !== 32 || claimant.length !== 32)
-    throw new Error("distributor and claimant must be 32 bytes");
-  const inner = sha256(concatBytes(distributor, claimant, u64le(amount)));
-  return sha256(concatBytes(Uint8Array.of(2), inner));
-}
-function lte(a, b) {
-  for (let i = 0; i < a.length; i++) {
-    if (a[i] !== b[i])
-      return a[i] < b[i];
-  }
-  return true;
-}
-function hashPair(a, b) {
-  const [lo, hi] = lte(a, b) ? [a, b] : [b, a];
-  return sha256(concatBytes(Uint8Array.of(1), lo, hi));
-}
-function nextLevel(level) {
-  const next = [];
-  for (let i = 0; i < level.length; i += 2) {
-    next.push(i + 1 < level.length ? hashPair(level[i], level[i + 1]) : level[i]);
-  }
-  return next;
-}
-function merkleRoot(leaves) {
-  if (leaves.length === 0)
-    throw new Error("empty tree");
-  let level = leaves;
-  while (level.length > 1)
-    level = nextLevel(level);
-  return level[0];
-}
-function merkleProof(leaves, index) {
-  const proof = [];
-  let idx = index;
-  let level = leaves;
-  while (level.length > 1) {
-    const sibling = idx % 2 === 0 ? idx + 1 : idx - 1;
-    if (sibling < level.length)
-      proof.push(level[sibling]);
-    level = nextLevel(level);
-    idx = Math.floor(idx / 2);
-  }
-  return proof;
-}
-function merkleVerify(proof, root, leaf) {
-  let h = leaf;
-  for (const p of proof)
-    h = hashPair(h, p);
-  return lte(h, root) && lte(root, h);
-}
-function toHex(bytes) {
-  return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
-}
-function fromHex(hex) {
-  const out = new Uint8Array(hex.length / 2);
-  for (let i = 0; i < out.length; i++)
-    out[i] = parseInt(hex.slice(i * 2, i * 2 + 2), 16);
-  return out;
+async function nodePda(operator2, nodeId) {
+  const id = new Uint8Array(8);
+  new DataView(id.buffer).setBigUint64(0, nodeId, true);
+  const [pda] = await getProgramDerivedAddress({
+    programAddress: NODE_REGISTRY_PROGRAM,
+    seeds: [new TextEncoder().encode("node"), addrEnc.encode(operator2), id]
+  });
+  return pda;
 }
 
-// src/chain.ts
-function rpc(url) {
-  return createSolanaRpc(url);
+// src/manifest.ts
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+var here = dirname(fileURLToPath(import.meta.url));
+var dir = join(here, "..", "manifests");
+var manifestPath = (cluster) => join(dir, `${cluster}.json`);
+var DEVNET = {
+  cluster: "devnet",
+  complete: true,
+  registryProgram: "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd",
+  registry: "CCgRn9trB6iiCsGpyX7oGk2oXointLS1Ufd8DUgtYq9b",
+  collection: "DHos7saKjJbK93gdhvxVhSZKCywa21LHQWHWvS3ZibmD",
+  merkleTree: "CiEewSdbaFquGWffE8ZPgFh3H1RqEacCixY2CdX9mNPN",
+  treeShard: "AngRKGURcJPYnjz2gDruiHiFcgbutB4ZNyBBRcB2sUBN",
+  maxDepth: 14
+};
+function loadManifest(cluster) {
+  const p = manifestPath(cluster);
+  if (existsSync(p)) return JSON.parse(readFileSync(p, "utf8"));
+  return cluster === "devnet" ? DEVNET : null;
 }
-function quotaBytes(balanceBaseUnits) {
-  return balanceBaseUnits * math_exports.BYTES_PER_GB / math_exports.BASE_RATE_PER_GB;
+
+// src/kit.ts
+function connect(rpcUrl, wsUrl) {
+  const rpc = createSolanaRpc(rpcUrl);
+  const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
+  return { rpc, sendAndConfirm: sendAndConfirmTransactionFactory({ rpc, rpcSubscriptions }) };
 }
-function costBaseUnits(bytes) {
-  return math_exports.BASE_RATE_PER_GB * bytes / math_exports.BYTES_PER_GB;
-}
-async function weftBalance(r, owner, mint) {
-  const [ata] = await findAssociatedTokenPda({
-    owner: address(owner),
-    mint: address(mint),
-    tokenProgram: TOKEN_PROGRAM_ADDRESS
-  });
-  try {
-    const { value } = await r.getTokenAccountBalance(ata).send();
-    return BigInt(value.amount);
-  } catch {
-    return 0n;
-  }
-}
-async function verifyPayTraffic(r, signature, expectedPayer) {
-  const tx = await r.getTransaction(signature, {
-    commitment: "finalized",
-    maxSupportedTransactionVersion: 0,
-    encoding: "json"
-  }).send();
-  if (!tx) throw new Error("transaction not found / not finalized");
-  if (tx.meta?.err) throw new Error("transaction failed on chain");
-  const msg = tx.transaction.message;
-  return decodePayTraffic(
-    msg.accountKeys.map((k) => String(k)),
-    msg.instructions.map((ix) => ({
-      programIdIndex: ix.programIdIndex,
-      accounts: [...ix.accounts],
-      data: ix.data
-    })),
-    expectedPayer
+async function send(conn2, feePayer, instructions) {
+  const { value: latestBlockhash } = await conn2.rpc.getLatestBlockhash().send();
+  const message = pipe(
+    createTransactionMessage({ version: 0 }),
+    (m) => setTransactionMessageFeePayerSigner(feePayer, m),
+    (m) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, m),
+    (m) => appendTransactionMessageInstructions(instructions, m)
   );
+  const signed = await signTransactionMessageWithSigners(message);
+  await conn2.sendAndConfirm(signed, {
+    commitment: "confirmed"
+  });
+  return getSignatureFromTransaction(signed);
 }
-function decodePayTraffic(accountKeys, instructions, expectedPayer) {
-  const programId = String(generated_exports.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
-  const disc = generated_exports.PAY_TRAFFIC_DISCRIMINATOR;
-  for (const ix of instructions) {
-    if (accountKeys[ix.programIdIndex] !== programId) continue;
-    const data = bs58Decode(ix.data);
-    if (data.length < 16) continue;
-    if (!data.slice(0, 8).every((b, i) => b === disc[i])) continue;
-    const payer = accountKeys[ix.accounts[0]];
-    if (payer !== expectedPayer) throw new Error("payment not signed by this wallet");
-    const amount = readU64LE(data, 8);
-    return { payer: address(payer), amount };
-  }
-  throw new Error("no pay_traffic instruction for this wallet in the transaction");
+
+// src/registerNode.ts
+async function registerNode(conn2, operator2, manifest, params) {
+  const merkleTree = address(manifest.merkleTree);
+  const treeConfig = await treeConfigPda(merkleTree);
+  const ix = await generated_exports.getRegisterInstructionAsync({
+    operator: operator2,
+    treeShard: address(manifest.treeShard),
+    treeConfig,
+    merkleTree,
+    coreCollection: address(manifest.collection),
+    mplCoreCpiSigner: PROGRAMS.mplCoreCpiSigner,
+    logWrapper: PROGRAMS.mplNoop,
+    compressionProgram: PROGRAMS.mplAccountCompression,
+    mplCoreProgram: PROGRAMS.mplCore,
+    bubblegumProgram: PROGRAMS.bubblegum,
+    nodeId: params.nodeId,
+    geo: params.geo,
+    capabilities: params.capabilities,
+    endpointHash: params.endpointHash ?? new Uint8Array(32),
+    availability: params.availability,
+    metadataUri: params.metadataUri
+  });
+  return send(conn2, operator2, [ix]);
 }
-function readU64LE(b, off) {
+
+// src/becomeNode.ts
+var CAP_1HOP = 1;
+var CAP_MULTIHOP = 2;
+function endpointHash(endpoint2) {
+  return new Uint8Array(createHash("sha256").update(endpoint2).digest());
+}
+function deriveNodeId(operator2, endpoint2) {
+  const h = createHash("sha256").update(`${operator2}|${endpoint2}`).digest();
   let v = 0n;
-  for (let i = 0; i < 8; i++) v |= BigInt(b[off + i]) << 8n * BigInt(i);
+  for (let i = 0; i < 8; i++) v = v << 8n | BigInt(h[i]);
   return v;
 }
-var B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
-function bs58Decode(s3) {
-  let n = 0n;
-  for (const ch of s3) {
-    const i = B58.indexOf(ch);
-    if (i < 0) throw new Error("bad base58");
-    n = n * 58n + BigInt(i);
-  }
-  const bytes = [];
-  while (n > 0n) {
-    bytes.unshift(Number(n & 0xffn));
-    n >>= 8n;
-  }
-  for (let i = 0; i < s3.length && s3[i] === "1"; i++) bytes.unshift(0);
-  return Uint8Array.from(bytes);
-}
-
-// src/controller.ts
-import { randomUUID } from "node:crypto";
-
-// src/links.ts
-function oneHopLink(cfg2, uuid) {
-  const q = new URLSearchParams({
-    flow: "xtls-rprx-vision",
-    type: "tcp",
-    security: "reality",
-    fp: "firefox",
-    sni: cfg2.sni,
-    pbk: cfg2.realityPublicKey,
-    sid: cfg2.shortId,
-    spx: "/"
+async function becomeNode(conn2, operator2, input, cluster = "devnet") {
+  const manifest = loadManifest(cluster);
+  if (!manifest) throw new Error(`no registry manifest for ${cluster} \u2014 registry not provisioned`);
+  const nodeId = deriveNodeId(operator2.address, input.endpoint);
+  const signature = await registerNode(conn2, operator2, manifest, {
+    nodeId,
+    geo: input.geo ?? 0,
+    capabilities: input.capabilities ?? CAP_1HOP | CAP_MULTIHOP,
+    availability: input.availability ?? 100,
+    metadataUri: input.metadataUri ?? `weft://node/${input.endpoint}`,
+    endpointHash: endpointHash(input.endpoint)
   });
-  return `vless://${uuid}@${cfg2.host}:${cfg2.publicHop1Port}?${q}#Weft-1hop`;
-}
-function multiHopLink(cfg2, uuid) {
-  const q = new URLSearchParams({
-    type: "tcp",
-    security: "reality",
-    fp: "firefox",
-    sni: cfg2.sni,
-    pbk: cfg2.realityPublicKey,
-    sid: cfg2.shortId,
-    spx: "/"
-  });
-  return `vless://${uuid}@${cfg2.host}:${cfg2.publicHopnPort}?${q}#Weft-multihop`;
+  const node = await nodePda(operator2.address, nodeId);
+  return { signature, nodeId, node, endpoint: input.endpoint };
 }
 
-// src/xray.ts
-import { execFileSync, execSync } from "node:child_process";
-import { writeFileSync as writeFileSync2 } from "node:fs";
-function renderConfig(cfg2, activeUsers) {
-  const reality = {
-    show: false,
-    dest: `${cfg2.sni}:443`,
-    xver: 0,
-    serverNames: [cfg2.sni],
-    privateKey: cfg2.realityPrivateKey,
-    shortIds: [cfg2.shortId]
-  };
-  const hop1Clients = [
-    { id: cfg2.founderUuid, email: "founder", flow: "xtls-rprx-vision" },
-    ...activeUsers.map((u) => ({ id: u.uuid, email: u.email, flow: "xtls-rprx-vision" }))
-  ];
-  const hopnClients = [
-    { id: cfg2.founderUuid, email: "founder" },
-    ...activeUsers.map((u) => ({ id: u.uuid, email: u.email }))
-  ];
-  return {
-    log: { loglevel: "warning" },
-    api: { tag: "api", services: ["HandlerService", "StatsService"] },
-    stats: {},
-    policy: {
-      levels: { "0": { statsUserUplink: true, statsUserDownlink: true } },
-      system: { statsInboundUplink: true, statsInboundDownlink: true }
-    },
-    inbounds: [
-      {
-        tag: "api",
-        listen: "127.0.0.1",
-        port: Number(cfg2.xrayApi.split(":")[1] ?? 10085),
-        protocol: "dokodemo-door",
-        settings: { address: "127.0.0.1" }
-      },
-      {
-        tag: "hop1",
-        listen: "0.0.0.0",
-        port: cfg2.hop1Port,
-        protocol: "vless",
-        settings: { clients: hop1Clients, decryption: "none" },
-        streamSettings: { network: "tcp", security: "reality", realitySettings: reality }
-      },
-      {
-        tag: "hopN",
-        listen: "0.0.0.0",
-        port: cfg2.hopnPort,
-        protocol: "vless",
-        settings: { clients: hopnClients, decryption: "none" },
-        streamSettings: { network: "tcp", security: "reality", realitySettings: reality }
-      }
-    ],
-    outbounds: [
-      { tag: "direct", protocol: "freedom" },
-      {
-        tag: "tor",
-        protocol: "socks",
-        settings: { servers: [{ address: "127.0.0.1", port: 9050 }] }
-      }
-    ],
-    routing: {
-      rules: [
-        { type: "field", inboundTag: ["api"], outboundTag: "api" },
-        { type: "field", inboundTag: ["hop1"], outboundTag: "direct" },
-        { type: "field", inboundTag: ["hopN"], outboundTag: "tor" }
-      ]
-    }
-  };
+// src/nodeAgent.ts
+var env = loadEnv();
+var endpoint = process.env.WEFT_NODE_ENDPOINT;
+var geo = Number(process.env.WEFT_GEO ?? "0");
+var faucetUrl = process.env.WEFT_FAUCET_URL;
+if (!endpoint) {
+  console.error("WEFT_NODE_ENDPOINT required");
+  process.exit(1);
 }
-function applyConfig(cfg2, activeUsers) {
-  writeFileSync2(cfg2.xrayConfigPath, JSON.stringify(renderConfig(cfg2, activeUsers), null, 2));
-  execSync(cfg2.reloadCmd, { stdio: "ignore" });
+var kpPath = env.keypairPath;
+if (!existsSync2(kpPath)) {
+  const seed = ed25519.utils.randomSecretKey();
+  const pub = ed25519.getPublicKey(seed);
+  const bytes = new Uint8Array(64);
+  bytes.set(seed, 0);
+  bytes.set(pub, 32);
+  mkdirSync2(dirname2(kpPath), { recursive: true });
+  writeFileSync2(kpPath, JSON.stringify([...bytes]));
+  console.log("generated node operator key \u2192", kpPath);
 }
-function pollUsage(cfg2) {
-  let raw;
+var kpBytes = Uint8Array.from(JSON.parse(readFileSync2(kpPath, "utf8")));
+var operator = await createKeyPairSignerFromBytes(kpBytes);
+var conn = connect(env.rpcUrl, env.wsUrl);
+console.log("node operator:", operator.address);
+var sol = async () => Number((await conn.rpc.getBalance(operator.address).send()).value);
+if (await sol() < 3e6 && faucetUrl) {
+  console.log("funding from relay faucet\u2026");
   try {
-    raw = execFileSync(
-      cfg2.xrayBin,
-      ["api", "statsquery", `--server=${cfg2.xrayApi}`, "-pattern", "user>>>", "-reset"],
-      { encoding: "utf8" }
-    );
+    await fetch(`${faucetUrl}/faucet`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ wallet: operator.address })
+    });
+    for (let i = 0; i < 20 && await sol() < 3e6; i++) await new Promise((r) => setTimeout(r, 2e3));
   } catch {
-    return /* @__PURE__ */ new Map();
-  }
-  return parseUsage(raw);
-}
-function parseUsage(raw) {
-  const out = /* @__PURE__ */ new Map();
-  const parsed = JSON.parse(raw || "{}");
-  for (const s3 of parsed.stat ?? []) {
-    const email = s3.name.split(">>>")[1];
-    if (!email) continue;
-    out.set(email, (out.get(email) ?? 0n) + BigInt(s3.value ?? "0"));
-  }
-  return out;
-}
-
-// src/controller.ts
-var fmtWeft = (base) => (Number(base) / 1e9).toFixed(6);
-var Controller = class {
-  // force a first apply
-  constructor(cfg2, store2, rpc2) {
-    this.cfg = cfg2;
-    this.store = store2;
-    this.rpc = rpc2;
-  }
-  lastApplied = "\0uninitialized";
-  /** Render + reload xray only when the active user set actually changed. */
-  reconcile() {
-    const active = this.store.all().filter((u) => u.active);
-    const sig = active.map((u) => u.uuid).sort().join(",");
-    if (sig === this.lastApplied) return;
-    applyConfig(this.cfg, active);
-    this.lastApplied = sig;
-  }
-  /** Apply whatever the store says on boot (so a restart re-syncs xray to the saved state). */
-  bootstrap() {
-    this.reconcile();
-    if (this.lastApplied === "\0uninitialized") {
-      applyConfig(this.cfg, []);
-      this.lastApplied = "";
-    }
-  }
-  computeActive(u) {
-    return BigInt(u.unsettledBytes) < BigInt(u.quotaBytes);
-  }
-  async refreshBalance(u) {
-    const bal = await weftBalance(this.rpc, u.wallet, this.cfg.weftMint);
-    u.balanceBaseUnits = bal.toString();
-    u.quotaBytes = quotaBytes(bal).toString();
-  }
-  status(u) {
-    const unsettled = BigInt(u.unsettledBytes);
-    const quota = BigInt(u.quotaBytes);
-    return {
-      wallet: u.wallet,
-      active: u.active,
-      balanceWeft: fmtWeft(BigInt(u.balanceBaseUnits)),
-      quotaBytes: quota.toString(),
-      unsettledBytes: unsettled.toString(),
-      owedWeft: fmtWeft(costBaseUnits(unsettled)),
-      remainingBytes: (quota > unsettled ? quota - unsettled : 0n).toString(),
-      links: { oneHop: oneHopLink(this.cfg, u.uuid), multiHop: multiHopLink(this.cfg, u.uuid) }
-    };
-  }
-  /** Create the user if new, refresh their quota from chain, and return their personal links. */
-  async provision(wallet) {
-    let u = this.store.get(wallet);
-    if (!u) {
-      u = {
-        wallet,
-        uuid: randomUUID(),
-        email: wallet,
-        // unique stats key
-        unsettledBytes: "0",
-        servedBytesLifetime: "0",
-        balanceBaseUnits: "0",
-        quotaBytes: "0",
-        active: false,
-        createdAt: Date.now()
-      };
-    }
-    await this.refreshBalance(u);
-    u.active = this.computeActive(u);
-    this.store.put(u);
-    this.reconcile();
-    return this.status(u);
-  }
-  /** Verify a pay_traffic tx and clear that much of the user's metered tab. */
-  async settle(wallet, signature) {
-    const u = this.store.get(wallet);
-    if (!u) throw new Error("unknown wallet \u2014 provision first");
-    const { amount } = await verifyPayTraffic(this.rpc, signature, wallet);
-    const paidBytes = quotaBytes(amount);
-    const unsettled = BigInt(u.unsettledBytes);
-    u.unsettledBytes = (unsettled > paidBytes ? unsettled - paidBytes : 0n).toString();
-    await this.refreshBalance(u);
-    u.active = this.computeActive(u);
-    this.store.put(u);
-    this.reconcile();
-    return this.status(u);
-  }
-  /**
-   * What this node has earned: total bytes served across all users → the $WEFT reward the
-   * operator is owed. Uses the same `trafficReward` math the aggregator applies on-chain (here at
-   * baseline reputation; the on-chain reputation/geo/stake multipliers are applied at settlement).
-   * This is the per-node served-traffic total the reward pipeline (aggregator → claim) consumes.
-   */
-  nodeStats() {
-    const served = this.store.all().reduce((sum, u) => sum + BigInt(u.servedBytesLifetime ?? "0"), 0n);
-    const earned = math_exports.trafficReward(served, 10000n, 0n, 0n);
-    return {
-      users: this.store.all().length,
-      servedBytes: served.toString(),
-      earnedWeft: fmtWeft(earned),
-      earnedBaseUnits: earned.toString()
-    };
-  }
-  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray. */
-  async tick() {
-    const usage = pollUsage(this.cfg);
-    for (const u of this.store.all()) {
-      const delta = usage.get(u.email) ?? 0n;
-      if (delta > 0n) {
-        u.unsettledBytes = (BigInt(u.unsettledBytes) + delta).toString();
-        u.servedBytesLifetime = (BigInt(u.servedBytesLifetime ?? "0") + delta).toString();
-      }
-      await this.refreshBalance(u);
-      u.active = this.computeActive(u);
-      this.store.put(u);
-    }
-    this.reconcile();
-  }
-};
-
-// src/faucet.ts
-import { readFileSync as readFileSync2 } from "node:fs";
-var lastDrip = /* @__PURE__ */ new Map();
-var Faucet = class {
-  constructor(rpcUrl, wsUrl, keypairPath, mint, amount, cooldownMs = 6 * 60 * 60 * 1e3) {
-    this.rpcUrl = rpcUrl;
-    this.wsUrl = wsUrl;
-    this.keypairPath = keypairPath;
-    this.mint = mint;
-    this.amount = amount;
-    this.cooldownMs = cooldownMs;
-  }
-  /** Mint `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx signature. */
-  async drip(wallet) {
-    const now = Date.now();
-    const prev = lastDrip.get(wallet) ?? 0;
-    if (now - prev < this.cooldownMs) {
-      const mins = Math.ceil((this.cooldownMs - (now - prev)) / 6e4);
-      throw new Error(`faucet cooldown \u2014 try again in ~${mins} min`);
-    }
-    const faucet2 = await createKeyPairSignerFromBytes(
-      Uint8Array.from(JSON.parse(readFileSync2(this.keypairPath, "utf8")))
-    );
-    const rpc2 = createSolanaRpc(this.rpcUrl);
-    const sendAndConfirm = sendAndConfirmTransactionFactory({
-      rpc: rpc2,
-      rpcSubscriptions: createSolanaRpcSubscriptions(this.wsUrl)
-    });
-    const mint = address(this.mint);
-    const owner = address(wallet);
-    const [ata] = await findAssociatedTokenPda({
-      owner,
-      mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS
-    });
-    const createAta = await getCreateAssociatedTokenIdempotentInstructionAsync({
-      payer: faucet2,
-      owner,
-      mint
-    });
-    const mintTo = getMintToInstruction({
-      mint,
-      token: ata,
-      mintAuthority: faucet2,
-      amount: this.amount
-    });
-    const sol = getTransferSolInstruction({ source: faucet2, destination: owner, amount: 20000000n });
-    const { value: bh } = await rpc2.getLatestBlockhash().send();
-    const msg = pipe(
-      createTransactionMessage({ version: 0 }),
-      (m) => setTransactionMessageFeePayerSigner(faucet2, m),
-      (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
-      (m) => appendTransactionMessageInstructions([sol, createAta, mintTo], m)
-    );
-    const signed = await signTransactionMessageWithSigners(msg);
-    await sendAndConfirm(signed, {
-      commitment: "confirmed"
-    });
-    lastDrip.set(wallet, now);
-    return { signature: getSignatureFromTransaction(signed), amount: this.amount.toString() };
-  }
-};
-
-// src/server.ts
-import { createServer } from "node:http";
-
-// src/relay.ts
-import { createHash } from "node:crypto";
-var hashEndpoint = (ep) => createHash("sha256").update(ep).digest("hex");
-async function liveEndpointHashes(cfg2) {
-  const endpoints = /* @__PURE__ */ new Set();
-  for (const p of [cfg2.publicHop1Port, cfg2.publicHopnPort, cfg2.hop1Port, cfg2.hopnPort])
-    endpoints.add(`${cfg2.host}:${p}`);
-  if (cfg2.frpsApi) {
-    try {
-      const auth = Buffer.from(`${cfg2.frpsUser}:${cfg2.frpsPass}`).toString("base64");
-      const r = await fetch(`${cfg2.frpsApi}/api/proxy/tcp`, {
-        headers: { authorization: `Basic ${auth}` }
-      });
-      const j = await r.json();
-      for (const p of j.proxies ?? [])
-        if (p.status === "online" && p.conf?.remotePort)
-          endpoints.add(`${cfg2.host}:${p.conf.remotePort}`);
-    } catch {
-    }
-  }
-  return [...endpoints].map(hashEndpoint);
-}
-
-// src/server.ts
-function send(res, code, body) {
-  const data = JSON.stringify(body);
-  res.writeHead(code, {
-    "content-type": "application/json",
-    "access-control-allow-origin": "*",
-    // the cabinet POSTs JSON cross-origin → the browser preflights and needs these
-    "access-control-allow-methods": "GET, POST, OPTIONS",
-    "access-control-allow-headers": "content-type",
-    "access-control-max-age": "86400"
-  });
-  res.end(data);
-}
-function readJson(req) {
-  return new Promise((resolve, reject) => {
-    let buf = "";
-    req.on("data", (c) => {
-      buf += c;
-      if (buf.length > 1 << 16) reject(new Error("body too large"));
-    });
-    req.on("end", () => {
-      try {
-        resolve(buf ? JSON.parse(buf) : {});
-      } catch {
-        reject(new Error("invalid JSON"));
-      }
-    });
-  });
-}
-function startServer(cfg2, ctrl2, faucet2) {
-  const server = createServer((req, res) => {
-    void handle(req, res).catch((e8) => send(res, 400, { error: String(e8?.message ?? e8) }));
-  });
-  async function handle(req, res) {
-    const url = new URL(req.url ?? "/", "http://localhost");
-    if (req.method === "OPTIONS") return send(res, 204, {});
-    if (req.method === "POST" && url.pathname === "/provision") {
-      const { wallet } = await readJson(req);
-      if (typeof wallet !== "string") return send(res, 400, { error: "wallet required" });
-      return send(res, 200, await ctrl2.provision(wallet));
-    }
-    if (req.method === "POST" && url.pathname === "/settle") {
-      const { wallet, signature } = await readJson(req);
-      if (typeof wallet !== "string" || typeof signature !== "string")
-        return send(res, 400, { error: "wallet + signature required" });
-      return send(res, 200, await ctrl2.settle(wallet, signature));
-    }
-    if (req.method === "GET" && url.pathname === "/status") {
-      const wallet = url.searchParams.get("wallet");
-      if (!wallet) return send(res, 400, { error: "wallet required" });
-      return send(res, 200, await ctrl2.provision(wallet));
-    }
-    if (req.method === "POST" && url.pathname === "/faucet") {
-      if (!faucet2) return send(res, 404, { error: "faucet disabled (not a test-mint node)" });
-      const { wallet } = await readJson(req);
-      if (typeof wallet !== "string") return send(res, 400, { error: "wallet required" });
-      return send(res, 200, await faucet2.drip(wallet));
-    }
-    if (req.method === "GET" && url.pathname === "/relay/live") {
-      return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg2) });
-    }
-    if (req.method === "GET" && url.pathname === "/node/stats") {
-      return send(res, 200, { host: cfg2.host, ...ctrl2.nodeStats() });
-    }
-    if (req.method === "GET" && url.pathname === "/price") {
-      return send(res, 200, {
-        weftPerGb: Number(math_exports.BASE_RATE_PER_GB) / 1e9,
-        mint: cfg2.weftMint,
-        host: cfg2.host,
-        modes: ["1hop", "multihop"],
-        faucet: !!faucet2
-        // devnet test-$WEFT faucet available?
-      });
-    }
-    return send(res, 404, { error: "not found" });
-  }
-  server.listen(cfg2.port, () => {
-    console.log(`weft control-plane on :${cfg2.port} (node ${cfg2.host}, mint ${cfg2.weftMint})`);
-  });
-}
-
-// src/index.ts
-var envFile = process.env.WEFT_ENVFILE;
-if (envFile) {
-  for (const line of readFileSync3(envFile, "utf8").split("\n")) {
-    const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
-    if (m && process.env[m[1]] === void 0) process.env[m[1]] = m[2];
   }
 }
-var cfg = loadConfig();
-var store = new Store(cfg.storePath);
-var ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl));
-var faucet = cfg.faucetKeypairPath ? new Faucet(cfg.rpcUrl, cfg.wsUrl, cfg.faucetKeypairPath, cfg.weftMint, cfg.faucetAmount) : void 0;
-ctrl.bootstrap();
-startServer(cfg, ctrl, faucet);
-async function loop() {
-  for (; ; ) {
-    try {
-      await ctrl.tick();
-    } catch (e8) {
-      console.error("tick error:", e8.message);
-    }
-    await new Promise((r) => setTimeout(r, cfg.pollMs));
-  }
+if (await sol() < 1e6) {
+  console.error(`operator has no SOL \u2014 fund ${operator.address} (devnet) and re-run`);
+  process.exit(1);
 }
-void loop();
+try {
+  const reg = await becomeNode(conn, operator, { endpoint, geo }, env.cluster);
+  console.log(`registered node ${reg.nodeId} \xB7 tx ${reg.signature.slice(0, 16)}\u2026`);
+} catch (e8) {
+  const msg = e8.message;
+  if (/already in use|already exists/i.test(msg)) console.log("already registered \u2014 nothing to pay.");
+  else throw e8;
+}
 /*! Bundled license information:
 
 @noble/hashes/esm/utils.js:
   (*! noble-hashes - MIT License (c) 2022 Paul Miller (paulmillr.com) *)
+
+@noble/curves/esm/utils.js:
+@noble/curves/esm/abstract/modular.js:
+@noble/curves/esm/abstract/curve.js:
+@noble/curves/esm/abstract/edwards.js:
+@noble/curves/esm/ed25519.js:
+  (*! noble-curves - MIT License (c) 2022 Paul Miller (paulmillr.com) *)
 */

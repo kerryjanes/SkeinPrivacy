@@ -116,6 +116,9 @@ importers:
       '@weft/sdk':
         specifier: workspace:*
         version: link:../../sdk
+      '@solana-program/system':
+        specifier: ^0.12.2
+        version: 0.12.2(@solana/kit@6.10.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6))
       '@solana-program/token':
         specifier: ^0.14.0
         version: 0.14.0(@solana/kit@6.10.0(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6))
@@ -231,6 +234,9 @@ importers:
       '@metaplex-foundation/umi-bundle-defaults':
         specifier: ^1.5.1
         version: 1.5.1(@metaplex-foundation/umi@1.5.1)(@solana/web3.js@1.98.4(bufferutil@4.1.0)(typescript@6.0.3)(utf-8-validate@6.0.6))
+      '@noble/curves':
+        specifier: ^1.6.0
+        version: 1.9.7
       '@weft/sdk':
         specifier: workspace:*
         version: link:../../sdk
@@ -247,6 +253,9 @@ importers:
       '@types/node':
         specifier: ^25.9.3
         version: 25.9.3
+      esbuild:
+        specifier: ^0.25.0
+        version: 0.25.12
       tsx:
         specifier: ^4.22.4
         version: 4.22.4
@@ -255,7 +264,7 @@ importers:
         version: 6.0.3
       vitest:
         specifier: ^4.1.9
-        version: 4.1.9(@types/node@25.9.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.28.1)(tsx@4.22.4)(yaml@2.9.0))
+        version: 4.1.9(@types/node@25.9.3)(vite@8.0.16(@types/node@25.9.3)(esbuild@0.25.12)(tsx@4.22.4)(yaml@2.9.0))
 
 packages:
 

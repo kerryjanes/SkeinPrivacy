@@ -23,6 +23,7 @@ import {
   getMintToInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
+import { getTransferSolInstruction } from '@solana-program/system';
 
 const lastDrip = new Map<string, number>();
 
@@ -70,12 +71,18 @@ export class Faucet {
       mintAuthority: faucet,
       amount: this.amount,
     });
+    // Also drip a little SOL so a node operator's key can pay its one-time on-chain registration.
+    const sol = getTransferSolInstruction({
+      source: faucet,
+      destination: owner,
+      amount: 20_000_000n,
+    });
     const { value: bh } = await rpc.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),
       (m) => setTransactionMessageFeePayerSigner(faucet, m),
       (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
-      (m) => appendTransactionMessageInstructions([createAta, mintTo], m),
+      (m) => appendTransactionMessageInstructions([sol, createAta, mintTo], m),
     );
     const signed = await signTransactionMessageWithSigners(msg);
     await sendAndConfirm(signed as Parameters<typeof sendAndConfirm>[0], {

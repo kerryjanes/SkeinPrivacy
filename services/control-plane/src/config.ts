@@ -36,6 +36,11 @@ export interface NodeConfig {
   // --- devnet faucet (absent on mainnet) ---
   faucetKeypairPath: string; // empty = faucet disabled
   faucetAmount: bigint; // base units minted per drip
+
+  // --- relay liveness (this box is also the rendezvous relay) ---
+  frpsApi: string; // frps admin API base (empty = no tunnels, only direct endpoints)
+  frpsUser: string;
+  frpsPass: string;
 }
 
 function env(key: string, fallback: string): string {
@@ -72,5 +77,8 @@ export function loadConfig(): NodeConfig {
     weftMint: env('WEFT_MINT', '8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i'),
     faucetKeypairPath: env('WEFT_FAUCET_KEYPAIR', ''),
     faucetAmount: BigInt(env('WEFT_FAUCET_AMOUNT', '1000000')), // 0.001 $WEFT → ~10 MB quota
+    frpsApi: env('WEFT_FRPS_API', ''),
+    frpsUser: env('WEFT_FRPS_USER', ''),
+    frpsPass: env('WEFT_FRPS_PASS', ''),
   };
 }

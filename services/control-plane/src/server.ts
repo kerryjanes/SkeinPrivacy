@@ -9,6 +9,7 @@ import { createServer, type IncomingMessage, type ServerResponse } from 'node:ht
 import type { NodeConfig } from './config.js';
 import type { Controller } from './controller.js';
 import type { Faucet } from './faucet.js';
+import { liveEndpointHashes } from './relay.js';
 import { math } from '@weft/sdk';
 
 function send(res: ServerResponse, code: number, body: unknown): void {
@@ -75,6 +76,11 @@ export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet):
       const { wallet } = await readJson(req);
       if (typeof wallet !== 'string') return send(res, 400, { error: 'wallet required' });
       return send(res, 200, await faucet.drip(wallet));
+    }
+
+    if (req.method === 'GET' && url.pathname === '/relay/live') {
+      // endpointHashes of nodes carrying traffic right now (for the cabinet's "live nodes" filter)
+      return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg) });
     }
 
     if (req.method === 'GET' && url.pathname === '/node/stats') {
