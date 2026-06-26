@@ -100,7 +100,27 @@ if [ ! -x "$FRPC" ]; then
     rm -rf "$WORK/frp_${FRP_VER}_${ARCH}"
     unzip -oq "$WORK/frp.zip" -d "$WORK"
     chmod u+rw "$WORK/frp_${FRP_VER}_${ARCH}/frpc.exe" 2>/dev/null || true
-    mv -f "$WORK/frp_${FRP_VER}_${ARCH}/frpc.exe" "$FRPC"
+    if ! mv -f "$WORK/frp_${FRP_VER}_${ARCH}/frpc.exe" "$FRPC"; then
+      cat <<ERR
+
+Windows blocked frpc.exe while extracting it.
+
+Fix on this computer:
+  1. Open Windows Security → Virus & threat protection → Protection history.
+  2. Find the event for frpc.exe and choose "Allow on device".
+  3. Or add an exclusion for:
+     ${WORK}
+
+PowerShell alternative, run as Administrator:
+  Add-MpPreference -ExclusionPath "${WORK}"
+
+Then delete the temporary directory and rerun:
+  rmdir /s /q "$(cygpath -w "$WORK" 2>/dev/null || printf '%s' "$WORK")"
+  "C:\\Program Files\\Git\\bin\\bash.exe" scripts/test-home-exit.sh
+
+ERR
+      exit 1
+    fi
     chmod +x "$FRPC"
     rm -rf "$WORK/frp.zip" "$WORK/frp_${FRP_VER}_${ARCH}"
   else
