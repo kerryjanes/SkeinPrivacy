@@ -112,7 +112,7 @@ export function loadConfig(): NodeConfig {
       '8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i',
     ),
     faucetKeypairPath,
-    faucetAmount: BigInt(env('WEFT_FAUCET_AMOUNT', '1000000')), // 0.001 $WEFT → ~10 MB quota
+    faucetAmount: BigInt(env('WEFT_FAUCET_AMOUNT', '10000000')), // 0.01 $WEFT → ~100 MB quota
     frpsApi: env('WEFT_FRPS_API', ''),
     frpsUser: env('WEFT_FRPS_USER', ''),
     frpsPass: env('WEFT_FRPS_PASS', ''),
