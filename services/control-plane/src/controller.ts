@@ -31,6 +31,10 @@ export interface Status {
 
 const fmtWeft = (base: bigint): string => (Number(base) / 1e9).toFixed(6);
 
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class Controller {
   private lastApplied = '__uninitialized'; // force a first apply
 
@@ -122,9 +126,22 @@ export class Controller {
     const u = this.store.get(wallet);
     if (!u) throw new Error('unknown wallet — provision first');
     this.store.beginPayment(signature, wallet);
-    let amount: bigint;
+    let amount = 0n;
     try {
-      ({ amount } = await verifyPayTraffic(this.rpc, signature, wallet));
+      let lastError: unknown;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        try {
+          ({ amount } = await verifyPayTraffic(this.rpc, signature, wallet));
+          lastError = null;
+          break;
+        } catch (e) {
+          lastError = e;
+          const message = e instanceof Error ? e.message : String(e);
+          if (!message.includes('transaction not found / not confirmed')) throw e;
+          await sleep(1_500);
+        }
+      }
+      if (lastError) throw lastError;
     } catch (e) {
       this.store.forgetPendingPayment(signature, wallet);
       throw e;

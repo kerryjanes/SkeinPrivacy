@@ -15482,11 +15482,11 @@ async function escrowBalance(r, owner, mint) {
 }
 async function verifyPayTraffic(r, signature, expectedPayer) {
   const tx = await r.getTransaction(signature, {
-    commitment: "finalized",
+    commitment: "confirmed",
     maxSupportedTransactionVersion: 0,
     encoding: "json"
   }).send();
-  if (!tx) throw new Error("transaction not found / not finalized");
+  if (!tx) throw new Error("transaction not found / not confirmed");
   if (tx.meta?.err) throw new Error("transaction failed on chain");
   const msg = tx.transaction.message;
   return decodePayTraffic(
@@ -15791,6 +15791,9 @@ function parseUsage(raw) {
 
 // src/controller.ts
 var fmtWeft = (base) => (Number(base) / 1e9).toFixed(6);
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 var Controller = class {
   // force a first apply
   constructor(cfg2, store2, rpc2) {
@@ -15872,9 +15875,22 @@ var Controller = class {
     const u = this.store.get(wallet);
     if (!u) throw new Error("unknown wallet \u2014 provision first");
     this.store.beginPayment(signature, wallet);
-    let amount;
+    let amount = 0n;
     try {
-      ({ amount } = await verifyPayTraffic(this.rpc, signature, wallet));
+      let lastError;
+      for (let attempt = 0; attempt < 8; attempt++) {
+        try {
+          ({ amount } = await verifyPayTraffic(this.rpc, signature, wallet));
+          lastError = null;
+          break;
+        } catch (e8) {
+          lastError = e8;
+          const message = e8 instanceof Error ? e8.message : String(e8);
+          if (!message.includes("transaction not found / not confirmed")) throw e8;
+          await sleep(1500);
+        }
+      }
+      if (lastError) throw lastError;
     } catch (e8) {
       this.store.forgetPendingPayment(signature, wallet);
       throw e8;

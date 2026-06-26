@@ -39,7 +39,7 @@ export interface VerifiedPayment {
 }
 
 /**
- * Verify a transaction is a finalized settlement signed by `expectedPayer`, and return the paid
+ * Verify a transaction is a confirmed settlement signed by `expectedPayer`, and return the paid
  * amount. We decode the settlement program's instruction from the tx (discriminator + u64 amount)
  * rather than trusting the client — the payment must really have landed on chain.
  */
@@ -50,12 +50,12 @@ export async function verifyPayTraffic(
 ): Promise<VerifiedPayment> {
   const tx = await r
     .getTransaction(signature as Parameters<Rpc['getTransaction']>[0], {
-      commitment: 'finalized',
+      commitment: 'confirmed',
       maxSupportedTransactionVersion: 0,
       encoding: 'json',
     })
     .send();
-  if (!tx) throw new Error('transaction not found / not finalized');
+  if (!tx) throw new Error('transaction not found / not confirmed');
   if (tx.meta?.err) throw new Error('transaction failed on chain');
 
   const msg = tx.transaction.message;
