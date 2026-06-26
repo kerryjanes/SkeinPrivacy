@@ -97,14 +97,17 @@ if [ ! -x "$FRPC" ]; then
   if [ "$IS_WINDOWS" = "1" ]; then
     need unzip
     curl -fsSL "https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_${ARCH}.zip" -o "$WORK/frp.zip"
+    rm -rf "$WORK/frp_${FRP_VER}_${ARCH}"
     unzip -oq "$WORK/frp.zip" -d "$WORK"
-    cp "$WORK/frp_${FRP_VER}_${ARCH}/frpc.exe" "$FRPC"
+    chmod u+rw "$WORK/frp_${FRP_VER}_${ARCH}/frpc.exe" 2>/dev/null || true
+    mv -f "$WORK/frp_${FRP_VER}_${ARCH}/frpc.exe" "$FRPC"
     chmod +x "$FRPC"
     rm -rf "$WORK/frp.zip" "$WORK/frp_${FRP_VER}_${ARCH}"
   else
     curl -fsSL "https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_${ARCH}.tar.gz" -o "$WORK/frp.tgz"
+    rm -rf "$WORK/frp_${FRP_VER}_${ARCH}"
     tar xzf "$WORK/frp.tgz" -C "$WORK"
-    cp "$WORK/frp_${FRP_VER}_${ARCH}/frpc" "$FRPC"
+    mv -f "$WORK/frp_${FRP_VER}_${ARCH}/frpc" "$FRPC"
     chmod +x "$FRPC"
     rm -rf "$WORK/frp.tgz" "$WORK/frp_${FRP_VER}_${ARCH}"
   fi
