@@ -53,9 +53,33 @@ function Stop-PidFile([string]$PidFile) {
   if (Test-Path -LiteralPath $PidFile) {
     $PidText = (Get-Content -LiteralPath $PidFile -Raw).Trim()
     if ($PidText -match '^\d+$') {
-      & taskkill.exe /PID $PidText /T /F *> $null
+      try {
+        & taskkill.exe /PID $PidText /T /F *> $null
+      } catch {
+        # Stale PID files are expected after crashes, reboots, or manual task kills.
+      }
     }
     Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
+  }
+}
+
+function Stop-WeftWorkspaceProcesses {
+  if (!(Test-Path -LiteralPath $Sk)) { return }
+  try {
+    $Processes = Get-CimInstance Win32_Process | Where-Object {
+      $_.CommandLine -and
+      $_.CommandLine.Contains($Sk) -and
+      ($_.Name -match '^(cmd\.exe|node\.exe|frpc\.exe|xray.*\.exe)$')
+    }
+    foreach ($Process in $Processes) {
+      try {
+        & taskkill.exe /PID $Process.ProcessId /T /F *> $null
+      } catch {
+        # Best-effort cleanup only.
+      }
+    }
+  } catch {
+    # Some locked-down Windows installs restrict process command-line reads.
   }
 }
 
@@ -64,6 +88,8 @@ function Stop-WeftNode([bool]$Purge) {
   Stop-PidFile (Join-Path $Sk "control-plane.pid")
   Stop-PidFile (Join-Path $Sk "frpc.pid")
   Stop-PidFile (Join-Path $Sk "xray.pid")
+  Stop-WeftWorkspaceProcesses
+  Start-Sleep -Milliseconds 500
   if ($Purge -and (Test-Path -LiteralPath $StartupCmd)) {
     Remove-Item -LiteralPath $StartupCmd -Force
   }
