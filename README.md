@@ -22,15 +22,17 @@ existing clients such as **V2Box**, **Happ**, **sing-box**, **Hiddify**, or **St
 2. Connect your Solana wallet.
 3. Open the **access** tab.
 4. Add `$WEFT` balance if needed.
-5. Copy your personal VPN link:
-   - **primary / your node / your IP** if you are running your own active node,
-   - **fallback · VPS 1-hop** if no user node is available,
-   - **fallback · VPS multihop via Tor** for Tor routing.
+5. Copy one of the main VPN links:
+   - **1-hop:** fast direct exit through a Weft node,
+   - **multihop:** slower Tor-routed mode for stronger privacy.
 6. Import the `vless://` link into V2Box, Happ, sing-box, Hiddify, or Streisand.
 7. Press **Connect** in that client.
 
 Your VPN access is metered by `$WEFT`. When the prepaid budget runs out, the link stops. Add more
 `$WEFT`, and it resumes.
+
+If you are also running a node, the cabinet may show an extra **your node / your IP** link. That link
+is mainly for operator testing, so you can verify that your own device works as an exit node.
 
 ## Run A Node
 
