@@ -2,6 +2,7 @@
 set -euo pipefail
 
 WORK="${WEFT_TEST_DIR:-$HOME/.weft-home-exit-test}"
+OS="$(uname -s)"
 
 if command -v launchctl >/dev/null 2>&1; then
   UID_VALUE="$(id -u)"
@@ -18,6 +19,8 @@ stop_pid() {
       kill "$pid" 2>/dev/null || true
       sleep 1
       kill -9 "$pid" 2>/dev/null || true
+    elif [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]] && [ -n "$pid" ]; then
+      taskkill //PID "$pid" //F >/dev/null 2>&1 || true
     fi
     rm -f "$file"
   fi

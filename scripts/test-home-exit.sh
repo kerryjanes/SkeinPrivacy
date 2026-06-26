@@ -24,10 +24,15 @@ mkdir -p "$WORK"
 
 OS="$(uname -s)"
 ARCH=""
+IS_WINDOWS=0
 case "$OS" in
   Linux) ARCH="linux_amd64" ;;
   Darwin)
     if [ "$(uname -m)" = "arm64" ]; then ARCH="darwin_arm64"; else ARCH="darwin_amd64"; fi
+    ;;
+  MINGW*|MSYS*|CYGWIN*)
+    IS_WINDOWS=1
+    ARCH="windows_amd64"
     ;;
   *) echo "unsupported OS: $OS"; exit 1 ;;
 esac
@@ -66,17 +71,43 @@ if [ "$OS" = "Darwin" ]; then
     chmod +x "$XRAY"
     rm -rf "$WORK/xray.zip" "$WORK/xray-1.8.24.extract"
   fi
+elif [ "$IS_WINDOWS" = "1" ]; then
+  XRAY="${WEFT_TEST_XRAY:-$WORK/xray-1.8.24.exe}"
+  if [ ! -x "$XRAY" ]; then
+    need unzip
+    echo "→ downloading xray-core 1.8.24..."
+    curl -fsSL "https://github.com/XTLS/Xray-core/releases/download/v1.8.24/Xray-windows-64.zip" -o "$WORK/xray.zip"
+    rm -rf "$WORK/xray-1.8.24.extract"
+    mkdir -p "$WORK/xray-1.8.24.extract"
+    unzip -oq "$WORK/xray.zip" -d "$WORK/xray-1.8.24.extract"
+    mv "$WORK/xray-1.8.24.extract/xray.exe" "$XRAY"
+    chmod +x "$XRAY"
+    rm -rf "$WORK/xray.zip" "$WORK/xray-1.8.24.extract"
+  fi
 else
   XRAY="$(command -v xray)"
 fi
 
-if [ ! -x "$WORK/frpc" ]; then
+FRPC="$WORK/frpc"
+if [ "$IS_WINDOWS" = "1" ]; then
+  FRPC="$WORK/frpc.exe"
+fi
+if [ ! -x "$FRPC" ]; then
   echo "→ downloading frpc..."
-  curl -fsSL "https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_${ARCH}.tar.gz" -o "$WORK/frp.tgz"
-  tar xzf "$WORK/frp.tgz" -C "$WORK"
-  cp "$WORK/frp_${FRP_VER}_${ARCH}/frpc" "$WORK/frpc"
-  chmod +x "$WORK/frpc"
-  rm -rf "$WORK/frp.tgz" "$WORK/frp_${FRP_VER}_${ARCH}"
+  if [ "$IS_WINDOWS" = "1" ]; then
+    need unzip
+    curl -fsSL "https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_${ARCH}.zip" -o "$WORK/frp.zip"
+    unzip -oq "$WORK/frp.zip" -d "$WORK"
+    cp "$WORK/frp_${FRP_VER}_${ARCH}/frpc.exe" "$FRPC"
+    chmod +x "$FRPC"
+    rm -rf "$WORK/frp.zip" "$WORK/frp_${FRP_VER}_${ARCH}"
+  else
+    curl -fsSL "https://github.com/fatedier/frp/releases/download/v${FRP_VER}/frp_${FRP_VER}_${ARCH}.tar.gz" -o "$WORK/frp.tgz"
+    tar xzf "$WORK/frp.tgz" -C "$WORK"
+    cp "$WORK/frp_${FRP_VER}_${ARCH}/frpc" "$FRPC"
+    chmod +x "$FRPC"
+    rm -rf "$WORK/frp.tgz" "$WORK/frp_${FRP_VER}_${ARCH}"
+  fi
 fi
 
 if [ ! -f "$WORK/identity.env" ]; then
@@ -111,6 +142,11 @@ if [ -z "$SEND_THROUGH" ] && [ -n "$BYPASS_INTERFACE" ]; then
   if command -v ipconfig >/dev/null 2>&1; then
     SEND_THROUGH="$(ipconfig getifaddr "$BYPASS_INTERFACE" 2>/dev/null || true)"
   fi
+fi
+if [ "$IS_WINDOWS" = "1" ] && [ -n "$BYPASS_INTERFACE" ] && [ -z "$SEND_THROUGH" ]; then
+  echo "Windows Git Bash cannot resolve interface names like '${BYPASS_INTERFACE}'."
+  echo "Use WEFT_TEST_SEND_THROUGH=<LAN IPv4> instead, or omit bypass variables."
+  exit 1
 fi
 OUTBOUND_SEND_THROUGH_JSON=""
 if [ -n "$SEND_THROUGH" ]; then
@@ -235,18 +271,28 @@ PLIST
   sleep 1
   launchctl print "gui/${UID_VALUE}/${FRPC_LABEL}" | awk '/pid = / { gsub(";", "", $3); print $3; exit }' > "$WORK/frpc.pid"
 else
-  nohup "$WORK/frpc" -c "$WORK/frpc.toml" > "$WORK/frpc.log" 2>&1 &
+  nohup "$FRPC" -c "$WORK/frpc.toml" > "$WORK/frpc.log" 2>&1 &
   echo $! > "$WORK/frpc.pid"
 fi
 
 sleep 3
+
+port_open() {
+  local host="$1"
+  local port="$2"
+  if command -v nc >/dev/null 2>&1; then
+    nc -z "$host" "$port" >/dev/null 2>&1
+  else
+    (echo >"/dev/tcp/${host}/${port}") >/dev/null 2>&1
+  fi
+}
 
 if ! kill -0 "$(cat "$WORK/xray.pid")" 2>/dev/null; then
   echo "xray failed to start. Log:"
   sed -n '1,120p' "$WORK/xray.log"
   exit 1
 fi
-if ! nc -z 127.0.0.1 "$LOCAL_HOP1" >/dev/null 2>&1; then
+if ! port_open 127.0.0.1 "$LOCAL_HOP1"; then
   echo "xray process started but local port 127.0.0.1:${LOCAL_HOP1} is not listening. Log:"
   sed -n '1,160p' "$WORK/xray.log"
   exit 1
@@ -260,7 +306,9 @@ if ! kill -0 "$(cat "$WORK/frpc.pid")" 2>/dev/null; then
 fi
 
 LINK="vless://${UUID}@${RELAY}:${PORT}?flow=xtls-rprx-vision&type=tcp&security=reality&fp=firefox&sni=${SNI}&pbk=${PUB}&sid=${SID}&spx=%2F#Weft-home-exit-test"
-if [ -n "$BYPASS_INTERFACE" ]; then
+if [ -n "$SEND_THROUGH" ]; then
+  COMPUTER_IP="$(curl --interface "$SEND_THROUGH" -fsS --max-time 8 https://api.ipify.org 2>/dev/null || true)"
+elif [ -n "$BYPASS_INTERFACE" ]; then
   COMPUTER_IP="$(curl --interface "$BYPASS_INTERFACE" -fsS --max-time 8 https://api.ipify.org 2>/dev/null || true)"
 else
   COMPUTER_IP="$(curl -fsS --max-time 8 https://api.ipify.org 2>/dev/null || true)"

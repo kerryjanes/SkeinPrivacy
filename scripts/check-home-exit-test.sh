@@ -19,8 +19,11 @@ fi
 . "$WORK/identity.env"
 PORT="${WEFT_TEST_PORT:-$PORT}"
 
-if [ "$(uname -s)" = "Darwin" ]; then
+OS="$(uname -s)"
+if [ "$OS" = "Darwin" ]; then
   XRAY="${WEFT_TEST_XRAY:-$WORK/xray-1.8.24}"
+elif [[ "$OS" == MINGW* || "$OS" == MSYS* || "$OS" == CYGWIN* ]]; then
+  XRAY="${WEFT_TEST_XRAY:-$WORK/xray-1.8.24.exe}"
 else
   XRAY="$(command -v xray)"
 fi
