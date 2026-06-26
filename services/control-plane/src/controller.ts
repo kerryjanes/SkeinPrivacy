@@ -1,25 +1,26 @@
 // The control loop. Owns the user store + chain reads + xray surface, and ties them together:
 //
-//   • provision(wallet) — mint a per-user link, gated by the wallet's $WEFT balance
-//   • settle(wallet,tx) — verify an on-chain pay_traffic and clear that much of the user's tab
+//   • provision(wallet) — mint a per-user link, gated by the wallet's prepaid escrow balance
+//   • settle(wallet,tx) — verify an on-chain settlement and clear that much of the user's tab
 //   • tick()            — meter usage, refresh balances, flip users on/off, reconcile xray
 //
 // Access rule (the whole point): a user is ON iff their unsettled consumption is still within
-// what their $WEFT balance can pay for (`unsettledBytes < quotaBytes`). Consume past it → OFF.
-// Pay (pay_traffic) or top up $WEFT → quota rises / tab clears → ON again.
+// what their prepaid escrow can pay for (`unsettledBytes < quotaBytes`). Consume past it → OFF.
+// Settle from escrow (or legacy pay_traffic) / top up $WEFT → quota rises / tab clears → ON again.
 
 import { randomUUID } from 'node:crypto';
 import type { NodeConfig } from './config.js';
 import type { Store, User } from './store.js';
 import { math } from '@weft/sdk';
-import { costBaseUnits, quotaBytes, weftBalance, verifyPayTraffic, type Rpc } from './chain.js';
+import { costBaseUnits, escrowBalance, quotaBytes, verifyPayTraffic, type Rpc } from './chain.js';
 import { multiHopLink, oneHopLink } from './links.js';
 import { applyConfig, pollUsage } from './xray.js';
 
 export interface Status {
   wallet: string;
   active: boolean;
-  balanceWeft: string;
+  balanceWeft: string; // prepaid escrow balance, kept under the legacy field name for API stability
+  balanceBaseUnits: string;
   quotaBytes: string;
   unsettledBytes: string;
   owedWeft: string; // what the user owes for unsettled traffic (settle this to clear it)
@@ -65,7 +66,7 @@ export class Controller {
   }
 
   private async refreshBalance(u: User): Promise<void> {
-    const bal = await weftBalance(this.rpc, u.wallet, this.cfg.weftMint);
+    const bal = await escrowBalance(this.rpc, u.wallet, this.cfg.weftMint);
     u.balanceBaseUnits = bal.toString();
     u.quotaBytes = quotaBytes(bal).toString();
   }
@@ -77,6 +78,7 @@ export class Controller {
       wallet: u.wallet,
       active: u.active,
       balanceWeft: fmtWeft(BigInt(u.balanceBaseUnits)),
+      balanceBaseUnits: u.balanceBaseUnits,
       quotaBytes: quota.toString(),
       unsettledBytes: unsettled.toString(),
       owedWeft: fmtWeft(costBaseUnits(unsettled)),
@@ -112,7 +114,7 @@ export class Controller {
     return this.status(u);
   }
 
-  /** Verify a pay_traffic tx and clear that much of the user's metered tab. */
+  /** Verify a settlement tx and clear that much of the user's metered tab. */
   async settle(wallet: string, signature: string): Promise<Status> {
     const u = this.store.get(wallet);
     if (!u) throw new Error('unknown wallet — provision first');
@@ -127,7 +129,7 @@ export class Controller {
     const paidBytes = quotaBytes(amount); // bytes that payment covers
     const unsettled = BigInt(u.unsettledBytes);
     u.unsettledBytes = (unsettled > paidBytes ? unsettled - paidBytes : 0n).toString();
-    await this.refreshBalance(u); // balance dropped by the payment
+    await this.refreshBalance(u); // escrow balance dropped by the payment
     u.active = this.computeActive(u);
     this.store.put(u);
     this.store.completePayment(signature, wallet, amount);

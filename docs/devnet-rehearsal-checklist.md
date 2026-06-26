@@ -51,7 +51,10 @@ Run this before any mainnet canary. The goal is to exercise the same launch flow
 - Connect from a phone.
 - Confirm exit IP is the user node IP first, not VPS.
 - Stop the user node and confirm fallback to VPS.
-- Generate traffic, settle it with `pay_traffic`, and confirm duplicate settlement is rejected.
+- Deposit test `$WEFT` into Payment Escrow.
+- Generate traffic, settle it with `pay_traffic_from_escrow`, and confirm escrow balance, reward vault, treasury, and burned supply deltas match the governed split.
+- Withdraw unused escrow balance and confirm the escrow cannot be overdrawn.
+- Submit the same settlement signature twice and verify duplicate settlement is rejected.
 
 ## 5. Rewards Rehearsal
 

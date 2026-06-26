@@ -50,3 +50,18 @@ pub struct ClaimStatus {
     pub disputed: bool,
     pub bump: u8,
 }
+
+/// Per-wallet prepaid traffic balance. PDA `[ESCROW_SEED, owner]`.
+#[account]
+#[derive(InitSpace)]
+pub struct PaymentEscrow {
+    pub owner: Pubkey,
+    pub mint: Pubkey,
+    /// PDA token account owned by this escrow account.
+    pub vault: Pubkey,
+    /// Unspent prepaid balance still available for VPN traffic.
+    pub balance: u64,
+    pub total_deposited: u64,
+    pub total_spent: u64,
+    pub bump: u8,
+}

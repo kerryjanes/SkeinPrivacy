@@ -35,9 +35,15 @@ This checklist is the manual launch gate. Do not launch while any item is unknow
 
 - Initialize distributor with the mainnet mint, reward vault, treasury, poster authority, and dispute authority.
 - Verify dispute/clawback windows and protocol split parameters.
+- Verify Payment Escrow:
+  - `deposit_escrow` creates exactly one escrow PDA and escrow vault per wallet.
+  - `pay_traffic_from_escrow` debits prepaid balance and applies the governed node/treasury/burn split.
+  - `withdraw_escrow` returns only unused prepaid balance to the wallet.
+- Verify burn accounting: total token supply decreases by exactly the burn share for direct payments and escrow-settled payments.
 - Run the aggregator with `WEFT_CLUSTER=mainnet-beta`, `WEFT_RPC`, and production receipt ingestion.
 - Confirm `/receipts` ingestion builds proofs, `post_epoch` lands on-chain, `/proof` returns claimable proofs, and `claim` succeeds after the dispute window.
-- Submit the same `pay_traffic` signature twice against a node control-plane and verify the second attempt is rejected.
+- Submit the same settlement signature twice against a node control-plane and verify the second attempt is rejected.
+- Keep direct `pay_traffic` disabled in the public UX unless intentionally preserving it as a legacy/manual settlement path.
 
 ## Nodes And Web
 
@@ -53,7 +59,7 @@ This checklist is the manual launch gate. Do not launch while any item is unknow
   - `VITE_WEFT_COLLECTION`
   - `VITE_WEFT_MERKLE_TREE`
   - `VITE_WEFT_TREE_SHARD`
-- Verify wallet connect, node registration, access provisioning, payment settlement, staking, rewards, and governance flows with a small mainnet canary amount.
+- Verify wallet connect, node registration, escrow deposit, access provisioning, escrow settlement, escrow withdraw, staking, rewards, and governance flows with a small mainnet canary amount.
 
 ## Secrets
 

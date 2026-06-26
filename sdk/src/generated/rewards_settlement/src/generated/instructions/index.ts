@@ -7,11 +7,14 @@
  */
 
 export * from './claim';
+export * from './depositEscrow';
 export * from './dispute';
 export * from './fundVault';
 export * from './initializeDistributor';
 export * from './payTraffic';
+export * from './payTrafficFromEscrow';
 export * from './postEpoch';
 export * from './setAuthorities';
 export * from './sweepEpoch';
 export * from './transferAuthority';
+export * from './withdrawEscrow';

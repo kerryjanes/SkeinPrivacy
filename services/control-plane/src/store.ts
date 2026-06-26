@@ -11,8 +11,8 @@ export interface User {
   unsettledBytes: string; // metered consumption not yet paid for (bigint as string)
   servedBytesLifetime: string; // cumulative bytes this node served this user — never reset; the
   // basis for the operator's $WEFT earnings (settlement clears the tab, but earnings keep counting)
-  balanceBaseUnits: string; // last observed $WEFT balance
-  quotaBytes: string; // bytes that balance buys
+  balanceBaseUnits: string; // last observed prepaid escrow balance
+  quotaBytes: string; // bytes that prepaid balance buys
   active: boolean; // currently present in the xray config (link works)
   createdAt: number;
 }

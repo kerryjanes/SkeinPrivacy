@@ -21,7 +21,7 @@ custom-heap = []
 custom-panic = []
 
 [dependencies]
-anchor-lang = { workspace = true }
+anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-spl = { workspace = true }
 weft-primitives = { workspace = true }
 

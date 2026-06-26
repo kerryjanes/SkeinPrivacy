@@ -2,7 +2,13 @@ import { getAddressEncoder, type Address, type Blockhash } from '@solana/kit';
 import { rewardsSettlement } from '@weft/sdk';
 import { describe, expect, it } from 'vitest';
 
-import { buildPayTrafficTransaction, payLabel, type PayConfig } from '../src/pay';
+import {
+  buildDepositEscrowTransaction,
+  buildPayTrafficFromEscrowTransaction,
+  buildPayTrafficTransaction,
+  payLabel,
+  type PayConfig,
+} from '../src/pay';
 import { makeSigner } from './helpers';
 
 const addrEnc = getAddressEncoder();
@@ -21,7 +27,7 @@ const FAKE_BLOCKHASH = {
   lastValidBlockHeight: 1_000n,
 };
 
-describe('Solana Pay pay_traffic', () => {
+describe('Solana Pay traffic payments', () => {
   it('returns the configured label', () => {
     expect(payLabel(config()).label).toBe('Weft VPN traffic');
   });
@@ -44,6 +50,25 @@ describe('Solana Pay pay_traffic', () => {
     expect(bytes.includes(programBytes)).toBe(true);
   });
 
+  it('builds unsigned escrow deposit and escrow settlement transactions', async () => {
+    const account = makeSigner().address as Address;
+    const cfg = config();
+    const deposit = await buildDepositEscrowTransaction(account, 2_000_000n, cfg, FAKE_BLOCKHASH);
+    const settle = await buildPayTrafficFromEscrowTransaction(
+      account,
+      1_000_000n,
+      cfg,
+      FAKE_BLOCKHASH,
+    );
+    const programBytes = Buffer.from(
+      addrEnc.encode(rewardsSettlement.REWARDS_SETTLEMENT_PROGRAM_ADDRESS) as Uint8Array,
+    );
+    expect(Buffer.from(deposit.transaction, 'base64').includes(programBytes)).toBe(true);
+    expect(Buffer.from(settle.transaction, 'base64').includes(programBytes)).toBe(true);
+    expect(deposit.message).toBe(cfg.label);
+    expect(settle.message).toBe(cfg.label);
+  });
+
   it('encodes the requested amount in the pay_traffic instruction', async () => {
     const payer = makeSigner();
     const cfg = config();
@@ -57,5 +82,31 @@ describe('Solana Pay pay_traffic', () => {
     });
     const decoded = rewardsSettlement.getPayTrafficInstructionDataDecoder().decode(ix.data);
     expect(decoded.amount).toBe(1_234_567n);
+  });
+
+  it('encodes requested amounts in escrow instructions', async () => {
+    const owner = makeSigner();
+    const cfg = config();
+    const signer = { address: owner.address, signAndSendTransactions: async () => [] } as never;
+    const deposit = await rewardsSettlement.getDepositEscrowInstructionAsync({
+      owner: signer,
+      rewardMint: cfg.rewardMint,
+      ownerTokenAccount: makeSigner().address,
+      amount: 2_345_678n,
+    });
+    const settle = await rewardsSettlement.getPayTrafficFromEscrowInstructionAsync({
+      owner: signer,
+      escrowVault: makeSigner().address,
+      rewardMint: cfg.rewardMint,
+      rewardVault: cfg.rewardVault,
+      treasury: cfg.treasury,
+      amount: 3_456_789n,
+    });
+    expect(rewardsSettlement.getDepositEscrowInstructionDataDecoder().decode(deposit.data).amount).toBe(
+      2_345_678n,
+    );
+    expect(
+      rewardsSettlement.getPayTrafficFromEscrowInstructionDataDecoder().decode(settle.data).amount,
+    ).toBe(3_456_789n);
   });
 });

@@ -9,5 +9,7 @@
 export * from './claimStatus';
 export * from './distributor';
 export * from './epochDistribution';
+export * from './escrow';
+export * from './escrowVault';
 export * from './programAuthority';
 export * from './rewardVault';

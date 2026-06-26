@@ -145,7 +145,7 @@ describe('xray config render', () => {
   });
 });
 
-describe('pay_traffic settlement verification', () => {
+describe('settlement verification', () => {
   const PROGRAM = String(rewardsSettlement.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
   const PAYER = '2m5CoAk7ioZJbRYqHV9PJMNZN2gwpTPKQXR4GKyVifL7';
   const OTHER = 'FdLn2UPCmGGxzRDvX54qcQSrCyHSTzmaNeYdxY21FxNt';
@@ -166,6 +166,12 @@ describe('pay_traffic settlement verification', () => {
     const bytes = rewardsSettlement.getPayTrafficInstructionDataEncoder().encode({ amount });
     return b58(new Uint8Array(bytes));
   }
+  function payTrafficFromEscrowData(amount: bigint): string {
+    const bytes = rewardsSettlement
+      .getPayTrafficFromEscrowInstructionDataEncoder()
+      .encode({ amount });
+    return b58(new Uint8Array(bytes));
+  }
 
   it('decodes the payer + amount from a genuine pay_traffic instruction', () => {
     const keys = [PAYER, 'distributor', 'cfg', 'mint', 'ata', 'vault', 'treasury', PROGRAM];
@@ -179,6 +185,29 @@ describe('pay_traffic settlement verification', () => {
     expect(String(r.payer)).toBe(PAYER);
   });
 
+  it('decodes the owner + amount from a genuine pay_traffic_from_escrow instruction', () => {
+    const keys = [
+      PAYER,
+      'distributor',
+      'cfg',
+      'escrow',
+      'escrowVault',
+      'mint',
+      'vault',
+      'treasury',
+      'token',
+      PROGRAM,
+    ];
+    const ix = {
+      programIdIndex: 9,
+      accounts: [0, 1, 2, 3, 4, 5, 6, 7, 8],
+      data: payTrafficFromEscrowData(765_432n),
+    };
+    const r = decodePayTraffic(keys, [ix], PAYER);
+    expect(r.amount).toBe(765_432n);
+    expect(String(r.payer)).toBe(PAYER);
+  });
+
   it('rejects a payment whose signer is not the expected wallet (no spoofing another wallet)', () => {
     const keys = [PAYER, 'x', 'y', 'z', 'a', 'b', 'c', PROGRAM];
     const ix = { programIdIndex: 7, accounts: [0, 1, 2, 3, 4, 5, 6], data: payTrafficData(10n) };
@@ -188,7 +217,7 @@ describe('pay_traffic settlement verification', () => {
   it('rejects a tx that contains no settlement instruction', () => {
     const keys = [PAYER, '11111111111111111111111111111111'];
     const ix = { programIdIndex: 1, accounts: [0], data: payTrafficData(10n) };
-    expect(() => decodePayTraffic(keys, [ix], PAYER)).toThrow(/no pay_traffic/);
+    expect(() => decodePayTraffic(keys, [ix], PAYER)).toThrow(/no settlement/);
   });
 });
 

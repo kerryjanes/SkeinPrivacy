@@ -36,6 +36,10 @@ export const REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT = 0x1778; // 6008
 export const REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT = 0x1779; // 6009
 /** MathOverflow: Arithmetic overflow */
 export const REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW = 0x177a; // 6010
+/** InsufficientEscrow: Escrow balance is insufficient */
+export const REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW = 0x177b; // 6011
+/** InvalidEscrow: Escrow account does not match the expected owner, mint, or vault */
+export const REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW = 0x177c; // 6012
 
 export type RewardsSettlementError =
   | typeof REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT
@@ -43,7 +47,9 @@ export type RewardsSettlementError =
   | typeof REWARDS_SETTLEMENT_ERROR__DISPUTED
   | typeof REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN
   | typeof REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM
+  | typeof REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW
   | typeof REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT
+  | typeof REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW
   | typeof REWARDS_SETTLEMENT_ERROR__INVALID_PROOF
   | typeof REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW
   | typeof REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH
@@ -58,7 +64,9 @@ if (process.env['NODE_ENV'] !== 'production') {
     [REWARDS_SETTLEMENT_ERROR__DISPUTED]: `This leaf has been disputed`,
     [REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN]: `Dispute window has not elapsed`,
     [REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM]: `Epoch over-claimed`,
+    [REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW]: `Escrow balance is insufficient`,
     [REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT]: `Reward vault cannot cover the posted obligations`,
+    [REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW]: `Escrow account does not match the expected owner, mint, or vault`,
     [REWARDS_SETTLEMENT_ERROR__INVALID_PROOF]: `Merkle proof is invalid`,
     [REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
     [REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH]: `Epoch must be strictly increasing`,

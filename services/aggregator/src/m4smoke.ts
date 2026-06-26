@@ -1,10 +1,11 @@
 // M4 devnet smoke: exercise the full settlement economic loop against the LIVE
 // programs and the real node 1 (operated by the deployer, staked + scored in M3):
 //   1. pay_traffic  → observe the 70/20/10 split + burn (supply drop)
-//   2. fund_vault   → top up the reward pool
-//   3. build an epoch from a synthetic dual-signed receipt for node 1, post it
-//   4. claim with the served proof → operator ATA credited
-//   5. re-point slash_authority/oracle → settlement PDA, dispute a second epoch's
+//   2. escrow path  → deposit, settle from prepaid escrow, withdraw unused
+//   3. fund_vault   → top up the reward pool
+//   4. build an epoch from a synthetic dual-signed receipt for node 1, post it
+//   5. claim with the served proof → operator ATA credited
+//   6. re-point slash_authority/oracle → settlement PDA, dispute a second epoch's
 //      leaf → live StakePosition slashed + reputation penalized (mirrored into
 //      NodeState), and the disputed leaf becomes unclaimable.
 //
@@ -218,7 +219,87 @@ async function main(): Promise<void> {
   if (vaultDelta !== split.nodes) throw new Error('vault split mismatch');
   if (burned !== split.burn) throw new Error('burn mismatch');
 
-  // 2. fund_vault.
+  // 2. Escrow-first path: deposit → settle from escrow → withdraw unused.
+  const escrowKp = makeRawKeypair();
+  const escrowSigner = await createKeyPairSignerFromBytes(escrowKp.secret64);
+  const escrowAta = await ata(escrowKp.address, rewardMint);
+  const [escrowPda] = await rewardsSettlement.findEscrowPda({ owner: escrowKp.address });
+  const [escrowVault] = await rewardsSettlement.findEscrowVaultPda({ owner: escrowKp.address });
+  const escrowDeposit = 800_000_000n;
+  const escrowSettle = 500_000_000n;
+  const escrowWithdraw = 300_000_000n;
+  await send(conn, deployer, [
+    getTransferSolInstruction({
+      source: deployer,
+      destination: escrowKp.address,
+      amount: lamports(20_000_000n),
+    }),
+  ]);
+  await send(conn, deployer, [
+    await getCreateAssociatedTokenIdempotentInstructionAsync({
+      payer: deployer,
+      owner: escrowKp.address,
+      mint: rewardMint,
+    }),
+    getTransferCheckedInstruction({
+      source: deployerRewardAta,
+      mint: rewardMint,
+      destination: escrowAta,
+      authority: deployer,
+      amount: escrowDeposit,
+      decimals: 9,
+    }),
+  ]);
+  await send(conn, deployer, [
+    await rewardsSettlement.getDepositEscrowInstructionAsync({
+      owner: escrowSigner,
+      rewardMint,
+      ownerTokenAccount: escrowAta,
+      amount: escrowDeposit,
+    }),
+  ]);
+  let escrowState = await rewardsSettlement.fetchPaymentEscrow(conn.rpc, escrowPda);
+  if (escrowState.data.balance !== escrowDeposit) throw new Error('escrow deposit mismatch');
+
+  const escrowVaultBefore = await tokenAmount(conn, rewardVaultPda);
+  const escrowTreasuryBefore = await tokenAmount(conn, treasury);
+  const escrowSupplyBefore = await supplyOf(conn, rewardMint);
+  await send(conn, deployer, [
+    await rewardsSettlement.getPayTrafficFromEscrowInstructionAsync({
+      owner: escrowSigner,
+      escrowVault,
+      rewardMint,
+      rewardVault: rewardVaultPda,
+      treasury,
+      amount: escrowSettle,
+    }),
+  ]);
+  const escrowSplit = math.splitPayment(escrowSettle);
+  const escrowVaultDelta = (await tokenAmount(conn, rewardVaultPda)) - escrowVaultBefore;
+  const escrowTreasuryDelta = (await tokenAmount(conn, treasury)) - escrowTreasuryBefore;
+  const escrowBurned = escrowSupplyBefore - (await supplyOf(conn, rewardMint));
+  escrowState = await rewardsSettlement.fetchPaymentEscrow(conn.rpc, escrowPda);
+  if (escrowState.data.balance !== escrowWithdraw) throw new Error('escrow settle balance mismatch');
+  if (escrowVaultDelta !== escrowSplit.nodes) throw new Error('escrow vault split mismatch');
+  if (escrowTreasuryDelta !== escrowSplit.treasury) throw new Error('escrow treasury split mismatch');
+  if (escrowBurned !== escrowSplit.burn) throw new Error('escrow burn mismatch');
+
+  await send(conn, deployer, [
+    await rewardsSettlement.getWithdrawEscrowInstructionAsync({
+      owner: escrowSigner,
+      escrowVault,
+      rewardMint,
+      ownerTokenAccount: escrowAta,
+      amount: escrowWithdraw,
+    }),
+  ]);
+  escrowState = await rewardsSettlement.fetchPaymentEscrow(conn.rpc, escrowPda);
+  if (escrowState.data.balance !== 0n) throw new Error('escrow withdraw mismatch');
+  console.log(
+    `[m4] escrow deposit ${escrowDeposit}, settle ${escrowSettle}: vault +${escrowVaultDelta}, treasury +${escrowTreasuryDelta}, burned ${escrowBurned}; withdraw ${escrowWithdraw}`,
+  );
+
+  // 3. fund_vault.
   await send(conn, deployer, [
     await rewardsSettlement.getFundVaultInstructionAsync({
       funder: deployer,
@@ -229,7 +310,7 @@ async function main(): Promise<void> {
     }),
   ]);
 
-  // 3. Build + post epoch E1.
+  // 4. Build + post epoch E1.
   const nodeInfos = (await fetchNodeInfos(conn.rpc)).filter(
     (n) => n.operator === deployer.address && n.nodeId === NODE_ID,
   );
@@ -258,7 +339,7 @@ async function main(): Promise<void> {
     }),
   ]);
 
-  // 4. Claim after the dispute window.
+  // 5. Claim after the dispute window.
   await sleep(3_000);
   const before = await tokenAmount(conn, deployerRewardAta);
   await send(conn, deployer, [
@@ -278,7 +359,7 @@ async function main(): Promise<void> {
   console.log(`[m4] claim credited ${credited} (exp ${entry1.amount})`);
   if (credited !== entry1.amount) throw new Error('claim payout mismatch');
 
-  // 5. Dispute epoch E2's leaf.
+  // 6. Dispute epoch E2's leaf.
   const e2 = baseEpoch + 2n;
   const r2 = makeReceipt(clientKp.address, deployer.address, clientKp.seed, operatorSeed, {
     nodeId: NODE_ID,
@@ -313,7 +394,8 @@ async function main(): Promise<void> {
   console.log('[m4] slash_authority + oracle re-pointed at settlement PDA');
 
   const nsBefore = await fetchNodeStateTolerant(conn.rpc, node);
-  const slashAmount = 10_000n;
+  const slashAmount = pos0.data.amount / 2n;
+  if (slashAmount <= 0n) throw new Error('operator stake is too small to run dispute smoke');
   const disputeIx = await rewardsSettlement.getDisputeInstructionAsync({
     disputeAuthority: deployer,
     operator: deployer.address,

@@ -23,7 +23,7 @@ Prepared devnet program IDs for this rehearsal:
 - governance: `8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE`
 - node_registry: `GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH`
 - reputation: `6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ`
-- rewards_settlement: `BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU`
+- rewards_settlement: `3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5`
 - weft_vesting: `Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb`
 - staking: `CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU`
 - token_distributor: `89wHYTG6deQUn4Rsbkcw2gG2sVSk8g9jTezP9qxG66Dn`
@@ -36,13 +36,15 @@ Anchor instruction-name logs:
 | governance | 280,328 | 1.95197376 SOL |
 | node_registry | 264,152 | 1.8393888 SOL |
 | reputation | 196,360 | 1.36755648 SOL |
-| rewards_settlement | 369,864 | 2.57514432 SOL |
+| rewards_settlement | 428,616 | 2.98405824 SOL |
 | weft_vesting | 224,072 | 1.560432 SOL |
 | staking | 262,528 | 1.82808576 SOL |
 | token_distributor | 287,040 | 1.99868928 SOL |
 
-Total programdata rent baseline: `13.1212704 SOL` before transaction fees and any non-program
-accounts. Previous baseline was `13.5146496 SOL`; saved `0.3933792 SOL`.
+Total programdata rent baseline: `13.53018432 SOL` before transaction fees and any non-program
+accounts. Previous rent-optimized baseline was `13.1212704 SOL`; Payment Escrow added
+`0.40891392 SOL` to `rewards_settlement` while keeping escrow in the existing economics program
+instead of deploying a new one.
 
 Fresh devnet genesis:
 

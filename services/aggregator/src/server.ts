@@ -3,13 +3,22 @@
 //   GET  /epoch?epoch=N                  → built-epoch summary
 //   GET  /proof?epoch=N&operator=&nodeId= → the exact leaf + proof `claim` accepts
 //   GET  /pay/traffic                    → Solana Pay label (wallet handshake)
-//   POST /pay/traffic?amount=N {account} → unsigned pay_traffic transaction
+//   POST /pay/escrow/deposit?amount=N {account} → unsigned deposit_escrow transaction
+//   POST /pay/traffic/escrow?amount=N {account} → unsigned pay_traffic_from_escrow transaction
+//   POST /pay/traffic?amount=N {account} → legacy unsigned pay_traffic transaction
 //   POST /receipts?epoch=N {receipts}    → ingest dual-signed traffic receipts (M6)
 
 import { createServer, type Server } from 'node:http';
 import { address, type Address } from '@solana/kit';
 
-import { buildPayTrafficTransaction, payLabel, type Blockhashish, type PayConfig } from './pay';
+import {
+  buildDepositEscrowTransaction,
+  buildPayTrafficFromEscrowTransaction,
+  buildPayTrafficTransaction,
+  payLabel,
+  type Blockhashish,
+  type PayConfig,
+} from './pay';
 import { selectReceiptsForEpoch, type TrafficReceipt } from './receipts';
 import type { EpochStore } from './store';
 
@@ -114,6 +123,50 @@ export function createAggregatorServer(deps: ServerDeps): Server {
           }
           const account = address(body.account) as Address;
           const tx = await buildPayTrafficTransaction(
+            account,
+            amount,
+            deps.payConfig,
+            await deps.getBlockhash(),
+          );
+          json(200, tx);
+          return;
+        }
+
+        if (url.pathname === '/pay/escrow/deposit' && req.method === 'POST') {
+          const amount = BigInt(url.searchParams.get('amount') ?? '0');
+          if (amount <= 0n) {
+            json(400, { error: 'amount must be positive' });
+            return;
+          }
+          const body = JSON.parse((await readBody(req)) || '{}') as { account?: string };
+          if (!body.account) {
+            json(400, { error: 'missing account' });
+            return;
+          }
+          const account = address(body.account) as Address;
+          const tx = await buildDepositEscrowTransaction(
+            account,
+            amount,
+            deps.payConfig,
+            await deps.getBlockhash(),
+          );
+          json(200, tx);
+          return;
+        }
+
+        if (url.pathname === '/pay/traffic/escrow' && req.method === 'POST') {
+          const amount = BigInt(url.searchParams.get('amount') ?? '0');
+          if (amount <= 0n) {
+            json(400, { error: 'amount must be positive' });
+            return;
+          }
+          const body = JSON.parse((await readBody(req)) || '{}') as { account?: string };
+          if (!body.account) {
+            json(400, { error: 'missing account' });
+            return;
+          }
+          const account = address(body.account) as Address;
+          const tx = await buildPayTrafficFromEscrowTransaction(
             account,
             amount,
             deps.payConfig,

@@ -9,3 +9,4 @@
 export * from './claimStatus';
 export * from './distributor';
 export * from './epochDistribution';
+export * from './paymentEscrow';

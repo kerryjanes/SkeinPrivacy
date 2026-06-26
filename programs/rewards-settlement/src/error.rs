@@ -24,4 +24,8 @@ pub enum SettlementError {
     ZeroAmount,
     #[msg("Arithmetic overflow")]
     MathOverflow,
+    #[msg("Escrow balance is insufficient")]
+    InsufficientEscrow,
+    #[msg("Escrow account does not match the expected owner, mint, or vault")]
+    InvalidEscrow,
 }

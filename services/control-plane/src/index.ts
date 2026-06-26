@@ -2,8 +2,8 @@
 // Weft control plane — token-gated VPN access for one node.
 //
 // Boots the HTTP API + the metering loop. The loop is what enforces the economics: every pollMs
-// it folds each user's new traffic into their tab, re-reads $WEFT balances, and turns links
-// on/off so a user only stays connected while their balance covers what they've used.
+// it folds each user's new traffic into their tab, re-reads prepaid escrow balances, and turns links
+// on/off so a user only stays connected while their prepaid balance covers what they've used.
 
 import { readFileSync } from 'node:fs';
 import { loadConfig } from './config.js';

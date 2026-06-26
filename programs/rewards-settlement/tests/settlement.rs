@@ -138,6 +138,20 @@ fn claim_pda(epoch: u64, operator: &Pubkey, node_id: u64) -> Pubkey {
     )
     .0
 }
+fn escrow_pda(owner: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[rewards_settlement::ESCROW_SEED, owner.as_ref()],
+        &rewards_settlement::ID,
+    )
+    .0
+}
+fn escrow_vault_pda(owner: &Pubkey) -> Pubkey {
+    Pubkey::find_program_address(
+        &[rewards_settlement::ESCROW_VAULT_SEED, owner.as_ref()],
+        &rewards_settlement::ID,
+    )
+    .0
+}
 
 // ---- token helpers ----
 fn create_mint(svm: &mut LiteSVM) -> Pubkey {
@@ -366,6 +380,11 @@ fn distributor_obligated(svm: &LiteSVM) -> u64 {
         .cumulative_obligated
 }
 
+fn payment_escrow(svm: &LiteSVM, owner: &Pubkey) -> rewards_settlement::PaymentEscrow {
+    let e = svm.get_account(&escrow_pda(owner)).unwrap();
+    rewards_settlement::PaymentEscrow::try_deserialize(&mut e.data.as_slice()).unwrap()
+}
+
 #[test]
 fn pay_traffic_splits_70_20_10_and_burns() {
     let (mut svm, authority) = setup();
@@ -447,6 +466,113 @@ fn pay_traffic_rounding_remainder_goes_to_treasury() {
     assert_eq!(split.nodes + split.burn + split.treasury, amount);
     assert_eq!(token_amount(&svm, &vault_pda()), split.nodes);
     assert_eq!(token_amount(&svm, &env.treasury), split.treasury);
+}
+
+#[test]
+fn prepaid_escrow_deposit_settle_and_withdraw_unused() {
+    let (mut svm, authority) = setup();
+    let env = init_distributor(&mut svm, &authority, 100, 1000);
+    craft_protocol_config(&mut svm, 7_000, 2_000);
+
+    let owner = Keypair::new();
+    svm.airdrop(&owner.pubkey(), 1_000_000_000).unwrap();
+    let owner_ta = create_token_account(&mut svm, &env.mint, &owner.pubkey(), 1_000_000);
+    set_mint_supply(&mut svm, &env.mint, 1_000_000);
+
+    let data = rewards_settlement::instruction::DepositEscrow { amount: 800_000 }.data();
+    let metas = rewards_settlement::accounts::DepositEscrow {
+        owner: owner.pubkey(),
+        distributor: distributor_pda(),
+        escrow: escrow_pda(&owner.pubkey()),
+        escrow_vault: escrow_vault_pda(&owner.pubkey()),
+        reward_mint: env.mint,
+        owner_token_account: owner_ta,
+        token_program: token_program_id(),
+        system_program: anchor_lang::solana_program::system_program::ID,
+    }
+    .to_account_metas(None);
+    send(
+        &mut svm,
+        Instruction::new_with_bytes(rewards_settlement::ID, &data, metas),
+        &owner,
+        &[&owner],
+    )
+    .unwrap();
+
+    let escrow = payment_escrow(&svm, &owner.pubkey());
+    assert_eq!(escrow.owner, owner.pubkey());
+    assert_eq!(escrow.mint, env.mint);
+    assert_eq!(escrow.vault, escrow_vault_pda(&owner.pubkey()));
+    assert_eq!(escrow.balance, 800_000);
+    assert_eq!(escrow.total_deposited, 800_000);
+    assert_eq!(token_amount(&svm, &owner_ta), 200_000);
+    assert_eq!(
+        token_amount(&svm, &escrow_vault_pda(&owner.pubkey())),
+        800_000
+    );
+
+    let supply_before_settle = mint_supply(&svm, &env.mint);
+    let data = rewards_settlement::instruction::PayTrafficFromEscrow { amount: 500_000 }.data();
+    let metas = rewards_settlement::accounts::PayTrafficFromEscrow {
+        owner: owner.pubkey(),
+        distributor: distributor_pda(),
+        protocol_config: protocol_config_pda(),
+        escrow: escrow_pda(&owner.pubkey()),
+        escrow_vault: escrow_vault_pda(&owner.pubkey()),
+        reward_mint: env.mint,
+        reward_vault: vault_pda(),
+        treasury: env.treasury,
+        token_program: token_program_id(),
+    }
+    .to_account_metas(None);
+    send(
+        &mut svm,
+        Instruction::new_with_bytes(rewards_settlement::ID, &data, metas),
+        &owner,
+        &[&owner],
+    )
+    .unwrap();
+
+    let split = split_payment(500_000);
+    let escrow = payment_escrow(&svm, &owner.pubkey());
+    assert_eq!(escrow.balance, 300_000);
+    assert_eq!(escrow.total_spent, 500_000);
+    assert_eq!(
+        token_amount(&svm, &escrow_vault_pda(&owner.pubkey())),
+        300_000
+    );
+    assert_eq!(token_amount(&svm, &vault_pda()), split.nodes);
+    assert_eq!(token_amount(&svm, &env.treasury), split.treasury);
+    assert_eq!(
+        mint_supply(&svm, &env.mint),
+        supply_before_settle - split.burn
+    );
+
+    let data = rewards_settlement::instruction::WithdrawEscrow { amount: 200_000 }.data();
+    let metas = rewards_settlement::accounts::WithdrawEscrow {
+        owner: owner.pubkey(),
+        escrow: escrow_pda(&owner.pubkey()),
+        escrow_vault: escrow_vault_pda(&owner.pubkey()),
+        reward_mint: env.mint,
+        owner_token_account: owner_ta,
+        token_program: token_program_id(),
+    }
+    .to_account_metas(None);
+    send(
+        &mut svm,
+        Instruction::new_with_bytes(rewards_settlement::ID, &data, metas),
+        &owner,
+        &[&owner],
+    )
+    .unwrap();
+
+    let escrow = payment_escrow(&svm, &owner.pubkey());
+    assert_eq!(escrow.balance, 100_000);
+    assert_eq!(
+        token_amount(&svm, &escrow_vault_pda(&owner.pubkey())),
+        100_000
+    );
+    assert_eq!(token_amount(&svm, &owner_ta), 400_000);
 }
 
 #[test]

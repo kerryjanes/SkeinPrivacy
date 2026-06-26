@@ -38,66 +38,84 @@ import {
   getClaimStatusCodec,
   getDistributorCodec,
   getEpochDistributionCodec,
+  getPaymentEscrowCodec,
   type ClaimStatus,
   type ClaimStatusArgs,
   type Distributor,
   type DistributorArgs,
   type EpochDistribution,
   type EpochDistributionArgs,
+  type PaymentEscrow,
+  type PaymentEscrowArgs,
 } from '../accounts';
 import {
   getClaimInstructionAsync,
+  getDepositEscrowInstructionAsync,
   getDisputeInstructionAsync,
   getFundVaultInstructionAsync,
   getInitializeDistributorInstructionAsync,
+  getPayTrafficFromEscrowInstructionAsync,
   getPayTrafficInstructionAsync,
   getPostEpochInstructionAsync,
   getSetAuthoritiesInstructionAsync,
   getSweepEpochInstructionAsync,
   getTransferAuthorityInstructionAsync,
+  getWithdrawEscrowInstructionAsync,
   parseClaimInstruction,
+  parseDepositEscrowInstruction,
   parseDisputeInstruction,
   parseFundVaultInstruction,
   parseInitializeDistributorInstruction,
+  parsePayTrafficFromEscrowInstruction,
   parsePayTrafficInstruction,
   parsePostEpochInstruction,
   parseSetAuthoritiesInstruction,
   parseSweepEpochInstruction,
   parseTransferAuthorityInstruction,
+  parseWithdrawEscrowInstruction,
   type ClaimAsyncInput,
+  type DepositEscrowAsyncInput,
   type DisputeAsyncInput,
   type FundVaultAsyncInput,
   type InitializeDistributorAsyncInput,
   type ParsedClaimInstruction,
+  type ParsedDepositEscrowInstruction,
   type ParsedDisputeInstruction,
   type ParsedFundVaultInstruction,
   type ParsedInitializeDistributorInstruction,
+  type ParsedPayTrafficFromEscrowInstruction,
   type ParsedPayTrafficInstruction,
   type ParsedPostEpochInstruction,
   type ParsedSetAuthoritiesInstruction,
   type ParsedSweepEpochInstruction,
   type ParsedTransferAuthorityInstruction,
+  type ParsedWithdrawEscrowInstruction,
   type PayTrafficAsyncInput,
+  type PayTrafficFromEscrowAsyncInput,
   type PostEpochAsyncInput,
   type SetAuthoritiesAsyncInput,
   type SweepEpochAsyncInput,
   type TransferAuthorityAsyncInput,
+  type WithdrawEscrowAsyncInput,
 } from '../instructions';
 import {
   findClaimStatusPda,
   findDistributorPda,
   findEpochDistributionPda,
+  findEscrowPda,
+  findEscrowVaultPda,
   findProgramAuthorityPda,
   findRewardVaultPda,
 } from '../pdas';
 
 export const REWARDS_SETTLEMENT_PROGRAM_ADDRESS =
-  'BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU' as Address<'BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU'>;
+  '3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5' as Address<'3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5'>;
 
 export enum RewardsSettlementAccount {
   ClaimStatus,
   Distributor,
   EpochDistribution,
+  PaymentEscrow,
 }
 
 export function identifyRewardsSettlementAccount(
@@ -137,6 +155,17 @@ export function identifyRewardsSettlementAccount(
   ) {
     return RewardsSettlementAccount.EpochDistribution;
   }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([4, 248, 157, 210, 63, 156, 163, 90]),
+      ),
+      0,
+    )
+  ) {
+    return RewardsSettlementAccount.PaymentEscrow;
+  }
   throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT, {
     accountData: data,
     programName: 'rewardsSettlement',
@@ -145,14 +174,17 @@ export function identifyRewardsSettlementAccount(
 
 export enum RewardsSettlementInstruction {
   Claim,
+  DepositEscrow,
   Dispute,
   FundVault,
   InitializeDistributor,
   PayTraffic,
+  PayTrafficFromEscrow,
   PostEpoch,
   SetAuthorities,
   SweepEpoch,
   TransferAuthority,
+  WithdrawEscrow,
 }
 
 export function identifyRewardsSettlementInstruction(
@@ -169,6 +201,17 @@ export function identifyRewardsSettlementInstruction(
     )
   ) {
     return RewardsSettlementInstruction.Claim;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([226, 112, 158, 176, 178, 118, 153, 128]),
+      ),
+      0,
+    )
+  ) {
+    return RewardsSettlementInstruction.DepositEscrow;
   }
   if (
     containsBytes(
@@ -216,6 +259,17 @@ export function identifyRewardsSettlementInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([95, 155, 20, 224, 108, 76, 154, 176]),
+      ),
+      0,
+    )
+  ) {
+    return RewardsSettlementInstruction.PayTrafficFromEscrow;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([45, 8, 238, 205, 94, 1, 200, 51]),
       ),
       0,
@@ -256,6 +310,17 @@ export function identifyRewardsSettlementInstruction(
   ) {
     return RewardsSettlementInstruction.TransferAuthority;
   }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([81, 84, 226, 128, 245, 47, 96, 104]),
+      ),
+      0,
+    )
+  ) {
+    return RewardsSettlementInstruction.WithdrawEscrow;
+  }
   throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION, {
     instructionData: data,
     programName: 'rewardsSettlement',
@@ -263,9 +328,12 @@ export function identifyRewardsSettlementInstruction(
 }
 
 export type ParsedRewardsSettlementInstruction<
-  TProgram extends string = 'BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU',
+  TProgram extends string = '3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5',
 > =
   | ({ instructionType: RewardsSettlementInstruction.Claim } & ParsedClaimInstruction<TProgram>)
+  | ({
+      instructionType: RewardsSettlementInstruction.DepositEscrow;
+    } & ParsedDepositEscrowInstruction<TProgram>)
   | ({ instructionType: RewardsSettlementInstruction.Dispute } & ParsedDisputeInstruction<TProgram>)
   | ({
       instructionType: RewardsSettlementInstruction.FundVault;
@@ -277,6 +345,9 @@ export type ParsedRewardsSettlementInstruction<
       instructionType: RewardsSettlementInstruction.PayTraffic;
     } & ParsedPayTrafficInstruction<TProgram>)
   | ({
+      instructionType: RewardsSettlementInstruction.PayTrafficFromEscrow;
+    } & ParsedPayTrafficFromEscrowInstruction<TProgram>)
+  | ({
       instructionType: RewardsSettlementInstruction.PostEpoch;
     } & ParsedPostEpochInstruction<TProgram>)
   | ({
@@ -287,7 +358,10 @@ export type ParsedRewardsSettlementInstruction<
     } & ParsedSweepEpochInstruction<TProgram>)
   | ({
       instructionType: RewardsSettlementInstruction.TransferAuthority;
-    } & ParsedTransferAuthorityInstruction<TProgram>);
+    } & ParsedTransferAuthorityInstruction<TProgram>)
+  | ({
+      instructionType: RewardsSettlementInstruction.WithdrawEscrow;
+    } & ParsedWithdrawEscrowInstruction<TProgram>);
 
 export function parseRewardsSettlementInstruction<TProgram extends string>(
   instruction: Instruction<TProgram> & InstructionWithData<ReadonlyUint8Array>,
@@ -299,6 +373,13 @@ export function parseRewardsSettlementInstruction<TProgram extends string>(
       return {
         instructionType: RewardsSettlementInstruction.Claim,
         ...parseClaimInstruction(instruction),
+      };
+    }
+    case RewardsSettlementInstruction.DepositEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: RewardsSettlementInstruction.DepositEscrow,
+        ...parseDepositEscrowInstruction(instruction),
       };
     }
     case RewardsSettlementInstruction.Dispute: {
@@ -329,6 +410,13 @@ export function parseRewardsSettlementInstruction<TProgram extends string>(
         ...parsePayTrafficInstruction(instruction),
       };
     }
+    case RewardsSettlementInstruction.PayTrafficFromEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: RewardsSettlementInstruction.PayTrafficFromEscrow,
+        ...parsePayTrafficFromEscrowInstruction(instruction),
+      };
+    }
     case RewardsSettlementInstruction.PostEpoch: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -357,6 +445,13 @@ export function parseRewardsSettlementInstruction<TProgram extends string>(
         ...parseTransferAuthorityInstruction(instruction),
       };
     }
+    case RewardsSettlementInstruction.WithdrawEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: RewardsSettlementInstruction.WithdrawEscrow,
+        ...parseWithdrawEscrowInstruction(instruction),
+      };
+    }
     default:
       throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE, {
         instructionType: instructionType as string,
@@ -381,12 +476,17 @@ export type RewardsSettlementPluginAccounts = {
     SelfFetchFunctions<DistributorArgs, Distributor>;
   epochDistribution: ReturnType<typeof getEpochDistributionCodec> &
     SelfFetchFunctions<EpochDistributionArgs, EpochDistribution>;
+  paymentEscrow: ReturnType<typeof getPaymentEscrowCodec> &
+    SelfFetchFunctions<PaymentEscrowArgs, PaymentEscrow>;
 };
 
 export type RewardsSettlementPluginInstructions = {
   claim: (
     input: ClaimAsyncInput,
   ) => ReturnType<typeof getClaimInstructionAsync> & SelfPlanAndSendFunctions;
+  depositEscrow: (
+    input: DepositEscrowAsyncInput,
+  ) => ReturnType<typeof getDepositEscrowInstructionAsync> & SelfPlanAndSendFunctions;
   dispute: (
     input: DisputeAsyncInput,
   ) => ReturnType<typeof getDisputeInstructionAsync> & SelfPlanAndSendFunctions;
@@ -399,6 +499,9 @@ export type RewardsSettlementPluginInstructions = {
   payTraffic: (
     input: MakeOptional<PayTrafficAsyncInput, 'payer'>,
   ) => ReturnType<typeof getPayTrafficInstructionAsync> & SelfPlanAndSendFunctions;
+  payTrafficFromEscrow: (
+    input: PayTrafficFromEscrowAsyncInput,
+  ) => ReturnType<typeof getPayTrafficFromEscrowInstructionAsync> & SelfPlanAndSendFunctions;
   postEpoch: (
     input: PostEpochAsyncInput,
   ) => ReturnType<typeof getPostEpochInstructionAsync> & SelfPlanAndSendFunctions;
@@ -411,12 +514,17 @@ export type RewardsSettlementPluginInstructions = {
   transferAuthority: (
     input: TransferAuthorityAsyncInput,
   ) => ReturnType<typeof getTransferAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
+  withdrawEscrow: (
+    input: WithdrawEscrowAsyncInput,
+  ) => ReturnType<typeof getWithdrawEscrowInstructionAsync> & SelfPlanAndSendFunctions;
 };
 
 export type RewardsSettlementPluginPdas = {
   distributor: typeof findDistributorPda;
   epochDistribution: typeof findEpochDistributionPda;
   claimStatus: typeof findClaimStatusPda;
+  escrow: typeof findEscrowPda;
+  escrowVault: typeof findEscrowVaultPda;
   programAuthority: typeof findProgramAuthorityPda;
   rewardVault: typeof findRewardVaultPda;
 };
@@ -438,9 +546,12 @@ export function rewardsSettlementProgram() {
           claimStatus: addSelfFetchFunctions(client, getClaimStatusCodec()),
           distributor: addSelfFetchFunctions(client, getDistributorCodec()),
           epochDistribution: addSelfFetchFunctions(client, getEpochDistributionCodec()),
+          paymentEscrow: addSelfFetchFunctions(client, getPaymentEscrowCodec()),
         },
         instructions: {
           claim: (input) => addSelfPlanAndSendFunctions(client, getClaimInstructionAsync(input)),
+          depositEscrow: (input) =>
+            addSelfPlanAndSendFunctions(client, getDepositEscrowInstructionAsync(input)),
           dispute: (input) =>
             addSelfPlanAndSendFunctions(client, getDisputeInstructionAsync(input)),
           fundVault: (input) =>
@@ -452,6 +563,8 @@ export function rewardsSettlementProgram() {
               client,
               getPayTrafficInstructionAsync({ ...input, payer: input.payer ?? client.payer }),
             ),
+          payTrafficFromEscrow: (input) =>
+            addSelfPlanAndSendFunctions(client, getPayTrafficFromEscrowInstructionAsync(input)),
           postEpoch: (input) =>
             addSelfPlanAndSendFunctions(client, getPostEpochInstructionAsync(input)),
           setAuthorities: (input) =>
@@ -460,11 +573,15 @@ export function rewardsSettlementProgram() {
             addSelfPlanAndSendFunctions(client, getSweepEpochInstructionAsync(input)),
           transferAuthority: (input) =>
             addSelfPlanAndSendFunctions(client, getTransferAuthorityInstructionAsync(input)),
+          withdrawEscrow: (input) =>
+            addSelfPlanAndSendFunctions(client, getWithdrawEscrowInstructionAsync(input)),
         },
         pdas: {
           distributor: findDistributorPda,
           epochDistribution: findEpochDistributionPda,
           claimStatus: findClaimStatusPda,
+          escrow: findEscrowPda,
+          escrowVault: findEscrowVaultPda,
           programAuthority: findProgramAuthorityPda,
           rewardVault: findRewardVaultPda,
         },

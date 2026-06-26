@@ -1,8 +1,7 @@
-// On-chain reads for the control plane: a wallet's $WEFT balance (→ its traffic quota) and
-// verification of a user's `pay_traffic` settlement so we can clear their metered tab.
+// On-chain reads for the control plane: a wallet's prepaid escrow balance (→ its traffic quota) and
+// verification of a user's settlement tx so we can clear their metered tab.
 
 import { address, createSolanaRpc, type Address } from '@solana/kit';
-import { findAssociatedTokenPda, TOKEN_PROGRAM_ADDRESS } from '@solana-program/token';
 import { math, rewardsSettlement } from '@weft/sdk';
 
 export type Rpc = ReturnType<typeof createSolanaRpc>;
@@ -22,18 +21,15 @@ export function costBaseUnits(bytes: bigint): bigint {
   return (math.BASE_RATE_PER_GB * bytes) / math.BYTES_PER_GB;
 }
 
-/** A wallet's $WEFT balance in base units. Returns 0 if the ATA doesn't exist yet. */
-export async function weftBalance(r: Rpc, owner: string, mint: string): Promise<bigint> {
-  const [ata] = await findAssociatedTokenPda({
-    owner: address(owner),
-    mint: address(mint),
-    tokenProgram: TOKEN_PROGRAM_ADDRESS,
-  });
+/** A wallet's prepaid escrow balance in base units. Returns 0 if the escrow doesn't exist yet. */
+export async function escrowBalance(r: Rpc, owner: string, mint: string): Promise<bigint> {
+  const [escrow] = await rewardsSettlement.findEscrowPda({ owner: address(owner) });
   try {
-    const { value } = await r.getTokenAccountBalance(ata).send();
-    return BigInt(value.amount);
+    const acct = await rewardsSettlement.fetchPaymentEscrow(r, escrow);
+    if (acct.data.owner !== owner || acct.data.mint !== mint) return 0n;
+    return acct.data.balance;
   } catch {
-    return 0n; // no token account / closed → zero balance
+    return 0n; // no escrow account yet → zero prepaid balance
   }
 }
 
@@ -43,9 +39,9 @@ export interface VerifiedPayment {
 }
 
 /**
- * Verify a transaction is a finalized `pay_traffic` signed by `expectedPayer`, and return the
- * paid amount. We decode the settlement program's instruction from the tx (discriminator +
- * u64 amount) rather than trusting the client — the payment must really have landed on chain.
+ * Verify a transaction is a finalized settlement signed by `expectedPayer`, and return the paid
+ * amount. We decode the settlement program's instruction from the tx (discriminator + u64 amount)
+ * rather than trusting the client — the payment must really have landed on chain.
  */
 export async function verifyPayTraffic(
   r: Rpc,
@@ -81,8 +77,9 @@ export interface RawInstruction {
 }
 
 /**
- * Pure decode: find the `pay_traffic` instruction to the settlement program, confirm the payer
+ * Pure decode: find a settlement instruction to the settlement program, confirm the wallet signer
  * (accounts[0]) is `expectedPayer`, and read the u64 amount after the 8-byte discriminator.
+ * Accepts both legacy direct `pay_traffic` and escrow-first `pay_traffic_from_escrow`.
  * Extracted from the RPC fetch so it's deterministically testable.
  */
 export function decodePayTraffic(
@@ -91,20 +88,23 @@ export function decodePayTraffic(
   expectedPayer: string,
 ): VerifiedPayment {
   const programId = String(rewardsSettlement.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
-  const disc = rewardsSettlement.PAY_TRAFFIC_DISCRIMINATOR;
+  const discriminators = [
+    rewardsSettlement.PAY_TRAFFIC_DISCRIMINATOR,
+    rewardsSettlement.PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR,
+  ];
 
   for (const ix of instructions) {
     if (accountKeys[ix.programIdIndex] !== programId) continue;
     const data = bs58Decode(ix.data);
     if (data.length < 16) continue;
-    if (!data.slice(0, 8).every((b, i) => b === disc[i])) continue;
-    // accounts[0] is the payer (signer) per the generated PayTraffic layout
+    if (!discriminators.some((disc) => data.slice(0, 8).every((b, i) => b === disc[i]))) continue;
+    // accounts[0] is the payer/owner signer in both PayTraffic and PayTrafficFromEscrow layouts.
     const payer = accountKeys[ix.accounts[0]];
     if (payer !== expectedPayer) throw new Error('payment not signed by this wallet');
     const amount = readU64LE(data, 8);
     return { payer: address(payer), amount };
   }
-  throw new Error('no pay_traffic instruction for this wallet in the transaction');
+  throw new Error('no settlement instruction for this wallet in the transaction');
 }
 
 function readU64LE(b: Uint8Array, off: number): bigint {

@@ -13,7 +13,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU");
+declare_id!("3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5");
 
 #[program]
 pub mod rewards_settlement {
@@ -51,6 +51,21 @@ pub mod rewards_settlement {
     /// User pays for traffic: 70% → reward vault, 20% burned, 10% → treasury.
     pub fn pay_traffic(ctx: Context<PayTraffic>, amount: u64) -> Result<()> {
         ctx.accounts.pay_traffic(amount)
+    }
+
+    /// Prepay $WEFT into the user's traffic escrow.
+    pub fn deposit_escrow(ctx: Context<DepositEscrow>, amount: u64) -> Result<()> {
+        ctx.accounts.deposit_escrow(amount, ctx.bumps.escrow)
+    }
+
+    /// Settle traffic from prepaid escrow with the same split/burn as `pay_traffic`.
+    pub fn pay_traffic_from_escrow(ctx: Context<PayTrafficFromEscrow>, amount: u64) -> Result<()> {
+        ctx.accounts.pay_traffic_from_escrow(amount)
+    }
+
+    /// Withdraw unused prepaid $WEFT from the user's traffic escrow.
+    pub fn withdraw_escrow(ctx: Context<WithdrawEscrow>, amount: u64) -> Result<()> {
+        ctx.accounts.withdraw_escrow(amount)
     }
 
     /// Emission top-up of the reward vault.

@@ -9911,194 +9911,6 @@ function sendAndConfirmTransactionFactory({
   };
 }
 
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
-function getNonNullResolvedInstructionInput(inputName, value) {
-  if (value === null || value === void 0) {
-    throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL, {
-      inputName
-    });
-  }
-  return value;
-}
-function getAddressFromResolvedInstructionAccount(inputName, value) {
-  const nonNullValue = getNonNullResolvedInstructionInput(inputName, value);
-  if (typeof value === "object" && "address" in nonNullValue) {
-    return nonNullValue.address;
-  }
-  if (Array.isArray(nonNullValue)) {
-    return nonNullValue[0];
-  }
-  return nonNullValue;
-}
-function getAccountMetaFactory(programAddress, optionalAccountStrategy) {
-  return (inputName, account) => {
-    if (!account.value) {
-      if (optionalAccountStrategy === "omitted") return;
-      return Object.freeze({ address: programAddress, role: AccountRole.READONLY });
-    }
-    const writableRole = account.isWritable ? AccountRole.WRITABLE : AccountRole.READONLY;
-    const isSigner = isResolvedInstructionAccountSigner(account.value);
-    return Object.freeze({
-      address: getAddressFromResolvedInstructionAccount(inputName, account.value),
-      role: isSigner ? upgradeRoleToSigner(writableRole) : writableRole,
-      ...isSigner ? { signer: account.value } : {}
-    });
-  };
-}
-function isResolvedInstructionAccountSigner(value) {
-  return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
-}
-
-// ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/token/dist/src/index.mjs
-async function findAssociatedTokenPda(seeds, config = {}) {
-  const {
-    programAddress = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
-  } = config;
-  return await getProgramDerivedAddress({
-    programAddress,
-    seeds: [
-      getAddressEncoder().encode(seeds.owner),
-      getAddressEncoder().encode(seeds.tokenProgram),
-      getAddressEncoder().encode(seeds.mint)
-    ]
-  });
-}
-var CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR = 1;
-function getCreateAssociatedTokenIdempotentInstructionDataEncoder() {
-  return transformEncoder(getStructEncoder([["discriminator", getU8Encoder()]]), (value) => ({
-    ...value,
-    discriminator: CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR
-  }));
-}
-async function getCreateAssociatedTokenIdempotentInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? ASSOCIATED_TOKEN_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    payer: { value: input.payer ?? null, isWritable: true },
-    ata: { value: input.ata ?? null, isWritable: true },
-    owner: { value: input.owner ?? null, isWritable: false },
-    mint: { value: input.mint ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.ata.value) {
-    accounts.ata.value = await findAssociatedTokenPda({
-      owner: getAddressFromResolvedInstructionAccount("owner", accounts.owner.value),
-      tokenProgram: getAddressFromResolvedInstructionAccount("tokenProgram", accounts.tokenProgram.value),
-      mint: getAddressFromResolvedInstructionAccount("mint", accounts.mint.value)
-    });
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("payer", accounts.payer),
-      getAccountMeta("ata", accounts.ata),
-      getAccountMeta("owner", accounts.owner),
-      getAccountMeta("mint", accounts.mint),
-      getAccountMeta("systemProgram", accounts.systemProgram),
-      getAccountMeta("tokenProgram", accounts.tokenProgram)
-    ],
-    data: getCreateAssociatedTokenIdempotentInstructionDataEncoder().encode({}),
-    programAddress
-  });
-}
-var MINT_TO_DISCRIMINATOR = 7;
-function getMintToInstructionDataEncoder() {
-  return transformEncoder(
-    getStructEncoder([
-      ["discriminator", getU8Encoder()],
-      ["amount", getU64Encoder()]
-    ]),
-    (value) => ({ ...value, discriminator: MINT_TO_DISCRIMINATOR })
-  );
-}
-function getMintToInstruction(input, config) {
-  const programAddress = config?.programAddress ?? TOKEN_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    mint: { value: input.mint ?? null, isWritable: true },
-    token: { value: input.token ?? null, isWritable: true },
-    mintAuthority: { value: input.mintAuthority ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const remainingAccounts = (args.multiSigners ?? []).map((signer) => ({
-    address: signer.address,
-    role: AccountRole.READONLY_SIGNER,
-    signer
-  }));
-  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("mint", accounts.mint),
-      getAccountMeta("token", accounts.token),
-      getAccountMeta("mintAuthority", accounts.mintAuthority),
-      ...remainingAccounts
-    ],
-    data: getMintToInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-var ASSOCIATED_TOKEN_PROGRAM_ADDRESS = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
-var TOKEN_PROGRAM_ADDRESS = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-var ASSOCIATED_TOKEN_ERROR__INVALID_OWNER = 0;
-var associatedTokenErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  associatedTokenErrorMessages = {
-    [ASSOCIATED_TOKEN_ERROR__INVALID_OWNER]: `Associated token account owner does not match address derivation`
-  };
-}
-var TOKEN_ERROR__NOT_RENT_EXEMPT = 0;
-var TOKEN_ERROR__INSUFFICIENT_FUNDS = 1;
-var TOKEN_ERROR__INVALID_MINT = 2;
-var TOKEN_ERROR__MINT_MISMATCH = 3;
-var TOKEN_ERROR__OWNER_MISMATCH = 4;
-var TOKEN_ERROR__FIXED_SUPPLY = 5;
-var TOKEN_ERROR__ALREADY_IN_USE = 6;
-var TOKEN_ERROR__INVALID_NUMBER_OF_PROVIDED_SIGNERS = 7;
-var TOKEN_ERROR__INVALID_NUMBER_OF_REQUIRED_SIGNERS = 8;
-var TOKEN_ERROR__UNINITIALIZED_STATE = 9;
-var TOKEN_ERROR__NATIVE_NOT_SUPPORTED = 10;
-var TOKEN_ERROR__NON_NATIVE_HAS_BALANCE = 11;
-var TOKEN_ERROR__INVALID_INSTRUCTION = 12;
-var TOKEN_ERROR__INVALID_STATE = 13;
-var TOKEN_ERROR__OVERFLOW = 14;
-var TOKEN_ERROR__AUTHORITY_TYPE_NOT_SUPPORTED = 15;
-var TOKEN_ERROR__MINT_CANNOT_FREEZE = 16;
-var TOKEN_ERROR__ACCOUNT_FROZEN = 17;
-var TOKEN_ERROR__MINT_DECIMALS_MISMATCH = 18;
-var TOKEN_ERROR__NON_NATIVE_NOT_SUPPORTED = 19;
-var tokenErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  tokenErrorMessages = {
-    [TOKEN_ERROR__ACCOUNT_FROZEN]: `Account is frozen`,
-    [TOKEN_ERROR__ALREADY_IN_USE]: `Already in use`,
-    [TOKEN_ERROR__AUTHORITY_TYPE_NOT_SUPPORTED]: `Account does not support specified authority type`,
-    [TOKEN_ERROR__FIXED_SUPPLY]: `Fixed supply`,
-    [TOKEN_ERROR__INSUFFICIENT_FUNDS]: `Insufficient funds`,
-    [TOKEN_ERROR__INVALID_INSTRUCTION]: `Invalid instruction`,
-    [TOKEN_ERROR__INVALID_MINT]: `Invalid Mint`,
-    [TOKEN_ERROR__INVALID_NUMBER_OF_PROVIDED_SIGNERS]: `Invalid number of provided signers`,
-    [TOKEN_ERROR__INVALID_NUMBER_OF_REQUIRED_SIGNERS]: `Invalid number of required signers`,
-    [TOKEN_ERROR__INVALID_STATE]: `State is invalid for requested operation`,
-    [TOKEN_ERROR__MINT_CANNOT_FREEZE]: `This token mint cannot freeze accounts`,
-    [TOKEN_ERROR__MINT_DECIMALS_MISMATCH]: `The provided decimals value different from the Mint decimals`,
-    [TOKEN_ERROR__MINT_MISMATCH]: `Account not associated with this Mint`,
-    [TOKEN_ERROR__NATIVE_NOT_SUPPORTED]: `Instruction does not support native tokens`,
-    [TOKEN_ERROR__NON_NATIVE_HAS_BALANCE]: `Non-native account can only be closed if its balance is zero`,
-    [TOKEN_ERROR__NON_NATIVE_NOT_SUPPORTED]: `Instruction does not support non-native tokens`,
-    [TOKEN_ERROR__NOT_RENT_EXEMPT]: `Lamport balance below rent-exempt threshold`,
-    [TOKEN_ERROR__OVERFLOW]: `Operation overflowed`,
-    [TOKEN_ERROR__OWNER_MISMATCH]: `Owner does not match`,
-    [TOKEN_ERROR__UNINITIALIZED_STATE]: `State is unititialized`
-  };
-}
-
 // ../../node_modules/.pnpm/@solana+errors@6.10.0_typescript@5.9.3/node_modules/@solana/errors/dist/index.node.mjs
 var SOLANA_ERROR__BLOCK_HEIGHT_EXCEEDED2 = 1;
 var SOLANA_ERROR__INVALID_NONCE2 = 2;
@@ -11145,7 +10957,7 @@ var e7 = globalThis.TextDecoder;
 var o3 = globalThis.TextEncoder;
 
 // ../../node_modules/.pnpm/@solana+accounts@6.10.0_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
-function decodeAccount2(encodedAccount, decoder) {
+function decodeAccount(encodedAccount, decoder) {
   try {
     if ("exists" in encodedAccount && !encodedAccount.exists) {
       return encodedAccount;
@@ -11170,22 +10982,22 @@ function parseBaseAccount(rpcAccount) {
     space: rpcAccount.space
   });
 }
-async function fetchEncodedAccount2(rpc2, address3, config = {}) {
+async function fetchEncodedAccount(rpc2, address3, config = {}) {
   const { abortSignal, ...rpcConfig } = config;
   const response = await rpc2.getAccountInfo(address3, { ...rpcConfig, encoding: "base64" }).send({ abortSignal });
   return parseBase64RpcAccount(address3, response.value);
 }
-async function fetchEncodedAccounts2(rpc2, addresses, config = {}) {
+async function fetchEncodedAccounts(rpc2, addresses, config = {}) {
   const { abortSignal, ...rpcConfig } = config;
   const response = await rpc2.getMultipleAccounts(addresses, { ...rpcConfig, encoding: "base64" }).send({ abortSignal });
   return response.value.map((account, index) => parseBase64RpcAccount(addresses[index], account));
 }
-function assertAccountExists2(account) {
+function assertAccountExists(account) {
   if (!account.exists) {
     throw new SolanaError2(SOLANA_ERROR__ACCOUNTS__ACCOUNT_NOT_FOUND2, { address: account.address });
   }
 }
-function assertAccountsExist2(accounts) {
+function assertAccountsExist(accounts) {
   const missingAccounts = accounts.filter((a) => !a.exists);
   if (missingAccounts.length > 0) {
     const missingAddresses = missingAccounts.map((a) => a.address);
@@ -11585,7 +11397,7 @@ function computeArrayLikeCodecSize2(size, itemSize) {
 function getBooleanEncoder2(config = {}) {
   return transformEncoder2(config.size ?? getU8Encoder2(), (value) => value ? 1 : 0);
 }
-function getBooleanDecoder2(config = {}) {
+function getBooleanDecoder(config = {}) {
   return transformDecoder2(config.size ?? getU8Decoder2(), (value) => Number(value) === 1);
 }
 function getBytesEncoder2() {
@@ -11641,7 +11453,7 @@ function getStructDecoder2(fields) {
 }
 
 // ../../node_modules/.pnpm/@solana+instructions@6.10.0_typescript@5.9.3/node_modules/@solana/instructions/dist/index.node.mjs
-function assertIsInstructionWithAccounts2(instruction) {
+function assertIsInstructionWithAccounts(instruction) {
   if (instruction.accounts === void 0) {
     throw new SolanaError2(SOLANA_ERROR__INSTRUCTION__EXPECTED_TO_HAVE_ACCOUNTS2, {
       data: instruction.data,
@@ -11666,7 +11478,7 @@ function upgradeRoleToSigner2(role) {
 }
 
 // ../../node_modules/.pnpm/@solana+plugin-core@6.10.0_typescript@5.9.3/node_modules/@solana/plugin-core/dist/index.node.mjs
-function extendClient2(client, additions) {
+function extendClient(client, additions) {
   const result = Object.defineProperties({}, toConfigurableDescriptors(Object.getOwnPropertyDescriptors(client)));
   Object.defineProperties(result, Object.getOwnPropertyDescriptors(additions));
   return Object.freeze(result);
@@ -11680,7 +11492,7 @@ function toConfigurableDescriptors(descriptors) {
 }
 
 // ../../node_modules/.pnpm/@solana+programs@6.10.0_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
-function isProgramError2(error, transactionMessage, programAddress, code) {
+function isProgramError(error, transactionMessage, programAddress, code) {
   if (!isSolanaError2(error, SOLANA_ERROR__INSTRUCTION_ERROR__CUSTOM2)) {
     return false;
   }
@@ -11719,7 +11531,7 @@ var VESTING_SCHEDULE_DISCRIMINATOR = new Uint8Array([
 ]);
 
 // ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
-function getNonNullResolvedInstructionInput2(inputName, value) {
+function getNonNullResolvedInstructionInput(inputName, value) {
   if (value === null || value === void 0) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL2, {
       inputName
@@ -11727,8 +11539,8 @@ function getNonNullResolvedInstructionInput2(inputName, value) {
   }
   return value;
 }
-function getAddressFromResolvedInstructionAccount2(inputName, value) {
-  const nonNullValue = getNonNullResolvedInstructionInput2(inputName, value);
+function getAddressFromResolvedInstructionAccount(inputName, value) {
+  const nonNullValue = getNonNullResolvedInstructionInput(inputName, value);
   if (typeof value === "object" && "address" in nonNullValue) {
     return nonNullValue.address;
   }
@@ -11737,47 +11549,47 @@ function getAddressFromResolvedInstructionAccount2(inputName, value) {
   }
   return nonNullValue;
 }
-function getAccountMetaFactory2(programAddress, optionalAccountStrategy) {
+function getAccountMetaFactory(programAddress, optionalAccountStrategy) {
   return (inputName, account) => {
     if (!account.value) {
       if (optionalAccountStrategy === "omitted") return;
       return Object.freeze({ address: programAddress, role: AccountRole2.READONLY });
     }
     const writableRole = account.isWritable ? AccountRole2.WRITABLE : AccountRole2.READONLY;
-    const isSigner = isResolvedInstructionAccountSigner2(account.value);
+    const isSigner = isResolvedInstructionAccountSigner(account.value);
     return Object.freeze({
-      address: getAddressFromResolvedInstructionAccount2(inputName, account.value),
+      address: getAddressFromResolvedInstructionAccount(inputName, account.value),
       role: isSigner ? upgradeRoleToSigner2(writableRole) : writableRole,
       ...isSigner ? { signer: account.value } : {}
     });
   };
 }
-function isResolvedInstructionAccountSigner2(value) {
+function isResolvedInstructionAccountSigner(value) {
   return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner2(value);
 }
-function addSelfFetchFunctions2(client, codec) {
+function addSelfFetchFunctions(client, codec) {
   const fetchMaybe = async (address3, config) => {
-    const maybeAccount = await fetchEncodedAccount2(client.rpc, address3, config);
-    return decodeAccount2(maybeAccount, codec);
+    const maybeAccount = await fetchEncodedAccount(client.rpc, address3, config);
+    return decodeAccount(maybeAccount, codec);
   };
   const fetchAllMaybe = async (addresses, config) => {
-    const maybeAccounts = await fetchEncodedAccounts2(client.rpc, addresses, config);
-    return maybeAccounts.map((maybeAccount) => decodeAccount2(maybeAccount, codec));
+    const maybeAccounts = await fetchEncodedAccounts(client.rpc, addresses, config);
+    return maybeAccounts.map((maybeAccount) => decodeAccount(maybeAccount, codec));
   };
   const fetch2 = async (address3, config) => {
     const maybeAccount = await fetchMaybe(address3, config);
-    assertAccountExists2(maybeAccount);
+    assertAccountExists(maybeAccount);
     return maybeAccount;
   };
   const fetchAll = async (addresses, config) => {
     const maybeAccounts = await fetchAllMaybe(addresses, config);
-    assertAccountsExist2(maybeAccounts);
+    assertAccountsExist(maybeAccounts);
     return maybeAccounts;
   };
   const out = { ...codec, fetch: fetch2, fetchAll, fetchAllMaybe, fetchMaybe };
   return Object.freeze(out);
 }
-function addSelfPlanAndSendFunctions2(client, input) {
+function addSelfPlanAndSendFunctions(client, input) {
   if (isPromiseLike(input)) {
     const newInput = input;
     newInput.planTransaction = async (config) => await client.planTransaction(await input, config);
@@ -12358,19 +12170,24 @@ var generated_exports = {};
 __export(generated_exports, {
   CLAIM_DISCRIMINATOR: () => CLAIM_DISCRIMINATOR2,
   CLAIM_STATUS_DISCRIMINATOR: () => CLAIM_STATUS_DISCRIMINATOR,
+  DEPOSIT_ESCROW_DISCRIMINATOR: () => DEPOSIT_ESCROW_DISCRIMINATOR,
   DISPUTE_DISCRIMINATOR: () => DISPUTE_DISCRIMINATOR,
   DISTRIBUTOR_DISCRIMINATOR: () => DISTRIBUTOR_DISCRIMINATOR,
   EPOCH_DISTRIBUTION_DISCRIMINATOR: () => EPOCH_DISTRIBUTION_DISCRIMINATOR,
   FUND_VAULT_DISCRIMINATOR: () => FUND_VAULT_DISCRIMINATOR,
   INITIALIZE_DISTRIBUTOR_DISCRIMINATOR: () => INITIALIZE_DISTRIBUTOR_DISCRIMINATOR,
+  PAYMENT_ESCROW_DISCRIMINATOR: () => PAYMENT_ESCROW_DISCRIMINATOR,
   PAY_TRAFFIC_DISCRIMINATOR: () => PAY_TRAFFIC_DISCRIMINATOR,
+  PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR: () => PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR,
   POST_EPOCH_DISCRIMINATOR: () => POST_EPOCH_DISCRIMINATOR,
   REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT: () => REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT,
   REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN: () => REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN,
   REWARDS_SETTLEMENT_ERROR__DISPUTED: () => REWARDS_SETTLEMENT_ERROR__DISPUTED,
   REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN: () => REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN,
   REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM: () => REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM,
+  REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW: () => REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW,
   REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT: () => REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT,
+  REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW: () => REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW,
   REWARDS_SETTLEMENT_ERROR__INVALID_PROOF: () => REWARDS_SETTLEMENT_ERROR__INVALID_PROOF,
   REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW: () => REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW,
   REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH: () => REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH,
@@ -12382,24 +12199,32 @@ __export(generated_exports, {
   SET_AUTHORITIES_DISCRIMINATOR: () => SET_AUTHORITIES_DISCRIMINATOR,
   SWEEP_EPOCH_DISCRIMINATOR: () => SWEEP_EPOCH_DISCRIMINATOR,
   TRANSFER_AUTHORITY_DISCRIMINATOR: () => TRANSFER_AUTHORITY_DISCRIMINATOR3,
+  WITHDRAW_ESCROW_DISCRIMINATOR: () => WITHDRAW_ESCROW_DISCRIMINATOR,
   decodeClaimStatus: () => decodeClaimStatus,
   decodeDistributor: () => decodeDistributor,
   decodeEpochDistribution: () => decodeEpochDistribution,
+  decodePaymentEscrow: () => decodePaymentEscrow,
   fetchAllClaimStatus: () => fetchAllClaimStatus,
   fetchAllDistributor: () => fetchAllDistributor,
   fetchAllEpochDistribution: () => fetchAllEpochDistribution,
   fetchAllMaybeClaimStatus: () => fetchAllMaybeClaimStatus,
   fetchAllMaybeDistributor: () => fetchAllMaybeDistributor,
   fetchAllMaybeEpochDistribution: () => fetchAllMaybeEpochDistribution,
+  fetchAllMaybePaymentEscrow: () => fetchAllMaybePaymentEscrow,
+  fetchAllPaymentEscrow: () => fetchAllPaymentEscrow,
   fetchClaimStatus: () => fetchClaimStatus,
   fetchDistributor: () => fetchDistributor,
   fetchEpochDistribution: () => fetchEpochDistribution,
   fetchMaybeClaimStatus: () => fetchMaybeClaimStatus,
   fetchMaybeDistributor: () => fetchMaybeDistributor,
   fetchMaybeEpochDistribution: () => fetchMaybeEpochDistribution,
+  fetchMaybePaymentEscrow: () => fetchMaybePaymentEscrow,
+  fetchPaymentEscrow: () => fetchPaymentEscrow,
   findClaimStatusPda: () => findClaimStatusPda,
   findDistributorPda: () => findDistributorPda,
   findEpochDistributionPda: () => findEpochDistributionPda,
+  findEscrowPda: () => findEscrowPda,
+  findEscrowVaultPda: () => findEscrowVaultPda,
   findProgramAuthorityPda: () => findProgramAuthorityPda3,
   findRewardVaultPda: () => findRewardVaultPda,
   getClaimDiscriminatorBytes: () => getClaimDiscriminatorBytes,
@@ -12413,6 +12238,12 @@ __export(generated_exports, {
   getClaimStatusDiscriminatorBytes: () => getClaimStatusDiscriminatorBytes,
   getClaimStatusEncoder: () => getClaimStatusEncoder,
   getClaimStatusSize: () => getClaimStatusSize,
+  getDepositEscrowDiscriminatorBytes: () => getDepositEscrowDiscriminatorBytes,
+  getDepositEscrowInstruction: () => getDepositEscrowInstruction,
+  getDepositEscrowInstructionAsync: () => getDepositEscrowInstructionAsync,
+  getDepositEscrowInstructionDataCodec: () => getDepositEscrowInstructionDataCodec,
+  getDepositEscrowInstructionDataDecoder: () => getDepositEscrowInstructionDataDecoder,
+  getDepositEscrowInstructionDataEncoder: () => getDepositEscrowInstructionDataEncoder,
   getDisputeDiscriminatorBytes: () => getDisputeDiscriminatorBytes,
   getDisputeInstruction: () => getDisputeInstruction,
   getDisputeInstructionAsync: () => getDisputeInstructionAsync,
@@ -12442,11 +12273,22 @@ __export(generated_exports, {
   getInitializeDistributorInstructionDataDecoder: () => getInitializeDistributorInstructionDataDecoder,
   getInitializeDistributorInstructionDataEncoder: () => getInitializeDistributorInstructionDataEncoder,
   getPayTrafficDiscriminatorBytes: () => getPayTrafficDiscriminatorBytes,
+  getPayTrafficFromEscrowDiscriminatorBytes: () => getPayTrafficFromEscrowDiscriminatorBytes,
+  getPayTrafficFromEscrowInstruction: () => getPayTrafficFromEscrowInstruction,
+  getPayTrafficFromEscrowInstructionAsync: () => getPayTrafficFromEscrowInstructionAsync,
+  getPayTrafficFromEscrowInstructionDataCodec: () => getPayTrafficFromEscrowInstructionDataCodec,
+  getPayTrafficFromEscrowInstructionDataDecoder: () => getPayTrafficFromEscrowInstructionDataDecoder,
+  getPayTrafficFromEscrowInstructionDataEncoder: () => getPayTrafficFromEscrowInstructionDataEncoder,
   getPayTrafficInstruction: () => getPayTrafficInstruction,
   getPayTrafficInstructionAsync: () => getPayTrafficInstructionAsync,
   getPayTrafficInstructionDataCodec: () => getPayTrafficInstructionDataCodec,
   getPayTrafficInstructionDataDecoder: () => getPayTrafficInstructionDataDecoder,
   getPayTrafficInstructionDataEncoder: () => getPayTrafficInstructionDataEncoder,
+  getPaymentEscrowCodec: () => getPaymentEscrowCodec,
+  getPaymentEscrowDecoder: () => getPaymentEscrowDecoder,
+  getPaymentEscrowDiscriminatorBytes: () => getPaymentEscrowDiscriminatorBytes,
+  getPaymentEscrowEncoder: () => getPaymentEscrowEncoder,
+  getPaymentEscrowSize: () => getPaymentEscrowSize,
   getPostEpochDiscriminatorBytes: () => getPostEpochDiscriminatorBytes,
   getPostEpochInstruction: () => getPostEpochInstruction,
   getPostEpochInstructionAsync: () => getPostEpochInstructionAsync,
@@ -12472,19 +12314,28 @@ __export(generated_exports, {
   getTransferAuthorityInstructionDataCodec: () => getTransferAuthorityInstructionDataCodec,
   getTransferAuthorityInstructionDataDecoder: () => getTransferAuthorityInstructionDataDecoder,
   getTransferAuthorityInstructionDataEncoder: () => getTransferAuthorityInstructionDataEncoder,
+  getWithdrawEscrowDiscriminatorBytes: () => getWithdrawEscrowDiscriminatorBytes,
+  getWithdrawEscrowInstruction: () => getWithdrawEscrowInstruction,
+  getWithdrawEscrowInstructionAsync: () => getWithdrawEscrowInstructionAsync,
+  getWithdrawEscrowInstructionDataCodec: () => getWithdrawEscrowInstructionDataCodec,
+  getWithdrawEscrowInstructionDataDecoder: () => getWithdrawEscrowInstructionDataDecoder,
+  getWithdrawEscrowInstructionDataEncoder: () => getWithdrawEscrowInstructionDataEncoder,
   identifyRewardsSettlementAccount: () => identifyRewardsSettlementAccount,
   identifyRewardsSettlementInstruction: () => identifyRewardsSettlementInstruction,
   isRewardsSettlementError: () => isRewardsSettlementError,
   parseClaimInstruction: () => parseClaimInstruction2,
+  parseDepositEscrowInstruction: () => parseDepositEscrowInstruction,
   parseDisputeInstruction: () => parseDisputeInstruction,
   parseFundVaultInstruction: () => parseFundVaultInstruction,
   parseInitializeDistributorInstruction: () => parseInitializeDistributorInstruction,
+  parsePayTrafficFromEscrowInstruction: () => parsePayTrafficFromEscrowInstruction,
   parsePayTrafficInstruction: () => parsePayTrafficInstruction,
   parsePostEpochInstruction: () => parsePostEpochInstruction,
   parseRewardsSettlementInstruction: () => parseRewardsSettlementInstruction,
   parseSetAuthoritiesInstruction: () => parseSetAuthoritiesInstruction,
   parseSweepEpochInstruction: () => parseSweepEpochInstruction,
   parseTransferAuthorityInstruction: () => parseTransferAuthorityInstruction3,
+  parseWithdrawEscrowInstruction: () => parseWithdrawEscrowInstruction,
   rewardsSettlementProgram: () => rewardsSettlementProgram
 });
 
@@ -12522,7 +12373,7 @@ function getClaimStatusDecoder() {
     ["nodeId", getU64Decoder2()],
     ["amount", getU64Decoder2()],
     ["claimedAt", getI64Decoder()],
-    ["disputed", getBooleanDecoder2()],
+    ["disputed", getBooleanDecoder()],
     ["bump", getU8Decoder2()]
   ]);
 }
@@ -12530,24 +12381,24 @@ function getClaimStatusCodec() {
   return combineCodec2(getClaimStatusEncoder(), getClaimStatusDecoder());
 }
 function decodeClaimStatus(encodedAccount) {
-  return decodeAccount2(encodedAccount, getClaimStatusDecoder());
+  return decodeAccount(encodedAccount, getClaimStatusDecoder());
 }
 async function fetchClaimStatus(rpc2, address3, config) {
   const maybeAccount = await fetchMaybeClaimStatus(rpc2, address3, config);
-  assertAccountExists2(maybeAccount);
+  assertAccountExists(maybeAccount);
   return maybeAccount;
 }
 async function fetchMaybeClaimStatus(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount2(rpc2, address3, config);
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
   return decodeClaimStatus(maybeAccount);
 }
 async function fetchAllClaimStatus(rpc2, addresses, config) {
   const maybeAccounts = await fetchAllMaybeClaimStatus(rpc2, addresses, config);
-  assertAccountsExist2(maybeAccounts);
+  assertAccountsExist(maybeAccounts);
   return maybeAccounts;
 }
 async function fetchAllMaybeClaimStatus(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts2(rpc2, addresses, config);
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
   return maybeAccounts.map((maybeAccount) => decodeClaimStatus(maybeAccount));
 }
 function getClaimStatusSize() {
@@ -12606,24 +12457,24 @@ function getDistributorCodec() {
   return combineCodec2(getDistributorEncoder(), getDistributorDecoder());
 }
 function decodeDistributor(encodedAccount) {
-  return decodeAccount2(encodedAccount, getDistributorDecoder());
+  return decodeAccount(encodedAccount, getDistributorDecoder());
 }
 async function fetchDistributor(rpc2, address3, config) {
   const maybeAccount = await fetchMaybeDistributor(rpc2, address3, config);
-  assertAccountExists2(maybeAccount);
+  assertAccountExists(maybeAccount);
   return maybeAccount;
 }
 async function fetchMaybeDistributor(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount2(rpc2, address3, config);
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
   return decodeDistributor(maybeAccount);
 }
 async function fetchAllDistributor(rpc2, addresses, config) {
   const maybeAccounts = await fetchAllMaybeDistributor(rpc2, addresses, config);
-  assertAccountsExist2(maybeAccounts);
+  assertAccountsExist(maybeAccounts);
   return maybeAccounts;
 }
 async function fetchAllMaybeDistributor(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts2(rpc2, addresses, config);
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
   return maybeAccounts.map((maybeAccount) => decodeDistributor(maybeAccount));
 }
 function getDistributorSize() {
@@ -12666,7 +12517,7 @@ function getEpochDistributionDecoder() {
     ["totalClaimed", getU64Decoder2()],
     ["numNodes", getU32Decoder2()],
     ["postedAt", getI64Decoder()],
-    ["swept", getBooleanDecoder2()],
+    ["swept", getBooleanDecoder()],
     ["bump", getU8Decoder2()]
   ]);
 }
@@ -12674,33 +12525,99 @@ function getEpochDistributionCodec() {
   return combineCodec2(getEpochDistributionEncoder(), getEpochDistributionDecoder());
 }
 function decodeEpochDistribution(encodedAccount) {
-  return decodeAccount2(encodedAccount, getEpochDistributionDecoder());
+  return decodeAccount(encodedAccount, getEpochDistributionDecoder());
 }
 async function fetchEpochDistribution(rpc2, address3, config) {
   const maybeAccount = await fetchMaybeEpochDistribution(rpc2, address3, config);
-  assertAccountExists2(maybeAccount);
+  assertAccountExists(maybeAccount);
   return maybeAccount;
 }
 async function fetchMaybeEpochDistribution(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount2(rpc2, address3, config);
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
   return decodeEpochDistribution(maybeAccount);
 }
 async function fetchAllEpochDistribution(rpc2, addresses, config) {
   const maybeAccounts = await fetchAllMaybeEpochDistribution(rpc2, addresses, config);
-  assertAccountsExist2(maybeAccounts);
+  assertAccountsExist(maybeAccounts);
   return maybeAccounts;
 }
 async function fetchAllMaybeEpochDistribution(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts2(rpc2, addresses, config);
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
   return maybeAccounts.map((maybeAccount) => decodeEpochDistribution(maybeAccount));
 }
 function getEpochDistributionSize() {
   return 78;
 }
 
+// ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/paymentEscrow.js
+var PAYMENT_ESCROW_DISCRIMINATOR = new Uint8Array([
+  4,
+  248,
+  157,
+  210,
+  63,
+  156,
+  163,
+  90
+]);
+function getPaymentEscrowDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(PAYMENT_ESCROW_DISCRIMINATOR);
+}
+function getPaymentEscrowEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["owner", getAddressEncoder2()],
+    ["mint", getAddressEncoder2()],
+    ["vault", getAddressEncoder2()],
+    ["balance", getU64Encoder2()],
+    ["totalDeposited", getU64Encoder2()],
+    ["totalSpent", getU64Encoder2()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: PAYMENT_ESCROW_DISCRIMINATOR }));
+}
+function getPaymentEscrowDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["owner", getAddressDecoder2()],
+    ["mint", getAddressDecoder2()],
+    ["vault", getAddressDecoder2()],
+    ["balance", getU64Decoder2()],
+    ["totalDeposited", getU64Decoder2()],
+    ["totalSpent", getU64Decoder2()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getPaymentEscrowCodec() {
+  return combineCodec2(getPaymentEscrowEncoder(), getPaymentEscrowDecoder());
+}
+function decodePaymentEscrow(encodedAccount) {
+  return decodeAccount(encodedAccount, getPaymentEscrowDecoder());
+}
+async function fetchPaymentEscrow(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybePaymentEscrow(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybePaymentEscrow(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodePaymentEscrow(maybeAccount);
+}
+async function fetchAllPaymentEscrow(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybePaymentEscrow(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybePaymentEscrow(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodePaymentEscrow(maybeAccount));
+}
+function getPaymentEscrowSize() {
+  return 129;
+}
+
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
+  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12714,7 +12631,7 @@ async function findClaimStatusPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
+  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12725,7 +12642,7 @@ async function findDistributorPda(config = {}) {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
+  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12735,9 +12652,33 @@ async function findEpochDistributionPda(seeds, config = {}) {
   });
 }
 
+// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/escrow.js
+async function findEscrowPda(seeds, config = {}) {
+  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([101, 115, 99, 114, 111, 119])),
+      getAddressEncoder2().encode(seeds.owner)
+    ]
+  });
+}
+
+// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/escrowVault.js
+async function findEscrowVaultPda(seeds, config = {}) {
+  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([101, 115, 99, 114, 111, 119, 95, 118, 97, 117, 108, 116])),
+      getAddressEncoder2().encode(seeds.owner)
+    ]
+  });
+}
+
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/programAuthority.js
 async function findProgramAuthorityPda3(config = {}) {
-  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
+  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([97, 117, 116, 104, 111, 114, 105, 116, 121]))]
@@ -12746,7 +12687,7 @@ async function findProgramAuthorityPda3(config = {}) {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
+  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12811,14 +12752,14 @@ async function getClaimInstructionAsync(input, config) {
   }
   if (!accounts.epochDistribution.value) {
     accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
+      epoch: getNonNullResolvedInstructionInput("epoch", args.epoch)
     });
   }
   if (!accounts.claimStatus.value) {
     accounts.claimStatus.value = await findClaimStatusPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch),
-      operator: getAddressFromResolvedInstructionAccount2("operator", accounts.operator.value),
-      nodeId: getNonNullResolvedInstructionInput2("nodeId", args.nodeId)
+      epoch: getNonNullResolvedInstructionInput("epoch", args.epoch),
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
     });
   }
   if (!accounts.tokenProgram.value) {
@@ -12827,7 +12768,7 @@ async function getClaimInstructionAsync(input, config) {
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("claimant", accounts.claimant),
@@ -12867,7 +12808,7 @@ function getClaimInstruction2(input, config) {
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("claimant", accounts.claimant),
@@ -12913,6 +12854,149 @@ function parseClaimInstruction2(instruction) {
       systemProgram: getNextAccount()
     },
     data: getClaimInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/depositEscrow.js
+var DEPOSIT_ESCROW_DISCRIMINATOR = new Uint8Array([
+  226,
+  112,
+  158,
+  176,
+  178,
+  118,
+  153,
+  128
+]);
+function getDepositEscrowDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(DEPOSIT_ESCROW_DISCRIMINATOR);
+}
+function getDepositEscrowInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["amount", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: DEPOSIT_ESCROW_DISCRIMINATOR }));
+}
+function getDepositEscrowInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["amount", getU64Decoder2()]
+  ]);
+}
+function getDepositEscrowInstructionDataCodec() {
+  return combineCodec2(getDepositEscrowInstructionDataEncoder(), getDepositEscrowInstructionDataDecoder());
+}
+async function getDepositEscrowInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    owner: { value: input.owner ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: false },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    ownerTokenAccount: { value: input.ownerTokenAccount ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.distributor.value) {
+    accounts.distributor.value = await findDistributorPda();
+  }
+  if (!accounts.escrow.value) {
+    accounts.escrow.value = await findEscrowPda({
+      owner: getAddressFromResolvedInstructionAccount("owner", accounts.owner.value)
+    });
+  }
+  if (!accounts.escrowVault.value) {
+    accounts.escrowVault.value = await findEscrowVaultPda({
+      owner: getAddressFromResolvedInstructionAccount("owner", accounts.owner.value)
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("owner", accounts.owner),
+      getAccountMeta("distributor", accounts.distributor),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("ownerTokenAccount", accounts.ownerTokenAccount),
+      getAccountMeta("tokenProgram", accounts.tokenProgram),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getDepositEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getDepositEscrowInstruction(input, config) {
+  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    owner: { value: input.owner ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: false },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    ownerTokenAccount: { value: input.ownerTokenAccount ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("owner", accounts.owner),
+      getAccountMeta("distributor", accounts.distributor),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("ownerTokenAccount", accounts.ownerTokenAccount),
+      getAccountMeta("tokenProgram", accounts.tokenProgram),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getDepositEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseDepositEscrowInstruction(instruction) {
+  if (instruction.accounts.length < 8) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 8
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      owner: getNextAccount(),
+      distributor: getNextAccount(),
+      escrow: getNextAccount(),
+      escrowVault: getNextAccount(),
+      rewardMint: getNextAccount(),
+      ownerTokenAccount: getNextAccount(),
+      tokenProgram: getNextAccount(),
+      systemProgram: getNextAccount()
+    },
+    data: getDepositEscrowInstructionDataDecoder().decode(instruction.data)
   };
 }
 
@@ -12989,14 +13073,14 @@ async function getDisputeInstructionAsync(input, config) {
   }
   if (!accounts.epochDistribution.value) {
     accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
+      epoch: getNonNullResolvedInstructionInput("epoch", args.epoch)
     });
   }
   if (!accounts.claimStatus.value) {
     accounts.claimStatus.value = await findClaimStatusPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch),
-      operator: getAddressFromResolvedInstructionAccount2("operator", accounts.operator.value),
-      nodeId: getNonNullResolvedInstructionInput2("nodeId", args.nodeId)
+      epoch: getNonNullResolvedInstructionInput("epoch", args.epoch),
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
     });
   }
   if (!accounts.programAuthority.value) {
@@ -13017,7 +13101,7 @@ async function getDisputeInstructionAsync(input, config) {
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("disputeAuthority", accounts.disputeAuthority),
@@ -13093,7 +13177,7 @@ function getDisputeInstruction(input, config) {
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("disputeAuthority", accounts.disputeAuthority),
@@ -13217,7 +13301,7 @@ async function getFundVaultInstructionAsync(input, config) {
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("funder", accounts.funder),
@@ -13246,7 +13330,7 @@ function getFundVaultInstruction(input, config) {
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("funder", accounts.funder),
@@ -13345,7 +13429,7 @@ async function getInitializeDistributorInstructionAsync(input, config) {
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13383,7 +13467,7 @@ function getInitializeDistributorInstruction(input, config) {
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13487,7 +13571,7 @@ async function getPayTrafficInstructionAsync(input, config) {
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("payer", accounts.payer),
@@ -13520,7 +13604,7 @@ function getPayTrafficInstruction(input, config) {
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("payer", accounts.payer),
@@ -13562,6 +13646,151 @@ function parsePayTrafficInstruction(instruction) {
       tokenProgram: getNextAccount()
     },
     data: getPayTrafficInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/payTrafficFromEscrow.js
+var PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR = new Uint8Array([
+  95,
+  155,
+  20,
+  224,
+  108,
+  76,
+  154,
+  176
+]);
+function getPayTrafficFromEscrowDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR);
+}
+function getPayTrafficFromEscrowInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["amount", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR }));
+}
+function getPayTrafficFromEscrowInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["amount", getU64Decoder2()]
+  ]);
+}
+function getPayTrafficFromEscrowInstructionDataCodec() {
+  return combineCodec2(getPayTrafficFromEscrowInstructionDataEncoder(), getPayTrafficFromEscrowInstructionDataDecoder());
+}
+async function getPayTrafficFromEscrowInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    owner: { value: input.owner ?? null, isWritable: false },
+    distributor: { value: input.distributor ?? null, isWritable: false },
+    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.distributor.value) {
+    accounts.distributor.value = await findDistributorPda();
+  }
+  if (!accounts.protocolConfig.value) {
+    accounts.protocolConfig.value = await getProgramDerivedAddress2({
+      programAddress: "8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE",
+      seeds: [
+        getBytesEncoder2().encode(new Uint8Array([112, 114, 111, 116, 111, 99, 111, 108, 95, 99, 111, 110, 102, 105, 103]))
+      ]
+    });
+  }
+  if (!accounts.escrow.value) {
+    accounts.escrow.value = await findEscrowPda({
+      owner: getAddressFromResolvedInstructionAccount("owner", accounts.owner.value)
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("owner", accounts.owner),
+      getAccountMeta("distributor", accounts.distributor),
+      getAccountMeta("protocolConfig", accounts.protocolConfig),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("rewardVault", accounts.rewardVault),
+      getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getPayTrafficFromEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getPayTrafficFromEscrowInstruction(input, config) {
+  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    owner: { value: input.owner ?? null, isWritable: false },
+    distributor: { value: input.distributor ?? null, isWritable: false },
+    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("owner", accounts.owner),
+      getAccountMeta("distributor", accounts.distributor),
+      getAccountMeta("protocolConfig", accounts.protocolConfig),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("rewardVault", accounts.rewardVault),
+      getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getPayTrafficFromEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parsePayTrafficFromEscrowInstruction(instruction) {
+  if (instruction.accounts.length < 9) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 9
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      owner: getNextAccount(),
+      distributor: getNextAccount(),
+      protocolConfig: getNextAccount(),
+      escrow: getNextAccount(),
+      escrowVault: getNextAccount(),
+      rewardMint: getNextAccount(),
+      rewardVault: getNextAccount(),
+      treasury: getNextAccount(),
+      tokenProgram: getNextAccount()
+    },
+    data: getPayTrafficFromEscrowInstructionDataDecoder().decode(instruction.data)
   };
 }
 
@@ -13616,13 +13845,13 @@ async function getPostEpochInstructionAsync(input, config) {
   }
   if (!accounts.epochDistribution.value) {
     accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
+      epoch: getNonNullResolvedInstructionInput("epoch", args.epoch)
     });
   }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("poster", accounts.poster),
@@ -13649,7 +13878,7 @@ function getPostEpochInstruction(input, config) {
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("poster", accounts.poster),
@@ -13730,7 +13959,7 @@ async function getSetAuthoritiesInstructionAsync(input, config) {
   if (!accounts.distributor.value) {
     accounts.distributor.value = await findDistributorPda();
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13748,7 +13977,7 @@ function getSetAuthoritiesInstruction(input, config) {
   };
   const accounts = originalAccounts;
   const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13821,10 +14050,10 @@ async function getSweepEpochInstructionAsync(input, config) {
   }
   if (!accounts.epochDistribution.value) {
     accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput2("epoch", args.epoch)
+      epoch: getNonNullResolvedInstructionInput("epoch", args.epoch)
     });
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13844,7 +14073,7 @@ function getSweepEpochInstruction(input, config) {
   };
   const accounts = originalAccounts;
   const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13919,7 +14148,7 @@ async function getTransferAuthorityInstructionAsync3(input, config) {
   if (!accounts.distributor.value) {
     accounts.distributor.value = await findDistributorPda();
   }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13937,7 +14166,7 @@ function getTransferAuthorityInstruction(input, config) {
   };
   const accounts = originalAccounts;
   const args = { ...input };
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
@@ -13967,13 +14196,133 @@ function parseTransferAuthorityInstruction3(instruction) {
   };
 }
 
+// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/withdrawEscrow.js
+var WITHDRAW_ESCROW_DISCRIMINATOR = new Uint8Array([
+  81,
+  84,
+  226,
+  128,
+  245,
+  47,
+  96,
+  104
+]);
+function getWithdrawEscrowDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(WITHDRAW_ESCROW_DISCRIMINATOR);
+}
+function getWithdrawEscrowInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["amount", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: WITHDRAW_ESCROW_DISCRIMINATOR }));
+}
+function getWithdrawEscrowInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["amount", getU64Decoder2()]
+  ]);
+}
+function getWithdrawEscrowInstructionDataCodec() {
+  return combineCodec2(getWithdrawEscrowInstructionDataEncoder(), getWithdrawEscrowInstructionDataDecoder());
+}
+async function getWithdrawEscrowInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    owner: { value: input.owner ?? null, isWritable: true },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
+    ownerTokenAccount: { value: input.ownerTokenAccount ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.escrow.value) {
+    accounts.escrow.value = await findEscrowPda({
+      owner: getAddressFromResolvedInstructionAccount("owner", accounts.owner.value)
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("owner", accounts.owner),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("ownerTokenAccount", accounts.ownerTokenAccount),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getWithdrawEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getWithdrawEscrowInstruction(input, config) {
+  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    owner: { value: input.owner ?? null, isWritable: true },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
+    ownerTokenAccount: { value: input.ownerTokenAccount ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("owner", accounts.owner),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("ownerTokenAccount", accounts.ownerTokenAccount),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getWithdrawEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseWithdrawEscrowInstruction(instruction) {
+  if (instruction.accounts.length < 6) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 6
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      owner: getNextAccount(),
+      escrow: getNextAccount(),
+      escrowVault: getNextAccount(),
+      rewardMint: getNextAccount(),
+      ownerTokenAccount: getNextAccount(),
+      tokenProgram: getNextAccount()
+    },
+    data: getWithdrawEscrowInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
 // ../../sdk/dist/generated/rewards_settlement/src/generated/programs/rewardsSettlement.js
-var REWARDS_SETTLEMENT_PROGRAM_ADDRESS = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU";
+var REWARDS_SETTLEMENT_PROGRAM_ADDRESS = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5";
 var RewardsSettlementAccount;
 (function(RewardsSettlementAccount2) {
   RewardsSettlementAccount2[RewardsSettlementAccount2["ClaimStatus"] = 0] = "ClaimStatus";
   RewardsSettlementAccount2[RewardsSettlementAccount2["Distributor"] = 1] = "Distributor";
   RewardsSettlementAccount2[RewardsSettlementAccount2["EpochDistribution"] = 2] = "EpochDistribution";
+  RewardsSettlementAccount2[RewardsSettlementAccount2["PaymentEscrow"] = 3] = "PaymentEscrow";
 })(RewardsSettlementAccount || (RewardsSettlementAccount = {}));
 function identifyRewardsSettlementAccount(account) {
   const data = "data" in account ? account.data : account;
@@ -13986,6 +14335,9 @@ function identifyRewardsSettlementAccount(account) {
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([44, 121, 108, 107, 92, 50, 81, 234])), 0)) {
     return RewardsSettlementAccount.EpochDistribution;
   }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([4, 248, 157, 210, 63, 156, 163, 90])), 0)) {
+    return RewardsSettlementAccount.PaymentEscrow;
+  }
   throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT2, {
     accountData: data,
     programName: "rewardsSettlement"
@@ -13994,19 +14346,25 @@ function identifyRewardsSettlementAccount(account) {
 var RewardsSettlementInstruction;
 (function(RewardsSettlementInstruction2) {
   RewardsSettlementInstruction2[RewardsSettlementInstruction2["Claim"] = 0] = "Claim";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["Dispute"] = 1] = "Dispute";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["FundVault"] = 2] = "FundVault";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["InitializeDistributor"] = 3] = "InitializeDistributor";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PayTraffic"] = 4] = "PayTraffic";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PostEpoch"] = 5] = "PostEpoch";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["SetAuthorities"] = 6] = "SetAuthorities";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["SweepEpoch"] = 7] = "SweepEpoch";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["TransferAuthority"] = 8] = "TransferAuthority";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["DepositEscrow"] = 1] = "DepositEscrow";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["Dispute"] = 2] = "Dispute";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["FundVault"] = 3] = "FundVault";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["InitializeDistributor"] = 4] = "InitializeDistributor";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PayTraffic"] = 5] = "PayTraffic";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PayTrafficFromEscrow"] = 6] = "PayTrafficFromEscrow";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PostEpoch"] = 7] = "PostEpoch";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["SetAuthorities"] = 8] = "SetAuthorities";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["SweepEpoch"] = 9] = "SweepEpoch";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["TransferAuthority"] = 10] = "TransferAuthority";
+  RewardsSettlementInstruction2[RewardsSettlementInstruction2["WithdrawEscrow"] = 11] = "WithdrawEscrow";
 })(RewardsSettlementInstruction || (RewardsSettlementInstruction = {}));
 function identifyRewardsSettlementInstruction(instruction) {
   const data = "data" in instruction ? instruction.data : instruction;
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([62, 198, 214, 193, 213, 159, 108, 210])), 0)) {
     return RewardsSettlementInstruction.Claim;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([226, 112, 158, 176, 178, 118, 153, 128])), 0)) {
+    return RewardsSettlementInstruction.DepositEscrow;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([216, 92, 128, 146, 202, 85, 135, 73])), 0)) {
     return RewardsSettlementInstruction.Dispute;
@@ -14020,6 +14378,9 @@ function identifyRewardsSettlementInstruction(instruction) {
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([41, 55, 84, 58, 0, 176, 93, 66])), 0)) {
     return RewardsSettlementInstruction.PayTraffic;
   }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([95, 155, 20, 224, 108, 76, 154, 176])), 0)) {
+    return RewardsSettlementInstruction.PayTrafficFromEscrow;
+  }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([45, 8, 238, 205, 94, 1, 200, 51])), 0)) {
     return RewardsSettlementInstruction.PostEpoch;
   }
@@ -14032,6 +14393,9 @@ function identifyRewardsSettlementInstruction(instruction) {
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([48, 169, 76, 72, 229, 180, 55, 161])), 0)) {
     return RewardsSettlementInstruction.TransferAuthority;
   }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([81, 84, 226, 128, 245, 47, 96, 104])), 0)) {
+    return RewardsSettlementInstruction.WithdrawEscrow;
+  }
   throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION2, {
     instructionData: data,
     programName: "rewardsSettlement"
@@ -14041,66 +14405,87 @@ function parseRewardsSettlementInstruction(instruction) {
   const instructionType = identifyRewardsSettlementInstruction(instruction);
   switch (instructionType) {
     case RewardsSettlementInstruction.Claim: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.Claim,
         ...parseClaimInstruction2(instruction)
       };
     }
+    case RewardsSettlementInstruction.DepositEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: RewardsSettlementInstruction.DepositEscrow,
+        ...parseDepositEscrowInstruction(instruction)
+      };
+    }
     case RewardsSettlementInstruction.Dispute: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.Dispute,
         ...parseDisputeInstruction(instruction)
       };
     }
     case RewardsSettlementInstruction.FundVault: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.FundVault,
         ...parseFundVaultInstruction(instruction)
       };
     }
     case RewardsSettlementInstruction.InitializeDistributor: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.InitializeDistributor,
         ...parseInitializeDistributorInstruction(instruction)
       };
     }
     case RewardsSettlementInstruction.PayTraffic: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.PayTraffic,
         ...parsePayTrafficInstruction(instruction)
       };
     }
+    case RewardsSettlementInstruction.PayTrafficFromEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: RewardsSettlementInstruction.PayTrafficFromEscrow,
+        ...parsePayTrafficFromEscrowInstruction(instruction)
+      };
+    }
     case RewardsSettlementInstruction.PostEpoch: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.PostEpoch,
         ...parsePostEpochInstruction(instruction)
       };
     }
     case RewardsSettlementInstruction.SetAuthorities: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.SetAuthorities,
         ...parseSetAuthoritiesInstruction(instruction)
       };
     }
     case RewardsSettlementInstruction.SweepEpoch: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.SweepEpoch,
         ...parseSweepEpochInstruction(instruction)
       };
     }
     case RewardsSettlementInstruction.TransferAuthority: {
-      assertIsInstructionWithAccounts2(instruction);
+      assertIsInstructionWithAccounts(instruction);
       return {
         instructionType: RewardsSettlementInstruction.TransferAuthority,
         ...parseTransferAuthorityInstruction3(instruction)
+      };
+    }
+    case RewardsSettlementInstruction.WithdrawEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: RewardsSettlementInstruction.WithdrawEscrow,
+        ...parseWithdrawEscrowInstruction(instruction)
       };
     }
     default:
@@ -14112,28 +14497,34 @@ function parseRewardsSettlementInstruction(instruction) {
 }
 function rewardsSettlementProgram() {
   return (client) => {
-    return extendClient2(client, {
+    return extendClient(client, {
       rewardsSettlement: {
         accounts: {
-          claimStatus: addSelfFetchFunctions2(client, getClaimStatusCodec()),
-          distributor: addSelfFetchFunctions2(client, getDistributorCodec()),
-          epochDistribution: addSelfFetchFunctions2(client, getEpochDistributionCodec())
+          claimStatus: addSelfFetchFunctions(client, getClaimStatusCodec()),
+          distributor: addSelfFetchFunctions(client, getDistributorCodec()),
+          epochDistribution: addSelfFetchFunctions(client, getEpochDistributionCodec()),
+          paymentEscrow: addSelfFetchFunctions(client, getPaymentEscrowCodec())
         },
         instructions: {
-          claim: (input) => addSelfPlanAndSendFunctions2(client, getClaimInstructionAsync(input)),
-          dispute: (input) => addSelfPlanAndSendFunctions2(client, getDisputeInstructionAsync(input)),
-          fundVault: (input) => addSelfPlanAndSendFunctions2(client, getFundVaultInstructionAsync(input)),
-          initializeDistributor: (input) => addSelfPlanAndSendFunctions2(client, getInitializeDistributorInstructionAsync(input)),
-          payTraffic: (input) => addSelfPlanAndSendFunctions2(client, getPayTrafficInstructionAsync({ ...input, payer: input.payer ?? client.payer })),
-          postEpoch: (input) => addSelfPlanAndSendFunctions2(client, getPostEpochInstructionAsync(input)),
-          setAuthorities: (input) => addSelfPlanAndSendFunctions2(client, getSetAuthoritiesInstructionAsync(input)),
-          sweepEpoch: (input) => addSelfPlanAndSendFunctions2(client, getSweepEpochInstructionAsync(input)),
-          transferAuthority: (input) => addSelfPlanAndSendFunctions2(client, getTransferAuthorityInstructionAsync3(input))
+          claim: (input) => addSelfPlanAndSendFunctions(client, getClaimInstructionAsync(input)),
+          depositEscrow: (input) => addSelfPlanAndSendFunctions(client, getDepositEscrowInstructionAsync(input)),
+          dispute: (input) => addSelfPlanAndSendFunctions(client, getDisputeInstructionAsync(input)),
+          fundVault: (input) => addSelfPlanAndSendFunctions(client, getFundVaultInstructionAsync(input)),
+          initializeDistributor: (input) => addSelfPlanAndSendFunctions(client, getInitializeDistributorInstructionAsync(input)),
+          payTraffic: (input) => addSelfPlanAndSendFunctions(client, getPayTrafficInstructionAsync({ ...input, payer: input.payer ?? client.payer })),
+          payTrafficFromEscrow: (input) => addSelfPlanAndSendFunctions(client, getPayTrafficFromEscrowInstructionAsync(input)),
+          postEpoch: (input) => addSelfPlanAndSendFunctions(client, getPostEpochInstructionAsync(input)),
+          setAuthorities: (input) => addSelfPlanAndSendFunctions(client, getSetAuthoritiesInstructionAsync(input)),
+          sweepEpoch: (input) => addSelfPlanAndSendFunctions(client, getSweepEpochInstructionAsync(input)),
+          transferAuthority: (input) => addSelfPlanAndSendFunctions(client, getTransferAuthorityInstructionAsync3(input)),
+          withdrawEscrow: (input) => addSelfPlanAndSendFunctions(client, getWithdrawEscrowInstructionAsync(input))
         },
         pdas: {
           distributor: findDistributorPda,
           epochDistribution: findEpochDistributionPda,
           claimStatus: findClaimStatusPda,
+          escrow: findEscrowPda,
+          escrowVault: findEscrowVaultPda,
           programAuthority: findProgramAuthorityPda3,
           rewardVault: findRewardVaultPda
         },
@@ -14157,6 +14548,8 @@ var REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN = 6007;
 var REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT = 6008;
 var REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT = 6009;
 var REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW = 6010;
+var REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW = 6011;
+var REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW = 6012;
 var rewardsSettlementErrorMessages;
 if (process.env["NODE_ENV"] !== "production") {
   rewardsSettlementErrorMessages = {
@@ -14165,7 +14558,9 @@ if (process.env["NODE_ENV"] !== "production") {
     [REWARDS_SETTLEMENT_ERROR__DISPUTED]: `This leaf has been disputed`,
     [REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN]: `Dispute window has not elapsed`,
     [REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM]: `Epoch over-claimed`,
+    [REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW]: `Escrow balance is insufficient`,
     [REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT]: `Reward vault cannot cover the posted obligations`,
+    [REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW]: `Escrow account does not match the expected owner, mint, or vault`,
     [REWARDS_SETTLEMENT_ERROR__INVALID_PROOF]: `Merkle proof is invalid`,
     [REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
     [REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH]: `Epoch must be strictly increasing`,
@@ -14180,7 +14575,7 @@ function getRewardsSettlementErrorMessage(code) {
   return "Error message not available in production bundles.";
 }
 function isRewardsSettlementError(error, transactionMessage, code) {
-  return isProgramError2(error, transactionMessage, REWARDS_SETTLEMENT_PROGRAM_ADDRESS, code);
+  return isProgramError(error, transactionMessage, REWARDS_SETTLEMENT_PROGRAM_ADDRESS, code);
 }
 
 // ../../sdk/dist/generated/governance/src/generated/accounts/governanceConfig.js
@@ -15069,15 +15464,12 @@ function quotaBytes(balanceBaseUnits) {
 function costBaseUnits(bytes) {
   return math_exports.BASE_RATE_PER_GB * bytes / math_exports.BYTES_PER_GB;
 }
-async function weftBalance(r, owner, mint) {
-  const [ata] = await findAssociatedTokenPda({
-    owner: address(owner),
-    mint: address(mint),
-    tokenProgram: TOKEN_PROGRAM_ADDRESS
-  });
+async function escrowBalance(r, owner, mint) {
+  const [escrow] = await generated_exports.findEscrowPda({ owner: address(owner) });
   try {
-    const { value } = await r.getTokenAccountBalance(ata).send();
-    return BigInt(value.amount);
+    const acct = await generated_exports.fetchPaymentEscrow(r, escrow);
+    if (acct.data.owner !== owner || acct.data.mint !== mint) return 0n;
+    return acct.data.balance;
   } catch {
     return 0n;
   }
@@ -15103,18 +15495,21 @@ async function verifyPayTraffic(r, signature, expectedPayer) {
 }
 function decodePayTraffic(accountKeys, instructions, expectedPayer) {
   const programId = String(generated_exports.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
-  const disc = generated_exports.PAY_TRAFFIC_DISCRIMINATOR;
+  const discriminators = [
+    generated_exports.PAY_TRAFFIC_DISCRIMINATOR,
+    generated_exports.PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR
+  ];
   for (const ix of instructions) {
     if (accountKeys[ix.programIdIndex] !== programId) continue;
     const data = bs58Decode(ix.data);
     if (data.length < 16) continue;
-    if (!data.slice(0, 8).every((b, i) => b === disc[i])) continue;
+    if (!discriminators.some((disc) => data.slice(0, 8).every((b, i) => b === disc[i]))) continue;
     const payer = accountKeys[ix.accounts[0]];
     if (payer !== expectedPayer) throw new Error("payment not signed by this wallet");
     const amount = readU64LE(data, 8);
     return { payer: address(payer), amount };
   }
-  throw new Error("no pay_traffic instruction for this wallet in the transaction");
+  throw new Error("no settlement instruction for this wallet in the transaction");
 }
 function readU64LE(b, off) {
   let v = 0n;
@@ -15307,7 +15702,7 @@ var Controller = class {
     return BigInt(u.unsettledBytes) < BigInt(u.quotaBytes);
   }
   async refreshBalance(u) {
-    const bal = await weftBalance(this.rpc, u.wallet, this.cfg.weftMint);
+    const bal = await escrowBalance(this.rpc, u.wallet, this.cfg.weftMint);
     u.balanceBaseUnits = bal.toString();
     u.quotaBytes = quotaBytes(bal).toString();
   }
@@ -15318,6 +15713,7 @@ var Controller = class {
       wallet: u.wallet,
       active: u.active,
       balanceWeft: fmtWeft(BigInt(u.balanceBaseUnits)),
+      balanceBaseUnits: u.balanceBaseUnits,
       quotaBytes: quota.toString(),
       unsettledBytes: unsettled.toString(),
       owedWeft: fmtWeft(costBaseUnits(unsettled)),
@@ -15352,7 +15748,7 @@ var Controller = class {
     this.reconcile();
     return this.status(u);
   }
-  /** Verify a pay_traffic tx and clear that much of the user's metered tab. */
+  /** Verify a settlement tx and clear that much of the user's metered tab. */
   async settle(wallet, signature) {
     const u = this.store.get(wallet);
     if (!u) throw new Error("unknown wallet \u2014 provision first");
@@ -15409,6 +15805,196 @@ var Controller = class {
 
 // src/faucet.ts
 import { readFileSync as readFileSync2 } from "node:fs";
+
+// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
+function getNonNullResolvedInstructionInput2(inputName, value) {
+  if (value === null || value === void 0) {
+    throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL, {
+      inputName
+    });
+  }
+  return value;
+}
+function getAddressFromResolvedInstructionAccount2(inputName, value) {
+  const nonNullValue = getNonNullResolvedInstructionInput2(inputName, value);
+  if (typeof value === "object" && "address" in nonNullValue) {
+    return nonNullValue.address;
+  }
+  if (Array.isArray(nonNullValue)) {
+    return nonNullValue[0];
+  }
+  return nonNullValue;
+}
+function getAccountMetaFactory2(programAddress, optionalAccountStrategy) {
+  return (inputName, account) => {
+    if (!account.value) {
+      if (optionalAccountStrategy === "omitted") return;
+      return Object.freeze({ address: programAddress, role: AccountRole.READONLY });
+    }
+    const writableRole = account.isWritable ? AccountRole.WRITABLE : AccountRole.READONLY;
+    const isSigner = isResolvedInstructionAccountSigner2(account.value);
+    return Object.freeze({
+      address: getAddressFromResolvedInstructionAccount2(inputName, account.value),
+      role: isSigner ? upgradeRoleToSigner(writableRole) : writableRole,
+      ...isSigner ? { signer: account.value } : {}
+    });
+  };
+}
+function isResolvedInstructionAccountSigner2(value) {
+  return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
+}
+
+// ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/token/dist/src/index.mjs
+async function findAssociatedTokenPda(seeds, config = {}) {
+  const {
+    programAddress = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+  } = config;
+  return await getProgramDerivedAddress({
+    programAddress,
+    seeds: [
+      getAddressEncoder().encode(seeds.owner),
+      getAddressEncoder().encode(seeds.tokenProgram),
+      getAddressEncoder().encode(seeds.mint)
+    ]
+  });
+}
+var CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR = 1;
+function getCreateAssociatedTokenIdempotentInstructionDataEncoder() {
+  return transformEncoder(getStructEncoder([["discriminator", getU8Encoder()]]), (value) => ({
+    ...value,
+    discriminator: CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR
+  }));
+}
+async function getCreateAssociatedTokenIdempotentInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? ASSOCIATED_TOKEN_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    payer: { value: input.payer ?? null, isWritable: true },
+    ata: { value: input.ata ?? null, isWritable: true },
+    owner: { value: input.owner ?? null, isWritable: false },
+    mint: { value: input.mint ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  if (!accounts.ata.value) {
+    accounts.ata.value = await findAssociatedTokenPda({
+      owner: getAddressFromResolvedInstructionAccount2("owner", accounts.owner.value),
+      tokenProgram: getAddressFromResolvedInstructionAccount2("tokenProgram", accounts.tokenProgram.value),
+      mint: getAddressFromResolvedInstructionAccount2("mint", accounts.mint.value)
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("payer", accounts.payer),
+      getAccountMeta("ata", accounts.ata),
+      getAccountMeta("owner", accounts.owner),
+      getAccountMeta("mint", accounts.mint),
+      getAccountMeta("systemProgram", accounts.systemProgram),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getCreateAssociatedTokenIdempotentInstructionDataEncoder().encode({}),
+    programAddress
+  });
+}
+var MINT_TO_DISCRIMINATOR = 7;
+function getMintToInstructionDataEncoder() {
+  return transformEncoder(
+    getStructEncoder([
+      ["discriminator", getU8Encoder()],
+      ["amount", getU64Encoder()]
+    ]),
+    (value) => ({ ...value, discriminator: MINT_TO_DISCRIMINATOR })
+  );
+}
+function getMintToInstruction(input, config) {
+  const programAddress = config?.programAddress ?? TOKEN_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    mint: { value: input.mint ?? null, isWritable: true },
+    token: { value: input.token ?? null, isWritable: true },
+    mintAuthority: { value: input.mintAuthority ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const remainingAccounts = (args.multiSigners ?? []).map((signer) => ({
+    address: signer.address,
+    role: AccountRole.READONLY_SIGNER,
+    signer
+  }));
+  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("mint", accounts.mint),
+      getAccountMeta("token", accounts.token),
+      getAccountMeta("mintAuthority", accounts.mintAuthority),
+      ...remainingAccounts
+    ],
+    data: getMintToInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+var ASSOCIATED_TOKEN_PROGRAM_ADDRESS = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
+var TOKEN_PROGRAM_ADDRESS = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+var ASSOCIATED_TOKEN_ERROR__INVALID_OWNER = 0;
+var associatedTokenErrorMessages;
+if (process.env["NODE_ENV"] !== "production") {
+  associatedTokenErrorMessages = {
+    [ASSOCIATED_TOKEN_ERROR__INVALID_OWNER]: `Associated token account owner does not match address derivation`
+  };
+}
+var TOKEN_ERROR__NOT_RENT_EXEMPT = 0;
+var TOKEN_ERROR__INSUFFICIENT_FUNDS = 1;
+var TOKEN_ERROR__INVALID_MINT = 2;
+var TOKEN_ERROR__MINT_MISMATCH = 3;
+var TOKEN_ERROR__OWNER_MISMATCH = 4;
+var TOKEN_ERROR__FIXED_SUPPLY = 5;
+var TOKEN_ERROR__ALREADY_IN_USE = 6;
+var TOKEN_ERROR__INVALID_NUMBER_OF_PROVIDED_SIGNERS = 7;
+var TOKEN_ERROR__INVALID_NUMBER_OF_REQUIRED_SIGNERS = 8;
+var TOKEN_ERROR__UNINITIALIZED_STATE = 9;
+var TOKEN_ERROR__NATIVE_NOT_SUPPORTED = 10;
+var TOKEN_ERROR__NON_NATIVE_HAS_BALANCE = 11;
+var TOKEN_ERROR__INVALID_INSTRUCTION = 12;
+var TOKEN_ERROR__INVALID_STATE = 13;
+var TOKEN_ERROR__OVERFLOW = 14;
+var TOKEN_ERROR__AUTHORITY_TYPE_NOT_SUPPORTED = 15;
+var TOKEN_ERROR__MINT_CANNOT_FREEZE = 16;
+var TOKEN_ERROR__ACCOUNT_FROZEN = 17;
+var TOKEN_ERROR__MINT_DECIMALS_MISMATCH = 18;
+var TOKEN_ERROR__NON_NATIVE_NOT_SUPPORTED = 19;
+var tokenErrorMessages;
+if (process.env["NODE_ENV"] !== "production") {
+  tokenErrorMessages = {
+    [TOKEN_ERROR__ACCOUNT_FROZEN]: `Account is frozen`,
+    [TOKEN_ERROR__ALREADY_IN_USE]: `Already in use`,
+    [TOKEN_ERROR__AUTHORITY_TYPE_NOT_SUPPORTED]: `Account does not support specified authority type`,
+    [TOKEN_ERROR__FIXED_SUPPLY]: `Fixed supply`,
+    [TOKEN_ERROR__INSUFFICIENT_FUNDS]: `Insufficient funds`,
+    [TOKEN_ERROR__INVALID_INSTRUCTION]: `Invalid instruction`,
+    [TOKEN_ERROR__INVALID_MINT]: `Invalid Mint`,
+    [TOKEN_ERROR__INVALID_NUMBER_OF_PROVIDED_SIGNERS]: `Invalid number of provided signers`,
+    [TOKEN_ERROR__INVALID_NUMBER_OF_REQUIRED_SIGNERS]: `Invalid number of required signers`,
+    [TOKEN_ERROR__INVALID_STATE]: `State is invalid for requested operation`,
+    [TOKEN_ERROR__MINT_CANNOT_FREEZE]: `This token mint cannot freeze accounts`,
+    [TOKEN_ERROR__MINT_DECIMALS_MISMATCH]: `The provided decimals value different from the Mint decimals`,
+    [TOKEN_ERROR__MINT_MISMATCH]: `Account not associated with this Mint`,
+    [TOKEN_ERROR__NATIVE_NOT_SUPPORTED]: `Instruction does not support native tokens`,
+    [TOKEN_ERROR__NON_NATIVE_HAS_BALANCE]: `Non-native account can only be closed if its balance is zero`,
+    [TOKEN_ERROR__NON_NATIVE_NOT_SUPPORTED]: `Instruction does not support non-native tokens`,
+    [TOKEN_ERROR__NOT_RENT_EXEMPT]: `Lamport balance below rent-exempt threshold`,
+    [TOKEN_ERROR__OVERFLOW]: `Operation overflowed`,
+    [TOKEN_ERROR__OWNER_MISMATCH]: `Owner does not match`,
+    [TOKEN_ERROR__UNINITIALIZED_STATE]: `State is unititialized`
+  };
+}
+
+// src/faucet.ts
 var lastDrip = /* @__PURE__ */ new Map();
 var Faucet = class {
   constructor(rpcUrl, wsUrl, keypairPath, mint, amount, cooldownMs = 6 * 60 * 60 * 1e3) {

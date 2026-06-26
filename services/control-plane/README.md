@@ -6,14 +6,15 @@ The per-node service that makes Weft access **token-gated**. It runs on each nod
 - **Mints a personal `vless://` link per wallet** (`POST /provision {wallet}`) — its own UUID,
   metered to that wallet.
 - **Meters** each user's traffic via Xray's stats API and **enforces the `$WEFT` budget**: a user
-  stays connected only while their consumption is within what their balance pays for
-  (`unsettledBytes < balance/price`, price = 0.1 `$WEFT`/GB). Over budget → the user is removed
-  from the Xray config (link stops); top up → restored.
+  stays connected only while their consumption is within what their prepaid escrow balance pays for
+  (`unsettledBytes < escrow/price`, price = 0.1 `$WEFT`/GB). Over budget → the user is removed
+  from the Xray config (link stops); deposit or settle → restored.
 - **Owns the Xray config**: renders `/usr/local/etc/xray/config.json` (the two Reality inbounds +
   api/stats) from the active user set and reloads Xray when it changes.
 - **Tracks per-node served traffic** (`GET /node/stats`) — the basis for the operator's `$WEFT`
   earnings (`trafficReward` over served bytes).
-- Verifies a user's on-chain `pay_traffic` settlement (`POST /settle {wallet, signature}`).
+- Verifies a user's on-chain settlement (`pay_traffic_from_escrow`, or legacy `pay_traffic`) via
+  `POST /settle {wallet, signature}`.
 
 ## HTTP API
 
@@ -21,7 +22,7 @@ The per-node service that makes Weft access **token-gated**. It runs on each nod
 | ------------------------------------- | ---------------------------------------------------------- |
 | `POST /provision {wallet}`            | mint/refresh the wallet's personal links + budget status   |
 | `GET /status?wallet=…`                | current quota / used / remaining (same shape as provision) |
-| `POST /settle {wallet, signature}`    | register a verified `pay_traffic` payment, clear the tab   |
+| `POST /settle {wallet, signature}`    | register a verified settlement, clear the metered tab       |
 | `GET /node/stats`                     | this node's total served bytes → `$WEFT` earned           |
 | `GET /price`                          | price/GB, mint, host, modes, faucet availability           |
 | `POST /faucet {wallet}` (devnet only) | mint test `$WEFT` to a wallet (test-mint nodes only)      |
