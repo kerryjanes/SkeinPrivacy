@@ -59,11 +59,11 @@ chmod +x weft-node.sh
 ./weft-node.sh <your-node-key>
 ```
 
-On Windows, open PowerShell:
+On Windows, open Command Prompt (`cmd.exe`):
 
-```powershell
-Invoke-WebRequest -UseBasicParsing https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main/scripts/run-node.ps1 -OutFile weft-node.ps1
-powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 <your-node-key>
+```bat
+curl -fsSL https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main/scripts/run-node.cmd -o weft-node.cmd
+weft-node.cmd <your-node-key>
 ```
 
 The scripts download missing runtime dependencies automatically:
@@ -81,8 +81,8 @@ macOS/Linux:
 
 Windows:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\weft-node.ps1
+```bat
+weft-node.cmd
 ```
 
 Stop the node.
@@ -95,8 +95,8 @@ macOS/Linux:
 
 Windows:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 stop
+```bat
+weft-node.cmd stop
 ```
 
 Remove local services and config.
@@ -109,8 +109,8 @@ macOS/Linux:
 
 Windows:
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 stop --purge
+```bat
+weft-node.cmd stop --purge
 ```
 
 The script installs and runs:
@@ -151,7 +151,8 @@ anchor build
 | Path | Purpose |
 | --- | --- |
 | `scripts/run-node.sh` | Run a home 1-hop node on macOS/Linux. |
-| `scripts/run-node.ps1` | Run a home 1-hop node on Windows. |
+| `scripts/run-node.cmd` | Run a home 1-hop node from Windows Command Prompt. |
+| `scripts/run-node.ps1` | Windows PowerShell implementation used by `run-node.cmd`. |
 | `scripts/stop-node.sh` | Legacy stop helper; `./weft-node.sh stop` is preferred. |
 | `scripts/deploy-node.sh` | Deploy a VPS infrastructure node. |
 | `scripts/test-home-exit.sh` | Local/devnet home-exit test helper. |
