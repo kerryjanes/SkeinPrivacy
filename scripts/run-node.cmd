@@ -28,8 +28,8 @@ if /I "%~1"=="allow-defender" (
     exit /b %ERRORLEVEL%
   )
   echo -^> opening elevated Command Prompt for Defender exclusion
-  echo -^> approve the UAC prompt in the new window, then return here
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath $env:ComSpec -Verb RunAs -ArgumentList '/k ""%~f0"" allow-defender-admin'"
+  echo -^> approve the UAC prompt; the elevated window closes automatically
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath $env:ComSpec -Verb RunAs -Wait -ArgumentList '/c ""%~f0"" allow-defender-admin'"
   exit /b %ERRORLEVEL%
 )
 
