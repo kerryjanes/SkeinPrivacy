@@ -191,7 +191,7 @@ pnpm -F @weft/genesis m8smoke
 export WEFT_CLUSTER=devnet
 export WEFT_RPC=https://api.devnet.solana.com
 export WEFT_MINT=<DEVNET_GENESIS_MINT>
-export WEFT_FAUCET_KEYPAIR=<DEVNET_MINT_AUTHORITY_KEYPAIR_IF_USED>
+export WEFT_FAUCET_KEYPAIR=<FUNDED_DEVNET_WEFT_WALLET_KEYPAIR_IF_USING_TRANSFER_FAUCET>
 ```
 
 13. Configure cabinet devnet env.
@@ -205,7 +205,7 @@ export VITE_WEFT_CONTROL_PLANE_URL=<DEVNET_CONTROL_PLANE_URL>
 
 14. Run the full mutable rehearsal:
 
-- faucet or fund wallet with devnet `$WEFT`
+- faucet-transfer or fund wallet with devnet `$WEFT`
 - provision VPN link
 - connect from phone
 - verify user-node exit IP

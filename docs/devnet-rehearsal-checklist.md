@@ -20,7 +20,7 @@ Run this before any mainnet canary. The goal is to exercise the same launch flow
   - `WEFT_CLUSTER=devnet`
   - `WEFT_RPC` or `WEFT_RPC_URL`
   - devnet `$WEFT` mint
-  - faucet disabled for the fresh genesis mint because mint authority is retired.
+  - optional transfer-faucet keypair funded with devnet `$WEFT`; do not use `MintTo` because mint authority is retired.
 - Cabinet devnet env uses:
   - `VITE_WEFT_CLUSTER=devnet`
   - `VITE_WEFT_RPC_URL`
@@ -46,7 +46,7 @@ Run this before any mainnet canary. The goal is to exercise the same launch flow
 - Start the home node with `scripts/run-node.sh`.
 - Verify the node appears live in the cabinet/network.
 - Start the control-plane/relay path used by users.
-- Fund test users from devnet custody/test allocations; do not expect mint-authority faucet on the fresh genesis mint.
+- Fund test users from devnet custody/test allocations or the transfer-faucet; do not expect mint-authority faucet on the fresh genesis mint.
 - Provision a personal VPN link.
 - Connect from a phone.
 - Confirm exit IP is the user node IP first, not VPS.

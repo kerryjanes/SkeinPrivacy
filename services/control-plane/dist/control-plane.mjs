@@ -15903,22 +15903,24 @@ async function getCreateAssociatedTokenIdempotentInstructionAsync(input, config)
     programAddress
   });
 }
-var MINT_TO_DISCRIMINATOR = 7;
-function getMintToInstructionDataEncoder() {
+var TRANSFER_CHECKED_DISCRIMINATOR = 12;
+function getTransferCheckedInstructionDataEncoder() {
   return transformEncoder(
     getStructEncoder([
       ["discriminator", getU8Encoder()],
-      ["amount", getU64Encoder()]
+      ["amount", getU64Encoder()],
+      ["decimals", getU8Encoder()]
     ]),
-    (value) => ({ ...value, discriminator: MINT_TO_DISCRIMINATOR })
+    (value) => ({ ...value, discriminator: TRANSFER_CHECKED_DISCRIMINATOR })
   );
 }
-function getMintToInstruction(input, config) {
+function getTransferCheckedInstruction(input, config) {
   const programAddress = config?.programAddress ?? TOKEN_PROGRAM_ADDRESS;
   const originalAccounts = {
-    mint: { value: input.mint ?? null, isWritable: true },
-    token: { value: input.token ?? null, isWritable: true },
-    mintAuthority: { value: input.mintAuthority ?? null, isWritable: false }
+    source: { value: input.source ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: false },
+    destination: { value: input.destination ?? null, isWritable: true },
+    authority: { value: input.authority ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
   const args = { ...input };
@@ -15930,12 +15932,13 @@ function getMintToInstruction(input, config) {
   const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
   return Object.freeze({
     accounts: [
+      getAccountMeta("source", accounts.source),
       getAccountMeta("mint", accounts.mint),
-      getAccountMeta("token", accounts.token),
-      getAccountMeta("mintAuthority", accounts.mintAuthority),
+      getAccountMeta("destination", accounts.destination),
+      getAccountMeta("authority", accounts.authority),
       ...remainingAccounts
     ],
-    data: getMintToInstructionDataEncoder().encode(args),
+    data: getTransferCheckedInstructionDataEncoder().encode(args),
     programAddress
   });
 }
@@ -16005,7 +16008,7 @@ var Faucet = class {
     this.amount = amount;
     this.cooldownMs = cooldownMs;
   }
-  /** Mint `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx signature. */
+  /** Transfer `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx sig. */
   async drip(wallet) {
     const now = Date.now();
     const prev = lastDrip.get(wallet) ?? 0;
@@ -16023,7 +16026,12 @@ var Faucet = class {
     });
     const mint = address(this.mint);
     const owner = address(wallet);
-    const [ata] = await findAssociatedTokenPda({
+    const [sourceAta] = await findAssociatedTokenPda({
+      owner: faucet2.address,
+      mint,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS
+    });
+    const [destinationAta] = await findAssociatedTokenPda({
       owner,
       mint,
       tokenProgram: TOKEN_PROGRAM_ADDRESS
@@ -16033,18 +16041,20 @@ var Faucet = class {
       owner,
       mint
     });
-    const mintTo = getMintToInstruction({
+    const transfer = getTransferCheckedInstruction({
+      source: sourceAta,
       mint,
-      token: ata,
-      mintAuthority: faucet2,
-      amount: this.amount
+      destination: destinationAta,
+      authority: faucet2,
+      amount: this.amount,
+      decimals: 9
     });
     const { value: bh } = await rpc2.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),
       (m) => setTransactionMessageFeePayerSigner(faucet2, m),
       (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
-      (m) => appendTransactionMessageInstructions([createAta, mintTo], m)
+      (m) => appendTransactionMessageInstructions([createAta, transfer], m)
     );
     const signed = await signTransactionMessageWithSigners(msg);
     await sendAndConfirm(signed, {

@@ -1,6 +1,7 @@
-// Devnet faucet: mint test $WEFT to a wallet so people can try the gated VPN end-to-end. Only
-// active when WEFT_FAUCET_KEYPAIR is configured (i.e. the node is gating on a MINTABLE test mint);
-// on mainnet (real mint, no faucet key) the route is simply absent.
+// Devnet faucet: transfer test $WEFT to a wallet so people can try the gated VPN end-to-end.
+// The rehearsal mint has a fixed supply and retired mint authority, so this must move tokens from
+// a funded devnet faucet/custody wallet instead of minting new tokens. On mainnet the route is
+// disabled by config.
 
 import { readFileSync } from 'node:fs';
 import {
@@ -20,7 +21,7 @@ import {
 import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstructionAsync,
-  getMintToInstruction,
+  getTransferCheckedInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 
@@ -36,7 +37,7 @@ export class Faucet {
     private cooldownMs = 6 * 60 * 60 * 1000, // 6h per wallet
   ) {}
 
-  /** Mint `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx signature. */
+  /** Transfer `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx sig. */
   async drip(wallet: string): Promise<{ signature: string; amount: string }> {
     const now = Date.now();
     const prev = lastDrip.get(wallet) ?? 0;
@@ -54,7 +55,12 @@ export class Faucet {
     });
     const mint = address(this.mint);
     const owner = address(wallet);
-    const [ata] = await findAssociatedTokenPda({
+    const [sourceAta] = await findAssociatedTokenPda({
+      owner: faucet.address,
+      mint,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+    const [destinationAta] = await findAssociatedTokenPda({
       owner,
       mint,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
@@ -64,18 +70,20 @@ export class Faucet {
       owner,
       mint,
     });
-    const mintTo = getMintToInstruction({
+    const transfer = getTransferCheckedInstruction({
+      source: sourceAta,
       mint,
-      token: ata,
-      mintAuthority: faucet,
+      destination: destinationAta,
+      authority: faucet,
       amount: this.amount,
+      decimals: 9,
     });
     const { value: bh } = await rpc.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),
       (m) => setTransactionMessageFeePayerSigner(faucet, m),
       (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
-      (m) => appendTransactionMessageInstructions([createAta, mintTo], m),
+      (m) => appendTransactionMessageInstructions([createAta, transfer], m),
     );
     const signed = await signTransactionMessageWithSigners(msg);
     await sendAndConfirm(signed as Parameters<typeof sendAndConfirm>[0], {
