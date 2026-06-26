@@ -27,7 +27,14 @@ const cfg = loadConfig();
 const store = new Store(cfg.storePath);
 const ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl));
 const faucet = cfg.faucetKeypairPath
-  ? new Faucet(cfg.rpcUrl, cfg.wsUrl, cfg.faucetKeypairPath, cfg.weftMint, cfg.faucetAmount)
+  ? new Faucet(
+      cfg.rpcUrl,
+      cfg.wsUrl,
+      cfg.faucetKeypairPath,
+      cfg.weftMint,
+      cfg.faucetAmount,
+      cfg.faucetCooldownMs,
+    )
   : undefined;
 
 ctrl.bootstrap(); // sync xray to saved state on boot

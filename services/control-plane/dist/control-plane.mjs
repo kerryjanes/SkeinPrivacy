@@ -4044,6 +4044,7 @@ function loadConfig() {
     faucetKeypairPath,
     faucetAmount: BigInt(env("WEFT_FAUCET_AMOUNT", "10000000")),
     // 0.01 $WEFT → ~100 MB quota
+    faucetCooldownMs: Number(env("WEFT_FAUCET_COOLDOWN_MS", "60000")),
     frpsApi: env("WEFT_FRPS_API", ""),
     frpsUser: env("WEFT_FRPS_USER", ""),
     frpsPass: env("WEFT_FRPS_PASS", "")
@@ -16183,7 +16184,14 @@ if (envFile) {
 var cfg = loadConfig();
 var store = new Store(cfg.storePath);
 var ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl));
-var faucet = cfg.faucetKeypairPath ? new Faucet(cfg.rpcUrl, cfg.wsUrl, cfg.faucetKeypairPath, cfg.weftMint, cfg.faucetAmount) : void 0;
+var faucet = cfg.faucetKeypairPath ? new Faucet(
+  cfg.rpcUrl,
+  cfg.wsUrl,
+  cfg.faucetKeypairPath,
+  cfg.weftMint,
+  cfg.faucetAmount,
+  cfg.faucetCooldownMs
+) : void 0;
 ctrl.bootstrap();
 startServer(cfg, ctrl, faucet);
 async function loop() {
