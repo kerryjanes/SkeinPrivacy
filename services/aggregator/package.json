@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc -p tsconfig.json --noEmit",
+    "bundle": "esbuild src/cli.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/aggregator.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
     "start": "tsx src/cli.ts",
     "smoke": "tsx src/m4smoke.ts",
     "test": "vitest run"
@@ -17,6 +18,7 @@
     "@solana/kit": "^6.10.0"
   },
   "devDependencies": {
+    "esbuild": "^0.25.0",
     "@types/node": "^25.9.3",
     "tsx": "^4.22.4",
     "typescript": "^6.0.3",

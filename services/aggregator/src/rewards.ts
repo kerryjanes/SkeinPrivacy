@@ -79,6 +79,12 @@ export interface NodeReward {
   bootstrapBonusBps: number;
 }
 
+export interface ByteTotal {
+  operator: Address;
+  nodeId: bigint;
+  bytes: bigint;
+}
+
 export interface EpochEntry {
   operator: Address;
   nodeId: bigint;
@@ -120,14 +126,12 @@ export function buildEpoch(
   nodes: NodeInfo[],
   opts: BuildOptions = {},
 ): EpochBuild {
-  const geoTable = opts.geoTable ?? EMPTY_GEO_TABLE;
-  const minStake = opts.minStakeToEarn ?? DEFAULT_MIN_STAKE_TO_EARN;
   const maxBytes = opts.maxBytesPerEpoch ?? DEFAULT_MAX_BYTES_PER_EPOCH;
 
   const { accepted, rejected } = selectReceiptsForEpoch(receipts, epoch);
 
   // Sum bytes per (operator, node), capped.
-  const byteTotals = new Map<string, { operator: Address; nodeId: bigint; bytes: bigint }>();
+  const byteTotals = new Map<string, ByteTotal>();
   for (const r of accepted) {
     const k = key(r.operator, r.nodeId);
     const cur = byteTotals.get(k) ?? { operator: r.operator, nodeId: r.nodeId, bytes: 0n };
@@ -136,12 +140,29 @@ export function buildEpoch(
     byteTotals.set(k, cur);
   }
 
+  return buildEpochFromByteTotals(epoch, [...byteTotals.values()], nodes, opts, rejected.length);
+}
+
+/**
+ * Build one epoch from already-trusted byte totals. This is for relay-side metering
+ * integrations; `buildEpoch` remains the dual-signed receipt path.
+ */
+export function buildEpochFromByteTotals(
+  epoch: bigint,
+  totals: ByteTotal[],
+  nodes: NodeInfo[],
+  opts: BuildOptions = {},
+  rejectedReceipts = 0,
+): EpochBuild {
+  const geoTable = opts.geoTable ?? EMPTY_GEO_TABLE;
+  const minStake = opts.minStakeToEarn ?? DEFAULT_MIN_STAKE_TO_EARN;
+
   const nodeByKey = new Map<string, NodeInfo>();
   for (const n of nodes) nodeByKey.set(key(n.operator, n.nodeId), n);
 
   const rewards: NodeReward[] = [];
   const skipped: SkippedNode[] = [];
-  for (const { operator, nodeId, bytes } of byteTotals.values()) {
+  for (const { operator, nodeId, bytes } of totals) {
     const info = nodeByKey.get(key(operator, nodeId));
     if (!info) {
       skipped.push({ operator, nodeId, bytes, reason: 'unknown-node' });
@@ -215,6 +236,6 @@ export function buildEpoch(
     entries,
     rewards,
     skipped,
-    rejectedReceipts: rejected.length,
+    rejectedReceipts,
   };
 }

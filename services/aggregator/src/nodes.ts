@@ -15,6 +15,17 @@ import type { NodeInfo } from './rewards';
 
 export type Rpc = ReturnType<typeof createSolanaRpc>;
 
+const NODE_MERKLE_TREE_OFFSET = 80n;
+const DEFAULT_DEVNET_MERKLE_TREE = '4RJP3AJ6NNoqjTCxjeJi2Erw3wwJJoHN3jpwUrSetJw5' as Address;
+
+export interface FetchNodeInfosOptions {
+  /**
+   * Restrict rewards to a provisioned registry tree. Pass `null` to include legacy
+   * devnet NodeState accounts, but production should always pin a tree.
+   */
+  merkleTree?: Address | null;
+}
+
 /** Decode a `NodeState` tolerating the pre-M8 (shorter, no trailing `sequence`) layout
  *  that devnet's node-registry still uses — zero-padding to the decoder's expected size. */
 export async function fetchNodeStateTolerant(
@@ -33,12 +44,35 @@ export async function fetchNodeStateTolerant(
   return { data: decoder.decode(bytes) };
 }
 
-export async function fetchNodeInfos(client: Rpc): Promise<NodeInfo[]> {
+export function rewardMerkleTreeFromEnv(): Address | null {
+  const raw = process.env.WEFT_MERKLE_TREE;
+  if (raw === '') return null;
+  return (raw ?? DEFAULT_DEVNET_MERKLE_TREE) as Address;
+}
+
+export async function fetchNodeInfos(
+  client: Rpc,
+  opts: FetchNodeInfosOptions = {},
+): Promise<NodeInfo[]> {
   const disc = getBase58Decoder().decode(nodeRegistry.NODE_STATE_DISCRIMINATOR);
+  const merkleTree = opts.merkleTree ?? rewardMerkleTreeFromEnv();
   const accounts = await client
     .getProgramAccounts(nodeRegistry.NODE_REGISTRY_PROGRAM_ADDRESS, {
       encoding: 'base64',
-      filters: [{ memcmp: { offset: 0n, bytes: disc as Base58EncodedBytes, encoding: 'base58' } }],
+      filters: [
+        { memcmp: { offset: 0n, bytes: disc as Base58EncodedBytes, encoding: 'base58' } },
+        ...(merkleTree
+          ? [
+              {
+                memcmp: {
+                  offset: NODE_MERKLE_TREE_OFFSET,
+                  bytes: merkleTree as unknown as Base58EncodedBytes,
+                  encoding: 'base58' as const,
+                },
+              },
+            ]
+          : []),
+      ],
     })
     .send();
   const decoder = nodeRegistry.getNodeStateDecoder();

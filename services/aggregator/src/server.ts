@@ -60,9 +60,20 @@ export function createAggregatorServer(deps: ServerDeps): Server {
       try {
         const url = new URL(req.url ?? '/', 'http://localhost');
         const json = (code: number, body: unknown) => {
-          res.writeHead(code, { 'content-type': 'application/json' });
+          res.writeHead(code, {
+            'content-type': 'application/json',
+            'access-control-allow-origin': '*',
+            'access-control-allow-methods': 'GET, POST, OPTIONS',
+            'access-control-allow-headers': 'content-type',
+            'access-control-max-age': '86400',
+          });
           res.end(JSON.stringify(body));
         };
+
+        if (req.method === 'OPTIONS') {
+          json(204, {});
+          return;
+        }
 
         if (url.pathname === '/health') {
           json(200, { ok: true, epochs: deps.store.epochs().map(String) });

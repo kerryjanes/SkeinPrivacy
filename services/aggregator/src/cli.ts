@@ -8,11 +8,12 @@ import {
   createSolanaRpc,
   createSolanaRpcSubscriptions,
   createKeyPairSignerFromBytes,
+  address,
   type Address,
 } from '@solana/kit';
 import { rewardsSettlement } from '@weft/sdk';
 
-import { buildEpoch, type BuildOptions } from './rewards';
+import { buildEpoch, buildEpochFromByteTotals, type BuildOptions, type ByteTotal } from './rewards';
 import { fetchNodeInfos } from './nodes';
 import { postEpoch } from './poster';
 import { EpochStore } from './store';
@@ -47,6 +48,26 @@ function parseReceipts(path: string): TrafficReceipt[] {
   }));
 }
 
+function parseTrustedTotals(): ByteTotal[] {
+  const raw = process.env.WEFT_TRUSTED_TOTALS;
+  if (raw) {
+    const totals = JSON.parse(raw) as Array<{ operator: string; nodeId: string; bytes: string }>;
+    return totals.map((t) => ({
+      operator: address(t.operator) as Address,
+      nodeId: BigInt(t.nodeId),
+      bytes: BigInt(t.bytes),
+    }));
+  }
+  const operator = process.env.WEFT_TRUSTED_OPERATOR;
+  const nodeId = process.env.WEFT_TRUSTED_NODE_ID;
+  const bytes = process.env.WEFT_TRUSTED_BYTES;
+  if (!operator && !nodeId && !bytes) return [];
+  if (!operator || !nodeId || !bytes) {
+    throw new Error('WEFT_TRUSTED_OPERATOR, WEFT_TRUSTED_NODE_ID, and WEFT_TRUSTED_BYTES are required together');
+  }
+  return [{ operator: address(operator) as Address, nodeId: BigInt(nodeId), bytes: BigInt(bytes) }];
+}
+
 async function main(): Promise<void> {
   const cluster = process.env.WEFT_CLUSTER ?? 'devnet';
   if (cluster.startsWith('mainnet') && !process.env.WEFT_RPC) {
@@ -59,16 +80,27 @@ async function main(): Promise<void> {
   const posterPath = process.env.WEFT_POSTER;
   const port = Number(process.env.PORT ?? '8788');
   const postOnReceipts = process.env.WEFT_POST_ON_RECEIPTS === '1';
+  const exitAfterPost = process.env.WEFT_EXIT_AFTER_POST === '1';
+  const minStakeToEarn = process.env.WEFT_MIN_STAKE_TO_EARN
+    ? BigInt(process.env.WEFT_MIN_STAKE_TO_EARN)
+    : undefined;
+  const maxBytesPerEpoch = process.env.WEFT_MAX_BYTES_PER_EPOCH
+    ? BigInt(process.env.WEFT_MAX_BYTES_PER_EPOCH)
+    : undefined;
 
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
 
   const nodes = await fetchNodeInfos(rpc);
   const receipts = parseReceipts(receiptsPath);
+  const trustedTotals = parseTrustedTotals();
   const receiptsByEpoch = new Map<string, TrafficReceipt[]>();
   receiptsByEpoch.set(epoch.toString(), receipts);
-  const opts: BuildOptions = {};
-  const build = buildEpoch(epoch, receipts, nodes, opts);
+  const opts: BuildOptions = { minStakeToEarn, maxBytesPerEpoch };
+  const build =
+    trustedTotals.length > 0
+      ? buildEpochFromByteTotals(epoch, trustedTotals, nodes, opts)
+      : buildEpoch(epoch, receipts, nodes, opts);
   console.log(
     `[aggregator] epoch ${epoch}: ${build.numNodes} nodes, ${build.totalReward} base units, root ${build.root || '(empty)'}`,
   );
@@ -92,6 +124,7 @@ async function main(): Promise<void> {
   if (poster && build.numNodes > 0) {
     await maybePost(build);
   }
+  if (exitAfterPost) return;
 
   const [distributor] = await rewardsSettlement.findDistributorPda();
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
