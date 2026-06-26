@@ -35,7 +35,7 @@ Key properties:
 You don't need to run a node to use the network — just a Solana wallet holding `$WEFT`, which is
 your traffic budget (0.1 `$WEFT`/GB).
 
-### 1. The cabinet + an app you already use (recommended)
+### Cabinet + a VLESS client you already use
 
 1. Open the **cabinet** → [weftnetwork.net/app](https://www.weftnetwork.net/app) and connect your
    wallet, then go to **access**.
@@ -50,11 +50,8 @@ and it resumes. On **devnet**, click **Get test $WEFT** in the cabinet to try th
 _Advanced / scripted:_ the cabinet just calls a node's control plane —
 `curl -X POST https://<node>:8089/provision -d '{"wallet":"<YOUR_SOLANA_PUBKEY>"}'`.
 
-### 2. The Weft desktop app
-
-Download from [**Releases**](https://github.com/kerryjanes/WeftNetwork/releases), load your wallet,
-and press **Connect** — it provisions your personal link and shows your `$WEFT` budget live.
-Nothing to paste.
+There is no Weft desktop app in the supported user path. Use standard VLESS clients for VPN access
+and the scripts below for node operation.
 
 ---
 
@@ -69,12 +66,14 @@ served over **Tor** by infrastructure nodes — your device never becomes a Tor/
 **Register** (your wallet covers the one-time on-chain rent; the region is auto-detected). You get
 back a single **node key** — copy it. This is the only step that touches the chain.
 
-**Step 2 — start the node software.** On the device you want to turn into a node (PC / router /
-always-on box, behind NAT), pass the key **once**:
+**Step 2 — start the node software with scripts.** On the device you want to turn into a node
+(PC / router / always-on box, behind NAT), download the node script and pass the key **once**:
 
 ```sh
-./scripts/run-node.sh <your-node-key>      # first run only
-./scripts/run-node.sh                      # afterwards — the key is saved locally
+curl -fsSL https://raw.githubusercontent.com/kerryjanes/WeftNetwork/rehearsal/devnet-mainnet-flow/scripts/run-node.sh -o weft-node.sh
+chmod +x weft-node.sh
+./weft-node.sh <your-node-key>      # first run only
+./weft-node.sh                      # afterwards — the key is saved locally
 ```
 
 A home device can't accept inbound connections, so the script does what Tailscale-DERP /
@@ -84,9 +83,9 @@ relay forwards to your home Xray; your traffic exits at home (1-hop). It install
 control plane as **persistent services** (systemd on Linux, launchd on macOS), so the node survives
 reboots, crashes, and closing the terminal (auto-restart).
 
-Stop being a node any time with `./scripts/stop-node.sh` (no key needed — it leaves the live list but
-stays registered, so restarting with `./scripts/run-node.sh` never re-pays; add `--purge` to remove
-it entirely). A **public VPS** can serve both modes directly with `sudo ./scripts/deploy-node.sh`.
+Stop being a node any time with `./weft-node.sh stop` (no key needed — it leaves the live list but
+stays registered, so restarting with `./weft-node.sh` never re-pays; add `--purge` to remove it
+entirely). A **public VPS** can serve both modes directly with `sudo ./scripts/deploy-node.sh`.
 
 **Step 3 — claim earnings.** In the cabinet → **rewards**, once the network has settled an epoch:
 pick your node + an epoch and claim your `$WEFT`.
@@ -127,7 +126,7 @@ multihop: [user] --VLESS+Reality--> [infra node Xray] --> Tor network --> exit
 | `services/control-plane/` | Per-node token-gating: mints personal links, meters traffic (Xray stats), enforces the `$WEFT` budget.                   |
 | `services/`               | The rest: registry provisioning, the settlement aggregator, the node-directory indexer, governance tooling, genesis.      |
 | `sdk/`                    | `@weft/sdk` — typed Solana clients for every program + the shared math.                                                  |
-| `clients/desktop/`        | The cross-platform desktop VPN app.                                                                                       |
+| `clients/desktop/`        | Legacy desktop prototype; not part of the supported release path. Use VLESS clients + scripts.                            |
 
 ### On-chain program IDs (Solana devnet)
 

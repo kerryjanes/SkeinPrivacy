@@ -15,9 +15,10 @@
 # macOS) so the node survives reboots, crashes, and closing the terminal.
 #
 # Usage:
-#   First run:   ./scripts/run-node.sh <your-node-key>     # the key copied from cabinet → deploy
-#   After that:  ./scripts/run-node.sh                     # the key is saved; no need to pass it
-#   Stop:        ./scripts/stop-node.sh                    # stop being a node (no key needed)
+#   First run:   ./weft-node.sh <your-node-key>     # the key copied from cabinet -> deploy
+#   After that:  ./weft-node.sh                     # the key is saved; no need to pass it
+#   Stop:        ./weft-node.sh stop                # stop being a node (no key needed)
+#   Purge:       ./weft-node.sh stop --purge        # remove local services + ~/.weft
 #
 # The node key already contains the identity, region, and relay port — there is nothing else to type.
 # Registration + payment happened on the website; this script never touches the chain.
@@ -27,6 +28,42 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SK="$HOME/.weft"
 mkdir -p "$SK"
+
+stop_node() {
+  local purge="${1:-}"
+  local os
+  os=$(uname -s)
+  echo "→ stopping Weft node…"
+  if [ "$os" = "Linux" ]; then
+    for unit_name in weft-node-cp weft-node-frpc weft-node-xray; do
+      sudo systemctl disable --now "$unit_name" 2>/dev/null || true
+      if [ "$purge" = "--purge" ]; then sudo rm -f "/etc/systemd/system/$unit_name.service"; fi
+    done
+    sudo systemctl daemon-reload 2>/dev/null || true
+  else
+    local launch_agents="$HOME/Library/LaunchAgents"
+    for label in xray frpc cp; do
+      launchctl unload -w "$launch_agents/com.weft.node.$label.plist" 2>/dev/null || true
+      if [ "$purge" = "--purge" ]; then rm -f "$launch_agents/com.weft.node.$label.plist"; fi
+    done
+  fi
+
+  if [ "$purge" = "--purge" ]; then
+    rm -rf "$SK"
+    echo "✅ node stopped + purged (~/.weft and services removed)."
+  else
+    echo "✅ node stopped. Your keys/config remain in ~/.weft — run ./weft-node.sh to start again."
+    echo "   (Your on-chain registration stays; the node is just offline until restarted.)"
+  fi
+}
+
+case "${1:-}" in
+  stop|--stop)
+    stop_node "${2:-}"
+    exit 0
+    ;;
+esac
+
 TOKEN="${1:-${WEFT_NODE_KEY:-}}"
 
 OS=$(uname -s)
@@ -105,7 +142,7 @@ if [[ "$CLUSTER" == mainnet* ]]; then
 fi
 LOCAL_HOP1=14430
 FRP_VER="0.69.1"
-RAW="https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main"
+RAW="${WEFT_RAW_BASE:-https://raw.githubusercontent.com/kerryjanes/WeftNetwork/rehearsal/devnet-mainnet-flow}"
 
 active_ipv4_for_iface() {
   local iface="$1"
@@ -267,5 +304,5 @@ cat <<DONE
 
 It was registered + paid for on the website, so this never touches the chain — restarting is free.
 Your node is LIVE and earning \$WEFT for the traffic it carries — see it in the cabinet → network.
-Stop being a node any time:  ./scripts/stop-node.sh   (no key needed; restart with run-node.sh).
+Stop being a node any time:  ./weft-node.sh stop   (no key needed; restart with ./weft-node.sh).
 DONE

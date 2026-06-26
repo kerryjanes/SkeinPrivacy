@@ -1,8 +1,8 @@
 name: release-desktop
 
-# Builds the Tauri desktop app for macOS (arm64 + intel), Linux and Windows and
-# uploads the bundles to the GitHub Release for the tag. Trigger by pushing a v* tag
-# or manually (workflow_dispatch with a tag name).
+# Legacy desktop prototype. The supported public path is script-based node operation plus standard
+# VLESS clients, so this workflow is manual-only and should not be used for public releases until
+# the app is signed/notarized and explicitly brought back into scope.
 on:
   workflow_dispatch:
     inputs:
@@ -10,8 +10,6 @@ on:
         description: 'Release tag to attach builds to (e.g. v0.1.0)'
         required: true
         default: v0.1.0
-  push:
-    tags: ['v*']
 
 jobs:
   build:

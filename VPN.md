@@ -1,6 +1,6 @@
 # How to connect to Weft
 
-## 1. With an app you already use (recommended)
+## With a VLESS client you already use
 
 Weft works with the popular VLESS clients — on your **phone or your computer**:
 **V2Box**, **Happ**, **sing-box**, **Hiddify**, **Streisand**.
@@ -20,12 +20,6 @@ Weft works with the popular VLESS clients — on your **phone or your computer**
 
 The link masquerades as ordinary HTTPS (VLESS + Reality), so it works even where VPNs are blocked.
 
-## 2. The Weft app
-
-Prefer one click? [Download the Weft app](https://github.com/kerryjanes/WeftNetwork/releases),
-load your wallet, and press **Connect** — it provisions your personal link and shows your `$WEFT`
-budget (balance, used, remaining) live. Nothing to paste.
-
 ## Did it work?
 
 Open any "what is my IP" page. If it shows a different location than usual, you're connected and
@@ -33,4 +27,7 @@ your traffic is going through Weft.
 
 ---
 
-_Want to run a node and earn `$WEFT`? See the [README](README.md#run-a-node) — it's one script._
+There is no required Weft desktop app. VPN access uses standard VLESS clients; node operation uses
+the repository scripts.
+
+_Want to run a node and earn `$WEFT`? See the [README](README.md#run-a-node--earn)._
