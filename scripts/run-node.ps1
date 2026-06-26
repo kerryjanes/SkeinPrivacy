@@ -200,7 +200,7 @@ if (![string]::IsNullOrWhiteSpace($NodeKey)) {
   $Data | ConvertTo-Json -Compress | Set-Content -LiteralPath $NodeJson -Encoding ASCII
 } elseif (!(Test-Path -LiteralPath $NodeJson)) {
   Write-Host "No node key found. Register your device in cabinet -> deploy, copy the key, then run:"
-  Write-Host "  powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 <your-node-key>"
+  Write-Host "  weft-node.cmd <your-node-key>"
   exit 1
 }
 
@@ -269,8 +269,10 @@ if (!(Test-Path -LiteralPath $FrpcExe)) {
     Write-Host ""
     Write-Host "Windows blocked frpc.exe while extracting it."
     Write-Host "Open Windows Security -> Virus & threat protection -> Protection history and allow frpc.exe,"
-    Write-Host "or run PowerShell as Administrator and add an exclusion:"
-    Write-Host "  Add-MpPreference -ExclusionPath `"$Sk`""
+    Write-Host "or stay in Command Prompt and run:"
+    Write-Host "  weft-node.cmd allow-defender"
+    Write-Host "  weft-node.cmd stop --purge"
+    Write-Host "  weft-node.cmd <your-node-key>"
     throw
   } finally {
     if (Test-Path -LiteralPath $FrpZip) { Remove-Item -LiteralPath $FrpZip -Force }
@@ -282,7 +284,8 @@ if (!(Test-Executable $FrpcExe "--version" "frpc")) {
   Write-Host "frpc.exe is present but Windows cannot run it."
   Write-Host "Most common causes: Windows Defender quarantined it, the file is corrupted, or this Windows is not x64."
   Write-Host "Open Windows Security -> Virus & threat protection -> Protection history and allow frpc.exe,"
-  Write-Host "then run:"
+  Write-Host "or stay in Command Prompt and run:"
+  Write-Host "  weft-node.cmd allow-defender"
   Write-Host "  weft-node.cmd stop --purge"
   Write-Host "  weft-node.cmd <your-node-key>"
   Write-Host "Diagnostic log: $Sk\frpc.check.err.log"

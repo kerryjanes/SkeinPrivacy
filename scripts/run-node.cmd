@@ -9,6 +9,15 @@ set "PS1_CACHE=%WEFT_DIR%\run-node.ps1"
 
 if not exist "%WEFT_DIR%" mkdir "%WEFT_DIR%" >NUL 2>NUL
 
+if /I "%~1"=="allow-defender" (
+  set "ALLOW_PS1=%TEMP%\weft-allow-defender.ps1"
+  > "%ALLOW_PS1%" echo Add-MpPreference -ExclusionPath "%WEFT_DIR%"
+  echo -^> requesting Windows Defender exclusion for %WEFT_DIR%
+  echo -^> approve the UAC prompt, then run: weft-node.cmd stop --purge
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath powershell -Verb RunAs -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File','%ALLOW_PS1%')"
+  exit /b %ERRORLEVEL%
+)
+
 if exist "%PS1_LOCAL%" (
   set "PS1=%PS1_LOCAL%"
 ) else (

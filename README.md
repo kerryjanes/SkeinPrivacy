@@ -66,6 +66,14 @@ curl -fsSL https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main/scripts
 weft-node.cmd <your-node-key>
 ```
 
+If Windows Defender blocks `frpc.exe`, stay in Command Prompt and run:
+
+```bat
+weft-node.cmd allow-defender
+weft-node.cmd stop --purge
+weft-node.cmd <your-node-key>
+```
+
 The scripts download missing runtime dependencies automatically:
 
 - macOS/Linux: Node.js if needed, Xray-core, frpc.
