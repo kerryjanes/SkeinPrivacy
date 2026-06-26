@@ -39,9 +39,9 @@ function Expand-Zip([string]$ZipPath, [string]$Destination) {
 }
 
 function Stop-TaskIfExists([string]$Name, [bool]$Delete) {
-  & schtasks.exe /End /TN $Name *> $null
+  & cmd.exe /c "schtasks /End /TN `"$Name`" >NUL 2>NUL"
   if ($Delete) {
-    & schtasks.exe /Delete /TN $Name /F *> $null
+    & cmd.exe /c "schtasks /Delete /TN `"$Name`" /F >NUL 2>NUL"
   }
 }
 
@@ -280,7 +280,7 @@ schtasks /Run /TN "$XrayTask" >NUL
 
 Info "installing scheduled tasks"
 foreach ($Task in @($CpTask, $FrpcTask, $XrayTask)) {
-  & schtasks.exe /End /TN $Task *> $null
+  Stop-TaskIfExists $Task $false
 }
 & schtasks.exe /Create /TN $XrayTask /SC ONLOGON /TR "`"$RunXray`"" /F | Out-Null
 & schtasks.exe /Create /TN $FrpcTask /SC ONLOGON /TR "`"$RunFrpc`"" /F | Out-Null

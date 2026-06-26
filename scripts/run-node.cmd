@@ -15,7 +15,7 @@ if exist "%PS1_LOCAL%" (
   set "PS1=%PS1_CACHE%"
 )
 
-if not exist "%PS1%" (
+if not exist "%PS1_LOCAL%" (
   echo -^> downloading Windows runner...
   powershell -NoProfile -ExecutionPolicy Bypass -Command "[Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -UseBasicParsing '%WEFT_RAW_BASE%/scripts/run-node.ps1' -OutFile '%PS1_CACHE%'"
   if errorlevel 1 exit /b %ERRORLEVEL%
