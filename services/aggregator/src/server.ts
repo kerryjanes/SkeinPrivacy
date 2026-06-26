@@ -116,6 +116,28 @@ export function createAggregatorServer(deps: ServerDeps): Server {
           return;
         }
 
+        if (url.pathname === '/claimable' && req.method === 'GET') {
+          const operator = url.searchParams.get('operator') ?? '';
+          const summary = deps.store.claimable(operator);
+          json(200, {
+            operator: summary.operator,
+            totalAmount: summary.totalAmount.toString(),
+            nodes: summary.nodes.map((node) => ({
+              nodeId: node.nodeId.toString(),
+              totalAmount: node.totalAmount.toString(),
+              claims: node.claims.map((claim) => ({
+                epoch: claim.epoch.toString(),
+                operator: claim.operator,
+                nodeId: claim.nodeId.toString(),
+                amount: claim.amount.toString(),
+                leaf: claim.leaf,
+                proof: claim.proof,
+              })),
+            })),
+          });
+          return;
+        }
+
         if (url.pathname === '/pay/traffic' && req.method === 'GET') {
           json(200, payLabel(deps.payConfig));
           return;

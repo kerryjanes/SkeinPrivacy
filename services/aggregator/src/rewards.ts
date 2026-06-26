@@ -21,6 +21,7 @@ const addrEnc = getAddressEncoder();
 export interface NodeInfo {
   operator: Address;
   nodeId: bigint;
+  endpointHash?: string;
   reputationBps: number;
   geo: number;
   stake: bigint;

@@ -18,6 +18,9 @@ export type Rpc = ReturnType<typeof createSolanaRpc>;
 const NODE_MERKLE_TREE_OFFSET = 80n;
 const DEFAULT_DEVNET_MERKLE_TREE = '4RJP3AJ6NNoqjTCxjeJi2Erw3wwJJoHN3jpwUrSetJw5' as Address;
 
+const toHex = (u: ArrayLike<number>): string =>
+  Array.from(u, (b) => b.toString(16).padStart(2, '0')).join('');
+
 export interface FetchNodeInfosOptions {
   /**
    * Restrict rewards to a provisioned registry tree. Pass `null` to include legacy
@@ -90,6 +93,7 @@ export async function fetchNodeInfos(
     return {
       operator: d.operator,
       nodeId: d.nodeId,
+      endpointHash: toHex(d.endpointHash),
       reputationBps: d.reputation,
       geo: d.geo,
       stake: d.stakeAmount,

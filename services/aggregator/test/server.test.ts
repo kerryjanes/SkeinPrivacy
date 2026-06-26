@@ -3,6 +3,7 @@ import type { Server } from 'node:http';
 
 import { createAggregatorServer } from '../src/server';
 import { EpochStore } from '../src/store';
+import { buildEpochFromByteTotals } from '../src/rewards';
 import { makeReceipt, makeSigner } from './helpers';
 
 let server: Server | undefined;
@@ -85,5 +86,61 @@ describe('aggregator HTTP receipt ingest', () => {
     expect(body.result).toEqual({ root: 'abc', totalReward: '123', numNodes: 1, postedSignature: null });
     expect(seenEpoch).toBe(1n);
     expect(seenReceipts).toBe(1);
+  });
+
+  it('summarizes claimable rewards by operator and node without requiring an epoch selector', async () => {
+    const operator = makeSigner();
+    const other = makeSigner();
+    const store = new EpochStore();
+    store.put(
+      buildEpochFromByteTotals(
+        7n,
+        [
+          { operator: operator.address, nodeId: 11n, bytes: 1_000_000_000n },
+          { operator: operator.address, nodeId: 12n, bytes: 2_000_000_000n },
+          { operator: other.address, nodeId: 99n, bytes: 3_000_000_000n },
+        ],
+        [
+          { operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n },
+          { operator: operator.address, nodeId: 12n, reputationBps: 10_000, geo: 0, stake: 0n },
+          { operator: other.address, nodeId: 99n, reputationBps: 10_000, geo: 0, stake: 0n },
+        ],
+        { minStakeToEarn: 0n },
+      ),
+    );
+    store.put(
+      buildEpochFromByteTotals(
+        8n,
+        [{ operator: operator.address, nodeId: 11n, bytes: 4_000_000_000n }],
+        [{ operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n }],
+        { minStakeToEarn: 0n },
+      ),
+    );
+
+    server = createAggregatorServer({
+      store,
+      payConfig: {
+        rewardMint: operator.address,
+        rewardVault: operator.address,
+        treasury: operator.address,
+        label: 'test',
+      },
+      getBlockhash: async () => ({
+        blockhash: '11111111111111111111111111111111',
+        lastValidBlockHeight: 1n,
+      }) as never,
+    });
+    const base = await listen(server);
+
+    const res = await fetch(`${base}/claimable?operator=${operator.address}`);
+    const body = (await res.json()) as {
+      totalAmount: string;
+      nodes: Array<{ nodeId: string; totalAmount: string; claims: Array<{ epoch: string; amount: string }> }>;
+    };
+
+    expect(res.status).toBe(200);
+    expect(body.nodes.map((n) => n.nodeId)).toEqual(['11', '12']);
+    expect(body.nodes.find((n) => n.nodeId === '11')?.claims.map((c) => c.epoch)).toEqual(['8', '7']);
+    expect(BigInt(body.totalAmount)).toBeGreaterThan(0n);
   });
 });

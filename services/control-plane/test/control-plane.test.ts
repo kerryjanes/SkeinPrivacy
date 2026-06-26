@@ -100,6 +100,30 @@ describe('node earnings (earn for usage)', () => {
   });
 });
 
+describe('relay exit profile stats', () => {
+  it('stores served lifetime bytes for reward settlement', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
+    try {
+      const profile = registerExitProfile(
+        { ...cfg, relayProfilePath: join(dir, 'profiles.json') },
+        {
+          host: cfg.host,
+          port: 20026,
+          uuid: cfg.founderUuid,
+          realityPub: cfg.realityPublicKey,
+          sid: cfg.shortId,
+          sni: cfg.sni,
+          geo: cfg.geo,
+          servedBytesLifetime: '12345',
+        },
+      );
+      expect(profile.servedBytesLifetime).toBe('12345');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+});
+
 describe('personal links', () => {
   it('1-hop carries the per-user uuid, vision flow, port + Reality params', () => {
     const l = oneHopLink(cfg, 'abc-uuid');

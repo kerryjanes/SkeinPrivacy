@@ -19,6 +19,12 @@ import { postEpoch } from './poster';
 import { EpochStore } from './store';
 import { createAggregatorServer } from './server';
 import type { TrafficReceipt } from './receipts';
+import {
+  buildProfileByteTotals,
+  readRelayProfiles,
+  readSettledProfileBytes,
+  writeSettledProfileBytes,
+} from './profileTotals';
 
 interface ReceiptJson {
   client: string;
@@ -87,6 +93,12 @@ async function main(): Promise<void> {
   const maxBytesPerEpoch = process.env.WEFT_MAX_BYTES_PER_EPOCH
     ? BigInt(process.env.WEFT_MAX_BYTES_PER_EPOCH)
     : undefined;
+  const autoSettle = process.env.WEFT_AUTO_SETTLE === '1';
+  const autoSettleMs = Number(process.env.WEFT_AUTO_SETTLE_MS ?? '600000');
+  const relayProfilePath = process.env.WEFT_RELAY_PROFILE_PATH ?? '/var/lib/weft/exit-profiles.json';
+  const settledProfilePath =
+    process.env.WEFT_SETTLED_PROFILE_BYTES ?? '/var/lib/weft/settled-profile-bytes.json';
+  const epochStorePath = process.env.WEFT_EPOCH_STORE ?? '/var/lib/weft/reward-epochs.json';
 
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
@@ -105,7 +117,7 @@ async function main(): Promise<void> {
     `[aggregator] epoch ${epoch}: ${build.numNodes} nodes, ${build.totalReward} base units, root ${build.root || '(empty)'}`,
   );
 
-  const store = new EpochStore();
+  const store = new EpochStore(epochStorePath);
   store.put(build);
 
   const poster = posterPath
@@ -121,7 +133,7 @@ async function main(): Promise<void> {
     return sig;
   }
 
-  if (poster && build.numNodes > 0) {
+  if (!autoSettle && poster && build.numNodes > 0) {
     await maybePost(build);
   }
   if (exitAfterPost) return;
@@ -132,6 +144,7 @@ async function main(): Promise<void> {
   const d = rewardsSettlement
     .getDistributorDecoder()
     .decode(Buffer.from(distInfo.value.data[0], 'base64'));
+  let nextAutoEpoch = BigInt(d.currentEpoch) + 1n;
 
   const server = createAggregatorServer({
     store,
@@ -160,6 +173,37 @@ async function main(): Promise<void> {
   });
   server.listen(port);
   console.log(`[aggregator] serving proofs + Solana Pay on :${port}`);
+
+  async function autoSettleOnce(): Promise<void> {
+    if (!poster) return;
+    const profiles = readRelayProfiles(relayProfilePath);
+    const latestNodes = await fetchNodeInfos(rpc);
+    const settled = readSettledProfileBytes(settledProfilePath);
+    const { totals, nextSettled } = buildProfileByteTotals(profiles, latestNodes, settled);
+    if (totals.length === 0) return;
+    const next = buildEpochFromByteTotals(nextAutoEpoch, totals, latestNodes, opts);
+    if (next.numNodes === 0) {
+      writeSettledProfileBytes(settledProfilePath, nextSettled);
+      return;
+    }
+    const postedSignature = await maybePost(next);
+    store.put(next);
+    writeSettledProfileBytes(settledProfilePath, nextSettled);
+    console.log(
+      `[aggregator] auto-settled epoch ${next.epoch}: ${next.numNodes} nodes, ${next.totalReward} base units, tx ${postedSignature}`,
+    );
+    nextAutoEpoch += 1n;
+  }
+
+  if (autoSettle) {
+    console.log(`[aggregator] auto settlement enabled every ${autoSettleMs}ms`);
+    setTimeout(() => {
+      void autoSettleOnce().catch((e) => console.error('[aggregator] auto settlement error:', e.message));
+    }, 5000).unref();
+    setInterval(() => {
+      void autoSettleOnce().catch((e) => console.error('[aggregator] auto settlement error:', e.message));
+    }, autoSettleMs).unref();
+  }
 }
 
 main().catch((e) => {

@@ -45,7 +45,7 @@ async function profileHeartbeat(): Promise<void> {
   if (!cfg.relayProfileUrl) return;
   for (;;) {
     try {
-      await publishOwnExitProfile(cfg);
+      await publishOwnExitProfile(cfg, BigInt(ctrl.nodeStats().servedBytes));
     } catch (e) {
       // eslint-disable-next-line no-console
       console.error('relay profile publish error:', (e as Error).message);

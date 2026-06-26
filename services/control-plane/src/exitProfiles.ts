@@ -10,6 +10,7 @@ export interface ExitProfile {
   sid: string;
   sni: string;
   geo: number;
+  servedBytesLifetime: string;
   updatedAt: number;
 }
 
@@ -56,6 +57,7 @@ export function registerExitProfile(cfg: NodeConfig, input: unknown, now = Date.
     sid: p.sid,
     sni: p.sni,
     geo: Number(p.geo ?? 0),
+    servedBytesLifetime: BigInt(String(p.servedBytesLifetime ?? 0)).toString(),
     updatedAt: now,
   };
   const profiles = readStore(cfg.relayProfilePath);
@@ -77,7 +79,7 @@ export function exitProfileSignature(cfg: NodeConfig, now = Date.now()): string 
     .join(',');
 }
 
-export async function publishOwnExitProfile(cfg: NodeConfig): Promise<void> {
+export async function publishOwnExitProfile(cfg: NodeConfig, servedBytesLifetime = 0n): Promise<void> {
   if (!cfg.relayProfileUrl) return;
   const body: ExitProfileInput = {
     host: cfg.host,
@@ -87,6 +89,7 @@ export async function publishOwnExitProfile(cfg: NodeConfig): Promise<void> {
     sid: cfg.shortId,
     sni: cfg.sni,
     geo: cfg.geo,
+    servedBytesLifetime: servedBytesLifetime.toString(),
   };
   const res = await fetch(cfg.relayProfileUrl, {
     method: 'POST',

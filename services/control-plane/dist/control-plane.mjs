@@ -15582,6 +15582,7 @@ function registerExitProfile(cfg2, input, now = Date.now()) {
     sid: p.sid,
     sni: p.sni,
     geo: Number(p.geo ?? 0),
+    servedBytesLifetime: BigInt(String(p.servedBytesLifetime ?? 0)).toString(),
     updatedAt: now
   };
   const profiles = readStore(cfg2.relayProfilePath);
@@ -15596,7 +15597,7 @@ function liveExitProfiles(cfg2, now = Date.now()) {
 function exitProfileSignature(cfg2, now = Date.now()) {
   return liveExitProfiles(cfg2, now).map((p) => `${p.host}:${p.port}:${p.uuid}:${p.realityPub}:${p.sid}`).join(",");
 }
-async function publishOwnExitProfile(cfg2) {
+async function publishOwnExitProfile(cfg2, servedBytesLifetime = 0n) {
   if (!cfg2.relayProfileUrl) return;
   const body = {
     host: cfg2.host,
@@ -15605,7 +15606,8 @@ async function publishOwnExitProfile(cfg2) {
     realityPub: cfg2.realityPublicKey,
     sid: cfg2.shortId,
     sni: cfg2.sni,
-    geo: cfg2.geo
+    geo: cfg2.geo,
+    servedBytesLifetime: servedBytesLifetime.toString()
   };
   const res = await fetch(cfg2.relayProfileUrl, {
     method: "POST",
@@ -16342,7 +16344,7 @@ async function profileHeartbeat() {
   if (!cfg.relayProfileUrl) return;
   for (; ; ) {
     try {
-      await publishOwnExitProfile(cfg);
+      await publishOwnExitProfile(cfg, BigInt(ctrl.nodeStats().servedBytes));
     } catch (e8) {
       console.error("relay profile publish error:", e8.message);
     }

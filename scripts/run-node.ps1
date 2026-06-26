@@ -168,6 +168,7 @@ function Detect-PhysicalEgressIp {
   if (![string]::IsNullOrWhiteSpace($ExplicitIp)) { return $ExplicitIp }
 
   $Interface = [Environment]::GetEnvironmentVariable("WEFT_EGRESS_INTERFACE")
+  if ([string]::IsNullOrWhiteSpace($Interface)) { return "" }
   if ($Interface -eq "none") { return "" }
 
   try {
