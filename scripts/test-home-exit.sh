@@ -52,7 +52,26 @@ if [ "$OS" = "Linux" ] && ! command -v xray >/dev/null 2>&1; then
 fi
 need curl
 need openssl
-need python3
+
+PYTHON=()
+if command -v python3 >/dev/null 2>&1 && python3 -c 'print("ok")' >/dev/null 2>&1; then
+  PYTHON=(python3)
+elif command -v python >/dev/null 2>&1 && python -c 'print("ok")' >/dev/null 2>&1; then
+  PYTHON=(python)
+elif command -v py >/dev/null 2>&1 && py -3 -c 'print("ok")' >/dev/null 2>&1; then
+  PYTHON=(py -3)
+else
+  cat <<ERR
+missing dependency: Python 3
+
+Install Python 3 from https://www.python.org/downloads/windows/ and enable "Add python.exe to PATH",
+or install it with winget:
+  winget install Python.Python.3.12
+
+Then open a new terminal and rerun this script.
+ERR
+  exit 1
+fi
 
 if [ "$OS" = "Darwin" ]; then
   XRAY="${WEFT_TEST_XRAY:-$WORK/xray-1.8.24}"
@@ -141,7 +160,7 @@ if [ ! -f "$WORK/identity.env" ]; then
   UUID="$("$XRAY" uuid)"
   SID="$(openssl rand -hex 8)"
   PORT="$(
-    python3 - "$PUB" <<'PY'
+    "${PYTHON[@]}" - "$PUB" <<'PY'
 import hashlib, sys
 pub = sys.argv[1].encode()
 # Keep inside the same small relay range the existing home-node scripts use.
