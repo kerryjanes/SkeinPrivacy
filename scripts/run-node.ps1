@@ -28,6 +28,19 @@ function Download-File([string]$Url, [string]$OutFile) {
   Invoke-WebRequest -UseBasicParsing -Uri $Url -OutFile $OutFile
 }
 
+function Test-Executable([string]$ExePath, [string]$Arg, [string]$Name) {
+  if (!(Test-Path -LiteralPath $ExePath)) { return $false }
+  $Stdout = Join-Path $Sk "$Name.check.out.log"
+  $Stderr = Join-Path $Sk "$Name.check.err.log"
+  try {
+    $Process = Start-Process -FilePath $ExePath -ArgumentList $Arg -WindowStyle Hidden -Wait -PassThru -RedirectStandardOutput $Stdout -RedirectStandardError $Stderr
+    return ($Process.ExitCode -eq 0)
+  } catch {
+    $_.Exception.Message | Set-Content -LiteralPath $Stderr -Encoding UTF8
+    return $false
+  }
+}
+
 function Expand-Zip([string]$ZipPath, [string]$Destination) {
   if (Test-Path -LiteralPath $Destination) {
     Remove-Item -LiteralPath $Destination -Recurse -Force
@@ -66,6 +79,27 @@ function Start-CmdProcess([string]$CmdPath, [string]$PidFile) {
   Stop-PidFile $PidFile
   $Process = Start-Process -FilePath $env:ComSpec -ArgumentList "/c `"$CmdPath`"" -WindowStyle Hidden -PassThru
   Set-Content -LiteralPath $PidFile -Value $Process.Id -Encoding ASCII
+}
+
+function Assert-ProcessAlive([string]$PidFile, [string]$Name, [string]$LogFile) {
+  if (!(Test-Path -LiteralPath $PidFile)) {
+    throw "$Name did not start. Missing pid file. Log: $LogFile"
+  }
+  $PidText = (Get-Content -LiteralPath $PidFile -Raw).Trim()
+  if (!($PidText -match '^\d+$')) {
+    throw "$Name did not start. Bad pid file: $PidFile. Log: $LogFile"
+  }
+  $Process = Get-Process -Id ([int]$PidText) -ErrorAction SilentlyContinue
+  if (!$Process) {
+    Write-Host ""
+    Write-Host "$Name failed to stay running. Last log lines:"
+    if (Test-Path -LiteralPath $LogFile) {
+      Get-Content -LiteralPath $LogFile -Tail 40
+    } else {
+      Write-Host "(missing log: $LogFile)"
+    }
+    throw "$Name is not running"
+  }
 }
 
 function Ps-Literal([string]$Value) {
@@ -194,6 +228,10 @@ if (!(Test-Path -LiteralPath $XrayExe)) {
 }
 
 $FrpcExe = Join-Path $Sk "frpc.exe"
+if ((Test-Path -LiteralPath $FrpcExe) -and !(Test-Executable $FrpcExe "--version" "frpc")) {
+  Info "existing frpc.exe is not executable; reinstalling it"
+  Remove-Item -LiteralPath $FrpcExe -Force -ErrorAction SilentlyContinue
+}
 if (!(Test-Path -LiteralPath $FrpcExe)) {
   $FrpZip = Join-Path $Sk "frp.zip"
   $FrpExtract = Join-Path $Sk "frp.extract"
@@ -212,6 +250,17 @@ if (!(Test-Path -LiteralPath $FrpcExe)) {
     if (Test-Path -LiteralPath $FrpZip) { Remove-Item -LiteralPath $FrpZip -Force }
     if (Test-Path -LiteralPath $FrpExtract) { Remove-Item -LiteralPath $FrpExtract -Recurse -Force }
   }
+}
+if (!(Test-Executable $FrpcExe "--version" "frpc")) {
+  Write-Host ""
+  Write-Host "frpc.exe is present but Windows cannot run it."
+  Write-Host "Most common causes: Windows Defender quarantined it, the file is corrupted, or this Windows is not x64."
+  Write-Host "Open Windows Security -> Virus & threat protection -> Protection history and allow frpc.exe,"
+  Write-Host "then run:"
+  Write-Host "  weft-node.cmd stop --purge"
+  Write-Host "  weft-node.cmd <your-node-key>"
+  Write-Host "Diagnostic log: $Sk\frpc.check.err.log"
+  throw "frpc.exe is not executable"
 }
 
 $ControlPlane = Join-Path $Sk "control-plane.mjs"
@@ -315,6 +364,9 @@ Start-CmdProcess $RunFrpc $FrpcPid
 Start-CmdProcess $RunCp $CpPid
 
 Start-Sleep -Seconds 3
+Assert-ProcessAlive $XrayPid "xray" "$Sk\xray.log"
+Assert-ProcessAlive $FrpcPid "frpc" "$Sk\frpc.log"
+Assert-ProcessAlive $CpPid "control-plane" "$Sk\control-plane.log"
 
 Write-Host ""
 Write-Host "OK: Weft 1-hop node is up (Windows background processes + Startup autostart)."
