@@ -9,12 +9,27 @@ set "PS1_CACHE=%WEFT_DIR%\run-node.ps1"
 
 if not exist "%WEFT_DIR%" mkdir "%WEFT_DIR%" >NUL 2>NUL
 
+if /I "%~1"=="allow-defender-admin" (
+  echo -^> adding Windows Defender exclusion for %WEFT_DIR%
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Add-MpPreference -ExclusionPath '%WEFT_DIR%'"
+  if errorlevel 1 (
+    echo Failed to add the Defender exclusion.
+    echo Open Command Prompt as Administrator and run: weft-node.cmd allow-defender
+    exit /b %ERRORLEVEL%
+  )
+  echo OK: Windows Defender exclusion added for %WEFT_DIR%
+  exit /b 0
+)
+
 if /I "%~1"=="allow-defender" (
-  set "ALLOW_PS1=%TEMP%\weft-allow-defender.ps1"
-  > "%ALLOW_PS1%" echo Add-MpPreference -ExclusionPath "%WEFT_DIR%"
-  echo -^> requesting Windows Defender exclusion for %WEFT_DIR%
-  echo -^> approve the UAC prompt, then run: weft-node.cmd stop --purge
-  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath powershell -Verb RunAs -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File','%ALLOW_PS1%')"
+  net session >NUL 2>NUL
+  if not errorlevel 1 (
+    call "%~f0" allow-defender-admin
+    exit /b %ERRORLEVEL%
+  )
+  echo -^> opening elevated Command Prompt for Defender exclusion
+  echo -^> approve the UAC prompt in the new window, then return here
+  powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath $env:ComSpec -Verb RunAs -ArgumentList '/k ""%~f0"" allow-defender-admin'"
   exit /b %ERRORLEVEL%
 )
 
