@@ -61,7 +61,7 @@ export type ClaimInstruction<
   TAccountClaimantTokenAccount extends string | AccountMeta<string> = string,
   TAccountAllocationClaim extends string | AccountMeta<string> = string,
   TAccountVestingProgram extends string | AccountMeta<string> =
-    'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv',
+    'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb',
   TAccountSchedule extends string | AccountMeta<string> = string,
   TAccountScheduleVault extends string | AccountMeta<string> = string,
   TAccountTokenProgram extends string | AccountMeta<string> =
@@ -249,7 +249,7 @@ export async function getClaimInstructionAsync<
   }
   if (!accounts.vestingProgram.value) {
     accounts.vestingProgram.value =
-      'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv' as Address<'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv'>;
+      'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb' as Address<'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb'>;
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
@@ -392,7 +392,7 @@ export function getClaimInstruction<
   // Resolve default values.
   if (!accounts.vestingProgram.value) {
     accounts.vestingProgram.value =
-      'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv' as Address<'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv'>;
+      'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb' as Address<'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb'>;
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =

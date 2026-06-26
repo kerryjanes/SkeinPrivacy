@@ -10,6 +10,8 @@ pub enum StakingError {
     StillUnbonding,
     #[msg("Invalid lock duration")]
     InvalidLock,
+    #[msg("Invalid unbonding duration")]
+    InvalidUnbonding,
     #[msg("Amount must be greater than zero")]
     ZeroAmount,
     #[msg("Insufficient staked balance")]

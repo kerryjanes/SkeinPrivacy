@@ -49,7 +49,7 @@ export type ResyncInstruction<
   TAccountPosition extends string | AccountMeta<string> = string,
   TAccountProgramAuthority extends string | AccountMeta<string> = string,
   TAccountNodeRegistryProgram extends string | AccountMeta<string> =
-    '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd',
+    'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH',
   TAccountRegistry extends string | AccountMeta<string> = string,
   TAccountNode extends string | AccountMeta<string> = string,
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
@@ -154,7 +154,7 @@ export async function getResyncInstructionAsync<
   }
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');
@@ -235,7 +235,7 @@ export function getResyncInstruction<
   // Resolve default values.
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
 
   const getAccountMeta = getAccountMetaFactory(programAddress, 'programId');

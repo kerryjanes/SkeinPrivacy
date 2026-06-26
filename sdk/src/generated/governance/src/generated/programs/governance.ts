@@ -17,6 +17,7 @@ import {
   SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE,
   SolanaError,
   type Address,
+  type ClientWithPayer,
   type ClientWithRpc,
   type ClientWithTransactionPlanning,
   type ClientWithTransactionSending,
@@ -60,6 +61,7 @@ import {
   getFinalizeProposalInstructionAsync,
   getInitializeGovernanceInstructionAsync,
   getInitializeProtocolConfigInstructionAsync,
+  getMigrateProtocolConfigInstructionAsync,
   getSetGovernanceAuthorityInstructionAsync,
   getUpdateProtocolConfigInstructionAsync,
   parseActivateProposalInstruction,
@@ -71,6 +73,7 @@ import {
   parseFinalizeProposalInstruction,
   parseInitializeGovernanceInstruction,
   parseInitializeProtocolConfigInstruction,
+  parseMigrateProtocolConfigInstruction,
   parseSetGovernanceAuthorityInstruction,
   parseUpdateProtocolConfigInstruction,
   type ActivateProposalAsyncInput,
@@ -82,6 +85,7 @@ import {
   type FinalizeProposalAsyncInput,
   type InitializeGovernanceAsyncInput,
   type InitializeProtocolConfigAsyncInput,
+  type MigrateProtocolConfigAsyncInput,
   type ParsedActivateProposalInstruction,
   type ParsedAddTransactionInstruction,
   type ParsedCancelProposalInstruction,
@@ -91,6 +95,7 @@ import {
   type ParsedFinalizeProposalInstruction,
   type ParsedInitializeGovernanceInstruction,
   type ParsedInitializeProtocolConfigInstruction,
+  type ParsedMigrateProtocolConfigInstruction,
   type ParsedSetGovernanceAuthorityInstruction,
   type ParsedUpdateProtocolConfigInstruction,
   type SetGovernanceAuthorityAsyncInput,
@@ -105,7 +110,7 @@ import {
 } from '../pdas';
 
 export const GOVERNANCE_PROGRAM_ADDRESS =
-  'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA' as Address<'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA'>;
+  '8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE' as Address<'8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE'>;
 
 export enum GovernanceAccount {
   GovernanceConfig,
@@ -190,6 +195,7 @@ export enum GovernanceInstruction {
   FinalizeProposal,
   InitializeGovernance,
   InitializeProtocolConfig,
+  MigrateProtocolConfig,
   SetGovernanceAuthority,
   UpdateProtocolConfig,
 }
@@ -301,6 +307,17 @@ export function identifyGovernanceInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([240, 133, 241, 218, 118, 253, 139, 28]),
+      ),
+      0,
+    )
+  ) {
+    return GovernanceInstruction.MigrateProtocolConfig;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([0, 113, 148, 253, 151, 181, 148, 42]),
       ),
       0,
@@ -326,7 +343,7 @@ export function identifyGovernanceInstruction(
 }
 
 export type ParsedGovernanceInstruction<
-  TProgram extends string = 'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA',
+  TProgram extends string = '8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE',
 > =
   | ({
       instructionType: GovernanceInstruction.ActivateProposal;
@@ -353,6 +370,9 @@ export type ParsedGovernanceInstruction<
   | ({
       instructionType: GovernanceInstruction.InitializeProtocolConfig;
     } & ParsedInitializeProtocolConfigInstruction<TProgram>)
+  | ({
+      instructionType: GovernanceInstruction.MigrateProtocolConfig;
+    } & ParsedMigrateProtocolConfigInstruction<TProgram>)
   | ({
       instructionType: GovernanceInstruction.SetGovernanceAuthority;
     } & ParsedSetGovernanceAuthorityInstruction<TProgram>)
@@ -428,6 +448,13 @@ export function parseGovernanceInstruction<TProgram extends string>(
         ...parseInitializeProtocolConfigInstruction(instruction),
       };
     }
+    case GovernanceInstruction.MigrateProtocolConfig: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: GovernanceInstruction.MigrateProtocolConfig,
+        ...parseMigrateProtocolConfigInstruction(instruction),
+      };
+    }
     case GovernanceInstruction.SetGovernanceAuthority: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -499,6 +526,9 @@ export type GovernancePluginInstructions = {
   initializeProtocolConfig: (
     input: InitializeProtocolConfigAsyncInput,
   ) => ReturnType<typeof getInitializeProtocolConfigInstructionAsync> & SelfPlanAndSendFunctions;
+  migrateProtocolConfig: (
+    input: MakeOptional<MigrateProtocolConfigAsyncInput, 'payer'>,
+  ) => ReturnType<typeof getMigrateProtocolConfigInstructionAsync> & SelfPlanAndSendFunctions;
   setGovernanceAuthority: (
     input: SetGovernanceAuthorityAsyncInput,
   ) => ReturnType<typeof getSetGovernanceAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
@@ -518,6 +548,7 @@ export type GovernancePluginPdas = {
 export type GovernancePluginRequirements = ClientWithRpc<
   GetAccountInfoApi & GetMultipleAccountsApi
 > &
+  ClientWithPayer &
   ClientWithTransactionPlanning &
   ClientWithTransactionSending;
 
@@ -553,6 +584,14 @@ export function governanceProgram() {
             addSelfPlanAndSendFunctions(client, getInitializeGovernanceInstructionAsync(input)),
           initializeProtocolConfig: (input) =>
             addSelfPlanAndSendFunctions(client, getInitializeProtocolConfigInstructionAsync(input)),
+          migrateProtocolConfig: (input) =>
+            addSelfPlanAndSendFunctions(
+              client,
+              getMigrateProtocolConfigInstructionAsync({
+                ...input,
+                payer: input.payer ?? client.payer,
+              }),
+            ),
           setGovernanceAuthority: (input) =>
             addSelfPlanAndSendFunctions(client, getSetGovernanceAuthorityInstructionAsync(input)),
           updateProtocolConfig: (input) =>
@@ -572,3 +611,5 @@ export function governanceProgram() {
     });
   };
 }
+
+type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;

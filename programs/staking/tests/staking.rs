@@ -247,6 +247,17 @@ fn init_config(
     slash_authority: &Pubkey,
     unbonding: i64,
 ) {
+    init_config_result(svm, authority, mint, treasury, slash_authority, unbonding).unwrap();
+}
+
+fn init_config_result(
+    svm: &mut LiteSVM,
+    authority: &Keypair,
+    mint: &Pubkey,
+    treasury: &Pubkey,
+    slash_authority: &Pubkey,
+    unbonding: i64,
+) -> TransactionResult {
     let data = staking::instruction::InitializeConfig {
         unbonding_seconds: unbonding,
     }
@@ -266,7 +277,6 @@ fn init_config(
         authority,
         &[authority],
     )
-    .unwrap();
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -313,6 +323,19 @@ fn get_position(svm: &LiteSVM, op: &Pubkey, id: u64) -> staking::StakePosition {
             .as_slice(),
     )
     .unwrap()
+}
+
+#[test]
+fn initialize_rejects_negative_unbonding() {
+    let (mut svm, authority) = setup();
+    let mint = create_mint(&mut svm);
+    let treasury = create_token_account(&mut svm, &mint, &authority.pubkey(), 0);
+    let slash = Pubkey::new_unique();
+
+    assert_failed_with(
+        init_config_result(&mut svm, &authority, &mint, &treasury, &slash, -1),
+        "InvalidUnbonding",
+    );
 }
 
 #[test]

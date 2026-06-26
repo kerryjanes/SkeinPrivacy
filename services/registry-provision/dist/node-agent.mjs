@@ -12133,7 +12133,7 @@ function getTreeShardSize() {
 
 // ../../sdk/dist/generated/node_registry/src/generated/pdas/node.js
 async function findNodePda(seeds, config = {}) {
-  const { programAddress = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd" } = config;
+  const { programAddress = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12146,7 +12146,7 @@ async function findNodePda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/node_registry/src/generated/pdas/registry.js
 async function findRegistryPda(config = {}) {
-  const { programAddress = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd" } = config;
+  const { programAddress = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
@@ -12155,7 +12155,7 @@ async function findRegistryPda(config = {}) {
 
 // ../../sdk/dist/generated/node_registry/src/generated/pdas/treeShard.js
 async function findTreeShardPda(seeds, config = {}) {
-  const { programAddress = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd" } = config;
+  const { programAddress = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -13184,7 +13184,7 @@ function parseUpdateInstruction(instruction) {
 }
 
 // ../../sdk/dist/generated/node_registry/src/generated/programs/nodeRegistry.js
-var NODE_REGISTRY_PROGRAM_ADDRESS = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd";
+var NODE_REGISTRY_PROGRAM_ADDRESS = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH";
 var NodeRegistryAccount;
 (function(NodeRegistryAccount2) {
   NodeRegistryAccount2[NodeRegistryAccount2["NodeState"] = 0] = "NodeState";
@@ -13546,14 +13546,16 @@ var STAKING_ERROR__UNAUTHORIZED = 6e3;
 var STAKING_ERROR__LOCKED = 6001;
 var STAKING_ERROR__STILL_UNBONDING = 6002;
 var STAKING_ERROR__INVALID_LOCK = 6003;
-var STAKING_ERROR__ZERO_AMOUNT = 6004;
-var STAKING_ERROR__INSUFFICIENT_STAKE = 6005;
-var STAKING_ERROR__MATH_OVERFLOW = 6006;
+var STAKING_ERROR__INVALID_UNBONDING = 6004;
+var STAKING_ERROR__ZERO_AMOUNT = 6005;
+var STAKING_ERROR__INSUFFICIENT_STAKE = 6006;
+var STAKING_ERROR__MATH_OVERFLOW = 6007;
 var stakingErrorMessages;
 if (process.env["NODE_ENV"] !== "production") {
   stakingErrorMessages = {
     [STAKING_ERROR__INSUFFICIENT_STAKE]: `Insufficient staked balance`,
     [STAKING_ERROR__INVALID_LOCK]: `Invalid lock duration`,
+    [STAKING_ERROR__INVALID_UNBONDING]: `Invalid unbonding duration`,
     [STAKING_ERROR__LOCKED]: `Stake is still locked`,
     [STAKING_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
     [STAKING_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
@@ -14065,6 +14067,18 @@ var INITIALIZE_PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
   118
 ]);
 
+// ../../sdk/dist/generated/governance/src/generated/instructions/migrateProtocolConfig.js
+var MIGRATE_PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
+  240,
+  133,
+  241,
+  218,
+  118,
+  253,
+  139,
+  28
+]);
+
 // ../../sdk/dist/generated/governance/src/generated/instructions/setGovernanceAuthority.js
 var SET_GOVERNANCE_AUTHORITY_DISCRIMINATOR = new Uint8Array([
   0,
@@ -14109,8 +14123,9 @@ var GovernanceInstruction;
   GovernanceInstruction2[GovernanceInstruction2["FinalizeProposal"] = 6] = "FinalizeProposal";
   GovernanceInstruction2[GovernanceInstruction2["InitializeGovernance"] = 7] = "InitializeGovernance";
   GovernanceInstruction2[GovernanceInstruction2["InitializeProtocolConfig"] = 8] = "InitializeProtocolConfig";
-  GovernanceInstruction2[GovernanceInstruction2["SetGovernanceAuthority"] = 9] = "SetGovernanceAuthority";
-  GovernanceInstruction2[GovernanceInstruction2["UpdateProtocolConfig"] = 10] = "UpdateProtocolConfig";
+  GovernanceInstruction2[GovernanceInstruction2["MigrateProtocolConfig"] = 9] = "MigrateProtocolConfig";
+  GovernanceInstruction2[GovernanceInstruction2["SetGovernanceAuthority"] = 10] = "SetGovernanceAuthority";
+  GovernanceInstruction2[GovernanceInstruction2["UpdateProtocolConfig"] = 11] = "UpdateProtocolConfig";
 })(GovernanceInstruction || (GovernanceInstruction = {}));
 
 // ../../sdk/dist/generated/governance/src/generated/errors/governance.js
@@ -14275,6 +14290,9 @@ function deriveWsUrl(rpcUrl) {
 }
 function loadEnv(overrides = {}) {
   const cluster = overrides.cluster ?? process.env.WEFT_CLUSTER ?? "devnet";
+  if (cluster.startsWith("mainnet") && !overrides.rpcUrl && !process.env.WEFT_RPC_URL) {
+    throw new Error(`WEFT_RPC_URL must be set explicitly for ${cluster}`);
+  }
   const rpcUrl = overrides.rpcUrl ?? process.env.WEFT_RPC_URL ?? (cluster === "devnet" ? "https://api.devnet.solana.com" : "http://127.0.0.1:8899");
   return {
     cluster,
@@ -14308,20 +14326,27 @@ import { fileURLToPath } from "node:url";
 var here = dirname(fileURLToPath(import.meta.url));
 var dir = join(here, "..", "manifests");
 var manifestPath = (cluster) => join(dir, `${cluster}.json`);
+function isCurrentManifest(m) {
+  return m.registryProgram === generated_exports.NODE_REGISTRY_PROGRAM_ADDRESS;
+}
 var DEVNET = {
   cluster: "devnet",
   complete: true,
-  registryProgram: "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd",
-  registry: "CCgRn9trB6iiCsGpyX7oGk2oXointLS1Ufd8DUgtYq9b",
-  collection: "DHos7saKjJbK93gdhvxVhSZKCywa21LHQWHWvS3ZibmD",
-  merkleTree: "CiEewSdbaFquGWffE8ZPgFh3H1RqEacCixY2CdX9mNPN",
-  treeShard: "AngRKGURcJPYnjz2gDruiHiFcgbutB4ZNyBBRcB2sUBN",
+  registryProgram: "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH",
+  registry: "6tw8x8sm18fz5jMsHfVxvPbCQm4Nf8e6gqKUn84pBjyW",
+  collection: "DLeBsmxSNB1RmcPrGSWm5J5tPqXjAKWVfqkVpCpCZdqY",
+  merkleTree: "4RJP3AJ6NNoqjTCxjeJi2Erw3wwJJoHN3jpwUrSetJw5",
+  treeShard: "8dvswMfvXUBg2YZSNoNijYaQBRNKqzzhyDToZq1Day8E",
   maxDepth: 14
 };
 function loadManifest(cluster) {
   const p = manifestPath(cluster);
-  if (existsSync(p)) return JSON.parse(readFileSync(p, "utf8"));
-  return cluster === "devnet" ? DEVNET : null;
+  if (existsSync(p)) {
+    const manifest = JSON.parse(readFileSync(p, "utf8"));
+    return isCurrentManifest(manifest) ? manifest : null;
+  }
+  if (cluster !== "devnet") return null;
+  return isCurrentManifest(DEVNET) ? DEVNET : null;
 }
 
 // src/kit.ts
@@ -14372,7 +14397,6 @@ async function registerNode(conn2, operator2, manifest, params) {
 
 // src/becomeNode.ts
 var CAP_1HOP = 1;
-var CAP_MULTIHOP = 2;
 function endpointHash(endpoint2) {
   return new Uint8Array(createHash("sha256").update(endpoint2).digest());
 }
@@ -14389,7 +14413,7 @@ async function becomeNode(conn2, operator2, input, cluster = "devnet") {
   const signature = await registerNode(conn2, operator2, manifest, {
     nodeId: nodeId2,
     geo: input.geo ?? 0,
-    capabilities: input.capabilities ?? CAP_1HOP | CAP_MULTIHOP,
+    capabilities: input.capabilities ?? CAP_1HOP,
     availability: input.availability ?? 100,
     metadataUri: input.metadataUri ?? `weft://node/${input.endpoint}`,
     endpointHash: endpointHash(input.endpoint)

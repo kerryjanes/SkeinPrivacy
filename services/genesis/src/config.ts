@@ -86,6 +86,13 @@ export function deriveWsUrl(rpcUrl: string): string {
 
 export function loadEnv(overrides: Partial<GenesisEnv> = {}): GenesisEnv {
   const cluster = overrides.cluster ?? process.env.WEFT_CLUSTER ?? 'localnet';
+  const mainnet = cluster.startsWith('mainnet');
+  if (mainnet && !overrides.rpcUrl && !process.env.WEFT_RPC_URL) {
+    throw new Error(`WEFT_RPC_URL must be set explicitly for ${cluster}`);
+  }
+  if (mainnet && !overrides.tgeTimestamp && !process.env.WEFT_TGE_TS) {
+    throw new Error(`WEFT_TGE_TS must be set explicitly for ${cluster}`);
+  }
   const rpcUrl =
     overrides.rpcUrl ??
     process.env.WEFT_RPC_URL ??

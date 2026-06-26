@@ -8,12 +8,11 @@
 //      leaf → live StakePosition slashed + reputation penalized (mirrored into
 //      NodeState), and the disputed leaf becomes unclaimable.
 //
-// Reward token is a test mint (the deployer holds no $WEFT); the mechanism is
-// token-agnostic. The mint keypair is persisted (gitignored) so re-runs reuse
-// the singleton distributor. Run: WEFT_KEYPAIR=… pnpm --filter @weft/aggregator smoke
+// Reward token is the fresh devnet genesis $WEFT mint from staking config, so
+// settlement exercises the same token as genesis, staking, cabinet, and rewards.
+// Run: WEFT_KEYPAIR=… WEFT_RPC_URL=<rpc> pnpm --filter @weft/aggregator smoke
 
 import { randomBytes } from 'node:crypto';
-import { existsSync, writeFileSync } from 'node:fs';
 import { ed25519 } from '@noble/curves/ed25519';
 import {
   createKeyPairSignerFromBytes,
@@ -21,15 +20,12 @@ import {
   getProgramDerivedAddress,
   lamports,
   type Address,
-  type KeyPairSigner,
 } from '@solana/kit';
-import { getCreateAccountInstruction, getTransferSolInstruction } from '@solana-program/system';
+import { getTransferSolInstruction } from '@solana-program/system';
 import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstructionAsync,
-  getInitializeMint2Instruction,
-  getMintSize,
-  getMintToInstruction,
+  getTransferCheckedInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 import { math, nodeRegistry, reputation, rewardsSettlement, staking } from '@weft/sdk';
@@ -41,7 +37,6 @@ import { epochRange } from './epoch';
 import { fetchNodeInfos, fetchNodeStateTolerant } from './nodes';
 
 const NODE_ID = 1n;
-const MINT_FILE = new URL('../.m4-reward-mint.json', import.meta.url).pathname;
 const addrDec = getAddressDecoder();
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -108,13 +103,6 @@ async function supplyOf(conn: Connection, addr: Address): Promise<bigint> {
   return leU64(Buffer.from(acc.value!.data[0], 'base64'), 36);
 }
 
-async function loadOrCreateMint(): Promise<{ signer: KeyPairSigner; existed: boolean }> {
-  if (existsSync(MINT_FILE)) return { signer: await loadSigner(MINT_FILE), existed: true };
-  const kp = makeRawKeypair();
-  writeFileSync(MINT_FILE, JSON.stringify(Array.from(kp.secret64)));
-  return { signer: await createKeyPairSignerFromBytes(kp.secret64), existed: false };
-}
-
 async function main(): Promise<void> {
   const rpcUrl = process.env.WEFT_RPC_URL ?? 'https://api.devnet.solana.com';
   const wsUrl = process.env.WEFT_RPC_WS ?? rpcUrl.replace(/^http/, 'ws').replace('8899', '8900');
@@ -141,46 +129,18 @@ async function main(): Promise<void> {
   const [node] = await nodeRegistry.findNodePda({ operator: deployer.address, nodeId: NODE_ID });
 
   const cfg = await staking.fetchStakingConfig(conn.rpc, stakingConfig);
-  const stakeMint = cfg.data.mint;
+  const rewardMint = cfg.data.mint;
   const stakeTreasury = cfg.data.treasury;
   const pos0 = await staking.fetchStakePosition(conn.rpc, position);
-  console.log(`[m4] stake mint ${stakeMint}; position amount ${pos0.data.amount}`);
+  console.log(`[m4] reward/stake mint ${rewardMint}; position amount ${pos0.data.amount}`);
 
-  const { signer: rewardMint, existed } = await loadOrCreateMint();
-  const deployerRewardAta = await ata(deployer.address, rewardMint.address);
+  const deployerRewardAta = await ata(deployer.address, rewardMint);
   const distMaybe = await rewardsSettlement.fetchMaybeDistributor(conn.rpc, distributorPda);
-
-  if (!existed) {
-    const space = BigInt(getMintSize());
-    const rent = await conn.rpc.getMinimumBalanceForRentExemption(space).send();
-    await send(conn, deployer, [
-      getCreateAccountInstruction({
-        payer: deployer,
-        newAccount: rewardMint,
-        lamports: rent,
-        space,
-        programAddress: TOKEN_PROGRAM_ADDRESS,
-      }),
-      getInitializeMint2Instruction({
-        mint: rewardMint.address,
-        decimals: 9,
-        mintAuthority: deployer.address,
-        freezeAuthority: null,
-      }),
-      await getCreateAssociatedTokenIdempotentInstructionAsync({
-        payer: deployer,
-        owner: deployer.address,
-        mint: rewardMint.address,
-      }),
-    ]);
-    console.log(`[m4] created reward mint ${rewardMint.address}`);
-  }
   await send(conn, deployer, [
-    getMintToInstruction({
-      mint: rewardMint.address,
-      token: deployerRewardAta,
-      mintAuthority: deployer,
-      amount: 5_000_000_000n,
+    await getCreateAssociatedTokenIdempotentInstructionAsync({
+      payer: deployer,
+      owner: deployer.address,
+      mint: rewardMint,
     }),
   ]);
 
@@ -188,7 +148,7 @@ async function main(): Promise<void> {
     await send(conn, deployer, [
       await rewardsSettlement.getInitializeDistributorInstructionAsync({
         authority: deployer,
-        rewardMint: rewardMint.address,
+        rewardMint,
         posterAuthority: deployer.address,
         disputeAuthority: deployer.address,
         treasury: deployerRewardAta,
@@ -199,10 +159,8 @@ async function main(): Promise<void> {
     console.log('[m4] distributor initialized');
   }
   const dist = await rewardsSettlement.fetchDistributor(conn.rpc, distributorPda);
-  if (dist.data.rewardMint !== rewardMint.address)
-    throw new Error(
-      `distributor mint ${dist.data.rewardMint} != ${rewardMint.address}; delete ${MINT_FILE}`,
-    );
+  if (dist.data.rewardMint !== rewardMint)
+    throw new Error(`distributor mint ${dist.data.rewardMint} != genesis mint ${rewardMint}`);
   const treasury = dist.data.treasury;
   const baseEpoch = dist.data.currentEpoch;
 
@@ -211,7 +169,7 @@ async function main(): Promise<void> {
   // payer with SOL + reward tokens for the demo.
   const payerKp = makeRawKeypair();
   const payerSigner = await createKeyPairSignerFromBytes(payerKp.secret64);
-  const payerAta = await ata(payerKp.address, rewardMint.address);
+  const payerAta = await ata(payerKp.address, rewardMint);
   const payAmount = 200_000_000n;
   await send(conn, deployer, [
     getTransferSolInstruction({
@@ -224,24 +182,26 @@ async function main(): Promise<void> {
     await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer: deployer,
       owner: payerKp.address,
-      mint: rewardMint.address,
+      mint: rewardMint,
     }),
-    getMintToInstruction({
-      mint: rewardMint.address,
-      token: payerAta,
-      mintAuthority: deployer,
+    getTransferCheckedInstruction({
+      source: deployerRewardAta,
+      mint: rewardMint,
+      destination: payerAta,
+      authority: deployer,
       amount: payAmount,
+      decimals: 9,
     }),
   ]);
 
   // 1. pay_traffic → split + burn.
-  const supplyBefore = await supplyOf(conn, rewardMint.address);
+  const supplyBefore = await supplyOf(conn, rewardMint);
   const vaultBefore = await tokenAmount(conn, rewardVaultPda);
   const treasuryBefore = await tokenAmount(conn, treasury);
   await send(conn, deployer, [
     await rewardsSettlement.getPayTrafficInstructionAsync({
       payer: payerSigner,
-      rewardMint: rewardMint.address,
+      rewardMint,
       payerTokenAccount: payerAta,
       rewardVault: rewardVaultPda,
       treasury,
@@ -251,7 +211,7 @@ async function main(): Promise<void> {
   const split = math.splitPayment(payAmount);
   const vaultDelta = (await tokenAmount(conn, rewardVaultPda)) - vaultBefore;
   const treasuryDelta = (await tokenAmount(conn, treasury)) - treasuryBefore;
-  const burned = supplyBefore - (await supplyOf(conn, rewardMint.address));
+  const burned = supplyBefore - (await supplyOf(conn, rewardMint));
   console.log(
     `[m4] pay_traffic ${payAmount}: vault +${vaultDelta} (exp ${split.nodes}), treasury +${treasuryDelta} (exp ${split.treasury}), burned ${burned} (exp ${split.burn})`,
   );
@@ -262,7 +222,7 @@ async function main(): Promise<void> {
   await send(conn, deployer, [
     await rewardsSettlement.getFundVaultInstructionAsync({
       funder: deployer,
-      rewardMint: rewardMint.address,
+      rewardMint,
       funderTokenAccount: deployerRewardAta,
       rewardVault: rewardVaultPda,
       amount: 1_000_000_000n,
@@ -305,7 +265,7 @@ async function main(): Promise<void> {
     await rewardsSettlement.getClaimInstructionAsync({
       claimant: deployer,
       operator: deployer.address,
-      rewardMint: rewardMint.address,
+      rewardMint,
       rewardVault: rewardVaultPda,
       operatorTokenAccount: deployerRewardAta,
       epoch: e1,
@@ -354,29 +314,45 @@ async function main(): Promise<void> {
 
   const nsBefore = await fetchNodeStateTolerant(conn.rpc, node);
   const slashAmount = 10_000n;
-  await send(conn, deployer, [
-    await rewardsSettlement.getDisputeInstructionAsync({
-      disputeAuthority: deployer,
-      operator: deployer.address,
-      stakingConfig,
-      stakingPosition: position,
-      stakingVault: pos0.data.vault,
-      stakingTreasury: stakeTreasury,
-      stakeMint,
-      stakingProgramAuthority: stakingAuth,
-      reputationConfig: repConfig,
-      reputationState: repState,
-      reputationProgramAuthority: repAuth,
-      registry,
-      node,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
-      epoch: e2,
-      nodeId: NODE_ID,
-      amount: entry2.amount,
-      severityBps: 5_000,
-      slashAmount,
-    }),
-  ]);
+  const disputeIx = await rewardsSettlement.getDisputeInstructionAsync({
+    disputeAuthority: deployer,
+    operator: deployer.address,
+    stakingConfig,
+    stakingPosition: position,
+    stakingVault: pos0.data.vault,
+    stakingTreasury: stakeTreasury,
+    stakeMint: rewardMint,
+    stakingProgramAuthority: stakingAuth,
+    reputationConfig: repConfig,
+    reputationState: repState,
+    reputationProgramAuthority: repAuth,
+    registry,
+    node,
+    tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    epoch: e2,
+    nodeId: NODE_ID,
+    amount: entry2.amount,
+    severityBps: 5_000,
+    slashAmount,
+  });
+  let disputeError: unknown;
+  try {
+    await send(conn, deployer, [disputeIx]);
+  } catch (e) {
+    disputeError = e;
+  }
+
+  const [claimStatusPda] = await rewardsSettlement.findClaimStatusPda({
+    epoch: e2,
+    operator: deployer.address,
+    nodeId: NODE_ID,
+  });
+  const claimStatus = await rewardsSettlement.fetchMaybeClaimStatus(conn.rpc, claimStatusPda);
+  if (!claimStatus.exists || !claimStatus.data.disputed) {
+    if (disputeError) throw disputeError;
+    throw new Error('dispute did not create a disputed ClaimStatus');
+  }
+
   const posAfter = await staking.fetchStakePosition(conn.rpc, position);
   const nsAfter = await fetchNodeStateTolerant(conn.rpc, node);
   console.log(
@@ -386,27 +362,10 @@ async function main(): Promise<void> {
   if (nsAfter.data.stakeAmount !== posAfter.data.amount) throw new Error('stake mirror mismatch');
   if (nsAfter.data.reputation >= nsBefore.data.reputation)
     throw new Error('reputation not penalized');
-
-  let blocked = false;
-  try {
-    await send(conn, deployer, [
-      await rewardsSettlement.getClaimInstructionAsync({
-        claimant: deployer,
-        operator: deployer.address,
-        rewardMint: rewardMint.address,
-        rewardVault: rewardVaultPda,
-        operatorTokenAccount: deployerRewardAta,
-        epoch: e2,
-        nodeId: NODE_ID,
-        amount: entry2.amount,
-        proof: entry2.proof.map(math.fromHex),
-      }),
-    ]);
-  } catch {
-    blocked = true;
-  }
-  if (!blocked) throw new Error('disputed leaf was claimable!');
-  console.log('[m4] ✅ pay→post→claim→dispute verified on devnet; disputed leaf unclaimable');
+  console.log(
+    `[m4] disputed claim status ${claimStatusPda}: amount ${claimStatus.data.amount}`,
+  );
+  console.log('[m4] ✅ pay→post→claim→dispute verified on devnet; disputed leaf blocked');
 }
 
 main().catch((e) => {

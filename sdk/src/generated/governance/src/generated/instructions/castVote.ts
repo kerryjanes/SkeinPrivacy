@@ -10,10 +10,8 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   getU64Decoder,
@@ -39,7 +37,6 @@ import {
 import {
   getAccountMetaFactory,
   getAddressFromResolvedInstructionAccount,
-  getNonNullResolvedInstructionInput,
   type ResolvedInstructionAccount,
 } from '@solana/program-client-core';
 import { findVoteRecordPda } from '../pdas';
@@ -122,11 +119,8 @@ export type CastVoteAsyncInput<
 > = {
   voter: TransactionSigner<TAccountVoter>;
   proposal: Address<TAccountProposal>;
-  /**
-   * The voter's stake position. `seeds::program` + the `voter.key()` seed bind
-   * the position to the signer; `weight = position.amount`.
-   */
-  position?: Address<TAccountPosition>;
+  /** operator, and node id before reading vote weight. */
+  position: Address<TAccountPosition>;
   /** `init` makes each position votable exactly once per proposal (double-vote guard). */
   voteRecord?: Address<TAccountVoteRecord>;
   systemProgram?: Address<TAccountSystemProgram>;
@@ -180,19 +174,6 @@ export async function getCastVoteInstructionAsync<
   const args = { ...input };
 
   // Resolve default values.
-  if (!accounts.position.value) {
-    accounts.position.value = await getProgramDerivedAddress({
-      programAddress:
-        '86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK' as Address<'86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK'>,
-      seeds: [
-        getBytesEncoder().encode(new Uint8Array([115, 116, 97, 107, 101])),
-        getAddressEncoder().encode(
-          getAddressFromResolvedInstructionAccount('voter', accounts.voter.value),
-        ),
-        getU64Encoder().encode(getNonNullResolvedInstructionInput('nodeId', args.nodeId)),
-      ],
-    });
-  }
   if (!accounts.voteRecord.value) {
     accounts.voteRecord.value = await findVoteRecordPda({
       proposal: getAddressFromResolvedInstructionAccount('proposal', accounts.proposal.value),
@@ -234,10 +215,7 @@ export type CastVoteInput<
 > = {
   voter: TransactionSigner<TAccountVoter>;
   proposal: Address<TAccountProposal>;
-  /**
-   * The voter's stake position. `seeds::program` + the `voter.key()` seed bind
-   * the position to the signer; `weight = position.amount`.
-   */
+  /** operator, and node id before reading vote weight. */
   position: Address<TAccountPosition>;
   /** `init` makes each position votable exactly once per proposal (double-vote guard). */
   voteRecord: Address<TAccountVoteRecord>;
@@ -324,10 +302,7 @@ export type ParsedCastVoteInstruction<
   accounts: {
     voter: TAccountMetas[0];
     proposal: TAccountMetas[1];
-    /**
-     * The voter's stake position. `seeds::program` + the `voter.key()` seed bind
-     * the position to the signer; `weight = position.amount`.
-     */
+    /** operator, and node id before reading vote weight. */
     position: TAccountMetas[2];
     /** `init` makes each position votable exactly once per proposal (double-vote guard). */
     voteRecord: TAccountMetas[3];

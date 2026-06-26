@@ -44,7 +44,12 @@ export async function fetchNodes(client: Rpc): Promise<NodeRecord[]> {
     .send();
   const decoder = nodeRegistry.getNodeStateDecoder();
   return accounts.map(({ pubkey, account }) => {
-    const bytes = Buffer.from((account.data as readonly [string, string])[0], 'base64');
+    let bytes = Buffer.from((account.data as readonly [string, string])[0], 'base64');
+    if (bytes.length < decoder.fixedSize) {
+      const padded = Buffer.alloc(decoder.fixedSize);
+      bytes.copy(padded);
+      bytes = padded;
+    }
     const d = decoder.decode(bytes);
     return {
       address: pubkey,

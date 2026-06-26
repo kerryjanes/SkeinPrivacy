@@ -10,7 +10,7 @@ crate-type = ["cdylib", "lib"]
 name = "token_distributor"
 
 [features]
-default = []
+default = ["no-log-ix-name"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -24,12 +24,11 @@ custom-panic = []
 anchor-lang = { workspace = true }
 anchor-spl = { workspace = true }
 weft-primitives = { workspace = true }
-weft-vesting = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }
 weft-primitives = { workspace = true }
-weft-vesting = { workspace = true }
+weft-vesting = { workspace = true, features = ["idl-build"] }
 litesvm = { workspace = true }
 solana-message = { workspace = true }
 solana-transaction = { workspace = true }

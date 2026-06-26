@@ -23,6 +23,8 @@
 # Registration + payment happened on the website; this script never touches the chain.
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SK="$HOME/.weft"
 mkdir -p "$SK"
 TOKEN="${1:-${WEFT_NODE_KEY:-}}"
@@ -31,13 +33,30 @@ OS=$(uname -s)
 echo "→ dependencies…"
 if [ "$OS" = "Linux" ]; then
   sudo apt-get update -y >/dev/null
-  DEBIAN_FRONTEND=noninteractive sudo apt-get install -y curl openssl python3 >/dev/null
+  DEBIAN_FRONTEND=noninteractive sudo apt-get install -y curl openssl python3 iproute2 >/dev/null
   command -v node >/dev/null 2>&1 || { curl -fsSL https://deb.nodesource.com/setup_20.x | sudo bash - >/dev/null 2>&1; sudo apt-get install -y nodejs >/dev/null 2>&1; }
   command -v xray >/dev/null 2>&1 || sudo bash -c "$(curl -L -s https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version 1.8.24 >/dev/null
   XRAY=/usr/local/bin/xray; ARCH=linux_amd64; NODE=$(command -v node)
 else
-  echo "  (macOS: ensure xray, node are installed via brew: brew install xray node)"
-  XRAY=$(command -v xray); ARCH=darwin_$( [ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64 ); NODE=$(command -v node)
+  echo "  (macOS: ensure node is installed via brew: brew install node)"
+  command -v node >/dev/null 2>&1 || { echo "missing dependency: node"; exit 1; }
+  command -v unzip >/dev/null 2>&1 || { echo "missing dependency: unzip"; exit 1; }
+  ARCH=darwin_$( [ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64 ); NODE=$(command -v node)
+  XRAY="$SK/xray-1.8.24"
+  if [ ! -x "$XRAY" ]; then
+    case "$(uname -m)" in
+      arm64) XRAY_ZIP="Xray-macos-arm64-v8a.zip" ;;
+      *) XRAY_ZIP="Xray-macos-64.zip" ;;
+    esac
+    echo "→ xray-core 1.8.24 (stable Reality/Vision)…"
+    curl -fsSL "https://github.com/XTLS/Xray-core/releases/download/v1.8.24/${XRAY_ZIP}" -o "$SK/xray.zip"
+    rm -rf "$SK/xray-1.8.24.extract"
+    mkdir -p "$SK/xray-1.8.24.extract"
+    unzip -oq "$SK/xray.zip" -d "$SK/xray-1.8.24.extract"
+    mv "$SK/xray-1.8.24.extract/xray" "$XRAY"
+    chmod +x "$XRAY"
+    rm -rf "$SK/xray.zip" "$SK/xray-1.8.24.extract"
+  fi
 fi
 
 # --- node identity: decode the key (first run) or reuse the saved one (restart) -------------------
@@ -77,9 +96,69 @@ RELAY_PORT="${WEFT_RELAY_PORT:-7000}"
 # operator just runs the script; override WEFT_RELAY_TOKEN only when running a private relay.
 RELAY_TOKEN="${WEFT_RELAY_TOKEN:-a40b1ab498a37ba6bbaa70791ac62287}"
 SNI="${WEFT_SNI:-ya.ru}"
+CLUSTER="${WEFT_CLUSTER:-devnet}"
+RPC="${WEFT_RPC:-https://api.devnet.solana.com}"
+MINT="${WEFT_MINT:-Hfvwx9F5NDzMCyywJZJsFVX83XaXnLNntCdk21h7Bmcy}"
+if [[ "$CLUSTER" == mainnet* ]]; then
+  [ -n "${WEFT_RPC:-}" ] || { echo "WEFT_RPC must be set explicitly for ${CLUSTER}"; exit 1; }
+  [ -n "${WEFT_MINT:-}" ] || { echo "WEFT_MINT must be set explicitly for ${CLUSTER}"; exit 1; }
+fi
 LOCAL_HOP1=14430
 FRP_VER="0.69.1"
 RAW="https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main"
+
+active_ipv4_for_iface() {
+  local iface="$1"
+  if [ "$OS" = "Darwin" ]; then
+    ifconfig "$iface" 2>/dev/null | grep -q "status: active" || return 1
+    ipconfig getifaddr "$iface" 2>/dev/null || return 1
+  else
+    ip -o -4 addr show dev "$iface" scope global 2>/dev/null | awk 'NR == 1 { sub("/.*", "", $4); print $4 }'
+  fi
+}
+
+detect_physical_egress() {
+  local iface ip_addr
+  if [ "$OS" = "Darwin" ]; then
+    for iface in $(ifconfig -l | tr ' ' '\n' | grep -E '^en[0-9]+$'); do
+      ip_addr="$(active_ipv4_for_iface "$iface" || true)"
+      if [ -n "$ip_addr" ]; then
+        printf '%s %s\n' "$iface" "$ip_addr"
+        return 0
+      fi
+    done
+  else
+    while read -r iface _; do
+      case "$iface" in
+        lo|tun*|tap*|utun*|wg*|tailscale*|docker*|br-*|veth*) continue ;;
+      esac
+      ip_addr="$(active_ipv4_for_iface "$iface" || true)"
+      if [ -n "$ip_addr" ]; then
+        printf '%s %s\n' "$iface" "$ip_addr"
+        return 0
+      fi
+    done < <(ip -o link show up | awk -F': ' '{print $2}')
+  fi
+  return 1
+}
+
+EGRESS_INTERFACE="${WEFT_EGRESS_INTERFACE:-auto}"
+SEND_THROUGH="${WEFT_XRAY_SEND_THROUGH:-}"
+if [ -z "$SEND_THROUGH" ] && [ "$EGRESS_INTERFACE" != "none" ]; then
+  if [ "$EGRESS_INTERFACE" = "auto" ]; then
+    DETECTED="$(detect_physical_egress || true)"
+    EGRESS_INTERFACE="${DETECTED%% *}"
+    SEND_THROUGH="${DETECTED#* }"
+    if [ "$EGRESS_INTERFACE" = "$SEND_THROUGH" ]; then SEND_THROUGH=""; fi
+  else
+    SEND_THROUGH="$(active_ipv4_for_iface "$EGRESS_INTERFACE" || true)"
+  fi
+fi
+if [ -n "$SEND_THROUGH" ]; then
+  echo "→ 1-hop egress pinned to ${EGRESS_INTERFACE} (${SEND_THROUGH}) to bypass host VPN routes"
+else
+  echo "→ 1-hop egress uses the system default route"
+fi
 
 echo "→ frpc (reverse tunnel)…"
 if [ ! -x "$SK/frpc" ]; then
@@ -101,7 +180,11 @@ localPort = ${LOCAL_HOP1}
 remotePort = ${PORT}
 TOML
 
-curl -fsSL "${RAW}/services/control-plane/dist/control-plane.mjs" -o "$SK/control-plane.mjs"
+if [ -f "$REPO_ROOT/services/control-plane/dist/control-plane.mjs" ]; then
+  cp "$REPO_ROOT/services/control-plane/dist/control-plane.mjs" "$SK/control-plane.mjs"
+else
+  curl -fsSL "${RAW}/services/control-plane/dist/control-plane.mjs" -o "$SK/control-plane.mjs"
+fi
 
 if [ "$OS" = "Linux" ]; then
   RELOAD="systemctl restart weft-node-xray"
@@ -122,8 +205,12 @@ WEFT_FOUNDER_UUID=${UUID}
 WEFT_GEO=${GEO}
 WEFT_XRAY_CONFIG=${SK}/xray.json
 WEFT_XRAY_RELOAD=${RELOAD}
+WEFT_XRAY_SEND_THROUGH=${SEND_THROUGH}
 WEFT_STORE=${SK}/users.json
 WEFT_PORT=8088
+WEFT_CLUSTER=${CLUSTER}
+WEFT_RPC=${RPC}
+WEFT_MINT=${MINT}
 ENV
 
 echo "→ install persistent services (survive reboot + auto-restart)…"

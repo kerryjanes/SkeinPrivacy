@@ -1,6 +1,8 @@
 use anchor_lang::prelude::*;
 
-use crate::{constants::*, mirror::mirror_reputation, state::ReputationState};
+use crate::{
+    constants::*, external::NODE_REGISTRY_ID, mirror::mirror_reputation, state::ReputationState,
+};
 
 /// Permissionless re-push of the multiplier into `NodeState` (heals divergence).
 #[derive(Accounts)]
@@ -14,7 +16,7 @@ pub struct Resync<'info> {
     #[account(seeds = [AUTHORITY_SEED], bump)]
     pub program_authority: UncheckedAccount<'info>,
     /// CHECK: node-registry program.
-    #[account(address = node_registry::ID)]
+    #[account(address = NODE_REGISTRY_ID)]
     pub node_registry_program: UncheckedAccount<'info>,
     /// CHECK: node-registry Registry PDA.
     pub registry: UncheckedAccount<'info>,

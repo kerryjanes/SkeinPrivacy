@@ -12,10 +12,8 @@ import {
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
-  getAddressEncoder,
   getBytesDecoder,
   getBytesEncoder,
-  getProgramDerivedAddress,
   getStructDecoder,
   getStructEncoder,
   getU32Decoder,
@@ -44,8 +42,6 @@ import {
 } from '@solana/kit';
 import {
   getAccountMetaFactory,
-  getAddressFromResolvedInstructionAccount,
-  getNonNullResolvedInstructionInput,
   type ResolvedInstructionAccount,
 } from '@solana/program-client-core';
 import { findGovernanceConfigPda } from '../pdas';
@@ -132,12 +128,8 @@ export type CreateProposalAsyncInput<
 > = {
   proposer: TransactionSigner<TAccountProposer>;
   governanceConfig?: Address<TAccountGovernanceConfig>;
-  /**
-   * The proposer's stake position (owned by the staking program); confers the
-   * right to propose once `amount >= min_proposal_stake`. `seeds::program` binds
-   * it to the proposer + node_id and Anchor checks the owning program.
-   */
-  position?: Address<TAccountPosition>;
+  /** operator, and node id before reading stake amount. */
+  position: Address<TAccountPosition>;
   proposal: Address<TAccountProposal>;
   systemProgram?: Address<TAccountSystemProgram>;
   nodeId: CreateProposalInstructionDataArgs['nodeId'];
@@ -193,19 +185,6 @@ export async function getCreateProposalInstructionAsync<
   if (!accounts.governanceConfig.value) {
     accounts.governanceConfig.value = await findGovernanceConfigPda();
   }
-  if (!accounts.position.value) {
-    accounts.position.value = await getProgramDerivedAddress({
-      programAddress:
-        '86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK' as Address<'86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK'>,
-      seeds: [
-        getBytesEncoder().encode(new Uint8Array([115, 116, 97, 107, 101])),
-        getAddressEncoder().encode(
-          getAddressFromResolvedInstructionAccount('proposer', accounts.proposer.value),
-        ),
-        getU64Encoder().encode(getNonNullResolvedInstructionInput('nodeId', args.nodeId)),
-      ],
-    });
-  }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =
       '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
@@ -243,11 +222,7 @@ export type CreateProposalInput<
 > = {
   proposer: TransactionSigner<TAccountProposer>;
   governanceConfig: Address<TAccountGovernanceConfig>;
-  /**
-   * The proposer's stake position (owned by the staking program); confers the
-   * right to propose once `amount >= min_proposal_stake`. `seeds::program` binds
-   * it to the proposer + node_id and Anchor checks the owning program.
-   */
+  /** operator, and node id before reading stake amount. */
   position: Address<TAccountPosition>;
   proposal: Address<TAccountProposal>;
   systemProgram?: Address<TAccountSystemProgram>;
@@ -335,11 +310,7 @@ export type ParsedCreateProposalInstruction<
   accounts: {
     proposer: TAccountMetas[0];
     governanceConfig: TAccountMetas[1];
-    /**
-     * The proposer's stake position (owned by the staking program); confers the
-     * right to propose once `amount >= min_proposal_stake`. `seeds::program` binds
-     * it to the proposer + node_id and Anchor checks the owning program.
-     */
+    /** operator, and node id before reading stake amount. */
     position: TAccountMetas[2];
     proposal: TAccountMetas[3];
     systemProgram: TAccountMetas[4];

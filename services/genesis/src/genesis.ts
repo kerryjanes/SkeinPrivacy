@@ -52,6 +52,19 @@ const CUSTODY_AMOUNT: Record<CustodyKey, bigint> = {
   ido: AMOUNTS.idoTge + AMOUNTS.idoLinear,
 };
 
+function assertMainnetOwners(env: GenesisEnv, overrides: OwnerOverrides): void {
+  if (!env.cluster.startsWith('mainnet')) return;
+  for (const key of CUSTODY_KEYS) {
+    if (!overrides[key]) throw new Error(`missing mainnet owner override: ${key}`);
+  }
+  for (const schedule of SCHEDULES) {
+    const owner = overrides.scheduleOwners?.[schedule.key];
+    if (!owner?.beneficiary || !owner?.authority) {
+      throw new Error(`missing mainnet schedule owner override: ${schedule.key}`);
+    }
+  }
+}
+
 async function ataFor(owner: Address, mint: Address): Promise<Address> {
   const [ata] = await findAssociatedTokenPda({ owner, mint, tokenProgram: TOKEN_PROGRAM_ADDRESS });
   return ata;
@@ -67,6 +80,7 @@ export async function runGenesis(
   overrides: OwnerOverrides = {},
 ): Promise<Manifest> {
   assertConservation();
+  assertMainnetOwners(env, overrides);
 
   const existing = loadManifest(env.cluster);
   if (existing?.complete) {
@@ -177,11 +191,17 @@ export async function runGenesis(
     console.log(`[genesis] schedule ${s.key}: ${s.amount / ONE_WEFT} WEFT → vault ${vault}`);
   }
 
-  // 5. The working ATA must be fully drained before retiring authority.
+  // 5. The working ATA must hold only custody allocations intentionally assigned
+  // to the deployer. In devnet rehearsals every owner may be the deployer, so
+  // the custody ATA and temporary working ATA can be the same account.
   const remaining = await tokenBalance(conn, workingAta);
-  if (remaining !== 0n) {
+  const expectedWorkingRemainder = Object.values(custody).reduce(
+    (sum, c) => (c.ata === workingAta ? sum + BigInt(c.amount) : sum),
+    0n,
+  );
+  if (remaining !== expectedWorkingRemainder) {
     throw new Error(
-      `working ATA still holds ${remaining} base units; aborting before authority retirement`,
+      `working ATA holds ${remaining} base units, expected ${expectedWorkingRemainder}; aborting before authority retirement`,
     );
   }
 

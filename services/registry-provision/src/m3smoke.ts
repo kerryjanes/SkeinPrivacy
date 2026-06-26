@@ -2,28 +2,21 @@
 // stake + submit reputation against the real M2-registered node (node 1), and
 // verify both mirror into NodeState (and surface in the indexer directory).
 
-import {
-  address,
-  generateKeyPairSigner,
-  getProgramDerivedAddress,
-  type Address,
-} from '@solana/kit';
-import { getCreateAccountInstruction } from '@solana-program/system';
+import { address, getProgramDerivedAddress, type Address } from '@solana/kit';
 import {
   getCreateAssociatedTokenIdempotentInstructionAsync,
-  getInitializeMint2Instruction,
-  getMintSize,
-  getMintToInstruction,
   findAssociatedTokenPda,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 import { nodeRegistry, staking, reputation } from '@weft/sdk';
+import { readFileSync } from 'node:fs';
 
 import { loadEnv, nodePda, registryPda } from './config';
 import { connect, loadSigner, send } from './kit';
 
 const NODE_ID = 1n;
 const STAKE_AMOUNT = 30_000n;
+const GENESIS_MANIFEST = new URL('../../genesis/manifests/devnet.json', import.meta.url).pathname;
 
 async function authorityPda(program: Address): Promise<Address> {
   const [pda] = await getProgramDerivedAddress({
@@ -35,6 +28,10 @@ async function authorityPda(program: Address): Promise<Address> {
 async function ata(owner: Address, mint: Address): Promise<Address> {
   const [a] = await findAssociatedTokenPda({ owner, mint, tokenProgram: TOKEN_PROGRAM_ADDRESS });
   return a;
+}
+function loadGenesisMint(): Address {
+  const mint = process.env.WEFT_MINT ?? JSON.parse(readFileSync(GENESIS_MANIFEST, 'utf8')).weftMint;
+  return address(mint);
 }
 
 async function main() {
@@ -57,39 +54,19 @@ async function main() {
   ]);
   console.log('[m3] set_metrics_authorities done');
 
-  // 2. A test mint (deployer = mint authority) + funded operator ATA + treasury.
-  const mint = await generateKeyPairSigner();
-  const space = BigInt(getMintSize());
-  const rent = await conn.rpc.getMinimumBalanceForRentExemption(space).send();
-  const opAta = await ata(deployer.address, mint.address);
-  const treasury = await ata(deployer.address, mint.address); // same owner; only needs to exist
+  // 2. Use the fresh devnet genesis mint. This keeps staking/reputation on the
+  // same token that genesis, settlement, cabinet, and rewards use.
+  const mint = loadGenesisMint();
+  const opAta = await ata(deployer.address, mint);
+  const treasury = opAta; // devnet rehearsal keeps custody under the deployer wallet.
   await send(conn, deployer, [
-    getCreateAccountInstruction({
-      payer: deployer,
-      newAccount: mint,
-      lamports: rent,
-      space,
-      programAddress: TOKEN_PROGRAM_ADDRESS,
-    }),
-    getInitializeMint2Instruction({
-      mint: mint.address,
-      decimals: 9,
-      mintAuthority: deployer.address,
-      freezeAuthority: null,
-    }),
     await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer: deployer,
       owner: deployer.address,
-      mint: mint.address,
-    }),
-    getMintToInstruction({
-      mint: mint.address,
-      token: opAta,
-      mintAuthority: deployer,
-      amount: 1_000_000n,
+      mint,
     }),
   ]);
-  console.log(`[m3] test mint ${mint.address}`);
+  console.log(`[m3] genesis mint ${mint}`);
 
   // 3. Initialize staking + reputation configs.
   const [stakingConfig] = await getProgramDerivedAddress({
@@ -100,38 +77,52 @@ async function main() {
     programAddress: reputation.REPUTATION_PROGRAM_ADDRESS,
     seeds: [new TextEncoder().encode('reputation_config')],
   });
-  await send(conn, deployer, [
-    await staking.getInitializeConfigInstruction({
-      authority: deployer,
-      mint: mint.address,
-      treasury,
-      slashAuthority: deployer.address,
-      config: stakingConfig,
-      unbondingSeconds: 60n,
-    }),
-  ]);
-  await send(conn, deployer, [
-    await reputation.getInitializeConfigInstruction({
-      authority: deployer,
-      oracle: deployer.address,
-      config: repConfig,
-    }),
-  ]);
-  console.log('[m3] configs initialized');
+  const stakingMaybe = await staking.fetchMaybeStakingConfig(conn.rpc, stakingConfig);
+  if (!stakingMaybe.exists) {
+    await send(conn, deployer, [
+      await staking.getInitializeConfigInstruction({
+        authority: deployer,
+        mint,
+        treasury,
+        slashAuthority: deployer.address,
+        config: stakingConfig,
+        unbondingSeconds: 60n,
+      }),
+    ]);
+    console.log('[m3] staking config initialized');
+  } else if (stakingMaybe.data.mint !== mint) {
+    throw new Error(`staking mint ${stakingMaybe.data.mint} != genesis mint ${mint}`);
+  }
+  const repMaybe = await reputation.fetchMaybeReputationConfig(conn.rpc, repConfig);
+  if (!repMaybe.exists) {
+    await send(conn, deployer, [
+      await reputation.getInitializeConfigInstruction({
+        authority: deployer,
+        oracle: deployer.address,
+        config: repConfig,
+      }),
+    ]);
+    console.log('[m3] reputation config initialized');
+  }
 
   // 4. Stake against the real node → mirror into NodeState.stake_amount.
-  await send(conn, deployer, [
-    await staking.getStakeInstructionAsync({
-      operator: deployer,
-      operatorTokenAccount: opAta,
-      mint: mint.address,
-      registry,
-      node,
-      nodeId: NODE_ID,
-      amount: STAKE_AMOUNT,
-      lockDuration: 0n,
-    }),
-  ]);
+  const [position] = await staking.findPositionPda({ operator: deployer.address, nodeId: NODE_ID });
+  const posMaybe = await staking.fetchMaybeStakePosition(conn.rpc, position);
+  const currentStake = posMaybe.exists ? posMaybe.data.amount : 0n;
+  if (currentStake < STAKE_AMOUNT) {
+    await send(conn, deployer, [
+      await staking.getStakeInstructionAsync({
+        operator: deployer,
+        operatorTokenAccount: opAta,
+        mint,
+        registry,
+        node,
+        nodeId: NODE_ID,
+        amount: STAKE_AMOUNT - currentStake,
+        lockDuration: 0n,
+      }),
+    ]);
+  }
 
   // 5. Submit reputation metrics → mirror into NodeState.reputation.
   await send(conn, deployer, [

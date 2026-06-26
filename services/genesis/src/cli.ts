@@ -4,7 +4,7 @@
 
 import { address, type Address } from '@solana/kit';
 
-import { loadEnv } from './config';
+import { loadEnv, SCHEDULES } from './config';
 import { runGenesis, type OwnerOverrides } from './genesis';
 
 const env = loadEnv();
@@ -18,6 +18,18 @@ const envOwner = (k: string): Address | undefined =>
 overrides.treasury = envOwner('WEFT_TREASURY_OWNER');
 overrides.emissions = envOwner('WEFT_EMISSIONS_OWNER');
 overrides.ido = envOwner('WEFT_IDO_OWNER');
+overrides.scheduleOwners = {};
+for (const schedule of SCHEDULES) {
+  const prefix = `WEFT_${schedule.key.toUpperCase()}`;
+  const beneficiary = envOwner(`${prefix}_BENEFICIARY`);
+  const authority = envOwner(`${prefix}_AUTHORITY`);
+  if (beneficiary || authority) {
+    if (!beneficiary || !authority) {
+      throw new Error(`${prefix}_BENEFICIARY and ${prefix}_AUTHORITY must be set together`);
+    }
+    overrides.scheduleOwners[schedule.key] = { beneficiary, authority };
+  }
+}
 
 runGenesis(env, overrides)
   .then((m) => {

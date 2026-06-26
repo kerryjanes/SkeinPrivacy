@@ -10,7 +10,7 @@ crate-type = ["cdylib", "lib"]
 name = "weft_vesting"
 
 [features]
-default = []
+default = ["no-log-ix-name"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []

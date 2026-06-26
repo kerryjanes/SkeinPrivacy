@@ -3,6 +3,7 @@
 
 pub mod constants;
 pub mod error;
+pub mod external;
 pub mod instructions;
 pub mod state;
 
@@ -12,7 +13,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("2vXouVhktgRQhBhuvUMpi6hCryEtAsJeHJMKG9QgxpzV");
+declare_id!("89wHYTG6deQUn4Rsbkcw2gG2sVSk8g9jTezP9qxG66Dn");
 
 #[program]
 pub mod token_distributor {

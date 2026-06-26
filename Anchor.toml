@@ -6,22 +6,22 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-governance = "q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA"
-token-distributor = "2vXouVhktgRQhBhuvUMpi6hCryEtAsJeHJMKG9QgxpzV"
-node-registry = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd"
-reputation = "6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u"
-rewards-settlement = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz"
-weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
-staking = "86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK"
+governance = "8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE"
+token-distributor = "89wHYTG6deQUn4Rsbkcw2gG2sVSk8g9jTezP9qxG66Dn"
+node-registry = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH"
+reputation = "6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ"
+rewards-settlement = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU"
+weft-vesting = "Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb"
+staking = "CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU"
 
 [programs.localnet]
-governance = "q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA"
-token-distributor = "2vXouVhktgRQhBhuvUMpi6hCryEtAsJeHJMKG9QgxpzV"
-node-registry = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd"
-reputation = "6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u"
-rewards-settlement = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz"
-weft-vesting = "FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv"
-staking = "86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK"
+governance = "8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE"
+token-distributor = "89wHYTG6deQUn4Rsbkcw2gG2sVSk8g9jTezP9qxG66Dn"
+node-registry = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH"
+reputation = "6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ"
+rewards-settlement = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU"
+weft-vesting = "Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb"
+staking = "CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU"
 
 [provider]
 cluster = "localnet"

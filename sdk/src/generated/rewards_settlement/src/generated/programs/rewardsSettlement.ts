@@ -92,7 +92,7 @@ import {
 } from '../pdas';
 
 export const REWARDS_SETTLEMENT_PROGRAM_ADDRESS =
-  'BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz' as Address<'BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz'>;
+  'BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU' as Address<'BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU'>;
 
 export enum RewardsSettlementAccount {
   ClaimStatus,
@@ -263,7 +263,7 @@ export function identifyRewardsSettlementInstruction(
 }
 
 export type ParsedRewardsSettlementInstruction<
-  TProgram extends string = 'BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz',
+  TProgram extends string = 'BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU',
 > =
   | ({ instructionType: RewardsSettlementInstruction.Claim } & ParsedClaimInstruction<TProgram>)
   | ({ instructionType: RewardsSettlementInstruction.Dispute } & ParsedDisputeInstruction<TProgram>)

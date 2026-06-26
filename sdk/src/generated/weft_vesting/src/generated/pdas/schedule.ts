@@ -25,7 +25,7 @@ export async function findSchedulePda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = 'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv' as Address<'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv'>,
+    programAddress = 'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb' as Address<'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

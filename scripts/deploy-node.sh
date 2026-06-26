@@ -27,8 +27,13 @@ SNI="${1:-www.microsoft.com}"
 HOP1_PORT="${HOP1_PORT:-443}"
 HOPN_PORT="${HOPN_PORT:-8443}"
 API_PORT="${API_PORT:-8088}"
+CLUSTER="${WEFT_CLUSTER:-devnet}"
 RPC="${WEFT_RPC:-https://api.devnet.solana.com}"
-WEFT_MINT="${WEFT_MINT:-8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i}"
+WEFT_MINT="${WEFT_MINT:-Hfvwx9F5NDzMCyywJZJsFVX83XaXnLNntCdk21h7Bmcy}"
+if [[ "$CLUSTER" == mainnet* ]]; then
+  [ -n "${WEFT_RPC:-}" ] || { echo "WEFT_RPC must be set explicitly for ${CLUSTER}"; exit 1; }
+  [ -n "${WEFT_MINT:-}" ] || { echo "WEFT_MINT must be set explicitly for ${CLUSTER}"; exit 1; }
+fi
 RAW="https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main"
 
 echo "→ dependencies (tor = multihop egress; node = control plane)…"
@@ -66,6 +71,7 @@ WEFT_FOUNDER_UUID=${FOUNDER_UUID}
 WEFT_PORT=${API_PORT}
 WEFT_XRAY_API=127.0.0.1:10085
 WEFT_STORE=/var/lib/weft/users.json
+WEFT_CLUSTER=${CLUSTER}
 WEFT_RPC=${RPC}
 WEFT_MINT=${WEFT_MINT}
 ENV

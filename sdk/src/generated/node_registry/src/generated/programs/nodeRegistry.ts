@@ -89,7 +89,7 @@ import {
 import { findNodePda, findRegistryPda, findTreeShardPda } from '../pdas';
 
 export const NODE_REGISTRY_PROGRAM_ADDRESS =
-  '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+  'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
 
 export enum NodeRegistryAccount {
   NodeState,
@@ -274,7 +274,7 @@ export function identifyNodeRegistryInstruction(
 }
 
 export type ParsedNodeRegistryInstruction<
-  TProgram extends string = '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd',
+  TProgram extends string = 'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH',
 > =
   | ({
       instructionType: NodeRegistryInstruction.Deregister;

@@ -10,7 +10,7 @@ crate-type = ["cdylib", "lib"]
 name = "reputation"
 
 [features]
-default = []
+default = ["no-log-ix-name"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -23,7 +23,6 @@ custom-panic = []
 [dependencies]
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
 weft-primitives = { workspace = true }
-node-registry = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }

@@ -3,10 +3,14 @@ use anchor_spl::token_interface::{
     burn_checked, transfer_checked, BurnChecked, Mint, TokenAccount, TokenInterface,
     TransferChecked,
 };
-use governance::ProtocolConfig;
 use weft_primitives::split_payment_bps;
 
-use crate::{constants::*, error::SettlementError, state::Distributor};
+use crate::{
+    constants::*,
+    error::SettlementError,
+    external::{load_protocol_split, GOVERNANCE_ID, PROTOCOL_CONFIG_SEED},
+    state::Distributor,
+};
 
 #[derive(Accounts)]
 pub struct PayTraffic<'info> {
@@ -20,14 +24,14 @@ pub struct PayTraffic<'info> {
         has_one = treasury,
     )]
     pub distributor: Account<'info, Distributor>,
-    /// The DAO-governed parameters; the payment split is read from here so
-    /// governance can adjust it without a program upgrade.
+    /// CHECK: PDA address is constrained to governance `[protocol_config]`; owner,
+    /// discriminator, and split offsets are validated before reading.
     #[account(
-        seeds = [governance::PROTOCOL_CONFIG_SEED],
-        bump = protocol_config.bump,
-        seeds::program = governance::ID,
+        seeds = [PROTOCOL_CONFIG_SEED],
+        bump,
+        seeds::program = GOVERNANCE_ID,
     )]
-    pub protocol_config: Account<'info, ProtocolConfig>,
+    pub protocol_config: UncheckedAccount<'info>,
     #[account(mut)]
     pub reward_mint: InterfaceAccount<'info, Mint>,
     #[account(mut, token::mint = reward_mint, token::authority = payer)]
@@ -44,11 +48,8 @@ impl PayTraffic<'_> {
     /// → reward vault, burn share burned, remainder → treasury (default 70/20/10).
     pub fn pay_traffic(&mut self, amount: u64) -> Result<()> {
         require!(amount > 0, SettlementError::ZeroAmount);
-        let split = split_payment_bps(
-            amount,
-            self.protocol_config.split_nodes_bps,
-            self.protocol_config.split_burn_bps,
-        );
+        let protocol_split = load_protocol_split(&self.protocol_config.to_account_info())?;
+        let split = split_payment_bps(amount, protocol_split.nodes_bps, protocol_split.burn_bps);
         let dec = self.reward_mint.decimals;
         let program = self.token_program.key();
 

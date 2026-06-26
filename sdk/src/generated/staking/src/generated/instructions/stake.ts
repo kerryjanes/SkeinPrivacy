@@ -63,7 +63,7 @@ export type StakeInstruction<
   TAccountMint extends string | AccountMeta<string> = string,
   TAccountProgramAuthority extends string | AccountMeta<string> = string,
   TAccountNodeRegistryProgram extends string | AccountMeta<string> =
-    '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd',
+    'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH',
   TAccountRegistry extends string | AccountMeta<string> = string,
   TAccountNode extends string | AccountMeta<string> = string,
   TAccountTokenProgram extends string | AccountMeta<string> =
@@ -267,7 +267,7 @@ export async function getStakeInstructionAsync<
   }
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
@@ -418,7 +418,7 @@ export function getStakeInstruction<
   // Resolve default values.
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =

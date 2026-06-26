@@ -73,6 +73,8 @@ async function main(): Promise<void> {
   const [govConfigPda] = await governance.findGovernanceConfigPda();
   const [govAuthority] = await governance.findGovernanceAuthorityPda();
   const [protocolConfigPda] = await governance.findProtocolConfigPda();
+  const cfg = await staking.fetchStakingConfig(conn.rpc, (await staking.findConfigPda())[0]);
+  const stakeMint = cfg.data.mint;
 
   // 1. Bootstrap governance (idempotent).
   const gc = await governance.fetchMaybeGovernanceConfig(conn.rpc, govConfigPda);
@@ -80,7 +82,7 @@ async function main(): Promise<void> {
     await send(conn, deployer, [
       await governance.getInitializeGovernanceInstructionAsync({
         authority: deployer,
-        govMint: deployer.address, // reference only
+        govMint: stakeMint,
         defaultQuorum: 10_000n,
         defaultApprovalThresholdBps: 6_000,
         votingPeriodSeconds: 30n,
@@ -105,8 +107,6 @@ async function main(): Promise<void> {
 
   // 2. Stake a freshly-locked governance position (lock pushes locked_until far
   //    enough that it can vote through the proposal window).
-  const cfg = await staking.fetchStakingConfig(conn.rpc, (await staking.findConfigPda())[0]);
-  const stakeMint = cfg.data.mint;
   const opAta = (
     await findAssociatedTokenPda({
       owner: deployer.address,
@@ -138,6 +138,7 @@ async function main(): Promise<void> {
   await send(conn, deployer, [
     await governance.getCreateProposalInstructionAsync({
       proposer: deployer,
+      position,
       proposal,
       nodeId: NODE_ID,
       name: 'flip dispute window',
@@ -186,6 +187,7 @@ async function main(): Promise<void> {
   await send(conn, deployer, [
     await governance.getCastVoteInstructionAsync({
       voter: deployer,
+      position,
       proposal,
       nodeId: NODE_ID,
       vote: governance.VoteKind.Yes,

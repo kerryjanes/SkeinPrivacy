@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     constants::*,
     error::GovError,
+    external::load_stake_position,
     state::{GovernanceConfig, Proposal, ProposalState},
 };
 
@@ -13,15 +14,9 @@ pub struct CreateProposal<'info> {
     pub proposer: Signer<'info>,
     #[account(mut, seeds = [GOVERNANCE_CONFIG_SEED], bump = governance_config.bump)]
     pub governance_config: Account<'info, GovernanceConfig>,
-    /// The proposer's stake position (owned by the staking program); confers the
-    /// right to propose once `amount >= min_proposal_stake`. `seeds::program` binds
-    /// it to the proposer + node_id and Anchor checks the owning program.
-    #[account(
-        seeds = [staking::STAKE_SEED, proposer.key().as_ref(), &node_id.to_le_bytes()],
-        bump = position.bump,
-        seeds::program = staking::ID,
-    )]
-    pub position: Account<'info, staking::StakePosition>,
+    /// CHECK: validated manually against staking program owner, PDA seeds, discriminator,
+    /// operator, and node id before reading stake amount.
+    pub position: UncheckedAccount<'info>,
     #[account(
         init,
         payer = proposer,
@@ -36,8 +31,13 @@ pub struct CreateProposal<'info> {
 impl CreateProposal<'_> {
     pub fn create_proposal(&mut self, _node_id: u64, name: String, bump: u8) -> Result<()> {
         require!(name.len() <= MAX_PROPOSAL_NAME, GovError::DataTooLong);
+        let position = load_stake_position(
+            &self.position.to_account_info(),
+            &self.proposer.key(),
+            _node_id,
+        )?;
         require!(
-            self.position.amount >= self.governance_config.min_proposal_stake,
+            position.amount >= self.governance_config.min_proposal_stake,
             GovError::InsufficientProposalStake
         );
         let now = Clock::get()?.unix_timestamp;

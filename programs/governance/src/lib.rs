@@ -3,6 +3,7 @@
 
 pub mod constants;
 pub mod error;
+pub mod external;
 pub mod instructions;
 pub mod state;
 
@@ -12,7 +13,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA");
+declare_id!("8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE");
 
 #[program]
 pub mod governance {

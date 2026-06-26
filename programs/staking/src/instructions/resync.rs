@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::{constants::*, mirror::mirror_stake, state::StakePosition};
+use crate::{constants::*, external::NODE_REGISTRY_ID, mirror::mirror_stake, state::StakePosition};
 
 /// Permissionless re-push of the position's amount into `NodeState` (heals any
 /// mirror divergence, e.g. after a node was registered post-stake).
@@ -15,7 +15,7 @@ pub struct Resync<'info> {
     #[account(seeds = [AUTHORITY_SEED], bump)]
     pub program_authority: UncheckedAccount<'info>,
     /// CHECK: node-registry program.
-    #[account(address = node_registry::ID)]
+    #[account(address = NODE_REGISTRY_ID)]
     pub node_registry_program: UncheckedAccount<'info>,
     /// CHECK: node-registry Registry PDA.
     pub registry: UncheckedAccount<'info>,

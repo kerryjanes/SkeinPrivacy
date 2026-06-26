@@ -7,6 +7,5 @@
  */
 
 export * from './proposalState';
-export * from './stakePosition';
 export * from './txAccountMeta';
 export * from './voteKind';

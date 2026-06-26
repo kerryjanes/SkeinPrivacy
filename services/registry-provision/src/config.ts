@@ -33,6 +33,9 @@ export function deriveWsUrl(rpcUrl: string): string {
 
 export function loadEnv(overrides: Partial<Env> = {}): Env {
   const cluster = overrides.cluster ?? process.env.WEFT_CLUSTER ?? 'devnet';
+  if (cluster.startsWith('mainnet') && !overrides.rpcUrl && !process.env.WEFT_RPC_URL) {
+    throw new Error(`WEFT_RPC_URL must be set explicitly for ${cluster}`);
+  }
   const rpcUrl =
     overrides.rpcUrl ??
     process.env.WEFT_RPC_URL ??

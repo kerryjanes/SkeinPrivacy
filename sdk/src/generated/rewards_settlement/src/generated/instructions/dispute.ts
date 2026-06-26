@@ -67,7 +67,7 @@ export type DisputeInstruction<
   TAccountClaimStatus extends string | AccountMeta<string> = string,
   TAccountProgramAuthority extends string | AccountMeta<string> = string,
   TAccountStakingProgram extends string | AccountMeta<string> =
-    '86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK',
+    'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU',
   TAccountStakingConfig extends string | AccountMeta<string> = string,
   TAccountStakingPosition extends string | AccountMeta<string> = string,
   TAccountStakingVault extends string | AccountMeta<string> = string,
@@ -75,12 +75,12 @@ export type DisputeInstruction<
   TAccountStakeMint extends string | AccountMeta<string> = string,
   TAccountStakingProgramAuthority extends string | AccountMeta<string> = string,
   TAccountReputationProgram extends string | AccountMeta<string> =
-    '6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u',
+    '6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ',
   TAccountReputationConfig extends string | AccountMeta<string> = string,
   TAccountReputationState extends string | AccountMeta<string> = string,
   TAccountReputationProgramAuthority extends string | AccountMeta<string> = string,
   TAccountNodeRegistryProgram extends string | AccountMeta<string> =
-    '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd',
+    'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH',
   TAccountRegistry extends string | AccountMeta<string> = string,
   TAccountNode extends string | AccountMeta<string> = string,
   TAccountTokenProgram extends string | AccountMeta<string> =
@@ -393,15 +393,15 @@ export async function getDisputeInstructionAsync<
   }
   if (!accounts.stakingProgram.value) {
     accounts.stakingProgram.value =
-      '86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK' as Address<'86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK'>;
+      'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU' as Address<'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU'>;
   }
   if (!accounts.reputationProgram.value) {
     accounts.reputationProgram.value =
-      '6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u' as Address<'6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u'>;
+      '6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ' as Address<'6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ'>;
   }
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =
@@ -637,15 +637,15 @@ export function getDisputeInstruction<
   // Resolve default values.
   if (!accounts.stakingProgram.value) {
     accounts.stakingProgram.value =
-      '86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK' as Address<'86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK'>;
+      'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU' as Address<'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU'>;
   }
   if (!accounts.reputationProgram.value) {
     accounts.reputationProgram.value =
-      '6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u' as Address<'6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u'>;
+      '6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ' as Address<'6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ'>;
   }
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value =

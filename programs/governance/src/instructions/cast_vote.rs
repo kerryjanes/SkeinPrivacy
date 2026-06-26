@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     constants::*,
     error::GovError,
+    external::load_stake_position,
     state::{Proposal, ProposalState, VoteKind, VoteRecord},
 };
 
@@ -17,14 +18,9 @@ pub struct CastVote<'info> {
         bump = proposal.bump,
     )]
     pub proposal: Account<'info, Proposal>,
-    /// The voter's stake position. `seeds::program` + the `voter.key()` seed bind
-    /// the position to the signer; `weight = position.amount`.
-    #[account(
-        seeds = [staking::STAKE_SEED, voter.key().as_ref(), &node_id.to_le_bytes()],
-        bump = position.bump,
-        seeds::program = staking::ID,
-    )]
-    pub position: Account<'info, staking::StakePosition>,
+    /// CHECK: validated manually against staking program owner, PDA seeds, discriminator,
+    /// operator, and node id before reading vote weight.
+    pub position: UncheckedAccount<'info>,
     /// `init` makes each position votable exactly once per proposal (double-vote guard).
     #[account(
         init,
@@ -48,13 +44,15 @@ impl CastVote<'_> {
             now >= self.proposal.voting_starts_at && now < self.proposal.voting_ends_at,
             GovError::VotingClosed
         );
+        let position =
+            load_stake_position(&self.position.to_account_info(), &self.voter.key(), node_id)?;
         // Stake must stay locked until voting ends, so it can't be unbonded mid-vote.
         require!(
-            self.position.locked_until >= self.proposal.voting_ends_at,
+            position.locked_until >= self.proposal.voting_ends_at,
             GovError::PositionUnlockedBeforeVoteEnds
         );
 
-        let weight = self.position.amount;
+        let weight = position.amount;
         let w = weight as u128;
         match vote {
             VoteKind::Yes => {

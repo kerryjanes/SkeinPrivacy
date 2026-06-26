@@ -25,7 +25,7 @@ export async function findProposalTransactionPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = 'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA' as Address<'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA'>,
+    programAddress = '8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE' as Address<'8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

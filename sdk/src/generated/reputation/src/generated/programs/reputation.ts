@@ -70,7 +70,7 @@ import {
 import { findConfigPda, findProgramAuthorityPda, findStatePda } from '../pdas';
 
 export const REPUTATION_PROGRAM_ADDRESS =
-  '6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u' as Address<'6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u'>;
+  '6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ' as Address<'6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ'>;
 
 export enum ReputationAccount {
   ReputationConfig,
@@ -195,7 +195,7 @@ export function identifyReputationInstruction(
 }
 
 export type ParsedReputationInstruction<
-  TProgram extends string = '6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u',
+  TProgram extends string = '6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ',
 > =
   | ({
       instructionType: ReputationInstruction.InitializeConfig;

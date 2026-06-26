@@ -10,6 +10,7 @@ use weft_primitives::{
 use crate::{
     constants::*,
     error::DistributorError,
+    external::{invoke_create_schedule, WEFT_VESTING_ID},
     state::{AllocationClaim, IdoDistributor},
 };
 
@@ -45,7 +46,7 @@ pub struct Claim<'info> {
 
     // ---- weft-vesting CPI (creates the 75% schedule funded from the claimant ATA) ----
     /// CHECK: the weft-vesting program.
-    #[account(address = weft_vesting::ID)]
+    #[account(address = WEFT_VESTING_ID)]
     pub vesting_program: UncheckedAccount<'info>,
     /// CHECK: the new VestingSchedule PDA (validated inside the CPI).
     #[account(mut)]
@@ -113,21 +114,17 @@ impl Claim<'_> {
         // Create the 75% linear schedule (cliff 0, start = TGE, non-revocable), funded by
         // the claimant from the ATA we just credited. The claimant is the funder/payer.
         if vest > 0 {
-            weft_vesting::cpi::create_schedule(
-                CpiContext::new(
-                    self.vesting_program.key(),
-                    weft_vesting::cpi::accounts::CreateSchedule {
-                        funder: self.claimant.to_account_info(),
-                        beneficiary: self.claimant.to_account_info(),
-                        authority: self.distributor.to_account_info(),
-                        mint: self.mint.to_account_info(),
-                        schedule: self.schedule.to_account_info(),
-                        vault: self.schedule_vault.to_account_info(),
-                        funder_token_account: self.claimant_token_account.to_account_info(),
-                        token_program: self.token_program.to_account_info(),
-                        system_program: self.system_program.to_account_info(),
-                    },
-                ),
+            invoke_create_schedule(
+                &self.vesting_program.to_account_info(),
+                &self.claimant.to_account_info(),
+                &self.claimant.to_account_info(),
+                &self.distributor.to_account_info(),
+                &self.mint.to_account_info(),
+                &self.schedule.to_account_info(),
+                &self.schedule_vault.to_account_info(),
+                &self.claimant_token_account.to_account_info(),
+                &self.token_program.to_account_info(),
+                &self.system_program.to_account_info(),
                 IDO_SCHEDULE_ID,
                 vest,
                 0,

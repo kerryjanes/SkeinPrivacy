@@ -14,7 +14,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv");
+declare_id!("Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb");
 
 #[program]
 pub mod weft_vesting {

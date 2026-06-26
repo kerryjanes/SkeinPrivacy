@@ -10,7 +10,7 @@ crate-type = ["cdylib", "lib"]
 name = "staking"
 
 [features]
-default = []
+default = ["no-log-ix-name"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -24,11 +24,10 @@ custom-panic = []
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-spl = { workspace = true }
 weft-primitives = { workspace = true }
-node-registry = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }
-node-registry = { workspace = true }
+node-registry = { workspace = true, features = ["idl-build"] }
 litesvm = { workspace = true }
 solana-message = { workspace = true }
 solana-transaction = { workspace = true }

@@ -3984,32 +3984,64 @@ function env(key, fallback) {
   const v = process.env[key];
   return v === void 0 || v === "" ? fallback : v;
 }
+function mainnetCluster(cluster) {
+  return cluster.startsWith("mainnet");
+}
+function requiredForMainnet(cluster, key, fallback) {
+  const v = process.env[key];
+  if (mainnetCluster(cluster) && (v === void 0 || v === "")) {
+    throw new Error(`${key} must be set explicitly for ${cluster}`);
+  }
+  return v === void 0 || v === "" ? fallback : v;
+}
 function loadConfig() {
+  const cluster = env("WEFT_CLUSTER", "devnet");
+  const mainnet = mainnetCluster(cluster);
+  const rpcUrl = requiredForMainnet(cluster, "WEFT_RPC", "https://api.devnet.solana.com");
+  const faucetKeypairPath = env("WEFT_FAUCET_KEYPAIR", "");
+  if (mainnet && faucetKeypairPath) {
+    throw new Error("WEFT_FAUCET_KEYPAIR must be empty on mainnet");
+  }
   return {
     host: env("WEFT_HOST", "vpn.weftnetwork.net"),
-    realityPublicKey: env("WEFT_REALITY_PBK", "ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw"),
-    realityPrivateKey: env("WEFT_REALITY_PRIV", "YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE"),
-    shortId: env("WEFT_SID", "4ce4af1305de920f"),
+    realityPublicKey: requiredForMainnet(
+      cluster,
+      "WEFT_REALITY_PBK",
+      "ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw"
+    ),
+    realityPrivateKey: requiredForMainnet(
+      cluster,
+      "WEFT_REALITY_PRIV",
+      "YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE"
+    ),
+    shortId: requiredForMainnet(cluster, "WEFT_SID", "4ce4af1305de920f"),
     sni: env("WEFT_SNI", "ya.ru"),
     hop1Port: Number(env("WEFT_HOP1_PORT", "443")),
     hopnPort: Number(env("WEFT_HOPN_PORT", "8443")),
     publicHop1Port: Number(env("WEFT_PUBLIC_HOP1_PORT", env("WEFT_HOP1_PORT", "443"))),
     publicHopnPort: Number(env("WEFT_PUBLIC_HOPN_PORT", env("WEFT_HOPN_PORT", "8443"))),
-    founderUuid: env("WEFT_FOUNDER_UUID", "b5ced6eb-0cba-4001-9679-65f8ba69e74b"),
+    founderUuid: requiredForMainnet(
+      cluster,
+      "WEFT_FOUNDER_UUID",
+      "b5ced6eb-0cba-4001-9679-65f8ba69e74b"
+    ),
     xrayConfigPath: env("WEFT_XRAY_CONFIG", "/usr/local/etc/xray/config.json"),
     xrayApi: env("WEFT_XRAY_API", "127.0.0.1:10085"),
     xrayBin: env("WEFT_XRAY_BIN", "/usr/local/bin/xray"),
     reloadCmd: env("WEFT_XRAY_RELOAD", "systemctl restart xray"),
+    xraySendThrough: env("WEFT_XRAY_SEND_THROUGH", ""),
     storePath: env("WEFT_STORE", "/var/lib/weft/users.json"),
     port: Number(env("WEFT_PORT", "8088")),
     pollMs: Number(env("WEFT_POLL_MS", "10000")),
-    rpcUrl: env("WEFT_RPC", "https://api.devnet.solana.com"),
-    wsUrl: env(
-      "WEFT_WS",
-      env("WEFT_RPC", "https://api.devnet.solana.com").replace(/^http/, "ws")
+    cluster,
+    rpcUrl,
+    wsUrl: env("WEFT_WS", rpcUrl.replace(/^http/, "ws")),
+    weftMint: requiredForMainnet(
+      cluster,
+      "WEFT_MINT",
+      "8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i"
     ),
-    weftMint: env("WEFT_MINT", "8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i"),
-    faucetKeypairPath: env("WEFT_FAUCET_KEYPAIR", ""),
+    faucetKeypairPath,
     faucetAmount: BigInt(env("WEFT_FAUCET_AMOUNT", "1000000")),
     // 0.001 $WEFT → ~10 MB quota
     frpsApi: env("WEFT_FRPS_API", ""),
@@ -4024,8 +4056,9 @@ import { dirname } from "node:path";
 var Store = class {
   constructor(path) {
     this.path = path;
-    this.data = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { users: {} };
+    this.data = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { users: {}, payments: {} };
     if (!this.data.users) this.data.users = {};
+    if (!this.data.payments) this.data.payments = {};
   }
   data;
   get(wallet) {
@@ -4037,6 +4070,43 @@ var Store = class {
   put(user) {
     this.data.users[user.wallet] = user;
     this.save();
+  }
+  payment(signature) {
+    return this.data.payments[signature];
+  }
+  beginPayment(signature, wallet, now = Date.now()) {
+    const existing = this.payment(signature);
+    if (existing) {
+      throw new Error("payment signature already submitted");
+    }
+    this.data.payments[signature] = {
+      wallet,
+      signature,
+      amountBaseUnits: "0",
+      status: "pending",
+      createdAt: now
+    };
+    this.save();
+  }
+  completePayment(signature, wallet, amountBaseUnits, now = Date.now()) {
+    const existing = this.payment(signature);
+    if (!existing || existing.wallet !== wallet || existing.status !== "pending") {
+      throw new Error("payment signature was not reserved by this wallet");
+    }
+    this.data.payments[signature] = {
+      ...existing,
+      amountBaseUnits: amountBaseUnits.toString(),
+      status: "processed",
+      processedAt: now
+    };
+    this.save();
+  }
+  forgetPendingPayment(signature, wallet) {
+    const existing = this.payment(signature);
+    if (existing?.wallet === wallet && existing.status === "pending") {
+      delete this.data.payments[signature];
+      this.save();
+    }
   }
   save() {
     const dir = dirname(this.path);
@@ -12142,14 +12212,16 @@ var STAKING_ERROR__UNAUTHORIZED = 6e3;
 var STAKING_ERROR__LOCKED = 6001;
 var STAKING_ERROR__STILL_UNBONDING = 6002;
 var STAKING_ERROR__INVALID_LOCK = 6003;
-var STAKING_ERROR__ZERO_AMOUNT = 6004;
-var STAKING_ERROR__INSUFFICIENT_STAKE = 6005;
-var STAKING_ERROR__MATH_OVERFLOW = 6006;
+var STAKING_ERROR__INVALID_UNBONDING = 6004;
+var STAKING_ERROR__ZERO_AMOUNT = 6005;
+var STAKING_ERROR__INSUFFICIENT_STAKE = 6006;
+var STAKING_ERROR__MATH_OVERFLOW = 6007;
 var stakingErrorMessages;
 if (process.env["NODE_ENV"] !== "production") {
   stakingErrorMessages = {
     [STAKING_ERROR__INSUFFICIENT_STAKE]: `Insufficient staked balance`,
     [STAKING_ERROR__INVALID_LOCK]: `Invalid lock duration`,
+    [STAKING_ERROR__INVALID_UNBONDING]: `Invalid unbonding duration`,
     [STAKING_ERROR__LOCKED]: `Stake is still locked`,
     [STAKING_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
     [STAKING_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
@@ -12381,9 +12453,6 @@ __export(generated_exports, {
   getPostEpochInstructionDataCodec: () => getPostEpochInstructionDataCodec,
   getPostEpochInstructionDataDecoder: () => getPostEpochInstructionDataDecoder,
   getPostEpochInstructionDataEncoder: () => getPostEpochInstructionDataEncoder,
-  getProtocolConfigCodec: () => getProtocolConfigCodec,
-  getProtocolConfigDecoder: () => getProtocolConfigDecoder,
-  getProtocolConfigEncoder: () => getProtocolConfigEncoder,
   getRewardsSettlementErrorMessage: () => getRewardsSettlementErrorMessage,
   getSetAuthoritiesDiscriminatorBytes: () => getSetAuthoritiesDiscriminatorBytes,
   getSetAuthoritiesInstruction: () => getSetAuthoritiesInstruction,
@@ -12631,7 +12700,7 @@ function getEpochDistributionSize() {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
+  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12645,7 +12714,7 @@ async function findClaimStatusPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
+  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12656,7 +12725,7 @@ async function findDistributorPda(config = {}) {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
+  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12668,7 +12737,7 @@ async function findEpochDistributionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/programAuthority.js
 async function findProgramAuthorityPda3(config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
+  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([97, 117, 116, 104, 111, 114, 105, 116, 121]))]
@@ -12677,7 +12746,7 @@ async function findProgramAuthorityPda3(config = {}) {
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz" } = config;
+  const { programAddress = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12934,13 +13003,13 @@ async function getDisputeInstructionAsync(input, config) {
     accounts.programAuthority.value = await findProgramAuthorityPda3();
   }
   if (!accounts.stakingProgram.value) {
-    accounts.stakingProgram.value = "86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK";
+    accounts.stakingProgram.value = "CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU";
   }
   if (!accounts.reputationProgram.value) {
-    accounts.reputationProgram.value = "6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u";
+    accounts.reputationProgram.value = "6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ";
   }
   if (!accounts.nodeRegistryProgram.value) {
-    accounts.nodeRegistryProgram.value = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd";
+    accounts.nodeRegistryProgram.value = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH";
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
@@ -13010,13 +13079,13 @@ function getDisputeInstruction(input, config) {
   const accounts = originalAccounts;
   const args = { ...input };
   if (!accounts.stakingProgram.value) {
-    accounts.stakingProgram.value = "86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK";
+    accounts.stakingProgram.value = "CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU";
   }
   if (!accounts.reputationProgram.value) {
-    accounts.reputationProgram.value = "6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u";
+    accounts.reputationProgram.value = "6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ";
   }
   if (!accounts.nodeRegistryProgram.value) {
-    accounts.nodeRegistryProgram.value = "6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd";
+    accounts.nodeRegistryProgram.value = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH";
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
@@ -13409,7 +13478,7 @@ async function getPayTrafficInstructionAsync(input, config) {
   }
   if (!accounts.protocolConfig.value) {
     accounts.protocolConfig.value = await getProgramDerivedAddress2({
-      programAddress: "q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA",
+      programAddress: "8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE",
       seeds: [
         getBytesEncoder2().encode(new Uint8Array([112, 114, 111, 116, 111, 99, 111, 108, 95, 99, 111, 110, 102, 105, 103]))
       ]
@@ -13899,7 +13968,7 @@ function parseTransferAuthorityInstruction3(instruction) {
 }
 
 // ../../sdk/dist/generated/rewards_settlement/src/generated/programs/rewardsSettlement.js
-var REWARDS_SETTLEMENT_PROGRAM_ADDRESS = "BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz";
+var REWARDS_SETTLEMENT_PROGRAM_ADDRESS = "BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU";
 var RewardsSettlementAccount;
 (function(RewardsSettlementAccount2) {
   RewardsSettlementAccount2[RewardsSettlementAccount2["ClaimStatus"] = 0] = "ClaimStatus";
@@ -14114,45 +14183,6 @@ function isRewardsSettlementError(error, transactionMessage, code) {
   return isProgramError2(error, transactionMessage, REWARDS_SETTLEMENT_PROGRAM_ADDRESS, code);
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/types/protocolConfig.js
-function getProtocolConfigEncoder() {
-  return getStructEncoder2([
-    ["authority", getAddressEncoder2()],
-    ["splitNodesBps", getU32Encoder2()],
-    ["splitBurnBps", getU32Encoder2()],
-    ["splitTreasuryBps", getU32Encoder2()],
-    ["disputeWindowSeconds", getI64Encoder()],
-    ["clawbackWindowSeconds", getI64Encoder()],
-    ["baseRatePerGb", getU64Encoder2()],
-    ["geoBonusMaxBps", getU32Encoder2()],
-    ["reputationMinBps", getU32Encoder2()],
-    ["reputationMaxBps", getU32Encoder2()],
-    ["stakingBonusBps", getU32Encoder2()],
-    ["stakingBonusThreshold", getU64Encoder2()],
-    ["bump", getU8Encoder2()]
-  ]);
-}
-function getProtocolConfigDecoder() {
-  return getStructDecoder2([
-    ["authority", getAddressDecoder2()],
-    ["splitNodesBps", getU32Decoder2()],
-    ["splitBurnBps", getU32Decoder2()],
-    ["splitTreasuryBps", getU32Decoder2()],
-    ["disputeWindowSeconds", getI64Decoder()],
-    ["clawbackWindowSeconds", getI64Decoder()],
-    ["baseRatePerGb", getU64Decoder2()],
-    ["geoBonusMaxBps", getU32Decoder2()],
-    ["reputationMinBps", getU32Decoder2()],
-    ["reputationMaxBps", getU32Decoder2()],
-    ["stakingBonusBps", getU32Decoder2()],
-    ["stakingBonusThreshold", getU64Decoder2()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getProtocolConfigCodec() {
-  return combineCodec2(getProtocolConfigEncoder(), getProtocolConfigDecoder());
-}
-
 // ../../sdk/dist/generated/governance/src/generated/accounts/governanceConfig.js
 var GOVERNANCE_CONFIG_DISCRIMINATOR = new Uint8Array([
   81,
@@ -14340,6 +14370,18 @@ var INITIALIZE_PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
   118
 ]);
 
+// ../../sdk/dist/generated/governance/src/generated/instructions/migrateProtocolConfig.js
+var MIGRATE_PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
+  240,
+  133,
+  241,
+  218,
+  118,
+  253,
+  139,
+  28
+]);
+
 // ../../sdk/dist/generated/governance/src/generated/instructions/setGovernanceAuthority.js
 var SET_GOVERNANCE_AUTHORITY_DISCRIMINATOR = new Uint8Array([
   0,
@@ -14384,8 +14426,9 @@ var GovernanceInstruction;
   GovernanceInstruction2[GovernanceInstruction2["FinalizeProposal"] = 6] = "FinalizeProposal";
   GovernanceInstruction2[GovernanceInstruction2["InitializeGovernance"] = 7] = "InitializeGovernance";
   GovernanceInstruction2[GovernanceInstruction2["InitializeProtocolConfig"] = 8] = "InitializeProtocolConfig";
-  GovernanceInstruction2[GovernanceInstruction2["SetGovernanceAuthority"] = 9] = "SetGovernanceAuthority";
-  GovernanceInstruction2[GovernanceInstruction2["UpdateProtocolConfig"] = 10] = "UpdateProtocolConfig";
+  GovernanceInstruction2[GovernanceInstruction2["MigrateProtocolConfig"] = 9] = "MigrateProtocolConfig";
+  GovernanceInstruction2[GovernanceInstruction2["SetGovernanceAuthority"] = 10] = "SetGovernanceAuthority";
+  GovernanceInstruction2[GovernanceInstruction2["UpdateProtocolConfig"] = 11] = "UpdateProtocolConfig";
 })(GovernanceInstruction || (GovernanceInstruction = {}));
 
 // ../../sdk/dist/generated/governance/src/generated/errors/governance.js
@@ -15146,6 +15189,12 @@ function renderConfig(cfg2, activeUsers) {
     { id: cfg2.founderUuid, email: "founder" },
     ...activeUsers.map((u) => ({ id: u.uuid, email: u.email }))
   ];
+  const directOutbound = {
+    tag: "direct",
+    protocol: "freedom",
+    settings: cfg2.xraySendThrough ? { domainStrategy: "UseIPv4" } : void 0
+  };
+  if (cfg2.xraySendThrough) directOutbound.sendThrough = cfg2.xraySendThrough;
   return {
     log: { loglevel: "warning" },
     api: { tag: "api", services: ["HandlerService", "StatsService"] },
@@ -15182,7 +15231,7 @@ function renderConfig(cfg2, activeUsers) {
       ] : []
     ],
     outbounds: [
-      { tag: "direct", protocol: "freedom" },
+      directOutbound,
       ...multihop ? [
         {
           tag: "tor",
@@ -15237,7 +15286,7 @@ var Controller = class {
     this.store = store2;
     this.rpc = rpc2;
   }
-  lastApplied = "\0uninitialized";
+  lastApplied = "__uninitialized";
   /** Render + reload xray only when the active user set actually changed. */
   reconcile() {
     const active = this.store.all().filter((u) => u.active);
@@ -15249,7 +15298,7 @@ var Controller = class {
   /** Apply whatever the store says on boot (so a restart re-syncs xray to the saved state). */
   bootstrap() {
     this.reconcile();
-    if (this.lastApplied === "\0uninitialized") {
+    if (this.lastApplied === "__uninitialized") {
       applyConfig(this.cfg, []);
       this.lastApplied = "";
     }
@@ -15307,13 +15356,21 @@ var Controller = class {
   async settle(wallet, signature) {
     const u = this.store.get(wallet);
     if (!u) throw new Error("unknown wallet \u2014 provision first");
-    const { amount } = await verifyPayTraffic(this.rpc, signature, wallet);
+    this.store.beginPayment(signature, wallet);
+    let amount;
+    try {
+      ({ amount } = await verifyPayTraffic(this.rpc, signature, wallet));
+    } catch (e8) {
+      this.store.forgetPendingPayment(signature, wallet);
+      throw e8;
+    }
     const paidBytes = quotaBytes(amount);
     const unsettled = BigInt(u.unsettledBytes);
     u.unsettledBytes = (unsettled > paidBytes ? unsettled - paidBytes : 0n).toString();
     await this.refreshBalance(u);
     u.active = this.computeActive(u);
     this.store.put(u);
+    this.store.completePayment(signature, wallet, amount);
     this.reconcile();
     return this.status(u);
   }

@@ -22,16 +22,19 @@ export const STAKING_ERROR__LOCKED = 0x1771; // 6001
 export const STAKING_ERROR__STILL_UNBONDING = 0x1772; // 6002
 /** InvalidLock: Invalid lock duration */
 export const STAKING_ERROR__INVALID_LOCK = 0x1773; // 6003
+/** InvalidUnbonding: Invalid unbonding duration */
+export const STAKING_ERROR__INVALID_UNBONDING = 0x1774; // 6004
 /** ZeroAmount: Amount must be greater than zero */
-export const STAKING_ERROR__ZERO_AMOUNT = 0x1774; // 6004
+export const STAKING_ERROR__ZERO_AMOUNT = 0x1775; // 6005
 /** InsufficientStake: Insufficient staked balance */
-export const STAKING_ERROR__INSUFFICIENT_STAKE = 0x1775; // 6005
+export const STAKING_ERROR__INSUFFICIENT_STAKE = 0x1776; // 6006
 /** MathOverflow: Arithmetic overflow */
-export const STAKING_ERROR__MATH_OVERFLOW = 0x1776; // 6006
+export const STAKING_ERROR__MATH_OVERFLOW = 0x1777; // 6007
 
 export type StakingError =
   | typeof STAKING_ERROR__INSUFFICIENT_STAKE
   | typeof STAKING_ERROR__INVALID_LOCK
+  | typeof STAKING_ERROR__INVALID_UNBONDING
   | typeof STAKING_ERROR__LOCKED
   | typeof STAKING_ERROR__MATH_OVERFLOW
   | typeof STAKING_ERROR__STILL_UNBONDING
@@ -43,6 +46,7 @@ if (process.env['NODE_ENV'] !== 'production') {
   stakingErrorMessages = {
     [STAKING_ERROR__INSUFFICIENT_STAKE]: `Insufficient staked balance`,
     [STAKING_ERROR__INVALID_LOCK]: `Invalid lock duration`,
+    [STAKING_ERROR__INVALID_UNBONDING]: `Invalid unbonding duration`,
     [STAKING_ERROR__LOCKED]: `Stake is still locked`,
     [STAKING_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
     [STAKING_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,

@@ -1,11 +1,14 @@
 import { describe, expect, it } from 'vitest';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { rewardsSettlement } from '@weft/sdk';
 import { loadConfig } from '../src/config.js';
 import { math } from '@weft/sdk';
 import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
 import { multiHopLink, oneHopLink } from '../src/links.js';
 import { parseUsage, renderConfig } from '../src/xray.js';
-import type { User } from '../src/store.js';
+import { Store, type User } from '../src/store.js';
 
 const cfg = loadConfig();
 const user = (over: Partial<User> = {}): User => ({
@@ -19,6 +22,56 @@ const user = (over: Partial<User> = {}): User => ({
   active: true,
   createdAt: 0,
   ...over,
+});
+
+function withEnv(keys: Record<string, string | undefined>, fn: () => void): void {
+  const saved = new Map<string, string | undefined>();
+  for (const key of Object.keys(keys)) {
+    saved.set(key, process.env[key]);
+    if (keys[key] === undefined) delete process.env[key];
+    else process.env[key] = keys[key];
+  }
+  try {
+    fn();
+  } finally {
+    for (const [key, value] of saved) {
+      if (value === undefined) delete process.env[key];
+      else process.env[key] = value;
+    }
+  }
+}
+
+describe('mainnet config safety', () => {
+  it('requires explicit RPC, mint, Reality keys and founder UUID on mainnet', () => {
+    withEnv(
+      {
+        WEFT_CLUSTER: 'mainnet-beta',
+        WEFT_RPC: undefined,
+        WEFT_MINT: undefined,
+        WEFT_REALITY_PBK: undefined,
+        WEFT_REALITY_PRIV: undefined,
+        WEFT_SID: undefined,
+        WEFT_FOUNDER_UUID: undefined,
+      },
+      () => expect(() => loadConfig()).toThrow(/WEFT_RPC/),
+    );
+  });
+
+  it('rejects faucet configuration on mainnet', () => {
+    withEnv(
+      {
+        WEFT_CLUSTER: 'mainnet-beta',
+        WEFT_RPC: 'https://api.mainnet-beta.solana.com',
+        WEFT_MINT: 'So11111111111111111111111111111111111111112',
+        WEFT_REALITY_PBK: 'pbk',
+        WEFT_REALITY_PRIV: 'priv',
+        WEFT_SID: 'abcd',
+        WEFT_FOUNDER_UUID: '11111111-2222-3333-4444-555555555555',
+        WEFT_FAUCET_KEYPAIR: '/tmp/faucet.json',
+      },
+      () => expect(() => loadConfig()).toThrow(/FAUCET/),
+    );
+  });
 });
 
 describe('pricing (0.1 WEFT/GB)', () => {
@@ -84,6 +137,12 @@ describe('xray config render', () => {
     expect(hop1.settings.clients).toHaveLength(1);
     expect(hop1.settings.clients[0].email).toBe('founder');
   });
+  it('can pin 1-hop egress to a physical interface IP to bypass a host VPN', () => {
+    const c = renderConfig({ ...cfg, xraySendThrough: '192.168.0.103' }, []) as any;
+    const direct = c.outbounds.find((o: any) => o.tag === 'direct');
+    expect(direct.sendThrough).toBe('192.168.0.103');
+    expect(direct.settings.domainStrategy).toBe('UseIPv4');
+  });
 });
 
 describe('pay_traffic settlement verification', () => {
@@ -130,6 +189,40 @@ describe('pay_traffic settlement verification', () => {
     const keys = [PAYER, '11111111111111111111111111111111'];
     const ix = { programIdIndex: 1, accounts: [0], data: payTrafficData(10n) };
     expect(() => decodePayTraffic(keys, [ix], PAYER)).toThrow(/no pay_traffic/);
+  });
+});
+
+describe('payment replay ledger', () => {
+  it('persists processed payment signatures and rejects reuse after restart', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-cp-'));
+    try {
+      const path = join(dir, 'users.json');
+      const first = new Store(path);
+      first.beginPayment('tx-sig-1', user().wallet, 1000);
+      first.completePayment('tx-sig-1', user().wallet, 123n, 1001);
+
+      const afterRestart = new Store(path);
+      expect(afterRestart.payment('tx-sig-1')?.status).toBe('processed');
+      expect(() => afterRestart.beginPayment('tx-sig-1', user().wallet, 1002)).toThrow(
+        /already submitted/,
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('removes pending reservations when verification fails', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-cp-'));
+    try {
+      const path = join(dir, 'users.json');
+      const store = new Store(path);
+      store.beginPayment('tx-sig-2', user().wallet, 1000);
+      store.forgetPendingPayment('tx-sig-2', user().wallet);
+      expect(store.payment('tx-sig-2')).toBeUndefined();
+      expect(() => store.beginPayment('tx-sig-2', user().wallet, 1001)).not.toThrow();
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

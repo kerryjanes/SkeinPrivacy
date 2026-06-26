@@ -15,5 +15,6 @@ export * from './executeTransaction';
 export * from './finalizeProposal';
 export * from './initializeGovernance';
 export * from './initializeProtocolConfig';
+export * from './migrateProtocolConfig';
 export * from './setGovernanceAuthority';
 export * from './updateProtocolConfig';

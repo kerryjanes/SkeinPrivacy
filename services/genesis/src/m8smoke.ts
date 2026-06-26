@@ -1,25 +1,28 @@
 // M8 devnet smoke: prove the IDO/TGE token-distributor end to end on the LIVE program.
-// Create a test mint, post a tiny allocation merkle root, fund the distributor vault, and
-// claim — asserting the claimant receives 25% liquid at TGE and a 12-month vesting
-// schedule (created via CPI into weft-vesting) holding the other 75%.
+// Use the fresh devnet genesis mint, post a tiny allocation merkle root, fund the
+// distributor vault from the devnet IDO custody account, and claim — asserting
+// the claimant receives 25% liquid at TGE and a 12-month vesting schedule
+// (created via CPI into weft-vesting) holding the other 75%.
 //
 // Run: WEFT_KEYPAIR=… WEFT_RPC_URL=<helius> pnpm --filter @weft/genesis exec tsx src/m8smoke.ts
 
 import {
+  createKeyPairSignerFromBytes,
   generateKeyPairSigner,
   getAddressEncoder,
   getProgramDerivedAddress,
+  lamports,
+  writeKeyPairSigner,
   type Address,
 } from '@solana/kit';
-import { getCreateAccountInstruction } from '@solana-program/system';
+import { getTransferSolInstruction } from '@solana-program/system';
 import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstructionAsync,
-  getInitializeMint2Instruction,
-  getMintSize,
-  getMintToInstruction,
+  getTransferCheckedInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
+import { existsSync, readFileSync } from 'node:fs';
 import {
   fetchVestingSchedule,
   math,
@@ -30,6 +33,8 @@ import {
 import { connect, loadSigner, send, type Connection } from './rpc';
 
 const addrEnc = getAddressEncoder();
+const GENESIS_MANIFEST = new URL('../manifests/devnet.json', import.meta.url).pathname;
+const CLAIMANT_FILE = new URL('../.m8-claimant.json', import.meta.url).pathname;
 
 function u64le(v: bigint): Uint8Array {
   const out = new Uint8Array(8);
@@ -50,53 +55,59 @@ async function tokenAmount(conn: Connection, addr: Address): Promise<bigint> {
   return v;
 }
 
+async function loadOrCreateClaimant() {
+  if (existsSync(CLAIMANT_FILE)) {
+    return createKeyPairSignerFromBytes(
+      Uint8Array.from(JSON.parse(readFileSync(CLAIMANT_FILE, 'utf8')) as number[]),
+    );
+  }
+  const signer = await generateKeyPairSigner(true);
+  await writeKeyPairSigner(signer, CLAIMANT_FILE);
+  return signer;
+}
+
 async function main(): Promise<void> {
   const rpcUrl = process.env.WEFT_RPC_URL ?? 'https://api.devnet.solana.com';
   const wsUrl = process.env.WEFT_RPC_WS ?? rpcUrl.replace(/^http/, 'ws').replace('8899', '8900');
   const keypairPath = process.env.WEFT_KEYPAIR ?? `${process.env.HOME}/.config/solana/id.json`;
   const conn = connect(rpcUrl, wsUrl);
   const deployer = await loadSigner(keypairPath);
-  console.log(`[m8] claimant ${deployer.address}`);
+  const genesis = JSON.parse(readFileSync(GENESIS_MANIFEST, 'utf8')) as {
+    weftMint: Address;
+    custody: { ido: { ata: Address } };
+  };
+  const mint = genesis.weftMint;
+  const idoCustodyAta = genesis.custody.ido.ata;
+  const claimant = await loadOrCreateClaimant();
+  console.log(`[m8] authority ${deployer.address}; claimant ${claimant.address}; mint ${mint}`);
 
-  // 1. A test IDO mint (deployer = mint authority).
-  const mint = await generateKeyPairSigner();
-  const space = BigInt(getMintSize());
-  const rent = await conn.rpc.getMinimumBalanceForRentExemption(space).send();
+  // 1. Create the claimant ATA and fund claimant SOL for claim-created rent accounts.
   const claimantAta = (
     await findAssociatedTokenPda({
-      owner: deployer.address,
-      mint: mint.address,
+      owner: claimant.address,
+      mint,
       tokenProgram: TOKEN_PROGRAM_ADDRESS,
     })
   )[0];
   await send(conn, deployer, [
-    getCreateAccountInstruction({
-      payer: deployer,
-      newAccount: mint,
-      lamports: rent,
-      space,
-      programAddress: TOKEN_PROGRAM_ADDRESS,
-    }),
-    getInitializeMint2Instruction({
-      mint: mint.address,
-      decimals: 9,
-      mintAuthority: deployer.address,
-      freezeAuthority: null,
+    getTransferSolInstruction({
+      source: deployer,
+      destination: claimant.address,
+      amount: lamports(30_000_000n),
     }),
     await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer: deployer,
-      owner: deployer.address,
-      mint: mint.address,
+      owner: claimant.address,
+      mint,
     }),
   ]);
-  console.log(`[m8] IDO mint ${mint.address}`);
 
   // 2. A 1-leaf allocation tree for the claimant (root = the single leaf).
   const [distributor] = await tokenDistributor.findDistributorPda();
   const allocation = 4_000_000_000n; // 4 WEFT
   const leaf = math.hashAllocationLeaf(
     addrEnc.encode(distributor) as Uint8Array,
-    addrEnc.encode(deployer.address) as Uint8Array,
+    addrEnc.encode(claimant.address) as Uint8Array,
     allocation,
   );
   const root = math.merkleRoot([leaf]); // single leaf → root == leaf
@@ -113,7 +124,7 @@ async function main(): Promise<void> {
     await send(conn, deployer, [
       await tokenDistributor.getInitializeIdoInstructionAsync({
         authority: deployer,
-        mint: mint.address,
+        mint,
         merkleRoot: root,
         tgeTs,
         tgeBps: 2_500,
@@ -122,25 +133,30 @@ async function main(): Promise<void> {
       }),
     ]);
     console.log('[m8] distributor initialized');
-  } else if (existing.data.mint !== mint.address) {
-    throw new Error('distributor already initialized with a different mint; reset devnet state');
+  } else if (existing.data.mint !== mint) {
+    throw new Error(`distributor mint ${existing.data.mint} != genesis mint ${mint}`);
   }
 
   // 4. Fund the distributor vault with the full allocation.
   const [vault] = await tokenDistributor.findVaultPda();
-  await send(conn, deployer, [
-    getMintToInstruction({
-      mint: mint.address,
-      token: vault,
-      mintAuthority: deployer,
-      amount: allocation,
-    }),
-  ]);
+  const vaultBalance = await tokenAmount(conn, vault);
+  if (vaultBalance < allocation) {
+    await send(conn, deployer, [
+      getTransferCheckedInstruction({
+        source: idoCustodyAta,
+        mint,
+        destination: vault,
+        authority: deployer,
+        amount: allocation - vaultBalance,
+        decimals: 9,
+      }),
+    ]);
+  }
 
   // 5. Claim → 25% TGE liquid + 75% vesting schedule via CPI.
   const [schedule] = await getProgramDerivedAddress({
     programAddress: WEFT_VESTING_PROGRAM_ADDRESS,
-    seeds: [new TextEncoder().encode('schedule'), addrEnc.encode(deployer.address), u64le(0n)],
+    seeds: [new TextEncoder().encode('schedule'), addrEnc.encode(claimant.address), u64le(0n)],
   });
   const [scheduleVault] = await getProgramDerivedAddress({
     programAddress: WEFT_VESTING_PROGRAM_ADDRESS,
@@ -150,8 +166,8 @@ async function main(): Promise<void> {
   const before = await tokenAmount(conn, claimantAta);
   await send(conn, deployer, [
     await tokenDistributor.getClaimInstructionAsync({
-      claimant: deployer,
-      mint: mint.address,
+      claimant,
+      mint,
       vault,
       claimantTokenAccount: claimantAta,
       vestingProgram: WEFT_VESTING_PROGRAM_ADDRESS,

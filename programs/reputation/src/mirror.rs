@@ -1,6 +1,7 @@
 use anchor_lang::prelude::*;
 
 use crate::constants::AUTHORITY_SEED;
+use crate::external::invoke_set_reputation;
 
 /// Mirror a node's reputation multiplier into `NodeState` via gated CPI into
 /// node-registry. No-op when the node account is absent.
@@ -16,14 +17,12 @@ pub fn mirror_reputation<'info>(
         return Ok(());
     };
     let seeds: &[&[&[u8]]] = &[&[AUTHORITY_SEED, &[authority_bump]]];
-    let cpi = CpiContext::new_with_signer(
-        node_registry_program.key(),
-        node_registry::cpi::accounts::SetReputation {
-            reputation_authority: program_authority.clone(),
-            registry: registry.clone(),
-            node: node.clone(),
-        },
+    invoke_set_reputation(
+        node_registry_program,
+        program_authority,
+        registry,
+        node,
         seeds,
-    );
-    node_registry::cpi::set_reputation(cpi, multiplier_bps)
+        multiplier_bps,
+    )
 }

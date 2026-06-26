@@ -61,7 +61,7 @@ export type UpdateMetricsInstruction<
   TAccountState extends string | AccountMeta<string> = string,
   TAccountProgramAuthority extends string | AccountMeta<string> = string,
   TAccountNodeRegistryProgram extends string | AccountMeta<string> =
-    '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd',
+    'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH',
   TAccountRegistry extends string | AccountMeta<string> = string,
   TAccountNode extends string | AccountMeta<string> = string,
   TAccountSystemProgram extends string | AccountMeta<string> = '11111111111111111111111111111111',
@@ -241,7 +241,7 @@ export async function getUpdateMetricsInstructionAsync<
   }
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =
@@ -365,7 +365,7 @@ export function getUpdateMetricsInstruction<
   // Resolve default values.
   if (!accounts.nodeRegistryProgram.value) {
     accounts.nodeRegistryProgram.value =
-      '6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd' as Address<'6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd'>;
+      'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH' as Address<'GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH'>;
   }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =

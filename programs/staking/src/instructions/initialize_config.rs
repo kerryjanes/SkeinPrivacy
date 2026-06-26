@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token_interface::Mint;
 
-use crate::{constants::*, state::StakingConfig};
+use crate::{constants::*, error::StakingError, state::StakingConfig};
 
 #[derive(Accounts)]
 pub struct InitializeConfig<'info> {
@@ -19,6 +19,7 @@ pub struct InitializeConfig<'info> {
 
 impl InitializeConfig<'_> {
     pub fn initialize_config(&mut self, unbonding_seconds: i64, bump: u8) -> Result<()> {
+        require!(unbonding_seconds >= 0, StakingError::InvalidUnbonding);
         self.config.set_inner(StakingConfig {
             authority: self.authority.key(),
             slash_authority: self.slash_authority.key(),

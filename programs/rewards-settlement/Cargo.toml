@@ -10,7 +10,7 @@ crate-type = ["cdylib", "lib"]
 name = "rewards_settlement"
 
 [features]
-default = []
+default = ["no-log-ix-name"]
 cpi = ["no-entrypoint"]
 no-entrypoint = []
 no-idl = []
@@ -24,17 +24,14 @@ custom-panic = []
 anchor-lang = { workspace = true }
 anchor-spl = { workspace = true }
 weft-primitives = { workspace = true }
-node-registry = { workspace = true }
-staking = { workspace = true }
-reputation = { workspace = true }
-governance = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }
 weft-primitives = { workspace = true }
-node-registry = { workspace = true }
-staking = { workspace = true }
+node-registry = { workspace = true, features = ["idl-build"] }
+staking = { workspace = true, features = ["idl-build"] }
 reputation = { workspace = true }
+governance = { workspace = true }
 litesvm = { workspace = true }
 solana-message = { workspace = true }
 solana-transaction = { workspace = true }

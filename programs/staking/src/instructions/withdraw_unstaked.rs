@@ -3,7 +3,10 @@ use anchor_spl::token_interface::{
     transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked,
 };
 
-use crate::{constants::*, error::StakingError, mirror::mirror_stake, state::StakePosition};
+use crate::{
+    constants::*, error::StakingError, external::NODE_REGISTRY_ID, mirror::mirror_stake,
+    state::StakePosition,
+};
 
 #[derive(Accounts)]
 #[instruction(node_id: u64)]
@@ -27,7 +30,7 @@ pub struct WithdrawUnstaked<'info> {
     #[account(seeds = [AUTHORITY_SEED], bump)]
     pub program_authority: UncheckedAccount<'info>,
     /// CHECK: node-registry program.
-    #[account(address = node_registry::ID)]
+    #[account(address = NODE_REGISTRY_ID)]
     pub node_registry_program: UncheckedAccount<'info>,
     /// CHECK: node-registry Registry PDA.
     pub registry: UncheckedAccount<'info>,

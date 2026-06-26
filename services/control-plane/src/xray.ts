@@ -17,6 +17,13 @@ interface Client {
   flow?: string;
 }
 
+interface Outbound {
+  tag: string;
+  protocol: string;
+  sendThrough?: string;
+  settings?: unknown;
+}
+
 export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
   const reality = {
     show: false,
@@ -38,6 +45,13 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
     { id: cfg.founderUuid, email: 'founder' },
     ...activeUsers.map((u) => ({ id: u.uuid, email: u.email })),
   ];
+  const directOutbound: Outbound = {
+    tag: 'direct',
+    protocol: 'freedom',
+    settings: cfg.xraySendThrough ? { domainStrategy: 'UseIPv4' } : undefined,
+  };
+  if (cfg.xraySendThrough) directOutbound.sendThrough = cfg.xraySendThrough;
+
   return {
     log: { loglevel: 'warning' },
     api: { tag: 'api', services: ['HandlerService', 'StatsService'] },
@@ -76,7 +90,7 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
         : []),
     ],
     outbounds: [
-      { tag: 'direct', protocol: 'freedom' },
+      directOutbound,
       ...(multihop
         ? [
             {

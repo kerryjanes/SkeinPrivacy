@@ -24,11 +24,13 @@ export interface NodeConfig {
   xrayApi: string; // gRPC api endpoint (statsquery)
   xrayBin: string;
   reloadCmd: string; // how to make xray pick up a new config (restart)
+  xraySendThrough: string; // optional local source IP for 1-hop egress (bypass host VPN)
   storePath: string; // JSON user store
   port: number; // HTTP API the clients/website talk to
   pollMs: number; // metering interval
 
   // --- chain ---
+  cluster: string;
   rpcUrl: string;
   wsUrl: string;
   weftMint: string;
@@ -48,34 +50,68 @@ function env(key: string, fallback: string): string {
   return v === undefined || v === '' ? fallback : v;
 }
 
+function mainnetCluster(cluster: string): boolean {
+  return cluster.startsWith('mainnet');
+}
+
+function requiredForMainnet(cluster: string, key: string, fallback: string): string {
+  const v = process.env[key];
+  if (mainnetCluster(cluster) && (v === undefined || v === '')) {
+    throw new Error(`${key} must be set explicitly for ${cluster}`);
+  }
+  return v === undefined || v === '' ? fallback : v;
+}
+
 export function loadConfig(): NodeConfig {
+  const cluster = env('WEFT_CLUSTER', 'devnet');
+  const mainnet = mainnetCluster(cluster);
+  const rpcUrl = requiredForMainnet(cluster, 'WEFT_RPC', 'https://api.devnet.solana.com');
+  const faucetKeypairPath = env('WEFT_FAUCET_KEYPAIR', '');
+  if (mainnet && faucetKeypairPath) {
+    throw new Error('WEFT_FAUCET_KEYPAIR must be empty on mainnet');
+  }
   return {
     host: env('WEFT_HOST', 'vpn.weftnetwork.net'),
-    realityPublicKey: env('WEFT_REALITY_PBK', 'ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw'),
-    realityPrivateKey: env('WEFT_REALITY_PRIV', 'YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE'),
-    shortId: env('WEFT_SID', '4ce4af1305de920f'),
+    realityPublicKey: requiredForMainnet(
+      cluster,
+      'WEFT_REALITY_PBK',
+      'ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw',
+    ),
+    realityPrivateKey: requiredForMainnet(
+      cluster,
+      'WEFT_REALITY_PRIV',
+      'YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE',
+    ),
+    shortId: requiredForMainnet(cluster, 'WEFT_SID', '4ce4af1305de920f'),
     sni: env('WEFT_SNI', 'ya.ru'),
     hop1Port: Number(env('WEFT_HOP1_PORT', '443')),
     hopnPort: Number(env('WEFT_HOPN_PORT', '8443')),
     publicHop1Port: Number(env('WEFT_PUBLIC_HOP1_PORT', env('WEFT_HOP1_PORT', '443'))),
     publicHopnPort: Number(env('WEFT_PUBLIC_HOPN_PORT', env('WEFT_HOPN_PORT', '8443'))),
-    founderUuid: env('WEFT_FOUNDER_UUID', 'b5ced6eb-0cba-4001-9679-65f8ba69e74b'),
+    founderUuid: requiredForMainnet(
+      cluster,
+      'WEFT_FOUNDER_UUID',
+      'b5ced6eb-0cba-4001-9679-65f8ba69e74b',
+    ),
 
     xrayConfigPath: env('WEFT_XRAY_CONFIG', '/usr/local/etc/xray/config.json'),
     xrayApi: env('WEFT_XRAY_API', '127.0.0.1:10085'),
     xrayBin: env('WEFT_XRAY_BIN', '/usr/local/bin/xray'),
     reloadCmd: env('WEFT_XRAY_RELOAD', 'systemctl restart xray'),
+    xraySendThrough: env('WEFT_XRAY_SEND_THROUGH', ''),
     storePath: env('WEFT_STORE', '/var/lib/weft/users.json'),
     port: Number(env('WEFT_PORT', '8088')),
     pollMs: Number(env('WEFT_POLL_MS', '10000')),
 
-    rpcUrl: env('WEFT_RPC', 'https://api.devnet.solana.com'),
-    wsUrl: env(
-      'WEFT_WS',
-      env('WEFT_RPC', 'https://api.devnet.solana.com').replace(/^http/, 'ws'),
+    cluster,
+    rpcUrl,
+    wsUrl: env('WEFT_WS', rpcUrl.replace(/^http/, 'ws')),
+    weftMint: requiredForMainnet(
+      cluster,
+      'WEFT_MINT',
+      '8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i',
     ),
-    weftMint: env('WEFT_MINT', '8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i'),
-    faucetKeypairPath: env('WEFT_FAUCET_KEYPAIR', ''),
+    faucetKeypairPath,
     faucetAmount: BigInt(env('WEFT_FAUCET_AMOUNT', '1000000')), // 0.001 $WEFT → ~10 MB quota
     frpsApi: env('WEFT_FRPS_API', ''),
     frpsUser: env('WEFT_FRPS_USER', ''),

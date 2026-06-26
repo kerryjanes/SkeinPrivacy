@@ -3,7 +3,7 @@
 // proofs + Solana Pay. Receipts arrive as a JSON file (a real deployment would
 // stream them from relays); everything downstream is the tested core.
 
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import {
   createSolanaRpc,
   createSolanaRpcSubscriptions,
@@ -32,6 +32,7 @@ interface ReceiptJson {
 }
 
 function parseReceipts(path: string): TrafficReceipt[] {
+  if (!existsSync(path)) return [];
   const raw = JSON.parse(readFileSync(path, 'utf8')) as ReceiptJson[];
   return raw.map((r) => ({
     client: r.client as Address,
@@ -47,18 +48,25 @@ function parseReceipts(path: string): TrafficReceipt[] {
 }
 
 async function main(): Promise<void> {
+  const cluster = process.env.WEFT_CLUSTER ?? 'devnet';
+  if (cluster.startsWith('mainnet') && !process.env.WEFT_RPC) {
+    throw new Error(`WEFT_RPC must be set explicitly for ${cluster}`);
+  }
   const rpcUrl = process.env.WEFT_RPC ?? 'https://api.devnet.solana.com';
   const wsUrl = process.env.WEFT_RPC_WS ?? rpcUrl.replace(/^http/, 'ws');
   const epoch = BigInt(process.env.WEFT_EPOCH ?? '0');
   const receiptsPath = process.env.WEFT_RECEIPTS ?? 'receipts.json';
   const posterPath = process.env.WEFT_POSTER;
   const port = Number(process.env.PORT ?? '8788');
+  const postOnReceipts = process.env.WEFT_POST_ON_RECEIPTS === '1';
 
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
 
   const nodes = await fetchNodeInfos(rpc);
   const receipts = parseReceipts(receiptsPath);
+  const receiptsByEpoch = new Map<string, TrafficReceipt[]>();
+  receiptsByEpoch.set(epoch.toString(), receipts);
   const opts: BuildOptions = {};
   const build = buildEpoch(epoch, receipts, nodes, opts);
   console.log(
@@ -68,12 +76,21 @@ async function main(): Promise<void> {
   const store = new EpochStore();
   store.put(build);
 
-  if (posterPath && build.numNodes > 0) {
-    const poster = await createKeyPairSignerFromBytes(
-      Uint8Array.from(JSON.parse(readFileSync(posterPath, 'utf8')) as number[]),
-    );
-    const sig = await postEpoch({ rpc, rpcSubscriptions, poster }, build);
-    console.log(`[aggregator] posted epoch ${epoch}: ${sig}`);
+  const poster = posterPath
+    ? await createKeyPairSignerFromBytes(
+        Uint8Array.from(JSON.parse(readFileSync(posterPath, 'utf8')) as number[]),
+      )
+    : null;
+
+  async function maybePost(b: typeof build): Promise<string | null> {
+    if (!poster || b.numNodes === 0) return null;
+    const sig = await postEpoch({ rpc, rpcSubscriptions, poster }, b);
+    console.log(`[aggregator] posted epoch ${b.epoch}: ${sig}`);
+    return sig;
+  }
+
+  if (poster && build.numNodes > 0) {
+    await maybePost(build);
   }
 
   const [distributor] = await rewardsSettlement.findDistributorPda();
@@ -92,6 +109,21 @@ async function main(): Promise<void> {
       label: 'Weft VPN traffic',
     },
     getBlockhash: async () => (await rpc.getLatestBlockhash().send()).value,
+    onReceipts: async (receivedEpoch, accepted) => {
+      const key = receivedEpoch.toString();
+      const all = [...(receiptsByEpoch.get(key) ?? []), ...accepted];
+      receiptsByEpoch.set(key, all);
+      const latestNodes = await fetchNodeInfos(rpc);
+      const next = buildEpoch(receivedEpoch, all, latestNodes, opts);
+      store.put(next);
+      const postedSignature = postOnReceipts ? await maybePost(next) : null;
+      return {
+        root: next.root,
+        totalReward: next.totalReward.toString(),
+        numNodes: next.numNodes,
+        postedSignature,
+      };
+    },
   });
   server.listen(port);
   console.log(`[aggregator] serving proofs + Solana Pay on :${port}`);

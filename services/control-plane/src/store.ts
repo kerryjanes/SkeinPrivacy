@@ -17,8 +17,18 @@ export interface User {
   createdAt: number;
 }
 
+export interface PaymentRecord {
+  wallet: string;
+  signature: string;
+  amountBaseUnits: string;
+  status: 'pending' | 'processed';
+  createdAt: number;
+  processedAt?: number;
+}
+
 export interface StoreData {
   users: Record<string, User>; // keyed by wallet
+  payments: Record<string, PaymentRecord>; // keyed by settlement tx signature
 }
 
 export class Store {
@@ -26,8 +36,9 @@ export class Store {
   constructor(private path: string) {
     this.data = existsSync(path)
       ? (JSON.parse(readFileSync(path, 'utf8')) as StoreData)
-      : { users: {} };
+      : { users: {}, payments: {} };
     if (!this.data.users) this.data.users = {};
+    if (!this.data.payments) this.data.payments = {};
   }
 
   get(wallet: string): User | undefined {
@@ -41,6 +52,47 @@ export class Store {
   put(user: User): void {
     this.data.users[user.wallet] = user;
     this.save();
+  }
+
+  payment(signature: string): PaymentRecord | undefined {
+    return this.data.payments[signature];
+  }
+
+  beginPayment(signature: string, wallet: string, now = Date.now()): void {
+    const existing = this.payment(signature);
+    if (existing) {
+      throw new Error('payment signature already submitted');
+    }
+    this.data.payments[signature] = {
+      wallet,
+      signature,
+      amountBaseUnits: '0',
+      status: 'pending',
+      createdAt: now,
+    };
+    this.save();
+  }
+
+  completePayment(signature: string, wallet: string, amountBaseUnits: bigint, now = Date.now()): void {
+    const existing = this.payment(signature);
+    if (!existing || existing.wallet !== wallet || existing.status !== 'pending') {
+      throw new Error('payment signature was not reserved by this wallet');
+    }
+    this.data.payments[signature] = {
+      ...existing,
+      amountBaseUnits: amountBaseUnits.toString(),
+      status: 'processed',
+      processedAt: now,
+    };
+    this.save();
+  }
+
+  forgetPendingPayment(signature: string, wallet: string): void {
+    const existing = this.payment(signature);
+    if (existing?.wallet === wallet && existing.status === 'pending') {
+      delete this.data.payments[signature];
+      this.save();
+    }
   }
 
   save(): void {

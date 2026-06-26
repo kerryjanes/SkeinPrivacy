@@ -1386,7 +1386,6 @@ name = "governance"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "anchor-spl",
  "litesvm",
  "node-registry",
  "reputation",
@@ -1818,7 +1817,6 @@ name = "node-registry"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "anchor-spl",
  "litesvm",
  "mpl-bubblegum",
  "weft-primitives",

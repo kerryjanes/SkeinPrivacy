@@ -1,6 +1,6 @@
 // End-to-end genesis test against a local validator with weft-vesting deployed.
 //
-// Run a local validator first (the npm script `test:localnet` wires this up):
+// Run a local validator first and set WEFT_RUN_LOCALNET_TESTS=1:
 //   solana-test-validator --reset \
 //     --bpf-program FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv target/deploy/weft_vesting.so
 //   solana airdrop 100 <deployer> --url localhost
@@ -21,7 +21,7 @@ async function balance(conn: Connection, ata: string): Promise<bigint> {
   return BigInt(value.amount);
 }
 
-describe('genesis on localnet', () => {
+describe.skipIf(process.env.WEFT_RUN_LOCALNET_TESTS !== '1')('genesis on localnet', () => {
   let manifest: Manifest;
   let conn: Connection;
 

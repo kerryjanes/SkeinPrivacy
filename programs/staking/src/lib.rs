@@ -3,6 +3,7 @@
 
 pub mod constants;
 pub mod error;
+pub mod external;
 pub mod instructions;
 pub mod mirror;
 pub mod state;
@@ -13,7 +14,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK");
+declare_id!("CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU");
 
 #[program]
 pub mod staking {

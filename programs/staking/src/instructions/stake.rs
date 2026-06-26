@@ -6,6 +6,7 @@ use anchor_spl::token_interface::{
 use crate::{
     constants::*,
     error::StakingError,
+    external::NODE_REGISTRY_ID,
     mirror::mirror_stake,
     state::{StakePosition, StakingConfig},
 };
@@ -42,7 +43,7 @@ pub struct Stake<'info> {
     #[account(seeds = [AUTHORITY_SEED], bump)]
     pub program_authority: UncheckedAccount<'info>,
     /// CHECK: node-registry program.
-    #[account(address = node_registry::ID)]
+    #[account(address = NODE_REGISTRY_ID)]
     pub node_registry_program: UncheckedAccount<'info>,
     /// CHECK: node-registry Registry PDA (validated by node-registry).
     pub registry: UncheckedAccount<'info>,

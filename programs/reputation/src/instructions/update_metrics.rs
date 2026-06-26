@@ -7,6 +7,7 @@ use weft_primitives::{
 use crate::{
     constants::*,
     error::ReputationError,
+    external::NODE_REGISTRY_ID,
     mirror::mirror_reputation,
     state::{ReputationConfig, ReputationState},
 };
@@ -36,7 +37,7 @@ pub struct UpdateMetrics<'info> {
     #[account(seeds = [AUTHORITY_SEED], bump)]
     pub program_authority: UncheckedAccount<'info>,
     /// CHECK: node-registry program.
-    #[account(address = node_registry::ID)]
+    #[account(address = NODE_REGISTRY_ID)]
     pub node_registry_program: UncheckedAccount<'info>,
     /// CHECK: node-registry Registry PDA.
     pub registry: UncheckedAccount<'info>,

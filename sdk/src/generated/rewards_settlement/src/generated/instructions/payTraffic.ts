@@ -130,10 +130,7 @@ export type PayTrafficAsyncInput<
 > = {
   payer: TransactionSigner<TAccountPayer>;
   distributor?: Address<TAccountDistributor>;
-  /**
-   * The DAO-governed parameters; the payment split is read from here so
-   * governance can adjust it without a program upgrade.
-   */
+  /** discriminator, and split offsets are validated before reading. */
   protocolConfig?: Address<TAccountProtocolConfig>;
   rewardMint: Address<TAccountRewardMint>;
   payerTokenAccount: Address<TAccountPayerTokenAccount>;
@@ -207,7 +204,7 @@ export async function getPayTrafficInstructionAsync<
   if (!accounts.protocolConfig.value) {
     accounts.protocolConfig.value = await getProgramDerivedAddress({
       programAddress:
-        'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA' as Address<'q3K9krqiQDL7WHVUzLZrjJLgsM53vSrcfNRTzsVE6eA'>,
+        '8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE' as Address<'8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE'>,
       seeds: [
         getBytesEncoder().encode(
           new Uint8Array([112, 114, 111, 116, 111, 99, 111, 108, 95, 99, 111, 110, 102, 105, 103]),
@@ -259,10 +256,7 @@ export type PayTrafficInput<
 > = {
   payer: TransactionSigner<TAccountPayer>;
   distributor: Address<TAccountDistributor>;
-  /**
-   * The DAO-governed parameters; the payment split is read from here so
-   * governance can adjust it without a program upgrade.
-   */
+  /** discriminator, and split offsets are validated before reading. */
   protocolConfig: Address<TAccountProtocolConfig>;
   rewardMint: Address<TAccountRewardMint>;
   payerTokenAccount: Address<TAccountPayerTokenAccount>;
@@ -368,10 +362,7 @@ export type ParsedPayTrafficInstruction<
   accounts: {
     payer: TAccountMetas[0];
     distributor: TAccountMetas[1];
-    /**
-     * The DAO-governed parameters; the payment split is read from here so
-     * governance can adjust it without a program upgrade.
-     */
+    /** discriminator, and split offsets are validated before reading. */
     protocolConfig: TAccountMetas[2];
     rewardMint: TAccountMetas[3];
     payerTokenAccount: TAccountMetas[4];

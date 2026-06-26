@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 use crate::{
     constants::*,
     error::SettlementError,
+    external::{invoke_penalize, invoke_slash, NODE_REGISTRY_ID, REPUTATION_ID, STAKING_ID},
     state::{ClaimStatus, Distributor, EpochDistribution},
 };
 
@@ -41,7 +42,7 @@ pub struct Dispute<'info> {
 
     // ---- staking::slash ----
     /// CHECK: staking program.
-    #[account(address = staking::ID)]
+    #[account(address = STAKING_ID)]
     pub staking_program: UncheckedAccount<'info>,
     /// CHECK: staking config PDA (validated inside the CPI).
     pub staking_config: UncheckedAccount<'info>,
@@ -61,7 +62,7 @@ pub struct Dispute<'info> {
 
     // ---- reputation::penalize ----
     /// CHECK: reputation program.
-    #[account(address = reputation::ID)]
+    #[account(address = REPUTATION_ID)]
     pub reputation_program: UncheckedAccount<'info>,
     /// CHECK: reputation config PDA (validated inside the CPI).
     pub reputation_config: UncheckedAccount<'info>,
@@ -73,7 +74,7 @@ pub struct Dispute<'info> {
 
     // ---- shared mirror targets ----
     /// CHECK: node-registry program.
-    #[account(address = node_registry::ID)]
+    #[account(address = NODE_REGISTRY_ID)]
     pub node_registry_program: UncheckedAccount<'info>,
     /// CHECK: node-registry Registry PDA.
     pub registry: UncheckedAccount<'info>,
@@ -116,42 +117,38 @@ impl Dispute<'_> {
 
         // Slash the operator's stake (saturates to treasury, mirrors into NodeState).
         if slash_amount > 0 {
-            let cpi = CpiContext::new_with_signer(
-                self.staking_program.key(),
-                staking::cpi::accounts::Slash {
-                    slash_authority: self.program_authority.to_account_info(),
-                    config: self.staking_config.to_account_info(),
-                    position: self.staking_position.to_account_info(),
-                    vault: self.staking_vault.to_account_info(),
-                    treasury: self.staking_treasury.to_account_info(),
-                    mint: self.stake_mint.to_account_info(),
-                    program_authority: self.staking_program_authority.to_account_info(),
-                    node_registry_program: self.node_registry_program.to_account_info(),
-                    registry: self.registry.to_account_info(),
-                    node: node_ai.clone(),
-                    token_program: self.token_program.to_account_info(),
-                },
+            invoke_slash(
+                &self.staking_program.to_account_info(),
+                &self.program_authority.to_account_info(),
+                &self.staking_config.to_account_info(),
+                &self.staking_position.to_account_info(),
+                &self.staking_vault.to_account_info(),
+                &self.staking_treasury.to_account_info(),
+                &self.stake_mint.to_account_info(),
+                &self.staking_program_authority.to_account_info(),
+                &self.node_registry_program.to_account_info(),
+                &self.registry.to_account_info(),
+                node_ai.as_ref(),
+                &self.token_program.to_account_info(),
                 signer,
-            );
-            staking::cpi::slash(cpi, slash_amount)?;
+                slash_amount,
+            )?;
         }
 
         // Penalize reputation (multiplicative toward 0.5x, mirrors into NodeState).
         if severity_bps > 0 {
-            let cpi = CpiContext::new_with_signer(
-                self.reputation_program.key(),
-                reputation::cpi::accounts::Penalize {
-                    oracle: self.program_authority.to_account_info(),
-                    config: self.reputation_config.to_account_info(),
-                    state: self.reputation_state.to_account_info(),
-                    program_authority: self.reputation_program_authority.to_account_info(),
-                    node_registry_program: self.node_registry_program.to_account_info(),
-                    registry: self.registry.to_account_info(),
-                    node: node_ai,
-                },
+            invoke_penalize(
+                &self.reputation_program.to_account_info(),
+                &self.program_authority.to_account_info(),
+                &self.reputation_config.to_account_info(),
+                &self.reputation_state.to_account_info(),
+                &self.reputation_program_authority.to_account_info(),
+                &self.node_registry_program.to_account_info(),
+                &self.registry.to_account_info(),
+                node_ai.as_ref(),
                 signer,
-            );
-            reputation::cpi::penalize(cpi, severity_bps)?;
+                severity_bps,
+            )?;
         }
         Ok(())
     }

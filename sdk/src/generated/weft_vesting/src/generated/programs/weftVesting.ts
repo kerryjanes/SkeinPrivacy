@@ -55,7 +55,7 @@ import {
 import { findSchedulePda, findVaultPda } from '../pdas';
 
 export const WEFT_VESTING_PROGRAM_ADDRESS =
-  'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv' as Address<'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv'>;
+  'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb' as Address<'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb'>;
 
 export enum WeftVestingAccount {
   VestingSchedule,
@@ -132,7 +132,7 @@ export function identifyWeftVestingInstruction(
 }
 
 export type ParsedWeftVestingInstruction<
-  TProgram extends string = 'FCFZNb2Kqh7ScjikKp73W7BcsfusrZ1hTBhc61Macdsv',
+  TProgram extends string = 'Aa8aMMVmxcA5CKQAJQ3N3EmFtKYTx79hEEYjFYzBCDjb',
 > =
   | ({ instructionType: WeftVestingInstruction.Claim } & ParsedClaimInstruction<TProgram>)
   | ({

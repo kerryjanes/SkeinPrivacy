@@ -18,7 +18,7 @@ export interface ServerDeps {
   payConfig: PayConfig;
   getBlockhash: () => Promise<Blockhashish>;
   /** Called with the verified, deduped receipts ingested for an epoch (M6 → M4). */
-  onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => void;
+  onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => Promise<unknown> | unknown;
 }
 
 function readBody(req: import('node:http').IncomingMessage): Promise<string> {
@@ -28,6 +28,21 @@ function readBody(req: import('node:http').IncomingMessage): Promise<string> {
     req.on('end', () => resolve(data));
     req.on('error', reject);
   });
+}
+
+function parseReceipt(raw: unknown): TrafficReceipt {
+  const r = raw as Record<string, unknown>;
+  return {
+    client: address(String(r.client)) as Address,
+    operator: address(String(r.operator)) as Address,
+    nodeId: BigInt(String(r.nodeId)),
+    bytes: BigInt(String(r.bytes)),
+    windowStart: BigInt(String(r.windowStart)),
+    windowEnd: BigInt(String(r.windowEnd)),
+    nonce: BigInt(String(r.nonce)),
+    clientSig: String(r.clientSig),
+    relaySig: String(r.relaySig),
+  };
 }
 
 export function createAggregatorServer(deps: ServerDeps): Server {
@@ -115,15 +130,16 @@ export function createAggregatorServer(deps: ServerDeps): Server {
             return;
           }
           const body = JSON.parse((await readBody(req)) || '{}') as { receipts?: unknown };
-          const raw = Array.isArray(body.receipts) ? (body.receipts as TrafficReceipt[]) : [];
+          const raw = Array.isArray(body.receipts) ? body.receipts.map(parseReceipt) : [];
           // verify both signatures, drop out-of-epoch + duplicate (operator, nonce).
           const sel = selectReceiptsForEpoch(raw, epoch);
-          deps.onReceipts?.(epoch, sel.accepted);
+          const result = await deps.onReceipts?.(epoch, sel.accepted);
           json(200, {
             epoch: epoch.toString(),
             accepted: sel.accepted.length,
             rejected: sel.rejected.length,
             reasons: sel.rejected.map((r) => r.reason),
+            result,
           });
           return;
         }

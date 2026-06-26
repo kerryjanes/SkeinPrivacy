@@ -12,7 +12,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("6dsqVjMmczosqNk2kaFHa33ut9ZUAwazgUagPKk5tUgd");
+declare_id!("GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH");
 
 #[program]
 pub mod node_registry {

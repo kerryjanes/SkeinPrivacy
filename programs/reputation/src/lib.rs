@@ -3,6 +3,7 @@
 
 pub mod constants;
 pub mod error;
+pub mod external;
 pub mod instructions;
 pub mod mirror;
 pub mod state;
@@ -13,7 +14,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("6Nwa73bqP56LNQwWEKJWAp4A5RJKSMBzFxdxtuq3Y86u");
+declare_id!("6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ");
 
 #[program]
 pub mod reputation {

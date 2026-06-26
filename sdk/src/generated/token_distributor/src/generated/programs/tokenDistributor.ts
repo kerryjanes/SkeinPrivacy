@@ -58,7 +58,7 @@ import {
 import { findAllocationClaimPda, findDistributorPda, findVaultPda } from '../pdas';
 
 export const TOKEN_DISTRIBUTOR_PROGRAM_ADDRESS =
-  '2vXouVhktgRQhBhuvUMpi6hCryEtAsJeHJMKG9QgxpzV' as Address<'2vXouVhktgRQhBhuvUMpi6hCryEtAsJeHJMKG9QgxpzV'>;
+  '89wHYTG6deQUn4Rsbkcw2gG2sVSk8g9jTezP9qxG66Dn' as Address<'89wHYTG6deQUn4Rsbkcw2gG2sVSk8g9jTezP9qxG66Dn'>;
 
 export enum TokenDistributorAccount {
   AllocationClaim,
@@ -147,7 +147,7 @@ export function identifyTokenDistributorInstruction(
 }
 
 export type ParsedTokenDistributorInstruction<
-  TProgram extends string = '2vXouVhktgRQhBhuvUMpi6hCryEtAsJeHJMKG9QgxpzV',
+  TProgram extends string = '89wHYTG6deQUn4Rsbkcw2gG2sVSk8g9jTezP9qxG66Dn',
 > =
   | ({ instructionType: TokenDistributorInstruction.Claim } & ParsedClaimInstruction<TProgram>)
   | ({

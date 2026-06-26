@@ -3,6 +3,7 @@
 
 pub mod constants;
 pub mod error;
+pub mod external;
 pub mod instructions;
 pub mod state;
 
@@ -12,7 +13,7 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
-declare_id!("BMQZKvCbq8qcZFWWGt1S7ZXg8odZcMbUA3oaNKnQi7mz");
+declare_id!("BecoJTYnDmFTTde84LwSBfYqEq7RN4qdysqnep2Gv9GU");
 
 #[program]
 pub mod rewards_settlement {

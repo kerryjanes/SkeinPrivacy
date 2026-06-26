@@ -78,7 +78,7 @@ import {
 import { findConfigPda, findPositionPda, findProgramAuthorityPda, findVaultPda } from '../pdas';
 
 export const STAKING_PROGRAM_ADDRESS =
-  '86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK' as Address<'86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK'>;
+  'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU' as Address<'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU'>;
 
 export enum StakingAccount {
   StakePosition,
@@ -227,7 +227,7 @@ export function identifyStakingInstruction(
 }
 
 export type ParsedStakingInstruction<
-  TProgram extends string = '86FwTDBau7T289G9Fnkjn34g7NN3furoGEDwFsLVXzTK',
+  TProgram extends string = 'CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU',
 > =
   | ({
       instructionType: StakingInstruction.InitializeConfig;
