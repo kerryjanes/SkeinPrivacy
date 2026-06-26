@@ -28,6 +28,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 SK="$HOME/.weft"
 mkdir -p "$SK"
+NODE_VER="${WEFT_NODE_VERSION:-22.13.1}"
 
 stop_node() {
   local purge="${1:-}"
@@ -75,10 +76,22 @@ if [ "$OS" = "Linux" ]; then
   command -v xray >/dev/null 2>&1 || sudo bash -c "$(curl -L -s https://github.com/XTLS/Xray-install/raw/main/install-release.sh)" @ install --version 1.8.24 >/dev/null
   XRAY=/usr/local/bin/xray; ARCH=linux_amd64; NODE=$(command -v node)
 else
-  echo "  (macOS: ensure node is installed via brew: brew install node)"
-  command -v node >/dev/null 2>&1 || { echo "missing dependency: node"; exit 1; }
   command -v unzip >/dev/null 2>&1 || { echo "missing dependency: unzip"; exit 1; }
-  ARCH=darwin_$( [ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64 ); NODE=$(command -v node)
+  ARCH=darwin_$( [ "$(uname -m)" = "arm64" ] && echo arm64 || echo amd64 )
+  if command -v node >/dev/null 2>&1; then
+    NODE=$(command -v node)
+  else
+    NODE_ARCH=darwin-$( [ "$(uname -m)" = "arm64" ] && echo arm64 || echo x64 )
+    NODE_DIR="$SK/node-v${NODE_VER}-${NODE_ARCH}"
+    NODE="$NODE_DIR/bin/node"
+    if [ ! -x "$NODE" ]; then
+      echo "→ node.js ${NODE_VER} (portable)…"
+      curl -fsSL "https://nodejs.org/dist/v${NODE_VER}/node-v${NODE_VER}-${NODE_ARCH}.tar.gz" -o "$SK/node.tgz"
+      rm -rf "$NODE_DIR"
+      tar xzf "$SK/node.tgz" -C "$SK"
+      rm -f "$SK/node.tgz"
+    fi
+  fi
   XRAY="$SK/xray-1.8.24"
   if [ ! -x "$XRAY" ]; then
     case "$(uname -m)" in

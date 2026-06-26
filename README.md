@@ -51,7 +51,7 @@ Registration is the only on-chain step required to create the node.
 
 ### 2. Start The Node Script
 
-On the device that should become the node:
+On macOS or Linux:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main/scripts/run-node.sh -o weft-node.sh
@@ -59,22 +59,58 @@ chmod +x weft-node.sh
 ./weft-node.sh <your-node-key>
 ```
 
-After the first run, the key is saved locally:
+On Windows, open PowerShell:
+
+```powershell
+Invoke-WebRequest -UseBasicParsing https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main/scripts/run-node.ps1 -OutFile weft-node.ps1
+powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 <your-node-key>
+```
+
+The scripts download missing runtime dependencies automatically:
+
+- macOS/Linux: Node.js if needed, Xray-core, frpc.
+- Windows: portable Node.js, Xray-core, frpc, plus Windows Scheduled Tasks for autostart.
+
+After the first run, the key is saved locally.
+
+macOS/Linux:
 
 ```sh
 ./weft-node.sh
 ```
 
-Stop the node:
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\weft-node.ps1
+```
+
+Stop the node.
+
+macOS/Linux:
 
 ```sh
 ./weft-node.sh stop
 ```
 
-Remove local services and config:
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 stop
+```
+
+Remove local services and config.
+
+macOS/Linux:
 
 ```sh
 ./weft-node.sh stop --purge
+```
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 stop --purge
 ```
 
 The script installs and runs:
@@ -114,7 +150,8 @@ anchor build
 
 | Path | Purpose |
 | --- | --- |
-| `scripts/run-node.sh` | Run a home 1-hop node. |
+| `scripts/run-node.sh` | Run a home 1-hop node on macOS/Linux. |
+| `scripts/run-node.ps1` | Run a home 1-hop node on Windows. |
 | `scripts/stop-node.sh` | Legacy stop helper; `./weft-node.sh stop` is preferred. |
 | `scripts/deploy-node.sh` | Deploy a VPS infrastructure node. |
 | `scripts/test-home-exit.sh` | Local/devnet home-exit test helper. |
