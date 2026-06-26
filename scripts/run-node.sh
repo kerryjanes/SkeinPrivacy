@@ -142,7 +142,7 @@ if [[ "$CLUSTER" == mainnet* ]]; then
 fi
 LOCAL_HOP1=14430
 FRP_VER="0.69.1"
-RAW="${WEFT_RAW_BASE:-https://raw.githubusercontent.com/kerryjanes/WeftNetwork/rehearsal/devnet-mainnet-flow}"
+RAW="${WEFT_RAW_BASE:-https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main}"
 
 active_ipv4_for_iface() {
   local iface="$1"

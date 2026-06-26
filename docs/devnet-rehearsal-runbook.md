@@ -16,7 +16,7 @@ program IDs, fresh genesis, and fresh registry provision.
 
 ## Fresh Devnet Rehearsal
 
-Prepared branch: `rehearsal/devnet-mainnet-flow`.
+Prepared branch: `main`.
 
 Prepared devnet program IDs for this rehearsal:
 
@@ -97,7 +97,7 @@ Verified smoke flows:
 1. Create a rehearsal branch.
 
 ```bash
-git switch -c rehearsal/devnet-mainnet-flow
+git switch main
 ```
 
 2. Generate new devnet program keypairs or choose a clean Anchor deployment keypair set.

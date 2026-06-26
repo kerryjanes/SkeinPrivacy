@@ -29,7 +29,7 @@ Run this before any mainnet canary. The goal is to exercise the same launch flow
 
 ## 3. Devnet On-chain Checks
 
-- Every configured devnet program account exists and is executable. Verified for the fresh `rehearsal/devnet-mainnet-flow` IDs.
+- Every configured devnet program account exists and is executable. Verified for the fresh devnet IDs now merged into `main`.
 - Devnet `$WEFT` mint exists, has 9 decimals, full supply `1000000000000000000`, retired mint authority, and null freeze authority. Verified for `Hfvwx9F5NDzMCyywJZJsFVX83XaXnLNntCdk21h7Bmcy`.
 - Registry PDA exists. Verified for `6tw8x8sm18fz5jMsHfVxvPbCQm4Nf8e6gqKUn84pBjyW`.
 - Registry collection, merkle tree, and tree shard exist. Verified for `DLeBsmxSNB1RmcPrGSWm5J5tPqXjAKWVfqkVpCpCZdqY`, `4RJP3AJ6NNoqjTCxjeJi2Erw3wwJJoHN3jpwUrSetJw5`, and `8dvswMfvXUBg2YZSNoNijYaQBRNKqzzhyDToZq1Day8E`.

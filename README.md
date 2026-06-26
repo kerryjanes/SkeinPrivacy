@@ -70,7 +70,7 @@ back a single **node key** — copy it. This is the only step that touches the c
 (PC / router / always-on box, behind NAT), download the node script and pass the key **once**:
 
 ```sh
-curl -fsSL https://raw.githubusercontent.com/kerryjanes/WeftNetwork/rehearsal/devnet-mainnet-flow/scripts/run-node.sh -o weft-node.sh
+curl -fsSL https://raw.githubusercontent.com/kerryjanes/WeftNetwork/main/scripts/run-node.sh -o weft-node.sh
 chmod +x weft-node.sh
 ./weft-node.sh <your-node-key>      # first run only
 ./weft-node.sh                      # afterwards — the key is saved locally
