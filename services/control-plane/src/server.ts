@@ -8,6 +8,7 @@
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
 import type { NodeConfig } from './config.js';
 import type { Controller } from './controller.js';
+import { registerExitProfile } from './exitProfiles.js';
 import type { Faucet } from './faucet.js';
 import { liveEndpointHashes } from './relay.js';
 import { math } from '@weft/sdk';
@@ -40,6 +41,11 @@ function readJson(req: IncomingMessage): Promise<Record<string, unknown>> {
       }
     });
   });
+}
+
+function bearer(req: IncomingMessage): string {
+  const h = req.headers.authorization ?? '';
+  return h.startsWith('Bearer ') ? h.slice('Bearer '.length) : '';
 }
 
 export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet): void {
@@ -81,6 +87,13 @@ export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet):
     if (req.method === 'GET' && url.pathname === '/relay/live') {
       // endpointHashes of nodes carrying traffic right now (for the cabinet's "live nodes" filter)
       return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg) });
+    }
+
+    if (req.method === 'POST' && url.pathname === '/relay/node-profile') {
+      if (bearer(req) !== cfg.relayToken) return send(res, 401, { error: 'unauthorized' });
+      const profile = registerExitProfile(cfg, await readJson(req));
+      ctrl.reconcile(); // fresh profile can become the active hop1 exit immediately
+      return send(res, 200, { ok: true, endpoint: `${profile.host}:${profile.port}` });
     }
 
     if (req.method === 'GET' && url.pathname === '/node/stats') {

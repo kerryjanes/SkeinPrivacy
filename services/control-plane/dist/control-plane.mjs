@@ -21,9 +21,9 @@ var __export = (target, all) => {
 };
 var __copyProps = (to, from, except, desc) => {
   if (from && typeof from === "object" || typeof from === "function") {
-    for (let key of __getOwnPropNames(from))
-      if (!__hasOwnProp.call(to, key) && key !== except)
-        __defProp(to, key, { get: () => from[key], enumerable: !(desc = __getOwnPropDesc(from, key)) || desc.enumerable });
+    for (let key2 of __getOwnPropNames(from))
+      if (!__hasOwnProp.call(to, key2) && key2 !== except)
+        __defProp(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable });
   }
   return to;
 };
@@ -581,44 +581,44 @@ var require_permessage_deflate = __commonJS({
        */
       normalizeParams(configurations) {
         configurations.forEach((params) => {
-          Object.keys(params).forEach((key) => {
-            let value = params[key];
+          Object.keys(params).forEach((key2) => {
+            let value = params[key2];
             if (value.length > 1) {
-              throw new Error(`Parameter "${key}" must have only a single value`);
+              throw new Error(`Parameter "${key2}" must have only a single value`);
             }
             value = value[0];
-            if (key === "client_max_window_bits") {
+            if (key2 === "client_max_window_bits") {
               if (value !== true) {
                 const num = +value;
                 if (!Number.isInteger(num) || num < 8 || num > 15) {
                   throw new TypeError(
-                    `Invalid value for parameter "${key}": ${value}`
+                    `Invalid value for parameter "${key2}": ${value}`
                   );
                 }
                 value = num;
               } else if (!this._isServer) {
                 throw new TypeError(
-                  `Invalid value for parameter "${key}": ${value}`
+                  `Invalid value for parameter "${key2}": ${value}`
                 );
               }
-            } else if (key === "server_max_window_bits") {
+            } else if (key2 === "server_max_window_bits") {
               const num = +value;
               if (!Number.isInteger(num) || num < 8 || num > 15) {
                 throw new TypeError(
-                  `Invalid value for parameter "${key}": ${value}`
+                  `Invalid value for parameter "${key2}": ${value}`
                 );
               }
               value = num;
-            } else if (key === "client_no_context_takeover" || key === "server_no_context_takeover") {
+            } else if (key2 === "client_no_context_takeover" || key2 === "server_no_context_takeover") {
               if (value !== true) {
                 throw new TypeError(
-                  `Invalid value for parameter "${key}": ${value}`
+                  `Invalid value for parameter "${key2}": ${value}`
                 );
               }
             } else {
-              throw new Error(`Unknown parameter "${key}"`);
+              throw new Error(`Unknown parameter "${key2}"`);
             }
-            params[key] = value;
+            params[key2] = value;
           });
         });
         return configurations;
@@ -666,8 +666,8 @@ var require_permessage_deflate = __commonJS({
       _decompress(data, fin, callback) {
         const endpoint = this._isServer ? "client" : "server";
         if (!this._inflate) {
-          const key = `${endpoint}_max_window_bits`;
-          const windowBits = typeof this.params[key] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key];
+          const key2 = `${endpoint}_max_window_bits`;
+          const windowBits = typeof this.params[key2] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key2];
           this._inflate = zlib.createInflateRaw({
             ...this._options.zlibInflateOptions,
             windowBits
@@ -717,8 +717,8 @@ var require_permessage_deflate = __commonJS({
       _compress(data, fin, callback) {
         const endpoint = this._isServer ? "server" : "client";
         if (!this._deflate) {
-          const key = `${endpoint}_max_window_bits`;
-          const windowBits = typeof this.params[key] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key];
+          const key2 = `${endpoint}_max_window_bits`;
+          const windowBits = typeof this.params[key2] !== "number" ? zlib.Z_DEFAULT_WINDOWBITS : this.params[key2];
           this._deflate = zlib.createDeflateRaw({
             ...this._options.zlibDeflateOptions,
             windowBits
@@ -3083,7 +3083,7 @@ var require_websocket = __commonJS({
         }
       }
       const defaultPort = isSecure ? 443 : 80;
-      const key = randomBytes(16).toString("base64");
+      const key2 = randomBytes(16).toString("base64");
       const request = isSecure ? https.request : http.request;
       const protocolSet = /* @__PURE__ */ new Set();
       let perMessageDeflate;
@@ -3094,7 +3094,7 @@ var require_websocket = __commonJS({
       opts.headers = {
         ...opts.headers,
         "Sec-WebSocket-Version": opts.protocolVersion,
-        "Sec-WebSocket-Key": key,
+        "Sec-WebSocket-Key": key2,
         Connection: "Upgrade",
         Upgrade: "websocket"
       };
@@ -3145,8 +3145,8 @@ var require_websocket = __commonJS({
           const headers = options && options.headers;
           options = { ...options, headers: {} };
           if (headers) {
-            for (const [key2, value] of Object.entries(headers)) {
-              options.headers[key2.toLowerCase()] = value;
+            for (const [key3, value] of Object.entries(headers)) {
+              options.headers[key3.toLowerCase()] = value;
             }
           }
         } else if (websocket.listenerCount("redirect") === 0) {
@@ -3213,7 +3213,7 @@ var require_websocket = __commonJS({
           abortHandshake(websocket, socket, "Invalid Upgrade header");
           return;
         }
-        const digest = createHash2("sha1").update(key + GUID).digest("base64");
+        const digest = createHash2("sha1").update(key2 + GUID).digest("base64");
         if (res.headers["sec-websocket-accept"] !== digest) {
           abortHandshake(websocket, socket, "Invalid Sec-WebSocket-Accept header");
           return;
@@ -3781,7 +3781,7 @@ var require_websocket_server = __commonJS({
        */
       handleUpgrade(req, socket, head, cb) {
         socket.on("error", socketOnError);
-        const key = req.headers["sec-websocket-key"];
+        const key2 = req.headers["sec-websocket-key"];
         const upgrade = req.headers.upgrade;
         const version = +req.headers["sec-websocket-version"];
         if (req.method !== "GET") {
@@ -3794,7 +3794,7 @@ var require_websocket_server = __commonJS({
           abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
           return;
         }
-        if (key === void 0 || !keyRegex.test(key)) {
+        if (key2 === void 0 || !keyRegex.test(key2)) {
           const message = "Missing or invalid Sec-WebSocket-Key header";
           abortHandshakeOrEmitwsClientError(this, req, socket, 400, message);
           return;
@@ -3854,7 +3854,7 @@ var require_websocket_server = __commonJS({
               }
               this.completeUpgrade(
                 extensions,
-                key,
+                key2,
                 protocols,
                 req,
                 socket,
@@ -3866,7 +3866,7 @@ var require_websocket_server = __commonJS({
           }
           if (!this.options.verifyClient(info)) return abortHandshake(socket, 401);
         }
-        this.completeUpgrade(extensions, key, protocols, req, socket, head, cb);
+        this.completeUpgrade(extensions, key2, protocols, req, socket, head, cb);
       }
       /**
        * Upgrade the connection to WebSocket.
@@ -3881,7 +3881,7 @@ var require_websocket_server = __commonJS({
        * @throws {Error} If called more than once with the same socket
        * @private
        */
-      completeUpgrade(extensions, key, protocols, req, socket, head, cb) {
+      completeUpgrade(extensions, key2, protocols, req, socket, head, cb) {
         if (!socket.readable || !socket.writable) return socket.destroy();
         if (socket[kWebSocket]) {
           throw new Error(
@@ -3889,7 +3889,7 @@ var require_websocket_server = __commonJS({
           );
         }
         if (this._state > RUNNING) return abortHandshake(socket, 503);
-        const digest = createHash2("sha1").update(key + GUID).digest("base64");
+        const digest = createHash2("sha1").update(key2 + GUID).digest("base64");
         const headers = [
           "HTTP/1.1 101 Switching Protocols",
           "Upgrade: websocket",
@@ -3977,20 +3977,20 @@ var require_websocket_server = __commonJS({
 });
 
 // src/index.ts
-import { readFileSync as readFileSync3 } from "node:fs";
+import { readFileSync as readFileSync4 } from "node:fs";
 
 // src/config.ts
-function env(key, fallback) {
-  const v = process.env[key];
+function env(key2, fallback) {
+  const v = process.env[key2];
   return v === void 0 || v === "" ? fallback : v;
 }
 function mainnetCluster(cluster) {
   return cluster.startsWith("mainnet");
 }
-function requiredForMainnet(cluster, key, fallback) {
-  const v = process.env[key];
+function requiredForMainnet(cluster, key2, fallback) {
+  const v = process.env[key2];
   if (mainnetCluster(cluster) && (v === void 0 || v === "")) {
-    throw new Error(`${key} must be set explicitly for ${cluster}`);
+    throw new Error(`${key2} must be set explicitly for ${cluster}`);
   }
   return v === void 0 || v === "" ? fallback : v;
 }
@@ -4016,6 +4016,7 @@ function loadConfig() {
     ),
     shortId: requiredForMainnet(cluster, "WEFT_SID", "4ce4af1305de920f"),
     sni: env("WEFT_SNI", "ya.ru"),
+    geo: Number(env("WEFT_GEO", "0")),
     hop1Port: Number(env("WEFT_HOP1_PORT", "443")),
     hopnPort: Number(env("WEFT_HOPN_PORT", "8443")),
     publicHop1Port: Number(env("WEFT_PUBLIC_HOP1_PORT", env("WEFT_HOP1_PORT", "443"))),
@@ -4047,7 +4048,11 @@ function loadConfig() {
     faucetCooldownMs: Number(env("WEFT_FAUCET_COOLDOWN_MS", "60000")),
     frpsApi: env("WEFT_FRPS_API", ""),
     frpsUser: env("WEFT_FRPS_USER", ""),
-    frpsPass: env("WEFT_FRPS_PASS", "")
+    frpsPass: env("WEFT_FRPS_PASS", ""),
+    relayToken: env("WEFT_RELAY_TOKEN", "a40b1ab498a37ba6bbaa70791ac62287"),
+    relayProfilePath: env("WEFT_RELAY_PROFILE_PATH", "/var/lib/weft/exit-profiles.json"),
+    relayProfileUrl: env("WEFT_RELAY_PROFILE_URL", ""),
+    exitProfileTtlMs: Number(env("WEFT_EXIT_PROFILE_TTL_MS", "120000"))
   };
 }
 
@@ -4454,8 +4459,8 @@ function encodeValue(value) {
     );
   }
 }
-function encodeObjectContextEntry([key, value]) {
-  return `${key}=${encodeValue(value)}`;
+function encodeObjectContextEntry([key2, value]) {
+  return `${key2}=${encodeValue(value)}`;
 }
 function encodeContextObject(context) {
   const searchParamsString = Object.entries(context).map(encodeObjectContextEntry).join("&");
@@ -5933,12 +5938,12 @@ function getStructEncoder(fields) {
   const maxSize = sumCodecSizes(fieldCodecs.map(getMaxSize)) ?? void 0;
   return createEncoder({
     ...fixedSize === null ? {
-      getSizeFromValue: (value) => fields.map(([key, codec]) => getEncodedSize(value[key], codec)).reduce((all, one) => all + one, 0),
+      getSizeFromValue: (value) => fields.map(([key2, codec]) => getEncodedSize(value[key2], codec)).reduce((all, one) => all + one, 0),
       maxSize
     } : { fixedSize },
     write: (struct, bytes, offset) => {
-      fields.forEach(([key, codec]) => {
-        offset = codec.write(struct[key], bytes, offset);
+      fields.forEach(([key2, codec]) => {
+        offset = codec.write(struct[key2], bytes, offset);
       });
       return offset;
     }
@@ -7023,14 +7028,14 @@ async function createPrivateKeyFromBytes(bytes, extractable = false) {
     "sign"
   ]);
 }
-async function signBytes(key, data) {
+async function signBytes(key2, data) {
   assertSigningCapabilityIsAvailable();
-  const signedData = await crypto.subtle.sign(ED25519_ALGORITHM_IDENTIFIER, key, toArrayBuffer(data));
+  const signedData = await crypto.subtle.sign(ED25519_ALGORITHM_IDENTIFIER, key2, toArrayBuffer(data));
   return new Uint8Array(signedData);
 }
-async function verifySignature(key, signature2, data) {
+async function verifySignature(key2, signature2, data) {
   assertVerificationCapabilityIsAvailable();
-  return await crypto.subtle.verify(ED25519_ALGORITHM_IDENTIFIER, key, toArrayBuffer(signature2), toArrayBuffer(data));
+  return await crypto.subtle.verify(ED25519_ALGORITHM_IDENTIFIER, key2, toArrayBuffer(signature2), toArrayBuffer(data));
 }
 async function createKeyPairFromBytes(bytes, extractable = false) {
   assertPRNGIsAvailable();
@@ -8381,7 +8386,7 @@ var objKeys = Object.keys || function(obj) {
   return keys;
 };
 function stringify(val, isArrayProp) {
-  let i, max, str, keys, key, propVal, toStr;
+  let i, max, str, keys, key2, propVal, toStr;
   if (val === true) {
     return "true";
   }
@@ -8412,13 +8417,13 @@ function stringify(val, isArrayProp) {
           str = "";
           i = 0;
           while (i < max) {
-            key = keys[i];
-            propVal = stringify(val[key], false);
+            key2 = keys[i];
+            propVal = stringify(val[key2], false);
             if (propVal !== void 0) {
               if (str) {
                 str += ",";
               }
-              str += JSON.stringify(key) + ":" + propVal;
+              str += JSON.stringify(key2) + ":" + propVal;
             }
             i++;
           }
@@ -9526,10 +9531,10 @@ function signersAreEquivalent(a, b) {
   const aKeys = Object.getOwnPropertyNames(a);
   const bKeys = Object.getOwnPropertyNames(b);
   if (aKeys.length !== bKeys.length) return false;
-  return aKeys.every((key) => {
-    if (!(key in b)) return false;
-    const aVal = a[key];
-    const bVal = b[key];
+  return aKeys.every((key2) => {
+    if (!(key2 in b)) return false;
+    const aVal = a[key2];
+    const bVal = b[key2];
     if (typeof aVal === "function" && typeof bVal === "function") {
       return aVal.toString() === bVal.toString();
     }
@@ -10248,8 +10253,8 @@ function encodeValue2(value) {
     );
   }
 }
-function encodeObjectContextEntry2([key, value]) {
-  return `${key}=${encodeValue2(value)}`;
+function encodeObjectContextEntry2([key2, value]) {
+  return `${key2}=${encodeValue2(value)}`;
 }
 function encodeContextObject2(context) {
   const searchParamsString = Object.entries(context).map(encodeObjectContextEntry2).join("&");
@@ -11424,12 +11429,12 @@ function getStructEncoder2(fields) {
   const maxSize = sumCodecSizes2(fieldCodecs.map(getMaxSize2)) ?? void 0;
   return createEncoder2({
     ...fixedSize === null ? {
-      getSizeFromValue: (value) => fields.map(([key, codec]) => getEncodedSize2(value[key], codec)).reduce((all, one) => all + one, 0),
+      getSizeFromValue: (value) => fields.map(([key2, codec]) => getEncodedSize2(value[key2], codec)).reduce((all, one) => all + one, 0),
       maxSize
     } : { fixedSize },
     write: (struct, bytes, offset) => {
-      fields.forEach(([key, codec]) => {
-        offset = codec.write(struct[key], bytes, offset);
+      fields.forEach(([key2, codec]) => {
+        offset = codec.write(struct[key2], bytes, offset);
       });
       return offset;
     }
@@ -11443,10 +11448,10 @@ function getStructDecoder2(fields) {
     ...fixedSize === null ? { maxSize } : { fixedSize },
     read: (bytes, offset) => {
       const struct = {};
-      fields.forEach(([key, codec]) => {
+      fields.forEach(([key2, codec]) => {
         const [value, newOffset] = codec.read(bytes, offset);
         offset = newOffset;
-        struct[key] = value;
+        struct[key2] = value;
       });
       return [struct, offset];
     }
@@ -11486,8 +11491,8 @@ function extendClient(client, additions) {
 }
 function toConfigurableDescriptors(descriptors) {
   const result = {};
-  for (const key of Reflect.ownKeys(descriptors)) {
-    result[key] = { ...descriptors[key], configurable: true };
+  for (const key2 of Reflect.ownKeys(descriptors)) {
+    result[key2] = { ...descriptors[key2], configurable: true };
   }
   return result;
 }
@@ -15537,6 +15542,82 @@ function bs58Decode(s3) {
 // src/controller.ts
 import { randomUUID } from "node:crypto";
 
+// src/exitProfiles.ts
+import { existsSync as existsSync2, mkdirSync as mkdirSync2, readFileSync as readFileSync2, renameSync as renameSync2, writeFileSync as writeFileSync2 } from "node:fs";
+import { dirname as dirname2 } from "node:path";
+var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+var SID_RE = /^[0-9a-f]{2,32}$/i;
+function key(profile) {
+  return `${profile.host}:${profile.port}`;
+}
+function readStore(path) {
+  if (!existsSync2(path)) return {};
+  return JSON.parse(readFileSync2(path, "utf8"));
+}
+function writeStore(path, profiles) {
+  const dir = dirname2(path);
+  if (!existsSync2(dir)) mkdirSync2(dir, { recursive: true });
+  const tmp = `${path}.tmp`;
+  writeFileSync2(tmp, JSON.stringify(profiles, null, 2));
+  renameSync2(tmp, path);
+}
+function registerExitProfile(cfg2, input, now = Date.now()) {
+  const p = input;
+  if (p.host !== cfg2.host) throw new Error("profile host must match relay host");
+  const port = p.port;
+  if (!Number.isInteger(port) || port === void 0 || port < 2e4 || port > 20079) {
+    throw new Error("profile port must be in the relay user-node range");
+  }
+  if (typeof p.uuid !== "string" || !UUID_RE.test(p.uuid)) throw new Error("invalid profile uuid");
+  if (typeof p.realityPub !== "string" || p.realityPub.length < 20) {
+    throw new Error("invalid profile reality public key");
+  }
+  if (typeof p.sid !== "string" || !SID_RE.test(p.sid)) throw new Error("invalid profile sid");
+  if (typeof p.sni !== "string" || p.sni.length < 3) throw new Error("invalid profile sni");
+  const profile = {
+    host: p.host,
+    port,
+    uuid: p.uuid,
+    realityPub: p.realityPub,
+    sid: p.sid,
+    sni: p.sni,
+    geo: Number(p.geo ?? 0),
+    updatedAt: now
+  };
+  const profiles = readStore(cfg2.relayProfilePath);
+  profiles[key(profile)] = profile;
+  writeStore(cfg2.relayProfilePath, profiles);
+  return profile;
+}
+function liveExitProfiles(cfg2, now = Date.now()) {
+  const profiles = Object.values(readStore(cfg2.relayProfilePath));
+  return profiles.filter((p) => now - p.updatedAt <= cfg2.exitProfileTtlMs).sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));
+}
+function exitProfileSignature(cfg2, now = Date.now()) {
+  return liveExitProfiles(cfg2, now).map((p) => `${p.host}:${p.port}:${p.uuid}:${p.realityPub}:${p.sid}`).join(",");
+}
+async function publishOwnExitProfile(cfg2) {
+  if (!cfg2.relayProfileUrl) return;
+  const body = {
+    host: cfg2.host,
+    port: cfg2.publicHop1Port,
+    uuid: cfg2.founderUuid,
+    realityPub: cfg2.realityPublicKey,
+    sid: cfg2.shortId,
+    sni: cfg2.sni,
+    geo: cfg2.geo
+  };
+  const res = await fetch(cfg2.relayProfileUrl, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${cfg2.relayToken}`,
+      "content-type": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(`relay profile publish failed: HTTP ${res.status}`);
+}
+
 // src/links.ts
 function oneHopLink(cfg2, uuid) {
   const q = new URLSearchParams({
@@ -15566,7 +15647,39 @@ function multiHopLink(cfg2, uuid) {
 
 // src/xray.ts
 import { execFileSync, execSync } from "node:child_process";
-import { writeFileSync as writeFileSync2 } from "node:fs";
+import { writeFileSync as writeFileSync3 } from "node:fs";
+function userExitOutbound(profile) {
+  return {
+    tag: `user-exit-${profile.port}`,
+    protocol: "vless",
+    settings: {
+      vnext: [
+        {
+          address: profile.host,
+          port: profile.port,
+          users: [
+            {
+              id: profile.uuid,
+              encryption: "none",
+              flow: "xtls-rprx-vision"
+            }
+          ]
+        }
+      ]
+    },
+    streamSettings: {
+      network: "tcp",
+      security: "reality",
+      realitySettings: {
+        serverName: profile.sni,
+        fingerprint: "firefox",
+        publicKey: profile.realityPub,
+        shortId: profile.sid,
+        spiderX: "/"
+      }
+    }
+  };
+}
 function renderConfig(cfg2, activeUsers) {
   const reality = {
     show: false,
@@ -15591,6 +15704,8 @@ function renderConfig(cfg2, activeUsers) {
     settings: cfg2.xraySendThrough ? { domainStrategy: "UseIPv4" } : void 0
   };
   if (cfg2.xraySendThrough) directOutbound.sendThrough = cfg2.xraySendThrough;
+  const userExits = multihop ? liveExitProfiles(cfg2).map(userExitOutbound) : [];
+  const selectedUserExit = userExits.length ? userExits[Math.floor(Math.random() * userExits.length)] : null;
   return {
     log: { loglevel: "warning" },
     api: { tag: "api", services: ["HandlerService", "StatsService"] },
@@ -15628,6 +15743,7 @@ function renderConfig(cfg2, activeUsers) {
     ],
     outbounds: [
       directOutbound,
+      ...userExits,
       ...multihop ? [
         {
           tag: "tor",
@@ -15639,14 +15755,14 @@ function renderConfig(cfg2, activeUsers) {
     routing: {
       rules: [
         { type: "field", inboundTag: ["api"], outboundTag: "api" },
-        { type: "field", inboundTag: ["hop1"], outboundTag: "direct" },
+        { type: "field", inboundTag: ["hop1"], outboundTag: selectedUserExit?.tag ?? "direct" },
         ...multihop ? [{ type: "field", inboundTag: ["hopN"], outboundTag: "tor" }] : []
       ]
     }
   };
 }
 function applyConfig(cfg2, activeUsers) {
-  writeFileSync2(cfg2.xrayConfigPath, JSON.stringify(renderConfig(cfg2, activeUsers), null, 2));
+  writeFileSync3(cfg2.xrayConfigPath, JSON.stringify(renderConfig(cfg2, activeUsers), null, 2));
   execSync(cfg2.reloadCmd, { stdio: "ignore" });
 }
 function pollUsage(cfg2) {
@@ -15687,16 +15803,18 @@ var Controller = class {
   reconcile() {
     const active = this.store.all().filter((u) => u.active);
     const sig = active.map((u) => u.uuid).sort().join(",");
-    if (sig === this.lastApplied) return;
+    const profileSig = exitProfileSignature(this.cfg);
+    const combinedSig = `${sig}|${profileSig}`;
+    if (combinedSig === this.lastApplied) return;
     applyConfig(this.cfg, active);
-    this.lastApplied = sig;
+    this.lastApplied = combinedSig;
   }
   /** Apply whatever the store says on boot (so a restart re-syncs xray to the saved state). */
   bootstrap() {
     this.reconcile();
     if (this.lastApplied === "__uninitialized") {
       applyConfig(this.cfg, []);
-      this.lastApplied = "";
+      this.lastApplied = `|${exitProfileSignature(this.cfg)}`;
     }
   }
   computeActive(u) {
@@ -15805,7 +15923,7 @@ var Controller = class {
 };
 
 // src/faucet.ts
-import { readFileSync as readFileSync2 } from "node:fs";
+import { readFileSync as readFileSync3 } from "node:fs";
 
 // ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput2(inputName, value) {
@@ -16018,7 +16136,7 @@ var Faucet = class {
       throw new Error(`faucet cooldown \u2014 try again in ~${mins} min`);
     }
     const faucet2 = await createKeyPairSignerFromBytes(
-      Uint8Array.from(JSON.parse(readFileSync2(this.keypairPath, "utf8")))
+      Uint8Array.from(JSON.parse(readFileSync3(this.keypairPath, "utf8")))
     );
     const rpc2 = createSolanaRpc(this.rpcUrl);
     const sendAndConfirm = sendAndConfirmTransactionFactory({
@@ -16121,6 +16239,10 @@ function readJson(req) {
     });
   });
 }
+function bearer(req) {
+  const h = req.headers.authorization ?? "";
+  return h.startsWith("Bearer ") ? h.slice("Bearer ".length) : "";
+}
 function startServer(cfg2, ctrl2, faucet2) {
   const server = createServer((req, res) => {
     void handle(req, res).catch((e8) => send(res, 400, { error: String(e8?.message ?? e8) }));
@@ -16153,6 +16275,12 @@ function startServer(cfg2, ctrl2, faucet2) {
     if (req.method === "GET" && url.pathname === "/relay/live") {
       return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg2) });
     }
+    if (req.method === "POST" && url.pathname === "/relay/node-profile") {
+      if (bearer(req) !== cfg2.relayToken) return send(res, 401, { error: "unauthorized" });
+      const profile = registerExitProfile(cfg2, await readJson(req));
+      ctrl2.reconcile();
+      return send(res, 200, { ok: true, endpoint: `${profile.host}:${profile.port}` });
+    }
     if (req.method === "GET" && url.pathname === "/node/stats") {
       return send(res, 200, { host: cfg2.host, ...ctrl2.nodeStats() });
     }
@@ -16176,7 +16304,7 @@ function startServer(cfg2, ctrl2, faucet2) {
 // src/index.ts
 var envFile = process.env.WEFT_ENVFILE;
 if (envFile) {
-  for (const line of readFileSync3(envFile, "utf8").split("\n")) {
+  for (const line of readFileSync4(envFile, "utf8").split("\n")) {
     const m = line.match(/^\s*([A-Z0-9_]+)\s*=\s*(.*)\s*$/);
     if (m && process.env[m[1]] === void 0) process.env[m[1]] = m[2];
   }
@@ -16194,6 +16322,17 @@ var faucet = cfg.faucetKeypairPath ? new Faucet(
 ) : void 0;
 ctrl.bootstrap();
 startServer(cfg, ctrl, faucet);
+async function profileHeartbeat() {
+  if (!cfg.relayProfileUrl) return;
+  for (; ; ) {
+    try {
+      await publishOwnExitProfile(cfg);
+    } catch (e8) {
+      console.error("relay profile publish error:", e8.message);
+    }
+    await new Promise((r) => setTimeout(r, Math.min(3e4, Math.max(5e3, cfg.exitProfileTtlMs / 2))));
+  }
+}
 async function loop() {
   for (; ; ) {
     try {
@@ -16204,6 +16343,7 @@ async function loop() {
     await new Promise((r) => setTimeout(r, cfg.pollMs));
   }
 }
+void profileHeartbeat();
 void loop();
 /*! Bundled license information:
 

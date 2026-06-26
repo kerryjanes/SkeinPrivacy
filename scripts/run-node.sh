@@ -211,6 +211,8 @@ WEFT_PORT=8088
 WEFT_CLUSTER=${CLUSTER}
 WEFT_RPC=${RPC}
 WEFT_MINT=${MINT}
+WEFT_RELAY_TOKEN=${RELAY_TOKEN}
+WEFT_RELAY_PROFILE_URL=https://${RELAY}:8089/relay/node-profile
 ENV
 
 echo "→ install persistent services (survive reboot + auto-restart)…"

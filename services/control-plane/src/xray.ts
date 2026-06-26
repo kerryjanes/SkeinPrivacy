@@ -9,6 +9,7 @@
 import { execFileSync, execSync } from 'node:child_process';
 import { writeFileSync } from 'node:fs';
 import type { NodeConfig } from './config.js';
+import { liveExitProfiles, type ExitProfile } from './exitProfiles.js';
 import type { User } from './store.js';
 
 interface Client {
@@ -22,6 +23,40 @@ interface Outbound {
   protocol: string;
   sendThrough?: string;
   settings?: unknown;
+  streamSettings?: unknown;
+}
+
+function userExitOutbound(profile: ExitProfile): Outbound {
+  return {
+    tag: `user-exit-${profile.port}`,
+    protocol: 'vless',
+    settings: {
+      vnext: [
+        {
+          address: profile.host,
+          port: profile.port,
+          users: [
+            {
+              id: profile.uuid,
+              encryption: 'none',
+              flow: 'xtls-rprx-vision',
+            },
+          ],
+        },
+      ],
+    },
+    streamSettings: {
+      network: 'tcp',
+      security: 'reality',
+      realitySettings: {
+        serverName: profile.sni,
+        fingerprint: 'firefox',
+        publicKey: profile.realityPub,
+        shortId: profile.sid,
+        spiderX: '/',
+      },
+    },
+  };
 }
 
 export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
@@ -51,6 +86,10 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
     settings: cfg.xraySendThrough ? { domainStrategy: 'UseIPv4' } : undefined,
   };
   if (cfg.xraySendThrough) directOutbound.sendThrough = cfg.xraySendThrough;
+  const userExits = multihop ? liveExitProfiles(cfg).map(userExitOutbound) : [];
+  const selectedUserExit = userExits.length
+    ? userExits[Math.floor(Math.random() * userExits.length)]
+    : null;
 
   return {
     log: { loglevel: 'warning' },
@@ -91,6 +130,7 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
     ],
     outbounds: [
       directOutbound,
+      ...userExits,
       ...(multihop
         ? [
             {
@@ -104,7 +144,7 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
     routing: {
       rules: [
         { type: 'field', inboundTag: ['api'], outboundTag: 'api' },
-        { type: 'field', inboundTag: ['hop1'], outboundTag: 'direct' },
+        { type: 'field', inboundTag: ['hop1'], outboundTag: selectedUserExit?.tag ?? 'direct' },
         ...(multihop ? [{ type: 'field', inboundTag: ['hopN'], outboundTag: 'tor' }] : []),
       ],
     },

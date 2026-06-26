@@ -9,6 +9,7 @@ export interface NodeConfig {
   realityPrivateKey: string; // server private key (written into the rendered xray config)
   shortId: string; // sid
   sni: string; // Reality serverName / dest (a real TLS1.3 site; ya.ru for RU)
+  geo: number;
   // Xray LISTEN ports (local on this box). For a VPS node these equal the public ports; for a
   // home node behind NAT, frpc maps the relay's public ports onto these local ones.
   hop1Port: number; // direct VLESS+Reality (vision flow)
@@ -44,6 +45,10 @@ export interface NodeConfig {
   frpsApi: string; // frps admin API base (empty = no tunnels, only direct endpoints)
   frpsUser: string;
   frpsPass: string;
+  relayToken: string;
+  relayProfilePath: string;
+  relayProfileUrl: string;
+  exitProfileTtlMs: number;
 }
 
 function env(key: string, fallback: string): string {
@@ -85,6 +90,7 @@ export function loadConfig(): NodeConfig {
     ),
     shortId: requiredForMainnet(cluster, 'WEFT_SID', '4ce4af1305de920f'),
     sni: env('WEFT_SNI', 'ya.ru'),
+    geo: Number(env('WEFT_GEO', '0')),
     hop1Port: Number(env('WEFT_HOP1_PORT', '443')),
     hopnPort: Number(env('WEFT_HOPN_PORT', '8443')),
     publicHop1Port: Number(env('WEFT_PUBLIC_HOP1_PORT', env('WEFT_HOP1_PORT', '443'))),
@@ -118,5 +124,9 @@ export function loadConfig(): NodeConfig {
     frpsApi: env('WEFT_FRPS_API', ''),
     frpsUser: env('WEFT_FRPS_USER', ''),
     frpsPass: env('WEFT_FRPS_PASS', ''),
+    relayToken: env('WEFT_RELAY_TOKEN', 'a40b1ab498a37ba6bbaa70791ac62287'),
+    relayProfilePath: env('WEFT_RELAY_PROFILE_PATH', '/var/lib/weft/exit-profiles.json'),
+    relayProfileUrl: env('WEFT_RELAY_PROFILE_URL', ''),
+    exitProfileTtlMs: Number(env('WEFT_EXIT_PROFILE_TTL_MS', '120000')),
   };
 }

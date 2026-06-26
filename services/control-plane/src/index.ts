@@ -20,6 +20,7 @@ if (envFile) {
 }
 import { rpc } from './chain.js';
 import { Controller } from './controller.js';
+import { publishOwnExitProfile } from './exitProfiles.js';
 import { Faucet } from './faucet.js';
 import { startServer } from './server.js';
 
@@ -40,6 +41,19 @@ const faucet = cfg.faucetKeypairPath
 ctrl.bootstrap(); // sync xray to saved state on boot
 startServer(cfg, ctrl, faucet);
 
+async function profileHeartbeat(): Promise<void> {
+  if (!cfg.relayProfileUrl) return;
+  for (;;) {
+    try {
+      await publishOwnExitProfile(cfg);
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.error('relay profile publish error:', (e as Error).message);
+    }
+    await new Promise((r) => setTimeout(r, Math.min(30000, Math.max(5000, cfg.exitProfileTtlMs / 2))));
+  }
+}
+
 async function loop(): Promise<void> {
   for (;;) {
     try {
@@ -51,4 +65,5 @@ async function loop(): Promise<void> {
     await new Promise((r) => setTimeout(r, cfg.pollMs));
   }
 }
+void profileHeartbeat();
 void loop();

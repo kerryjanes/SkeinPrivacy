@@ -13,6 +13,7 @@ import type { NodeConfig } from './config.js';
 import type { Store, User } from './store.js';
 import { math } from '@weft/sdk';
 import { costBaseUnits, escrowBalance, quotaBytes, verifyPayTraffic, type Rpc } from './chain.js';
+import { exitProfileSignature } from './exitProfiles.js';
 import { multiHopLink, oneHopLink } from './links.js';
 import { applyConfig, pollUsage } from './xray.js';
 
@@ -46,9 +47,11 @@ export class Controller {
       .map((u) => u.uuid)
       .sort()
       .join(',');
-    if (sig === this.lastApplied) return;
+    const profileSig = exitProfileSignature(this.cfg);
+    const combinedSig = `${sig}|${profileSig}`;
+    if (combinedSig === this.lastApplied) return;
     applyConfig(this.cfg, active);
-    this.lastApplied = sig;
+    this.lastApplied = combinedSig;
   }
 
   /** Apply whatever the store says on boot (so a restart re-syncs xray to the saved state). */
@@ -57,7 +60,7 @@ export class Controller {
     if (this.lastApplied === '__uninitialized') {
       // no active users → still need a valid config with just the founder present
       applyConfig(this.cfg, []);
-      this.lastApplied = '';
+      this.lastApplied = `|${exitProfileSignature(this.cfg)}`;
     }
   }
 

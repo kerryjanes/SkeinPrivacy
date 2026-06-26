@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { rewardsSettlement } from '@weft/sdk';
 import { loadConfig } from '../src/config.js';
+import { registerExitProfile } from '../src/exitProfiles.js';
 import { math } from '@weft/sdk';
 import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
 import { multiHopLink, oneHopLink } from '../src/links.js';
@@ -142,6 +143,32 @@ describe('xray config render', () => {
     const direct = c.outbounds.find((o: any) => o.tag === 'direct');
     expect(direct.sendThrough).toBe('192.168.0.103');
     expect(direct.settings.domainStrategy).toBe('UseIPv4');
+  });
+  it('routes VPS 1-hop users through a fresh user-exit profile when one is published', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-exits-'));
+    try {
+      const profileCfg = {
+        ...cfg,
+        relayProfilePath: join(dir, 'profiles.json'),
+        exitProfileTtlMs: 60_000,
+      };
+      registerExitProfile(profileCfg, {
+        host: profileCfg.host,
+        port: 20042,
+        uuid: '11111111-2222-4333-8444-555555555555',
+        realityPub: 'kY0nZ4nmhU6Szh7xNnWlPkAaBbCcDdEeFfGgHhIiJjK',
+        sid: '0123456789abcdef',
+        sni: 'ya.ru',
+        geo: 0,
+      });
+      const c = renderConfig(profileCfg, [user({ uuid: 'u-1', email: 'w1' })]) as any;
+      expect(c.outbounds.some((o: any) => o.tag === 'user-exit-20042')).toBe(true);
+      expect(c.routing.rules.find((r: any) => r.inboundTag?.includes('hop1'))?.outboundTag).toBe(
+        'user-exit-20042',
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 
