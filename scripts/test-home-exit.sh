@@ -197,12 +197,23 @@ fi
 
 rm -f "$WORK/access.log" "$WORK/error.log" "$WORK/xray.log" "$WORK/frpc.log"
 
+json_path() {
+  local path="$1"
+  if [ "$IS_WINDOWS" = "1" ] && command -v cygpath >/dev/null 2>&1; then
+    path="$(cygpath -w "$path")"
+  fi
+  printf '%s' "$path" | sed 's/\\/\\\\/g'
+}
+
+XRAY_ACCESS_LOG="$(json_path "$WORK/access.log")"
+XRAY_ERROR_LOG="$(json_path "$WORK/error.log")"
+
 cat > "$WORK/xray.json" <<JSON
 {
   "log": {
     "loglevel": "debug",
-    "access": "${WORK}/access.log",
-    "error": "${WORK}/error.log"
+    "access": "${XRAY_ACCESS_LOG}",
+    "error": "${XRAY_ERROR_LOG}"
   },
   "inbounds": [
     {
