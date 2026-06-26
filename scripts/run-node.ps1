@@ -10,10 +10,8 @@ Set-StrictMode -Version Latest
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
 $Sk = Join-Path $HOME ".weft"
-$TaskPrefix = "WeftNode"
-$XrayTask = "${TaskPrefix}Xray"
-$FrpcTask = "${TaskPrefix}Frpc"
-$CpTask = "${TaskPrefix}ControlPlane"
+$StartupDir = [Environment]::GetFolderPath("Startup")
+$StartupCmd = Join-Path $StartupDir "weft-node-start.cmd"
 
 function Info([string]$Message) {
   Write-Host "-> $Message"
@@ -38,24 +36,40 @@ function Expand-Zip([string]$ZipPath, [string]$Destination) {
   Expand-Archive -LiteralPath $ZipPath -DestinationPath $Destination -Force
 }
 
-function Stop-TaskIfExists([string]$Name, [bool]$Delete) {
-  & cmd.exe /c "schtasks /End /TN `"$Name`" >NUL 2>NUL"
-  if ($Delete) {
-    & cmd.exe /c "schtasks /Delete /TN `"$Name`" /F >NUL 2>NUL"
+function Stop-PidFile([string]$PidFile) {
+  if (Test-Path -LiteralPath $PidFile) {
+    $PidText = (Get-Content -LiteralPath $PidFile -Raw).Trim()
+    if ($PidText -match '^\d+$') {
+      & taskkill.exe /PID $PidText /T /F *> $null
+    }
+    Remove-Item -LiteralPath $PidFile -Force -ErrorAction SilentlyContinue
   }
 }
 
 function Stop-WeftNode([bool]$Purge) {
   Info "stopping Weft node"
-  Stop-TaskIfExists $CpTask $Purge
-  Stop-TaskIfExists $FrpcTask $Purge
-  Stop-TaskIfExists $XrayTask $Purge
+  Stop-PidFile (Join-Path $Sk "control-plane.pid")
+  Stop-PidFile (Join-Path $Sk "frpc.pid")
+  Stop-PidFile (Join-Path $Sk "xray.pid")
+  if ($Purge -and (Test-Path -LiteralPath $StartupCmd)) {
+    Remove-Item -LiteralPath $StartupCmd -Force
+  }
   if ($Purge -and (Test-Path -LiteralPath $Sk)) {
     Remove-Item -LiteralPath $Sk -Recurse -Force
     Write-Host "OK: node stopped and purged ($Sk removed)."
   } else {
-    Write-Host "OK: node stopped. Config remains in $Sk; run .\weft-node.ps1 to start again."
+    Write-Host "OK: node stopped. Config remains in $Sk; run weft-node.cmd to start again."
   }
+}
+
+function Start-CmdProcess([string]$CmdPath, [string]$PidFile) {
+  Stop-PidFile $PidFile
+  $Process = Start-Process -FilePath $env:ComSpec -ArgumentList "/c `"$CmdPath`"" -WindowStyle Hidden -PassThru
+  Set-Content -LiteralPath $PidFile -Value $Process.Id -Encoding ASCII
+}
+
+function Ps-Literal([string]$Value) {
+  return "'" + $Value.Replace("'", "''") + "'"
 }
 
 if ($NodeKey -eq "stop" -or $NodeKey -eq "--stop") {
@@ -216,7 +230,10 @@ $NodeEnv = Join-Path $Sk "node.env"
 $RunXray = Join-Path $Sk "run-xray.cmd"
 $RunFrpc = Join-Path $Sk "run-frpc.cmd"
 $RunCp = Join-Path $Sk "run-control-plane.cmd"
-$RestartXray = Join-Path $Sk "restart-xray.cmd"
+$RestartXray = Join-Path $Sk "restart-xray.ps1"
+$XrayPid = Join-Path $Sk "xray.pid"
+$FrpcPid = Join-Path $Sk "frpc.pid"
+$CpPid = Join-Path $Sk "control-plane.pid"
 
 @"
 serverAddr = "$Relay"
@@ -245,7 +262,7 @@ WEFT_GEO=$($Node.geo)
 WEFT_XRAY_CONFIG=$XrayConfig
 WEFT_XRAY_BIN=$XrayExe
 WEFT_XRAY_API=127.0.0.1:10085
-WEFT_XRAY_RELOAD="$RestartXray"
+WEFT_XRAY_RELOAD=powershell -NoProfile -ExecutionPolicy Bypass -File "$RestartXray"
 WEFT_XRAY_SEND_THROUGH=$SendThrough
 WEFT_STORE=$(Join-Path $Sk "users.json")
 WEFT_PORT=8088
@@ -273,27 +290,34 @@ set WEFT_ENVFILE=$NodeEnv
 "@ | Set-Content -LiteralPath $RunCp -Encoding ASCII
 
 @"
-@echo off
-schtasks /End /TN "$XrayTask" >NUL 2>NUL
-schtasks /Run /TN "$XrayTask" >NUL
+`$ErrorActionPreference = "SilentlyContinue"
+`$PidFile = $(Ps-Literal $XrayPid)
+`$RunXray = $(Ps-Literal $RunXray)
+if (Test-Path -LiteralPath `$PidFile) {
+  `$PidText = (Get-Content -LiteralPath `$PidFile -Raw).Trim()
+  if (`$PidText -match '^\d+`$') { & taskkill.exe /PID `$PidText /T /F *> `$null }
+}
+`$Args = '/c "' + `$RunXray + '"'
+`$Process = Start-Process -FilePath `$env:ComSpec -ArgumentList `$Args -WindowStyle Hidden -PassThru
+Set-Content -LiteralPath `$PidFile -Value `$Process.Id -Encoding ASCII
 "@ | Set-Content -LiteralPath $RestartXray -Encoding ASCII
 
-Info "installing scheduled tasks"
-foreach ($Task in @($CpTask, $FrpcTask, $XrayTask)) {
-  Stop-TaskIfExists $Task $false
-}
-& schtasks.exe /Create /TN $XrayTask /SC ONLOGON /TR "`"$RunXray`"" /F | Out-Null
-& schtasks.exe /Create /TN $FrpcTask /SC ONLOGON /TR "`"$RunFrpc`"" /F | Out-Null
-& schtasks.exe /Create /TN $CpTask /SC ONLOGON /TR "`"$RunCp`"" /F | Out-Null
+@"
+@echo off
+start "Weft Xray" /min cmd /c "$RunXray"
+start "Weft frpc" /min cmd /c "$RunFrpc"
+start "Weft control plane" /min cmd /c "$RunCp"
+"@ | Set-Content -LiteralPath $StartupCmd -Encoding ASCII
 
-Info "starting relay tunnel and control plane"
-& schtasks.exe /Run /TN $FrpcTask | Out-Null
-& schtasks.exe /Run /TN $CpTask | Out-Null
+Info "starting local services"
+Start-CmdProcess $RunXray $XrayPid
+Start-CmdProcess $RunFrpc $FrpcPid
+Start-CmdProcess $RunCp $CpPid
 
 Start-Sleep -Seconds 3
 
 Write-Host ""
-Write-Host "OK: Weft 1-hop node is up (Windows scheduled tasks)."
+Write-Host "OK: Weft 1-hop node is up (Windows background processes + Startup autostart)."
 Write-Host "Public endpoint: ${Relay}:$($Node.port)   region: $($Node.geo)"
 Write-Host "Logs: $Sk\xray.log, $Sk\frpc.log, $Sk\control-plane.log"
-Write-Host "Stop: powershell -ExecutionPolicy Bypass -File .\weft-node.ps1 stop"
+Write-Host "Stop: weft-node.cmd stop"

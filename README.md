@@ -69,7 +69,7 @@ weft-node.cmd <your-node-key>
 The scripts download missing runtime dependencies automatically:
 
 - macOS/Linux: Node.js if needed, Xray-core, frpc.
-- Windows: portable Node.js, Xray-core, frpc, plus Windows Scheduled Tasks for autostart.
+- Windows: portable Node.js, Xray-core, frpc, plus user Startup autostart.
 
 After the first run, the key is saved locally.
 
