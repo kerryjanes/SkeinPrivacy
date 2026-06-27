@@ -16,8 +16,9 @@ import { rewardsSettlement } from '@weft/sdk';
 import { buildEpoch, buildEpochFromByteTotals, type BuildOptions, type ByteTotal } from './rewards';
 import { fetchNodeInfos } from './nodes';
 import { postEpoch } from './poster';
-import { EpochStore } from './store';
+import { EpochStore, PayoutStore } from './store';
 import { createAggregatorServer } from './server';
+import { TokenPayout } from './payout';
 import type { TrafficReceipt } from './receipts';
 import {
   buildProfileByteTotals,
@@ -99,6 +100,8 @@ async function main(): Promise<void> {
   const settledProfilePath =
     process.env.WEFT_SETTLED_PROFILE_BYTES ?? '/var/lib/weft/settled-profile-bytes.json';
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? '/var/lib/weft/reward-epochs.json';
+  const payoutStorePath = process.env.WEFT_PAYOUT_STORE ?? '/var/lib/weft/payouts.json';
+  const payoutKeypairPath = process.env.WEFT_PAYOUT_KEYPAIR;
 
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
@@ -118,6 +121,7 @@ async function main(): Promise<void> {
   );
 
   const store = new EpochStore(epochStorePath);
+  const payoutStore = new PayoutStore(payoutStorePath);
   store.put(build);
 
   const poster = posterPath
@@ -144,10 +148,15 @@ async function main(): Promise<void> {
   const d = rewardsSettlement
     .getDistributorDecoder()
     .decode(Buffer.from(distInfo.value.data[0], 'base64'));
+  const payout = payoutKeypairPath
+    ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint)
+    : undefined;
   let nextAutoEpoch = BigInt(d.currentEpoch) + 1n;
 
   const server = createAggregatorServer({
     store,
+    payoutStore,
+    payout,
     payConfig: {
       rewardMint: d.rewardMint,
       rewardVault: d.rewardVault,
@@ -186,9 +195,16 @@ async function main(): Promise<void> {
       writeSettledProfileBytes(settledProfilePath, nextSettled);
       return;
     }
-    const postedSignature = await maybePost(next);
     store.put(next);
     writeSettledProfileBytes(settledProfilePath, nextSettled);
+    let postedSignature: string | null = null;
+    try {
+      postedSignature = await maybePost(next);
+    } catch (e) {
+      console.error(
+        `[aggregator] stored off-chain epoch ${next.epoch}; on-chain post failed: ${(e as Error).message}`,
+      );
+    }
     console.log(
       `[aggregator] auto-settled epoch ${next.epoch}: ${next.numNodes} nodes, ${next.totalReward} base units, tx ${postedSignature}`,
     );

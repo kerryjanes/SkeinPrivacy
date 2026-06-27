@@ -20,7 +20,8 @@ import {
   type PayConfig,
 } from './pay';
 import { selectReceiptsForEpoch, type TrafficReceipt } from './receipts';
-import type { EpochStore } from './store';
+import type { EpochStore, PayoutStore } from './store';
+import type { PayoutBackend } from './payout';
 
 export interface ServerDeps {
   store: EpochStore;
@@ -28,6 +29,8 @@ export interface ServerDeps {
   getBlockhash: () => Promise<Blockhashish>;
   /** Called with the verified, deduped receipts ingested for an epoch (M6 → M4). */
   onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => Promise<unknown> | unknown;
+  payoutStore?: PayoutStore;
+  payout?: PayoutBackend;
 }
 
 function readBody(req: import('node:http').IncomingMessage): Promise<string> {
@@ -51,6 +54,27 @@ function parseReceipt(raw: unknown): TrafficReceipt {
     nonce: BigInt(String(r.nonce)),
     clientSig: String(r.clientSig),
     relaySig: String(r.relaySig),
+  };
+}
+
+function earnedSummary(store: EpochStore, payouts: PayoutStore | undefined, operator: string) {
+  const summary = store.claimable(operator);
+  const nodes = summary.nodes.map((node) => {
+    const paid = payouts?.paid(operator, node.nodeId) ?? 0n;
+    const withdrawable = node.totalAmount > paid ? node.totalAmount - paid : 0n;
+    return {
+      nodeId: node.nodeId,
+      earned: node.totalAmount,
+      paid,
+      withdrawable,
+    };
+  });
+  return {
+    operator,
+    totalEarned: nodes.reduce((sum, node) => sum + node.earned, 0n),
+    totalPaid: nodes.reduce((sum, node) => sum + node.paid, 0n),
+    withdrawable: nodes.reduce((sum, node) => sum + node.withdrawable, 0n),
+    nodes,
   };
 }
 
@@ -135,6 +159,56 @@ export function createAggregatorServer(deps: ServerDeps): Server {
               })),
             })),
           });
+          return;
+        }
+
+        if (url.pathname === '/earned' && req.method === 'GET') {
+          const operator = url.searchParams.get('operator') ?? '';
+          const summary = earnedSummary(deps.store, deps.payoutStore, operator);
+          json(200, {
+            operator: summary.operator,
+            totalEarned: summary.totalEarned.toString(),
+            totalPaid: summary.totalPaid.toString(),
+            withdrawable: summary.withdrawable.toString(),
+            nodes: summary.nodes.map((node) => ({
+              nodeId: node.nodeId.toString(),
+              earned: node.earned.toString(),
+              paid: node.paid.toString(),
+              withdrawable: node.withdrawable.toString(),
+            })),
+          });
+          return;
+        }
+
+        if (url.pathname === '/withdraw-earned' && req.method === 'POST') {
+          if (!deps.payout || !deps.payoutStore) {
+            json(404, { error: 'earned payout disabled' });
+            return;
+          }
+          const body = JSON.parse((await readBody(req)) || '{}') as {
+            operator?: string;
+            nodeId?: string;
+          };
+          const operator = body.operator ?? '';
+          if (!operator) {
+            json(400, { error: 'operator required' });
+            return;
+          }
+          const onlyNodeId = body.nodeId ? BigInt(body.nodeId) : null;
+          const summary = earnedSummary(deps.store, deps.payoutStore, operator);
+          const payableNodes = summary.nodes.filter(
+            (node) => node.withdrawable > 0n && (onlyNodeId === null || node.nodeId === onlyNodeId),
+          );
+          const amount = payableNodes.reduce((sum, node) => sum + node.withdrawable, 0n);
+          if (amount <= 0n) {
+            json(400, { error: 'nothing to withdraw' });
+            return;
+          }
+          const { signature } = await deps.payout.pay(operator, amount);
+          for (const node of payableNodes) {
+            deps.payoutStore.record(operator, node.nodeId, node.withdrawable, signature);
+          }
+          json(200, { signature, amount: amount.toString() });
           return;
         }
 

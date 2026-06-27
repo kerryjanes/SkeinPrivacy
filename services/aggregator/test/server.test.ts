@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
 
 import { createAggregatorServer } from '../src/server';
-import { EpochStore } from '../src/store';
+import { EpochStore, PayoutStore } from '../src/store';
 import { buildEpochFromByteTotals } from '../src/rewards';
 import { makeReceipt, makeSigner } from './helpers';
 
@@ -142,5 +142,96 @@ describe('aggregator HTTP receipt ingest', () => {
     expect(body.nodes.map((n) => n.nodeId)).toEqual(['11', '12']);
     expect(body.nodes.find((n) => n.nodeId === '11')?.claims.map((c) => c.epoch)).toEqual(['8', '7']);
     expect(BigInt(body.totalAmount)).toBeGreaterThan(0n);
+  });
+
+  it('summarizes earned rewards net of off-chain payouts', async () => {
+    const operator = makeSigner();
+    const store = new EpochStore();
+    const payouts = new PayoutStore();
+    store.put(
+      buildEpochFromByteTotals(
+        9n,
+        [{ operator: operator.address, nodeId: 11n, bytes: 1_000_000_000n }],
+        [{ operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n }],
+        { minStakeToEarn: 0n },
+      ),
+    );
+    payouts.record(operator.address, 11n, 100n, 'sig-1', 1);
+
+    server = createAggregatorServer({
+      store,
+      payoutStore: payouts,
+      payConfig: {
+        rewardMint: operator.address,
+        rewardVault: operator.address,
+        treasury: operator.address,
+        label: 'test',
+      },
+      getBlockhash: async () => ({
+        blockhash: '11111111111111111111111111111111',
+        lastValidBlockHeight: 1n,
+      }) as never,
+    });
+    const base = await listen(server);
+
+    const res = await fetch(`${base}/earned?operator=${operator.address}`);
+    const body = (await res.json()) as {
+      totalEarned: string;
+      totalPaid: string;
+      withdrawable: string;
+      nodes: Array<{ nodeId: string; earned: string; paid: string; withdrawable: string }>;
+    };
+
+    expect(res.status).toBe(200);
+    expect(body.nodes).toHaveLength(1);
+    expect(BigInt(body.totalEarned)).toBe(700n * 1_000_000_000n);
+    expect(body.totalPaid).toBe('100');
+    expect(body.withdrawable).toBe((700n * 1_000_000_000n - 100n).toString());
+    expect(body.nodes[0]).toMatchObject({ nodeId: '11', paid: '100' });
+  });
+
+  it('withdraws earned rewards through the payout backend and records paid offsets', async () => {
+    const operator = makeSigner();
+    const store = new EpochStore();
+    const payouts = new PayoutStore();
+    store.put(
+      buildEpochFromByteTotals(
+        10n,
+        [{ operator: operator.address, nodeId: 11n, bytes: 1_000_000_000n }],
+        [{ operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n }],
+        { minStakeToEarn: 0n },
+      ),
+    );
+
+    server = createAggregatorServer({
+      store,
+      payoutStore: payouts,
+      payout: {
+        pay: async (recipient, amount) => ({ signature: `paid-${recipient}-${amount}` }),
+      },
+      payConfig: {
+        rewardMint: operator.address,
+        rewardVault: operator.address,
+        treasury: operator.address,
+        label: 'test',
+      },
+      getBlockhash: async () => ({
+        blockhash: '11111111111111111111111111111111',
+        lastValidBlockHeight: 1n,
+      }) as never,
+    });
+    const base = await listen(server);
+
+    const res = await fetch(`${base}/withdraw-earned`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ operator: operator.address }),
+    });
+    const body = (await res.json()) as { signature: string; amount: string };
+
+    expect(res.status).toBe(200);
+    expect(body.amount).toBe((700n * 1_000_000_000n).toString());
+    expect(body.signature).toContain('paid-');
+    expect(payouts.paid(operator.address, 11n)).toBe(700n * 1_000_000_000n);
   });
 });
