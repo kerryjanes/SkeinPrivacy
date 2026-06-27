@@ -15746,7 +15746,7 @@ function renderConfig(cfg2, activeUsers) {
   };
   if (cfg2.xraySendThrough) directOutbound.sendThrough = cfg2.xraySendThrough;
   const userExits = multihop ? liveExitProfiles(cfg2).map(userExitOutbound) : [];
-  const selectedUserExit = userExits.length ? userExits[Math.floor(Math.random() * userExits.length)] : null;
+  const userExitBalancerTag = "user-exit-balancer";
   return {
     log: { loglevel: "warning" },
     api: { tag: "api", services: ["HandlerService", "StatsService"] },
@@ -15798,9 +15798,17 @@ function renderConfig(cfg2, activeUsers) {
       ] : []
     ],
     routing: {
+      balancers: userExits.length ? [
+        {
+          tag: userExitBalancerTag,
+          selector: ["user-exit-"],
+          fallbackTag: "direct",
+          strategy: { type: "roundRobin" }
+        }
+      ] : [],
       rules: [
         { type: "field", inboundTag: ["api"], outboundTag: "api" },
-        { type: "field", inboundTag: ["hop1"], outboundTag: selectedUserExit?.tag ?? "direct" },
+        userExits.length ? { type: "field", inboundTag: ["hop1"], balancerTag: userExitBalancerTag } : { type: "field", inboundTag: ["hop1"], outboundTag: "direct" },
         ...multihop ? [
           // Tor is TCP-only. Reject UDP/QUIC quickly so mobile clients fall back to TCP instead
           // of waiting for UDP timeouts on connectivity probes.

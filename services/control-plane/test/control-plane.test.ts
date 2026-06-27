@@ -231,7 +231,7 @@ describe('xray config render', () => {
     expect(direct.sendThrough).toBe('192.168.0.103');
     expect(direct.settings.domainStrategy).toBe('UseIPv4');
   });
-  it('routes VPS 1-hop users through a fresh user-exit profile when one is published', () => {
+  it('routes VPS 1-hop users through a balancer across live user-exit profiles', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-exits-'));
     try {
       const profileCfg = {
@@ -248,11 +248,31 @@ describe('xray config render', () => {
         sni: 'ya.ru',
         geo: 0,
       });
+      registerExitProfile(profileCfg, {
+        host: profileCfg.host,
+        port: 20043,
+        uuid: '22222222-3333-4444-8555-666666666666',
+        realityPub: 'lY0nZ4nmhU6Szh7xNnWlPkAaBbCcDdEeFfGgHhIiJjL',
+        sid: '1123456789abcdef',
+        sni: 'ya.ru',
+        geo: 0,
+      });
       const c = renderConfig(profileCfg, [user({ uuid: 'u-1', email: 'w1' })]) as any;
       expect(c.outbounds.some((o: any) => o.tag === 'user-exit-20042')).toBe(true);
-      expect(c.routing.rules.find((r: any) => r.inboundTag?.includes('hop1'))?.outboundTag).toBe(
-        'user-exit-20042',
-      );
+      expect(c.outbounds.some((o: any) => o.tag === 'user-exit-20043')).toBe(true);
+      expect(c.routing.balancers).toEqual([
+        {
+          tag: 'user-exit-balancer',
+          selector: ['user-exit-'],
+          fallbackTag: 'direct',
+          strategy: { type: 'roundRobin' },
+        },
+      ]);
+      expect(c.routing.rules.find((r: any) => r.inboundTag?.includes('hop1'))).toEqual({
+        type: 'field',
+        inboundTag: ['hop1'],
+        balancerTag: 'user-exit-balancer',
+      });
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
