@@ -43,10 +43,20 @@ stop_node() {
     sudo systemctl daemon-reload 2>/dev/null || true
   else
     local launch_agents="$HOME/Library/LaunchAgents"
+    local uid
+    uid="$(id -u)"
     for label in xray frpc cp; do
+      launchctl bootout "gui/$uid/com.weft.node.$label" 2>/dev/null || true
       launchctl unload -w "$launch_agents/com.weft.node.$label.plist" 2>/dev/null || true
       if [ "$purge" = "--purge" ]; then rm -f "$launch_agents/com.weft.node.$label.plist"; fi
     done
+    # Older script revisions could leave launchd-orphaned processes with PPID 1.
+    # Match only Weft-owned paths so unrelated local Xray/frpc installs are untouched.
+    pkill -f "$SK/frpc -c $SK/frpc.toml" 2>/dev/null || true
+    pkill -f "$SK/xray-1.8.24 run -c $SK/xray.json" 2>/dev/null || true
+    pkill -f "$SK/control-plane.mjs" 2>/dev/null || true
+    pkill -f "$HOME/.weft-home-exit-test/frpc -c $HOME/.weft-home-exit-test/frpc.toml" 2>/dev/null || true
+    pkill -f "$HOME/.weft-home-exit-test/xray-1.8.24 run -c $HOME/.weft-home-exit-test/xray.json" 2>/dev/null || true
   fi
 
   if [ "$purge" = "--purge" ]; then
