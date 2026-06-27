@@ -205,7 +205,7 @@ export VITE_WEFT_CONTROL_PLANE_URL=<DEVNET_CONTROL_PLANE_URL>
 
 14. Run the full mutable rehearsal:
 
-- faucet-transfer or fund wallet with devnet `$WEFT`
+- faucet-transfer test `$WEFT` to the wallet, and fund devnet `SOL` separately for fees
 - provision VPN link
 - connect from phone
 - verify user-node exit IP

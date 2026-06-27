@@ -34,7 +34,7 @@ The per-node service that makes Weft access **token-gated**. It runs on each nod
 ports advertised in links — for home nodes behind a relay) · `WEFT_FOUNDER_UUID` · `WEFT_PORT`
 (default 8088) · `WEFT_RPC` / `WEFT_WS` · `WEFT_MINT` · `WEFT_XRAY_RELOAD` (how to reload Xray)
 · `WEFT_FAUCET_KEYPAIR` (enables the devnet transfer faucet; this wallet must hold devnet
-`$WEFT`).
+`$WEFT`) · `WEFT_FAUCET_AMOUNT` (base units per drip; default `1000000000000` = 1000 `$WEFT`).
 
 A public deployment fronts it with TLS (e.g. Caddy) so the browser cabinet can call it over HTTPS.
 
