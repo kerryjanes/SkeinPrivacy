@@ -36,6 +36,7 @@ export interface ServerDeps {
   onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => Promise<unknown> | unknown;
   payoutStore?: PayoutStore;
   payout?: PayoutBackend;
+  payoutReserve?: bigint;
 }
 
 function readBody(req: import('node:http').IncomingMessage): Promise<string> {
@@ -286,6 +287,18 @@ export function createAggregatorServer(deps: ServerDeps): Server {
           const amount = payableNodes.reduce((sum, node) => sum + node.withdrawable, 0n);
           if (amount <= 0n) {
             json(400, { error: 'nothing to withdraw' });
+            return;
+          }
+          const reserve = deps.payoutReserve ?? 0n;
+          const available = await deps.payout.availableBalance();
+          if (available < amount + reserve) {
+            json(503, {
+              error: 'payout wallet balance cannot cover withdrawal plus reserve',
+              available: available.toString(),
+              required: (amount + reserve).toString(),
+              amount: amount.toString(),
+              reserve: reserve.toString(),
+            });
             return;
           }
           const { signature } = await deps.payout.pay(operator, amount);

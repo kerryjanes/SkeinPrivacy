@@ -80,7 +80,7 @@ describe('buildEpoch', () => {
     expect(build.root).toBe('');
   });
 
-  it('caps per-node bytes and applies geo + staking bonuses (parity with the mirror)', () => {
+  it('caps per-node bytes and caps geo + staking boosted rewards to node-share revenue', () => {
     const client = makeSigner();
     const operator = makeSigner();
     // geoRegionPrefix keeps the top chars×5 bits; put region 5 in those bits.
@@ -119,8 +119,39 @@ describe('buildEpoch', () => {
     expect(r.bytes).toBe(maxBytes); // capped
     expect(r.geoBonusBps).toBe(5_000);
     expect(r.stakingBonusBps).toBe(2_000);
-    const expected = math.trafficReward(maxBytes, 20_000n, 5_000n, 2_000n);
-    expect(r.reward).toBe(expected);
+    expect(math.trafficReward(maxBytes, 20_000n, 5_000n, 2_000n)).toBeGreaterThan(
+      700n * WEFT * 5n,
+    );
+    expect(r.reward).toBe(700n * WEFT * 5n);
+  });
+
+  it('caps boosted node rewards to the collected node-share budget', () => {
+    const client = makeSigner();
+    const operator = makeSigner();
+    const node: NodeInfo = {
+      operator: operator.address,
+      nodeId: 3n,
+      reputationBps: 20_000,
+      geo: 0,
+      stake: 10_000n * WEFT,
+      sequence: 1n,
+    };
+    const receipts = [
+      makeReceipt(client, operator, {
+        nodeId: 3n,
+        bytes: GB,
+        windowStart: 1n,
+        windowEnd: 2n,
+        nonce: 1n,
+      }),
+    ];
+    const build = buildEpoch(0n, receipts, [node], {
+      minStakeToEarn: 1n,
+      geoTable: { chars: 0, bonusBps: { '0': 5_000 } },
+      bootstrap: { nodeLimit: 10n, bonusBps: 10_000n, endTs: 0n },
+    });
+
+    expect(build.rewards[0].reward).toBe(700n * WEFT);
   });
 
   it('builds a multi-node tree where every served proof verifies', () => {
@@ -207,10 +238,12 @@ describe('cold-start bootstrap bonus', () => {
 
     const e = build.rewards.find((r) => r.operator === early.address)!;
     const l = build.rewards.find((r) => r.operator === late.address)!;
-    // early (seq 5 <= 10) gets +50%; late (seq 50 > 10) gets nothing.
+    // early (seq 5 <= 10) gets the governed +50% signal, but the mainnet-safe
+    // payout cap prevents paying more than the collected node-share budget.
     expect(e.bootstrapBonusBps).toBe(5_000);
     expect(l.bootstrapBonusBps).toBe(0);
-    expect(e.reward).toBe((l.reward * 3n) / 2n);
+    expect(e.reward).toBe(l.reward);
+    expect(e.reward).toBe(700n * WEFT);
   });
 
   it('expires the bonus after the governed end timestamp', () => {

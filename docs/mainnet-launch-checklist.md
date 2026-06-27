@@ -47,8 +47,10 @@ This checklist is the manual launch gate. Do not launch while any item is unknow
 - Run the aggregator with `WEFT_CLUSTER=mainnet-beta`, `WEFT_RPC`, and production receipt ingestion.
 - Confirm `WEFT_TRUSTED_TOTALS`, `WEFT_TRUSTED_OPERATOR`, `WEFT_TRUSTED_NODE_ID`, and `WEFT_TRUSTED_BYTES` are unset on mainnet.
 - Set `WEFT_PAYOUT_KEYPAIR` and `WEFT_PAYOUT_STORE` explicitly if using the current earned-ledger payout backend.
+- Set `WEFT_PAYOUT_RESERVE` to the minimum token balance the payout wallet must retain after any withdrawal.
 - Confirm `/withdraw-earned` rejects unsigned requests and invalid signatures, and accepts only a fresh `/withdraw-earned/challenge` signed by the node operator wallet.
-- Confirm the payout wallet balance is greater than total unpaid earned balances plus the canary buffer.
+- Confirm the payout wallet balance is greater than total unpaid earned balances plus `WEFT_PAYOUT_RESERVE`.
+- Confirm reward builds cap every node payout to the collected node-share budget (`700 WEFT / GB` at the current `1000 WEFT / GB` user price). Bonus multipliers may rank/boost up to this cap, but must not create liabilities above user-paid node-share unless a separate emissions budget is enabled and reconciled.
 - Confirm `/receipts` ingestion builds proofs, `post_epoch` lands on-chain, `/proof` returns claimable proofs, and `claim` succeeds after the dispute window.
 - Submit the same settlement signature twice against a node control-plane and verify the second attempt is rejected.
 - Keep direct `pay_traffic` disabled in the public UX unless intentionally preserving it as a legacy/manual settlement path.
@@ -72,11 +74,7 @@ This checklist is the manual launch gate. Do not launch while any item is unknow
 
 ## Mainnet Economy Gate
 
-- User price and node payout must reconcile before launch. With the current configured rate of `1000 $WEFT / GB`, define the split per GB:
-  - node operator payout,
-  - treasury reserve,
-  - burn amount,
-  - infrastructure/subsidy reserve.
+- User price and node payout must reconcile before launch. With the current configured rate of `1000 $WEFT / GB`, the enforced maximum node payout is `700 $WEFT / GB`; the remaining `300 $WEFT / GB` is the burn/treasury/infrastructure margin.
 - Never pay node rewards from fresh minting on mainnet.
 - If rewards are paid by backend custody, reconcile daily:
   - total prepaid user liabilities,

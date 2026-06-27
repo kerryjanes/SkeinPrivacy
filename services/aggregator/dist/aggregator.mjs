@@ -18951,6 +18951,9 @@ function selectReceiptsForEpoch(receipts, epoch) {
 var addrEnc2 = getAddressEncoder();
 var DEFAULT_MIN_STAKE_TO_EARN = 1000n * math_exports.ONE_WEFT;
 var DEFAULT_MAX_BYTES_PER_EPOCH = 5000000000000n;
+function nodeShareCap(bytes) {
+  return math_exports.NODE_REWARD_RATE_PER_GB * bytes / math_exports.BYTES_PER_GB;
+}
 function bootstrapBonusFor(info, cfg, epoch) {
   if (!cfg || cfg.bonusBps === 0n) return 0n;
   const seq = info.sequence ?? 0n;
@@ -18997,13 +19000,15 @@ function buildEpochFromByteTotals(epoch, totals, nodes, opts = {}, rejectedRecei
     const geoBonus = geoBonusBps(geoTable, info.geo);
     const stakingBonus = Number(math_exports.stakingBonusForStake(info.stake));
     const bootstrapBonus = bootstrapBonusFor(info, opts.bootstrap, epoch);
-    const reward = math_exports.trafficRewardWithBootstrap(
+    const uncappedReward = math_exports.trafficRewardWithBootstrap(
       bytes,
       BigInt(info.reputationBps),
       BigInt(geoBonus),
       BigInt(stakingBonus),
       bootstrapBonus
     );
+    const cap = nodeShareCap(bytes);
+    const reward = uncappedReward > cap ? cap : uncappedReward;
     if (reward === 0n) {
       skipped.push({ operator, nodeId, bytes, reason: "zero-reward" });
       continue;
@@ -19706,6 +19711,18 @@ function createAggregatorServer(deps) {
             json(400, { error: "nothing to withdraw" });
             return;
           }
+          const reserve = deps.payoutReserve ?? 0n;
+          const available = await deps.payout.availableBalance();
+          if (available < amount + reserve) {
+            json(503, {
+              error: "payout wallet balance cannot cover withdrawal plus reserve",
+              available: available.toString(),
+              required: (amount + reserve).toString(),
+              amount: amount.toString(),
+              reserve: reserve.toString()
+            });
+            return;
+          }
           const { signature } = await deps.payout.pay(operator, amount);
           for (const node of payableNodes) {
             deps.payoutStore.record(operator, node.nodeId, node.withdrawable, signature);
@@ -19817,11 +19834,29 @@ var TokenPayout = class {
     this.keypairPath = keypairPath;
     this.mint = mint;
   }
-  async pay(recipient, amount) {
-    if (amount <= 0n) throw new Error("withdraw amount must be positive");
-    const payer = await createKeyPairSignerFromBytes(
+  async payer() {
+    return createKeyPairSignerFromBytes(
       Uint8Array.from(JSON.parse(readFileSync2(this.keypairPath, "utf8")))
     );
+  }
+  async availableBalance() {
+    const payer = await this.payer();
+    const rpc = createSolanaRpc(this.rpcUrl);
+    const [sourceAta] = await findAssociatedTokenPda({
+      owner: payer.address,
+      mint: this.mint,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS
+    });
+    try {
+      const { value } = await rpc.getTokenAccountBalance(sourceAta).send();
+      return BigInt(value.amount);
+    } catch {
+      return 0n;
+    }
+  }
+  async pay(recipient, amount) {
+    if (amount <= 0n) throw new Error("withdraw amount must be positive");
+    const payer = await this.payer();
     const rpc = createSolanaRpc(this.rpcUrl);
     const sendAndConfirm = sendAndConfirmTransactionFactory({
       rpc,
@@ -19978,6 +20013,7 @@ async function main() {
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? "/var/lib/weft/reward-epochs.json";
   const payoutStorePath = process.env.WEFT_PAYOUT_STORE ?? "/var/lib/weft/payouts.json";
   const payoutKeypairPath = process.env.WEFT_PAYOUT_KEYPAIR;
+  const payoutReserve = BigInt(process.env.WEFT_PAYOUT_RESERVE ?? "0");
   if (mainnet && trustedTotalsConfigured()) {
     throw new Error("WEFT_TRUSTED_* totals are devnet-only and must be unset on mainnet");
   }
@@ -20022,6 +20058,7 @@ async function main() {
     store,
     payoutStore,
     payout,
+    payoutReserve,
     payConfig: {
       rewardMint: d.rewardMint,
       rewardVault: d.rewardVault,

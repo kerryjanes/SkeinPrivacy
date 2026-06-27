@@ -52,6 +52,10 @@ export interface BuildOptions {
 export const DEFAULT_MIN_STAKE_TO_EARN = 1_000n * math.ONE_WEFT;
 export const DEFAULT_MAX_BYTES_PER_EPOCH = 5_000_000_000_000n; // 5 TB / 10 min
 
+function nodeShareCap(bytes: bigint): bigint {
+  return (math.NODE_REWARD_RATE_PER_GB * bytes) / math.BYTES_PER_GB;
+}
+
 /** The cold-start bonus (bps) a node earns this epoch, or 0n if ineligible. */
 function bootstrapBonusFor(
   info: NodeInfo,
@@ -178,13 +182,15 @@ export function buildEpochFromByteTotals(
     // Cold-start bonus (M8): a node within the early-adopter sequence limit, while the
     // governed window is open, earns an extra multiplier on top of the base reward.
     const bootstrapBonus = bootstrapBonusFor(info, opts.bootstrap, epoch);
-    const reward = math.trafficRewardWithBootstrap(
+    const uncappedReward = math.trafficRewardWithBootstrap(
       bytes,
       BigInt(info.reputationBps),
       BigInt(geoBonus),
       BigInt(stakingBonus),
       bootstrapBonus,
     );
+    const cap = nodeShareCap(bytes);
+    const reward = uncappedReward > cap ? cap : uncappedReward;
     if (reward === 0n) {
       skipped.push({ operator, nodeId, bytes, reason: 'zero-reward' });
       continue;

@@ -112,6 +112,7 @@ async function main(): Promise<void> {
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? '/var/lib/weft/reward-epochs.json';
   const payoutStorePath = process.env.WEFT_PAYOUT_STORE ?? '/var/lib/weft/payouts.json';
   const payoutKeypairPath = process.env.WEFT_PAYOUT_KEYPAIR;
+  const payoutReserve = BigInt(process.env.WEFT_PAYOUT_RESERVE ?? '0');
   if (mainnet && trustedTotalsConfigured()) {
     throw new Error('WEFT_TRUSTED_* totals are devnet-only and must be unset on mainnet');
   }
@@ -173,6 +174,7 @@ async function main(): Promise<void> {
     store,
     payoutStore,
     payout,
+    payoutReserve,
     payConfig: {
       rewardMint: d.rewardMint,
       rewardVault: d.rewardVault,

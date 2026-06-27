@@ -212,6 +212,7 @@ describe('aggregator HTTP receipt ingest', () => {
       store,
       payoutStore: payouts,
       payout: {
+        availableBalance: async () => 1_000_000_000_000_000n,
         pay: async (recipient, amount) => ({ signature: `paid-${recipient}-${amount}` }),
       },
       payConfig: {
@@ -271,5 +272,63 @@ describe('aggregator HTTP receipt ingest', () => {
     expect(body.amount).toBe((700n * 1_000_000_000n).toString());
     expect(body.signature).toContain('paid-');
     expect(payouts.paid(operator.address, 11n)).toBe(700n * 1_000_000_000n);
+  });
+
+  it('refuses earned withdrawals when payout wallet balance cannot cover amount plus reserve', async () => {
+    const operator = makeSigner();
+    const store = new EpochStore();
+    const payouts = new PayoutStore();
+    store.put(
+      buildEpochFromByteTotals(
+        11n,
+        [{ operator: operator.address, nodeId: 11n, bytes: 1_000_000_000n }],
+        [{ operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n }],
+        { minStakeToEarn: 0n },
+      ),
+    );
+    let paid = false;
+
+    server = createAggregatorServer({
+      store,
+      payoutStore: payouts,
+      payoutReserve: 10n,
+      payout: {
+        availableBalance: async () => 700n * 1_000_000_000n,
+        pay: async () => {
+          paid = true;
+          return { signature: 'should-not-pay' };
+        },
+      } as never,
+      payConfig: {
+        rewardMint: operator.address,
+        rewardVault: operator.address,
+        treasury: operator.address,
+        label: 'test',
+      },
+      getBlockhash: async () => ({
+        blockhash: '11111111111111111111111111111111',
+        lastValidBlockHeight: 1n,
+      }) as never,
+    });
+    const base = await listen(server);
+    const challengeRes = await fetch(`${base}/withdraw-earned/challenge`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ operator: operator.address }),
+    });
+    const challenge = (await challengeRes.json()) as { message: string };
+    const signature = signMessageBase64(challenge.message, operator.secretKey);
+
+    const res = await fetch(`${base}/withdraw-earned`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ operator: operator.address, message: challenge.message, signature }),
+    });
+    const body = (await res.json()) as { error?: string };
+
+    expect(res.status).toBe(503);
+    expect(body.error).toMatch(/payout wallet balance/i);
+    expect(paid).toBe(false);
+    expect(payouts.paid(operator.address, 11n)).toBe(0n);
   });
 });

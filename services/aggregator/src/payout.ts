@@ -22,6 +22,7 @@ import {
 } from '@solana-program/token';
 
 export interface PayoutBackend {
+  availableBalance(): Promise<bigint>;
   pay(recipient: string, amount: bigint): Promise<{ signature: string }>;
 }
 
@@ -33,11 +34,31 @@ export class TokenPayout implements PayoutBackend {
     private mint: Address,
   ) {}
 
-  async pay(recipient: string, amount: bigint): Promise<{ signature: string }> {
-    if (amount <= 0n) throw new Error('withdraw amount must be positive');
-    const payer = await createKeyPairSignerFromBytes(
+  private async payer() {
+    return createKeyPairSignerFromBytes(
       Uint8Array.from(JSON.parse(readFileSync(this.keypairPath, 'utf8')) as number[]),
     );
+  }
+
+  async availableBalance(): Promise<bigint> {
+    const payer = await this.payer();
+    const rpc = createSolanaRpc(this.rpcUrl);
+    const [sourceAta] = await findAssociatedTokenPda({
+      owner: payer.address,
+      mint: this.mint,
+      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    });
+    try {
+      const { value } = await rpc.getTokenAccountBalance(sourceAta).send();
+      return BigInt(value.amount);
+    } catch {
+      return 0n;
+    }
+  }
+
+  async pay(recipient: string, amount: bigint): Promise<{ signature: string }> {
+    if (amount <= 0n) throw new Error('withdraw amount must be positive');
+    const payer = await this.payer();
     const rpc = createSolanaRpc(this.rpcUrl);
     const sendAndConfirm = sendAndConfirmTransactionFactory({
       rpc,
