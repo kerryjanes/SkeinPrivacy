@@ -208,6 +208,22 @@ describe('xray config render', () => {
     expect(hop1.settings.clients).toHaveLength(1);
     expect(hop1.settings.clients[0].email).toBe('founder');
   });
+  it('blocks UDP on Tor multihop so clients fall back to TCP', () => {
+    const c = renderConfig(cfg, [user()]) as any;
+    expect(c.outbounds.some((o: any) => o.tag === 'block' && o.protocol === 'blackhole')).toBe(true);
+    expect(c.routing.rules).toContainEqual({
+      type: 'field',
+      inboundTag: ['hopN'],
+      network: 'udp',
+      outboundTag: 'block',
+    });
+    expect(c.routing.rules).toContainEqual({
+      type: 'field',
+      inboundTag: ['hopN'],
+      network: 'tcp',
+      outboundTag: 'tor',
+    });
+  });
   it('can pin 1-hop egress to a physical interface IP to bypass a host VPN', () => {
     const c = renderConfig({ ...cfg, xraySendThrough: '192.168.0.103' }, []) as any;
     const direct = c.outbounds.find((o: any) => o.tag === 'direct');

@@ -15778,6 +15778,10 @@ function renderConfig(cfg2, activeUsers) {
       ...userExits,
       ...multihop ? [
         {
+          tag: "block",
+          protocol: "blackhole"
+        },
+        {
           tag: "tor",
           protocol: "socks",
           settings: { servers: [{ address: "127.0.0.1", port: 9050 }] }
@@ -15788,7 +15792,12 @@ function renderConfig(cfg2, activeUsers) {
       rules: [
         { type: "field", inboundTag: ["api"], outboundTag: "api" },
         { type: "field", inboundTag: ["hop1"], outboundTag: selectedUserExit?.tag ?? "direct" },
-        ...multihop ? [{ type: "field", inboundTag: ["hopN"], outboundTag: "tor" }] : []
+        ...multihop ? [
+          // Tor is TCP-only. Reject UDP/QUIC quickly so mobile clients fall back to TCP instead
+          // of waiting for UDP timeouts on connectivity probes.
+          { type: "field", inboundTag: ["hopN"], network: "udp", outboundTag: "block" },
+          { type: "field", inboundTag: ["hopN"], network: "tcp", outboundTag: "tor" }
+        ] : []
       ]
     }
   };
