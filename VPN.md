@@ -8,7 +8,7 @@ Weft works with the popular VLESS clients — on your **phone or your computer**
 1. Install any one of them (free, from your app store or their site).
 2. Get your **personal connection link** from the **cabinet** →
    [weftnetwork.net/app](https://www.weftnetwork.net/app): connect your wallet, open **access**.
-   Weft is token-gated — your `$WEFT` balance is your traffic budget (0.1 `$WEFT`/GB), so each
+   Weft is token-gated — your `$WEFT` balance is your traffic budget (1000 `$WEFT`/GB), so each
    wallet gets its own metered link. You get two: **1-hop** (fast, direct exit) and **multihop**
    (routed through the Tor network, onion, max privacy, slower). Copy one. When you've used what
    your `$WEFT` pays for, the link stops; top up (or earn `$WEFT` by running a node) and it

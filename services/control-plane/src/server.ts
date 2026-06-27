@@ -2,7 +2,7 @@
 //   POST /provision  {wallet}              → mint/refresh the user's links + status
 //   POST /settle     {wallet, signature}   → register a pay_traffic payment, clear the tab
 //   GET  /status?wallet=…                  → current quota / usage / owed
-//   GET  /price                            → the public price (0.1 WEFT/GB) + node info
+//   GET  /price                            → the public price (1000 WEFT/GB) + node info
 // Built on node:http so the only deps are the chain SDK — no web framework.
 
 import { createServer, type IncomingMessage, type ServerResponse } from 'node:http';
@@ -103,7 +103,7 @@ export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet):
 
     if (req.method === 'GET' && url.pathname === '/price') {
       return send(res, 200, {
-        weftPerGb: Number(math.BASE_RATE_PER_GB) / 1e9,
+        weftPerGb: Number(math.USER_PRICE_PER_GB) / 1e9,
         mint: cfg.weftMint,
         host: cfg.host,
         modes: ['1hop', 'multihop'],

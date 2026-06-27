@@ -536,7 +536,7 @@ fn update_split_inner() -> (Pubkey, Vec<AccountMeta>, Vec<u8>) {
         split_treasury_bps: 1_000,
         dispute_window_seconds: 300,
         clawback_window_seconds: 600,
-        base_rate_per_gb: 100_000_000,
+        base_rate_per_gb: 1_000_000_000_000,
         geo_bonus_max_bps: 5_000,
         reputation_min_bps: 5_000,
         reputation_max_bps: 20_000,

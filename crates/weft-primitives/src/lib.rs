@@ -59,8 +59,11 @@ pub const fn allocation_amount(bps: u32) -> u64 {
 // Node reward formula (the protocol spec > Node Economics)
 // ---------------------------------------------------------------------------
 
-/// Base emission rate: 0.1 $WEFT per 1 GB of transferred traffic.
-pub const BASE_RATE_PER_GB: u64 = ONE_WEFT / 10;
+/// User access price: 1000 $WEFT per 1 GB of transferred traffic.
+pub const USER_PRICE_PER_GB: u64 = 1_000 * ONE_WEFT;
+
+/// Base node reward rate funded by the default 70% node share of user payments.
+pub const NODE_REWARD_RATE_PER_GB: u64 = 700 * ONE_WEFT;
 
 /// Bytes in one billable gigabyte (decimal GB).
 pub const BYTES_PER_GB: u64 = 1_000_000_000;
@@ -102,7 +105,7 @@ pub fn staking_bonus_for_stake(staked_base_units: u64) -> u32 {
 
 /// Reward (in $WEFT base units) for `bytes` of relayed traffic.
 ///
-/// `reward = 0.1 WEFT/GB · (bytes/GB) · reputation · (1 + geo_bonus) · (1 + staking_bonus)`
+/// `reward = 700 WEFT/GB · (bytes/GB) · reputation · (1 + geo_bonus) · (1 + staking_bonus)`
 ///
 /// All multiplier inputs are clamped to their spec-defined ranges so a
 /// malformed on-chain or off-chain value can never inflate a payout. The
@@ -113,7 +116,7 @@ pub fn traffic_reward(
     geo_bonus_bps: u32,
     staking_bonus_bps: u32,
 ) -> u64 {
-    let base = (BASE_RATE_PER_GB as u128 * bytes as u128) / BYTES_PER_GB as u128;
+    let base = (NODE_REWARD_RATE_PER_GB as u128 * bytes as u128) / BYTES_PER_GB as u128;
     let reputation = clamp_reputation_bps(reputation_bps) as u128;
     let geo = (BPS + clamp_geo_bonus_bps(geo_bonus_bps)) as u128;
     let staking = (BPS + staking_bonus_bps.min(STAKING_BONUS_BPS)) as u128;
@@ -541,29 +544,30 @@ mod tests {
     }
 
     #[test]
-    fn neutral_reward_is_base_rate_per_gb() {
+    fn neutral_reward_is_node_reward_rate_per_gb() {
         // 1 GB, reputation 1.0x, no geo bonus, no staking bonus.
         let r = traffic_reward(BYTES_PER_GB, BPS, 0, 0);
-        assert_eq!(r, BASE_RATE_PER_GB);
-        assert_eq!(r, 100_000_000); // 0.1 WEFT
+        assert_eq!(r, NODE_REWARD_RATE_PER_GB);
+        assert_eq!(r, 700_000_000_000); // 700 WEFT
+        assert_eq!(USER_PRICE_PER_GB, 1_000_000_000_000); // 1000 WEFT
     }
 
     #[test]
     fn maxed_out_reward() {
-        // 1 GB, 2.0x reputation, +50% geo, +20% staking = 0.1 * 2.0 * 1.5 * 1.2 = 0.36 WEFT.
+        // 1 GB, 2.0x reputation, +50% geo, +20% staking = 700 * 2.0 * 1.5 * 1.2 = 2520 WEFT.
         let r = traffic_reward(
             BYTES_PER_GB,
             REPUTATION_MAX_BPS,
             GEO_BONUS_MAX_BPS,
             STAKING_BONUS_BPS,
         );
-        assert_eq!(r, 360_000_000);
+        assert_eq!(r, 2_520_000_000_000);
     }
 
     #[test]
     fn minimum_reputation_halves_reward() {
         let r = traffic_reward(BYTES_PER_GB, REPUTATION_MIN_BPS, 0, 0);
-        assert_eq!(r, 50_000_000); // 0.05 WEFT
+        assert_eq!(r, 350_000_000_000); // 350 WEFT
     }
 
     #[test]
@@ -684,7 +688,7 @@ mod tests {
 
     #[test]
     fn bootstrap_bonus_scales_the_base_reward() {
-        let base = traffic_reward(1_000_000_000, 10_000, 0, 0); // 0.1 WEFT
+        let base = traffic_reward(1_000_000_000, 10_000, 0, 0); // 700 WEFT
                                                                 // no bonus → identical to the base reward
         assert_eq!(
             traffic_reward_with_bootstrap(1_000_000_000, 10_000, 0, 0, 0),

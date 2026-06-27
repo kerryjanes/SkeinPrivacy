@@ -7,7 +7,7 @@ The per-node service that makes Weft access **token-gated**. It runs on each nod
   metered to that wallet.
 - **Meters** each user's traffic via Xray's stats API and **enforces the `$WEFT` budget**: a user
   stays connected only while their consumption is within what their prepaid escrow balance pays for
-  (`unsettledBytes < escrow/price`, price = 0.1 `$WEFT`/GB). Over budget → the user is removed
+  (`unsettledBytes < escrow/price`, price = 1000 `$WEFT`/GB). Over budget → the user is removed
   from the Xray config (link stops); deposit or settle → restored.
 - **Owns the Xray config**: renders `/usr/local/etc/xray/config.json` (the two Reality inbounds +
   api/stats) from the active user set and reloads Xray when it changes.

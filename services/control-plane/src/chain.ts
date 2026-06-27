@@ -10,15 +10,15 @@ export function rpc(url: string): Rpc {
   return createSolanaRpc(url);
 }
 
-/** Bytes a given $WEFT balance (base units, 9 decimals) buys at the 0.1 WEFT/GB base rate. */
+/** Bytes a given $WEFT balance (base units, 9 decimals) buys at the 1000 WEFT/GB access price. */
 export function quotaBytes(balanceBaseUnits: bigint): bigint {
-  // inverse of `base = BASE_RATE_PER_GB * bytes / BYTES_PER_GB` (sdk/math.ts, mirrors on-chain)
-  return (balanceBaseUnits * math.BYTES_PER_GB) / math.BASE_RATE_PER_GB;
+  // inverse of `base = USER_PRICE_PER_GB * bytes / BYTES_PER_GB` (sdk/math.ts)
+  return (balanceBaseUnits * math.BYTES_PER_GB) / math.USER_PRICE_PER_GB;
 }
 
-/** $WEFT base units a given number of bytes costs (what a node is owed for serving them). */
+/** $WEFT base units a given number of bytes costs a VPN user. */
 export function costBaseUnits(bytes: bigint): bigint {
-  return (math.BASE_RATE_PER_GB * bytes) / math.BYTES_PER_GB;
+  return (math.USER_PRICE_PER_GB * bytes) / math.BYTES_PER_GB;
 }
 
 /** A wallet's prepaid escrow balance in base units. Returns 0 if the escrow doesn't exist yet. */

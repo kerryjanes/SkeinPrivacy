@@ -2,9 +2,9 @@ use anchor_lang::prelude::*;
 use anchor_lang::solana_program::{program::invoke, system_instruction};
 use anchor_lang::Discriminator;
 use weft_primitives::{
-    BASE_RATE_PER_GB, BOOTSTRAP_NODE_LIMIT, BPS, GEO_BONUS_MAX_BPS, REPUTATION_MAX_BPS,
-    REPUTATION_MIN_BPS, SPLIT_BURN_BPS, SPLIT_NODES_BPS, SPLIT_TREASURY_BPS, STAKING_BONUS_BPS,
-    STAKING_BONUS_THRESHOLD,
+    BOOTSTRAP_NODE_LIMIT, BPS, GEO_BONUS_MAX_BPS, REPUTATION_MAX_BPS, REPUTATION_MIN_BPS,
+    SPLIT_BURN_BPS, SPLIT_NODES_BPS, SPLIT_TREASURY_BPS, STAKING_BONUS_BPS,
+    STAKING_BONUS_THRESHOLD, USER_PRICE_PER_GB,
 };
 
 use crate::{
@@ -57,7 +57,7 @@ impl InitializeProtocolConfig<'_> {
             split_treasury_bps: SPLIT_TREASURY_BPS,
             dispute_window_seconds,
             clawback_window_seconds,
-            base_rate_per_gb: BASE_RATE_PER_GB,
+            base_rate_per_gb: USER_PRICE_PER_GB,
             geo_bonus_max_bps: GEO_BONUS_MAX_BPS,
             reputation_min_bps: REPUTATION_MIN_BPS,
             reputation_max_bps: REPUTATION_MAX_BPS,

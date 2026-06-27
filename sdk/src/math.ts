@@ -11,7 +11,8 @@ import { sha256 } from '@noble/hashes/sha2';
 // ---- constants (mirror weft-primitives) ----
 export const BPS = 10_000n;
 export const ONE_WEFT = 1_000_000_000n;
-export const BASE_RATE_PER_GB = ONE_WEFT / 10n; // 0.1 WEFT/GB
+export const USER_PRICE_PER_GB = 1_000n * ONE_WEFT; // 1000 WEFT/GB
+export const NODE_REWARD_RATE_PER_GB = 700n * ONE_WEFT; // funded by the default 70% node share
 export const BYTES_PER_GB = 1_000_000_000n;
 export const REPUTATION_MIN_BPS = 5_000n;
 export const REPUTATION_MAX_BPS = 20_000n;
@@ -49,7 +50,7 @@ export function trafficReward(
   geoBonusBps: bigint,
   stakingBonusBps: bigint,
 ): bigint {
-  const base = (BASE_RATE_PER_GB * bytes) / BYTES_PER_GB;
+  const base = (NODE_REWARD_RATE_PER_GB * bytes) / BYTES_PER_GB;
   const reputation = clampReputationBps(reputationBps);
   const geo = BPS + clampGeoBonusBps(geoBonusBps);
   const staking = BPS + (stakingBonusBps > STAKING_BONUS_BPS ? STAKING_BONUS_BPS : stakingBonusBps);

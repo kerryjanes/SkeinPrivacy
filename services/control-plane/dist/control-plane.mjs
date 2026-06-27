@@ -14974,12 +14974,12 @@ if (process.env["NODE_ENV"] !== "production") {
 // ../../sdk/dist/math.js
 var math_exports = {};
 __export(math_exports, {
-  BASE_RATE_PER_GB: () => BASE_RATE_PER_GB,
   BOOTSTRAP_BONUS_MAX_BPS: () => BOOTSTRAP_BONUS_MAX_BPS,
   BOOTSTRAP_NODE_LIMIT: () => BOOTSTRAP_NODE_LIMIT,
   BPS: () => BPS,
   BYTES_PER_GB: () => BYTES_PER_GB,
   GEO_BONUS_MAX_BPS: () => GEO_BONUS_MAX_BPS,
+  NODE_REWARD_RATE_PER_GB: () => NODE_REWARD_RATE_PER_GB,
   ONE_WEFT: () => ONE_WEFT,
   REPUTATION_MAX_BPS: () => REPUTATION_MAX_BPS,
   REPUTATION_MIN_BPS: () => REPUTATION_MIN_BPS,
@@ -14989,6 +14989,7 @@ __export(math_exports, {
   STAKING_BONUS_THRESHOLD: () => STAKING_BONUS_THRESHOLD,
   TGE_UNLOCK_BPS: () => TGE_UNLOCK_BPS,
   U64_MAX: () => U64_MAX,
+  USER_PRICE_PER_GB: () => USER_PRICE_PER_GB,
   clampGeoBonusBps: () => clampGeoBonusBps,
   clampReputationBps: () => clampReputationBps,
   fromHex: () => fromHex,
@@ -15325,7 +15326,8 @@ var sha256 = /* @__PURE__ */ createHasher(() => new SHA256());
 // ../../sdk/dist/math.js
 var BPS = 10000n;
 var ONE_WEFT = 1000000000n;
-var BASE_RATE_PER_GB = ONE_WEFT / 10n;
+var USER_PRICE_PER_GB = 1000n * ONE_WEFT;
+var NODE_REWARD_RATE_PER_GB = 700n * ONE_WEFT;
 var BYTES_PER_GB = 1000000000n;
 var REPUTATION_MIN_BPS = 5000n;
 var REPUTATION_MAX_BPS = 20000n;
@@ -15348,7 +15350,7 @@ function stakingBonusForStake(stakedBaseUnits) {
   return stakedBaseUnits >= STAKING_BONUS_THRESHOLD ? STAKING_BONUS_BPS : 0n;
 }
 function trafficReward(bytes, reputationBps, geoBonusBps, stakingBonusBps) {
-  const base = BASE_RATE_PER_GB * bytes / BYTES_PER_GB;
+  const base = NODE_REWARD_RATE_PER_GB * bytes / BYTES_PER_GB;
   const reputation = clampReputationBps(reputationBps);
   const geo = BPS + clampGeoBonusBps(geoBonusBps);
   const staking = BPS + (stakingBonusBps > STAKING_BONUS_BPS ? STAKING_BONUS_BPS : stakingBonusBps);
@@ -15465,10 +15467,10 @@ function rpc(url) {
   return createSolanaRpc(url);
 }
 function quotaBytes(balanceBaseUnits) {
-  return balanceBaseUnits * math_exports.BYTES_PER_GB / math_exports.BASE_RATE_PER_GB;
+  return balanceBaseUnits * math_exports.BYTES_PER_GB / math_exports.USER_PRICE_PER_GB;
 }
 function costBaseUnits(bytes) {
-  return math_exports.BASE_RATE_PER_GB * bytes / math_exports.BYTES_PER_GB;
+  return math_exports.USER_PRICE_PER_GB * bytes / math_exports.BYTES_PER_GB;
 }
 async function escrowBalance(r, owner, mint) {
   const [escrow] = await generated_exports.findEscrowPda({ owner: address(owner) });
@@ -16304,7 +16306,7 @@ function startServer(cfg2, ctrl2, faucet2) {
     }
     if (req.method === "GET" && url.pathname === "/price") {
       return send(res, 200, {
-        weftPerGb: Number(math_exports.BASE_RATE_PER_GB) / 1e9,
+        weftPerGb: Number(math_exports.USER_PRICE_PER_GB) / 1e9,
         mint: cfg2.weftMint,
         host: cfg2.host,
         modes: ["1hop", "multihop"],

@@ -75,23 +75,23 @@ describe('mainnet config safety', () => {
   });
 });
 
-describe('pricing (0.1 WEFT/GB)', () => {
-  it('1 WEFT buys 10 GB', () => {
-    expect(quotaBytes(1_000_000_000n)).toBe(10_000_000_000n); // 1 WEFT → 10 GB
+describe('pricing (1000 WEFT/GB)', () => {
+  it('1 WEFT buys 1 MB', () => {
+    expect(quotaBytes(1_000_000_000n)).toBe(1_000_000n); // 1 WEFT → 1 MB
   });
-  it('0.0001 WEFT buys ~1 MB (the E2E cutoff size)', () => {
-    expect(quotaBytes(100_000n)).toBe(1_000_000n);
+  it('1000 WEFT buys 1 GB', () => {
+    expect(quotaBytes(1_000_000_000_000n)).toBe(1_000_000_000n);
   });
   it('cost is the inverse of quota', () => {
-    expect(costBaseUnits(10_000_000_000n)).toBe(1_000_000_000n); // 10 GB costs 1 WEFT
-    expect(costBaseUnits(quotaBytes(5_000_000_000n))).toBe(5_000_000_000n);
+    expect(costBaseUnits(1_000_000_000n)).toBe(1_000_000_000_000n); // 1 GB costs 1000 WEFT
+    expect(costBaseUnits(quotaBytes(5_000_000_000_000n))).toBe(5_000_000_000_000n);
   });
 });
 
 describe('node earnings (earn for usage)', () => {
-  it('a node earns 0.1 $WEFT per GB it serves (baseline multipliers)', () => {
-    // 1 GB served at baseline reputation (1.0×), no geo/stake bonus → 0.1 WEFT
-    expect(math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n)).toBe(100_000_000n); // 0.1 WEFT
+  it('a node earns 700 $WEFT per GB it serves (baseline multipliers)', () => {
+    // 1 GB served at baseline reputation (1.0×), no geo/stake bonus → 700 WEFT
+    expect(math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n)).toBe(700_000_000_000n);
   });
   it('earnings scale with served traffic', () => {
     const oneGb = math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n);

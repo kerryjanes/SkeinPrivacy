@@ -32,15 +32,15 @@ describe('buildEpoch', () => {
     ];
     const build = buildEpoch(0n, receipts, [node]);
     expect(build.numNodes).toBe(1);
-    // 0.1 WEFT/GB · 1GB · 1.0x = 0.1 WEFT
-    expect(build.entries[0].amount).toBe(WEFT / 10n);
-    expect(build.totalReward).toBe(WEFT / 10n);
+    // 700 WEFT/GB · 1GB · 1.0x = 700 WEFT
+    expect(build.entries[0].amount).toBe(700n * WEFT);
+    expect(build.totalReward).toBe(700n * WEFT);
 
     const leaf = math.hashRewardLeaf(
       0n,
       addrEnc.encode(operator.address) as Uint8Array,
       1n,
-      WEFT / 10n,
+      700n * WEFT,
     );
     expect(math.toHex(leaf)).toBe(build.entries[0].leaf);
     const proof = build.entries[0].proof.map(math.fromHex);

@@ -9,7 +9,7 @@
 #
 # Access is METERED and gated by $WEFT: the Weft control plane (installed here) mints a personal
 # link per wallet, meters its traffic via xray's stats API, and cuts a user off once they've used
-# more than their $WEFT balance pays for (0.1 WEFT/GB) — restoring them when they top up. The
+# more than their $WEFT balance pays for (1000 WEFT/GB) — restoring them when they top up. The
 # always-on "founder" link stays unmetered so the operator can always reach the node.
 #
 # Data plane = battle-tested Xray-core (Reality) + the Tor daemon. Control plane = Node.js service
@@ -104,7 +104,7 @@ echo "✅ Weft node live (masquerading as ${SNI}). Control plane: http://${HOST}
 echo
 echo "Users get a PERSONAL link by POSTing their wallet to the control plane:"
 echo "   curl -X POST http://${HOST}:${API_PORT}/provision -d '{\"wallet\":\"<PUBKEY>\"}'"
-echo "Access is metered + gated by their \$WEFT balance (0.1 WEFT/GB)."
+echo "Access is metered + gated by their \$WEFT balance (1000 WEFT/GB)."
 echo
 echo "Operator (founder) links — unmetered, always on:"
 echo "  1-HOP (fast):   ${H1}"
