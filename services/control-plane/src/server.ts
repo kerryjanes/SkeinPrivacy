@@ -84,6 +84,13 @@ export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet):
       return send(res, 200, await faucet.drip(wallet));
     }
 
+    if (req.method === 'POST' && url.pathname === '/faucet-sol') {
+      if (!faucet) return send(res, 404, { error: 'faucet disabled (not a test-mint node)' });
+      const { wallet } = await readJson(req);
+      if (typeof wallet !== 'string') return send(res, 400, { error: 'wallet required' });
+      return send(res, 200, await faucet.dripSol(wallet));
+    }
+
     if (req.method === 'GET' && url.pathname === '/relay/live') {
       // endpointHashes of nodes carrying traffic right now (for the cabinet's "live nodes" filter)
       return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg) });

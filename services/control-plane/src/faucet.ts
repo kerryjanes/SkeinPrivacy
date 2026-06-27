@@ -24,8 +24,10 @@ import {
   getTransferCheckedInstruction,
   TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
+import { getTransferSolInstruction } from '@solana-program/system';
 
 const lastDrip = new Map<string, number>();
+const lastSolDrip = new Map<string, number>();
 
 export class Faucet {
   constructor(
@@ -34,8 +36,21 @@ export class Faucet {
     private keypairPath: string,
     private mint: string,
     private amount: bigint,
+    private solLamports: bigint,
     private cooldownMs = 6 * 60 * 60 * 1000, // 6h per wallet
   ) {}
+
+  private async ctx() {
+    const faucet = await createKeyPairSignerFromBytes(
+      Uint8Array.from(JSON.parse(readFileSync(this.keypairPath, 'utf8')) as number[]),
+    );
+    const rpc = createSolanaRpc(this.rpcUrl);
+    const sendAndConfirm = sendAndConfirmTransactionFactory({
+      rpc,
+      rpcSubscriptions: createSolanaRpcSubscriptions(this.wsUrl),
+    });
+    return { faucet, rpc, sendAndConfirm };
+  }
 
   /** Transfer `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx sig. */
   async drip(wallet: string): Promise<{ signature: string; amount: string }> {
@@ -45,14 +60,7 @@ export class Faucet {
       const mins = Math.ceil((this.cooldownMs - (now - prev)) / 60000);
       throw new Error(`faucet cooldown — try again in ~${mins} min`);
     }
-    const faucet = await createKeyPairSignerFromBytes(
-      Uint8Array.from(JSON.parse(readFileSync(this.keypairPath, 'utf8')) as number[]),
-    );
-    const rpc = createSolanaRpc(this.rpcUrl);
-    const sendAndConfirm = sendAndConfirmTransactionFactory({
-      rpc,
-      rpcSubscriptions: createSolanaRpcSubscriptions(this.wsUrl),
-    });
+    const { faucet, rpc, sendAndConfirm } = await this.ctx();
     const mint = address(this.mint);
     const owner = address(wallet);
     const [sourceAta] = await findAssociatedTokenPda({
@@ -91,5 +99,34 @@ export class Faucet {
     });
     lastDrip.set(wallet, now);
     return { signature: getSignatureFromTransaction(signed), amount: this.amount.toString() };
+  }
+
+  /** Transfer a small amount of devnet SOL for wallet transaction fees. Disabled with faucet. */
+  async dripSol(wallet: string): Promise<{ signature: string; lamports: string }> {
+    const now = Date.now();
+    const prev = lastSolDrip.get(wallet) ?? 0;
+    if (now - prev < this.cooldownMs) {
+      const mins = Math.ceil((this.cooldownMs - (now - prev)) / 60000);
+      throw new Error(`SOL faucet cooldown — try again in ~${mins} min`);
+    }
+    const { faucet, rpc, sendAndConfirm } = await this.ctx();
+    const transfer = getTransferSolInstruction({
+      source: faucet,
+      destination: address(wallet),
+      amount: this.solLamports,
+    });
+    const { value: bh } = await rpc.getLatestBlockhash().send();
+    const msg = pipe(
+      createTransactionMessage({ version: 0 }),
+      (m) => setTransactionMessageFeePayerSigner(faucet, m),
+      (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
+      (m) => appendTransactionMessageInstructions([transfer], m),
+    );
+    const signed = await signTransactionMessageWithSigners(msg);
+    await sendAndConfirm(signed as Parameters<typeof sendAndConfirm>[0], {
+      commitment: 'confirmed',
+    });
+    lastSolDrip.set(wallet, now);
+    return { signature: getSignatureFromTransaction(signed), lamports: this.solLamports.toString() };
   }
 }

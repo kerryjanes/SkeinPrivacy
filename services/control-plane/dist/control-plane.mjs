@@ -4045,6 +4045,8 @@ function loadConfig() {
     faucetKeypairPath,
     faucetAmount: BigInt(env("WEFT_FAUCET_AMOUNT", "1000000000000")),
     // 1000 $WEFT → ~1 GB quota
+    faucetSolLamports: BigInt(env("WEFT_FAUCET_SOL_LAMPORTS", "50000000")),
+    // 0.05 SOL for fees
     faucetCooldownMs: Number(env("WEFT_FAUCET_COOLDOWN_MS", "60000")),
     frpsApi: env("WEFT_FRPS_API", ""),
     frpsUser: env("WEFT_FRPS_USER", ""),
@@ -15983,6 +15985,57 @@ function isResolvedInstructionAccountSigner2(value) {
   return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
 }
 
+// ../../node_modules/.pnpm/@solana-program+system@0.12.2_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/system/dist/src/index.mjs
+var TRANSFER_SOL_DISCRIMINATOR = 2;
+function getTransferSolInstructionDataEncoder() {
+  return transformEncoder(
+    getStructEncoder([
+      ["discriminator", getU32Encoder()],
+      ["amount", getU64Encoder()]
+    ]),
+    (value) => ({ ...value, discriminator: TRANSFER_SOL_DISCRIMINATOR })
+  );
+}
+function getTransferSolInstruction(input, config) {
+  const programAddress = config?.programAddress ?? SYSTEM_PROGRAM_ADDRESS2;
+  const originalAccounts = {
+    source: { value: input.source ?? null, isWritable: true },
+    destination: { value: input.destination ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory2(programAddress, "omitted");
+  return Object.freeze({
+    accounts: [getAccountMeta("source", accounts.source), getAccountMeta("destination", accounts.destination)],
+    data: getTransferSolInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+var SYSTEM_PROGRAM_ADDRESS2 = "11111111111111111111111111111111";
+var SYSTEM_ERROR__ACCOUNT_ALREADY_IN_USE = 0;
+var SYSTEM_ERROR__RESULT_WITH_NEGATIVE_LAMPORTS = 1;
+var SYSTEM_ERROR__INVALID_PROGRAM_ID = 2;
+var SYSTEM_ERROR__INVALID_ACCOUNT_DATA_LENGTH = 3;
+var SYSTEM_ERROR__MAX_SEED_LENGTH_EXCEEDED = 4;
+var SYSTEM_ERROR__ADDRESS_WITH_SEED_MISMATCH = 5;
+var SYSTEM_ERROR__NONCE_NO_RECENT_BLOCKHASHES = 6;
+var SYSTEM_ERROR__NONCE_BLOCKHASH_NOT_EXPIRED = 7;
+var SYSTEM_ERROR__NONCE_UNEXPECTED_BLOCKHASH_VALUE = 8;
+var systemErrorMessages;
+if (process.env["NODE_ENV"] !== "production") {
+  systemErrorMessages = {
+    [SYSTEM_ERROR__ACCOUNT_ALREADY_IN_USE]: `an account with the same address already exists`,
+    [SYSTEM_ERROR__ADDRESS_WITH_SEED_MISMATCH]: `provided address does not match addressed derived from seed`,
+    [SYSTEM_ERROR__INVALID_ACCOUNT_DATA_LENGTH]: `cannot allocate account data of this length`,
+    [SYSTEM_ERROR__INVALID_PROGRAM_ID]: `cannot assign account to this program id`,
+    [SYSTEM_ERROR__MAX_SEED_LENGTH_EXCEEDED]: `length of requested seed is too long`,
+    [SYSTEM_ERROR__NONCE_BLOCKHASH_NOT_EXPIRED]: `stored nonce is still in recent_blockhashes`,
+    [SYSTEM_ERROR__NONCE_NO_RECENT_BLOCKHASHES]: `advancing stored nonce requires a populated RecentBlockhashes sysvar`,
+    [SYSTEM_ERROR__NONCE_UNEXPECTED_BLOCKHASH_VALUE]: `specified nonce does not match stored nonce`,
+    [SYSTEM_ERROR__RESULT_WITH_NEGATIVE_LAMPORTS]: `account does not have enough SOL to perform the operation`
+  };
+}
+
 // ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/token/dist/src/index.mjs
 async function findAssociatedTokenPda(seeds, config = {}) {
   const {
@@ -16138,14 +16191,27 @@ if (process.env["NODE_ENV"] !== "production") {
 
 // src/faucet.ts
 var lastDrip = /* @__PURE__ */ new Map();
+var lastSolDrip = /* @__PURE__ */ new Map();
 var Faucet = class {
-  constructor(rpcUrl, wsUrl, keypairPath, mint, amount, cooldownMs = 6 * 60 * 60 * 1e3) {
+  constructor(rpcUrl, wsUrl, keypairPath, mint, amount, solLamports, cooldownMs = 6 * 60 * 60 * 1e3) {
     this.rpcUrl = rpcUrl;
     this.wsUrl = wsUrl;
     this.keypairPath = keypairPath;
     this.mint = mint;
     this.amount = amount;
+    this.solLamports = solLamports;
     this.cooldownMs = cooldownMs;
+  }
+  async ctx() {
+    const faucet2 = await createKeyPairSignerFromBytes(
+      Uint8Array.from(JSON.parse(readFileSync3(this.keypairPath, "utf8")))
+    );
+    const rpc2 = createSolanaRpc(this.rpcUrl);
+    const sendAndConfirm = sendAndConfirmTransactionFactory({
+      rpc: rpc2,
+      rpcSubscriptions: createSolanaRpcSubscriptions(this.wsUrl)
+    });
+    return { faucet: faucet2, rpc: rpc2, sendAndConfirm };
   }
   /** Transfer `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx sig. */
   async drip(wallet) {
@@ -16155,14 +16221,7 @@ var Faucet = class {
       const mins = Math.ceil((this.cooldownMs - (now - prev)) / 6e4);
       throw new Error(`faucet cooldown \u2014 try again in ~${mins} min`);
     }
-    const faucet2 = await createKeyPairSignerFromBytes(
-      Uint8Array.from(JSON.parse(readFileSync3(this.keypairPath, "utf8")))
-    );
-    const rpc2 = createSolanaRpc(this.rpcUrl);
-    const sendAndConfirm = sendAndConfirmTransactionFactory({
-      rpc: rpc2,
-      rpcSubscriptions: createSolanaRpcSubscriptions(this.wsUrl)
-    });
+    const { faucet: faucet2, rpc: rpc2, sendAndConfirm } = await this.ctx();
     const mint = address(this.mint);
     const owner = address(wallet);
     const [sourceAta] = await findAssociatedTokenPda({
@@ -16201,6 +16260,34 @@ var Faucet = class {
     });
     lastDrip.set(wallet, now);
     return { signature: getSignatureFromTransaction(signed), amount: this.amount.toString() };
+  }
+  /** Transfer a small amount of devnet SOL for wallet transaction fees. Disabled with faucet. */
+  async dripSol(wallet) {
+    const now = Date.now();
+    const prev = lastSolDrip.get(wallet) ?? 0;
+    if (now - prev < this.cooldownMs) {
+      const mins = Math.ceil((this.cooldownMs - (now - prev)) / 6e4);
+      throw new Error(`SOL faucet cooldown \u2014 try again in ~${mins} min`);
+    }
+    const { faucet: faucet2, rpc: rpc2, sendAndConfirm } = await this.ctx();
+    const transfer = getTransferSolInstruction({
+      source: faucet2,
+      destination: address(wallet),
+      amount: this.solLamports
+    });
+    const { value: bh } = await rpc2.getLatestBlockhash().send();
+    const msg = pipe(
+      createTransactionMessage({ version: 0 }),
+      (m) => setTransactionMessageFeePayerSigner(faucet2, m),
+      (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
+      (m) => appendTransactionMessageInstructions([transfer], m)
+    );
+    const signed = await signTransactionMessageWithSigners(msg);
+    await sendAndConfirm(signed, {
+      commitment: "confirmed"
+    });
+    lastSolDrip.set(wallet, now);
+    return { signature: getSignatureFromTransaction(signed), lamports: this.solLamports.toString() };
   }
 };
 
@@ -16292,6 +16379,12 @@ function startServer(cfg2, ctrl2, faucet2) {
       if (typeof wallet !== "string") return send(res, 400, { error: "wallet required" });
       return send(res, 200, await faucet2.drip(wallet));
     }
+    if (req.method === "POST" && url.pathname === "/faucet-sol") {
+      if (!faucet2) return send(res, 404, { error: "faucet disabled (not a test-mint node)" });
+      const { wallet } = await readJson(req);
+      if (typeof wallet !== "string") return send(res, 400, { error: "wallet required" });
+      return send(res, 200, await faucet2.dripSol(wallet));
+    }
     if (req.method === "GET" && url.pathname === "/relay/live") {
       return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg2) });
     }
@@ -16338,6 +16431,7 @@ var faucet = cfg.faucetKeypairPath ? new Faucet(
   cfg.faucetKeypairPath,
   cfg.weftMint,
   cfg.faucetAmount,
+  cfg.faucetSolLamports,
   cfg.faucetCooldownMs
 ) : void 0;
 ctrl.bootstrap();

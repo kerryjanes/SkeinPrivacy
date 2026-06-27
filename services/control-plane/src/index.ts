@@ -34,6 +34,7 @@ const faucet = cfg.faucetKeypairPath
       cfg.faucetKeypairPath,
       cfg.weftMint,
       cfg.faucetAmount,
+      cfg.faucetSolLamports,
       cfg.faucetCooldownMs,
     )
   : undefined;

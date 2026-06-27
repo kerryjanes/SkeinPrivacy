@@ -26,6 +26,7 @@ The per-node service that makes Weft access **token-gated**. It runs on each nod
 | `GET /node/stats`                     | this node's total served bytes → `$WEFT` earned           |
 | `GET /price`                          | price/GB, mint, host, modes, faucet availability           |
 | `POST /faucet {wallet}` (devnet only) | transfer test `$WEFT` from a funded devnet faucet wallet  |
+| `POST /faucet-sol {wallet}` (devnet only) | transfer devnet `SOL` for wallet transaction fees      |
 
 ## Config (env, with launch-node defaults)
 
@@ -34,7 +35,8 @@ The per-node service that makes Weft access **token-gated**. It runs on each nod
 ports advertised in links — for home nodes behind a relay) · `WEFT_FOUNDER_UUID` · `WEFT_PORT`
 (default 8088) · `WEFT_RPC` / `WEFT_WS` · `WEFT_MINT` · `WEFT_XRAY_RELOAD` (how to reload Xray)
 · `WEFT_FAUCET_KEYPAIR` (enables the devnet transfer faucet; this wallet must hold devnet
-`$WEFT`) · `WEFT_FAUCET_AMOUNT` (base units per drip; default `1000000000000` = 1000 `$WEFT`).
+`$WEFT`) · `WEFT_FAUCET_AMOUNT` (base units per drip; default `1000000000000` = 1000 `$WEFT`)
+· `WEFT_FAUCET_SOL_LAMPORTS` (default `50000000` = 0.05 devnet SOL).
 
 A public deployment fronts it with TLS (e.g. Caddy) so the browser cabinet can call it over HTTPS.
 

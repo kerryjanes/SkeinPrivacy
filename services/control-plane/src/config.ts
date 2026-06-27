@@ -39,6 +39,7 @@ export interface NodeConfig {
   // --- devnet faucet (absent on mainnet) ---
   faucetKeypairPath: string; // empty = faucet disabled
   faucetAmount: bigint; // base units transferred per drip
+  faucetSolLamports: bigint; // devnet SOL transferred per fee top-up
   faucetCooldownMs: number;
 
   // --- relay liveness (this box is also the rendezvous relay) ---
@@ -120,6 +121,7 @@ export function loadConfig(): NodeConfig {
     ),
     faucetKeypairPath,
     faucetAmount: BigInt(env('WEFT_FAUCET_AMOUNT', '1000000000000')), // 1000 $WEFT → ~1 GB quota
+    faucetSolLamports: BigInt(env('WEFT_FAUCET_SOL_LAMPORTS', '50000000')), // 0.05 SOL for fees
     faucetCooldownMs: Number(env('WEFT_FAUCET_COOLDOWN_MS', '60000')),
     frpsApi: env('WEFT_FRPS_API', ''),
     frpsUser: env('WEFT_FRPS_USER', ''),
