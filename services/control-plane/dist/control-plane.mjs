@@ -4067,6 +4067,7 @@ var Store = class {
     this.data = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { users: {}, payments: {} };
     if (!this.data.users) this.data.users = {};
     if (!this.data.payments) this.data.payments = {};
+    if (this.data.nodeServedBytesLifetime === void 0) this.data.nodeServedBytesLifetime = "0";
   }
   data;
   get(wallet) {
@@ -4074,6 +4075,14 @@ var Store = class {
   }
   all() {
     return Object.values(this.data.users);
+  }
+  nodeServedBytesLifetime() {
+    return this.data.nodeServedBytesLifetime ?? "0";
+  }
+  addNodeServedBytes(bytes) {
+    if (bytes <= 0n) return;
+    this.data.nodeServedBytesLifetime = (BigInt(this.nodeServedBytesLifetime()) + bytes).toString();
+    this.save();
   }
   put(user) {
     this.data.users[user.wallet] = user;
@@ -15953,7 +15962,9 @@ var Controller = class {
    * This is the per-node served-traffic total the reward pipeline (aggregator → claim) consumes.
    */
   nodeStats() {
-    const served = this.store.all().reduce((sum, u) => sum + BigInt(u.servedBytesLifetime ?? "0"), 0n);
+    const servedByUsers = this.store.all().reduce((sum, u) => sum + BigInt(u.servedBytesLifetime ?? "0"), 0n);
+    const rawNodeServed = BigInt(this.store.nodeServedBytesLifetime());
+    const served = servedByUsers > rawNodeServed ? servedByUsers : rawNodeServed;
     const earned = math_exports.trafficReward(served, 10000n, 0n, 0n);
     return {
       users: this.store.all().length,
@@ -15962,9 +15973,9 @@ var Controller = class {
       earnedBaseUnits: earned.toString()
     };
   }
-  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray. */
-  async tick() {
-    const usage = pollUsage(this.cfg);
+  async applyUsage(usage) {
+    const rawDelta = [...usage.values()].reduce((sum, delta) => sum + delta, 0n);
+    this.store.addNodeServedBytes(rawDelta);
     for (const u of this.store.all()) {
       const delta = usage.get(u.email) ?? 0n;
       if (delta > 0n) {
@@ -15976,6 +15987,10 @@ var Controller = class {
       this.store.put(u);
     }
     this.reconcile();
+  }
+  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray. */
+  async tick() {
+    await this.applyUsage(pollUsage(this.cfg));
   }
 };
 

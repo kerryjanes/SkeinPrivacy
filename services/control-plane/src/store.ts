@@ -29,6 +29,7 @@ export interface PaymentRecord {
 export interface StoreData {
   users: Record<string, User>; // keyed by wallet
   payments: Record<string, PaymentRecord>; // keyed by settlement tx signature
+  nodeServedBytesLifetime?: string; // raw cumulative traffic this node carried, including founder/relay users
 }
 
 export class Store {
@@ -39,6 +40,7 @@ export class Store {
       : { users: {}, payments: {} };
     if (!this.data.users) this.data.users = {};
     if (!this.data.payments) this.data.payments = {};
+    if (this.data.nodeServedBytesLifetime === undefined) this.data.nodeServedBytesLifetime = '0';
   }
 
   get(wallet: string): User | undefined {
@@ -47,6 +49,16 @@ export class Store {
 
   all(): User[] {
     return Object.values(this.data.users);
+  }
+
+  nodeServedBytesLifetime(): string {
+    return this.data.nodeServedBytesLifetime ?? '0';
+  }
+
+  addNodeServedBytes(bytes: bigint): void {
+    if (bytes <= 0n) return;
+    this.data.nodeServedBytesLifetime = (BigInt(this.nodeServedBytesLifetime()) + bytes).toString();
+    this.save();
   }
 
   put(user: User): void {

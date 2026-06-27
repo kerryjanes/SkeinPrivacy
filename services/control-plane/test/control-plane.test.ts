@@ -7,6 +7,7 @@ import { loadConfig } from '../src/config.js';
 import { liveExitProfilesWithPorts, registerExitProfile } from '../src/exitProfiles.js';
 import { math } from '@weft/sdk';
 import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
+import { Controller } from '../src/controller.js';
 import { multiHopLink, oneHopLink } from '../src/links.js';
 import { parseUsage, renderConfig } from '../src/xray.js';
 import { Store, type User } from '../src/store.js';
@@ -384,5 +385,26 @@ describe('usage parsing', () => {
   it('handles empty / missing stat array', () => {
     expect(parseUsage('{}').size).toBe(0);
     expect(parseUsage('').size).toBe(0);
+  });
+});
+
+describe('node served traffic accounting', () => {
+  it('counts raw xray user traffic as node earnings even when there is no local wallet user', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-node-traffic-'));
+    try {
+      const store = new Store(join(dir, 'users.json'));
+      const ctrl = new Controller(
+        { ...cfg, xrayConfigPath: join(dir, 'xray.json'), reloadCmd: 'true' },
+        store,
+        {} as any,
+      );
+
+      await ctrl.applyUsage(new Map([['founder', 1234n]]));
+
+      expect(ctrl.nodeStats().servedBytes).toBe('1234');
+      expect(new Store(join(dir, 'users.json')).nodeServedBytesLifetime()).toBe('1234');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

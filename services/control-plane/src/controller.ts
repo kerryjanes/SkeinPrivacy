@@ -169,9 +169,11 @@ export class Controller {
     earnedWeft: string;
     earnedBaseUnits: string;
   } {
-    const served = this.store
+    const servedByUsers = this.store
       .all()
       .reduce((sum, u) => sum + BigInt(u.servedBytesLifetime ?? '0'), 0n);
+    const rawNodeServed = BigInt(this.store.nodeServedBytesLifetime());
+    const served = servedByUsers > rawNodeServed ? servedByUsers : rawNodeServed;
     // baseline multipliers: reputation 1.0× (10000 bps), no geo/stake bonus
     const earned = math.trafficReward(served, 10_000n, 0n, 0n);
     return {
@@ -182,9 +184,9 @@ export class Controller {
     };
   }
 
-  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray. */
-  async tick(): Promise<void> {
-    const usage = pollUsage(this.cfg);
+  async applyUsage(usage: Map<string, bigint>): Promise<void> {
+    const rawDelta = [...usage.values()].reduce((sum, delta) => sum + delta, 0n);
+    this.store.addNodeServedBytes(rawDelta);
     for (const u of this.store.all()) {
       const delta = usage.get(u.email) ?? 0n;
       if (delta > 0n) {
@@ -197,5 +199,10 @@ export class Controller {
       this.store.put(u);
     }
     this.reconcile();
+  }
+
+  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray. */
+  async tick(): Promise<void> {
+    await this.applyUsage(pollUsage(this.cfg));
   }
 }
