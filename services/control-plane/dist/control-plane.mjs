@@ -15602,9 +15602,9 @@ function liveExitProfiles(cfg2, now = Date.now()) {
 function liveExitProfilesWithPorts(cfg2, now = Date.now(), onlinePorts = null) {
   const profiles = Object.values(readStore(cfg2.relayProfilePath));
   return profiles.filter((p) => {
+    if (onlinePorts) return onlinePorts.has(p.port);
     const fresh = now - p.updatedAt <= cfg2.exitProfileTtlMs;
-    if (fresh) return true;
-    return onlinePorts?.has(p.port) ?? false;
+    return fresh;
   }).sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));
 }
 function exitProfileSignature(cfg2, now = Date.now()) {
@@ -16334,9 +16334,11 @@ async function liveEndpointHashes(cfg2) {
         headers: { authorization: `Basic ${auth}` }
       });
       const j = await r.json();
-      for (const p of j.proxies ?? [])
-        if (p.status === "online" && p.conf?.remotePort)
-          endpoints.add(`${cfg2.host}:${p.conf.remotePort}`);
+      const onlinePorts = new Set(
+        (j.proxies ?? []).filter((p) => p.status === "online" && Number.isInteger(p.conf?.remotePort)).map((p) => Number(p.conf?.remotePort))
+      );
+      for (const p of liveExitProfilesWithPorts(cfg2, Date.now(), onlinePorts))
+        endpoints.add(`${cfg2.host}:${p.port}`);
     } catch {
     }
   }

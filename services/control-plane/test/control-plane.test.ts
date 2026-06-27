@@ -147,6 +147,27 @@ describe('relay exit profile stats', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('drops even a fresh profile when the relay reports its frp port offline', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
+    try {
+      const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json'), exitProfileTtlMs: 60_000 };
+      registerExitProfile(profileCfg, {
+        host: cfg.host,
+        port: 20026,
+        uuid: cfg.founderUuid,
+        realityPub: cfg.realityPublicKey,
+        sid: cfg.shortId,
+        sni: cfg.sni,
+        geo: cfg.geo,
+        servedBytesLifetime: '0',
+      });
+      expect(liveExitProfilesWithPorts(profileCfg, Date.now(), new Set())).toHaveLength(0);
+      expect(liveExitProfilesWithPorts(profileCfg, Date.now(), null)).toHaveLength(1);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('personal links', () => {

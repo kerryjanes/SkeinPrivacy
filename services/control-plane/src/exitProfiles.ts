@@ -80,11 +80,9 @@ export function liveExitProfilesWithPorts(
   const profiles = Object.values(readStore(cfg.relayProfilePath));
   return profiles
     .filter((p) => {
+      if (onlinePorts) return onlinePorts.has(p.port);
       const fresh = now - p.updatedAt <= cfg.exitProfileTtlMs;
-      if (fresh) return true;
-      // If the relay can still see the frp tunnel online, the last published Reality profile is
-      // still usable even when the node's local profile heartbeat missed its short TTL.
-      return onlinePorts?.has(p.port) ?? false;
+      return fresh;
     })
     .sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));
 }

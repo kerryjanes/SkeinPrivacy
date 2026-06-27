@@ -5,6 +5,7 @@
 
 import { createHash } from 'node:crypto';
 import type { NodeConfig } from './config.js';
+import { liveExitProfilesWithPorts } from './exitProfiles.js';
 
 const hashEndpoint = (ep: string): string => createHash('sha256').update(ep).digest('hex');
 
@@ -24,9 +25,13 @@ export async function liveEndpointHashes(cfg: NodeConfig): Promise<string[]> {
       const j = (await r.json()) as {
         proxies?: { status?: string; conf?: { remotePort?: number } }[];
       };
-      for (const p of j.proxies ?? [])
-        if (p.status === 'online' && p.conf?.remotePort)
-          endpoints.add(`${cfg.host}:${p.conf.remotePort}`);
+      const onlinePorts = new Set(
+        (j.proxies ?? [])
+          .filter((p) => p.status === 'online' && Number.isInteger(p.conf?.remotePort))
+          .map((p) => Number(p.conf?.remotePort)),
+      );
+      for (const p of liveExitProfilesWithPorts(cfg, Date.now(), onlinePorts))
+        endpoints.add(`${cfg.host}:${p.port}`);
     } catch {
       /* relay API unreachable → just the direct endpoints */
     }
