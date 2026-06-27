@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
+import { ed25519 } from '@noble/curves/ed25519';
 
 import { createAggregatorServer } from '../src/server';
 import { EpochStore, PayoutStore } from '../src/store';
@@ -16,6 +17,10 @@ function listen(s: Server): Promise<string> {
       resolve(`http://127.0.0.1:${addr.port}`);
     });
   });
+}
+
+function signMessageBase64(message: string, secretKey: Uint8Array): string {
+  return Buffer.from(ed25519.sign(Buffer.from(message, 'utf8'), secretKey)).toString('base64');
 }
 
 afterEach(async () => {
@@ -190,7 +195,7 @@ describe('aggregator HTTP receipt ingest', () => {
     expect(body.nodes[0]).toMatchObject({ nodeId: '11', paid: '100' });
   });
 
-  it('withdraws earned rewards through the payout backend and records paid offsets', async () => {
+  it('requires an operator-signed challenge before withdrawing earned rewards', async () => {
     const operator = makeSigner();
     const store = new EpochStore();
     const payouts = new PayoutStore();
@@ -222,10 +227,43 @@ describe('aggregator HTTP receipt ingest', () => {
     });
     const base = await listen(server);
 
-    const res = await fetch(`${base}/withdraw-earned`, {
+    const unsigned = await fetch(`${base}/withdraw-earned`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ operator: operator.address }),
+    });
+    expect(unsigned.status).toBe(401);
+
+    const challengeRes = await fetch(`${base}/withdraw-earned/challenge`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ operator: operator.address }),
+    });
+    const challenge = (await challengeRes.json()) as {
+      message: string;
+      expiresAt: number;
+      nonce: string;
+    };
+    expect(challengeRes.status).toBe(200);
+    expect(challenge.message).toContain(`operator: ${operator.address}`);
+    expect(challenge.message).toContain('nodeId: all');
+
+    const invalid = await fetch(`${base}/withdraw-earned`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        operator: operator.address,
+        message: challenge.message,
+        signature: Buffer.alloc(64).toString('base64'),
+      }),
+    });
+    expect(invalid.status).toBe(401);
+
+    const signature = signMessageBase64(challenge.message, operator.secretKey);
+    const res = await fetch(`${base}/withdraw-earned`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ operator: operator.address, message: challenge.message, signature }),
     });
     const body = (await res.json()) as { signature: string; amount: string };
 

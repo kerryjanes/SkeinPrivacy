@@ -132,10 +132,13 @@ The script installs and runs:
 When your node carries traffic, it becomes eligible for `$WEFT` rewards.
 
 1. Keep the node online.
-2. Wait for a settlement epoch to be posted.
+2. Wait for the aggregator to settle served traffic.
 3. Open the **rewards** tab in the cabinet.
-4. Select your node and epoch.
-5. Claim the reward to your wallet.
+4. Select your node.
+5. Withdraw the `$WEFT` shown as ready for that node.
+
+Withdrawals require a wallet message signature. This proves the connected wallet owns the node
+operator address before the payout backend sends tokens.
 
 ## Balances
 

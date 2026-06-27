@@ -75,9 +75,19 @@ function parseTrustedTotals(): ByteTotal[] {
   return [{ operator: address(operator) as Address, nodeId: BigInt(nodeId), bytes: BigInt(bytes) }];
 }
 
+function trustedTotalsConfigured(): boolean {
+  return Boolean(
+    process.env.WEFT_TRUSTED_TOTALS ||
+      process.env.WEFT_TRUSTED_OPERATOR ||
+      process.env.WEFT_TRUSTED_NODE_ID ||
+      process.env.WEFT_TRUSTED_BYTES,
+  );
+}
+
 async function main(): Promise<void> {
   const cluster = process.env.WEFT_CLUSTER ?? 'devnet';
-  if (cluster.startsWith('mainnet') && !process.env.WEFT_RPC) {
+  const mainnet = cluster.startsWith('mainnet');
+  if (mainnet && !process.env.WEFT_RPC) {
     throw new Error(`WEFT_RPC must be set explicitly for ${cluster}`);
   }
   const rpcUrl = process.env.WEFT_RPC ?? 'https://api.devnet.solana.com';
@@ -102,6 +112,12 @@ async function main(): Promise<void> {
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? '/var/lib/weft/reward-epochs.json';
   const payoutStorePath = process.env.WEFT_PAYOUT_STORE ?? '/var/lib/weft/payouts.json';
   const payoutKeypairPath = process.env.WEFT_PAYOUT_KEYPAIR;
+  if (mainnet && trustedTotalsConfigured()) {
+    throw new Error('WEFT_TRUSTED_* totals are devnet-only and must be unset on mainnet');
+  }
+  if (mainnet && !payoutKeypairPath) {
+    throw new Error('WEFT_PAYOUT_KEYPAIR must be set explicitly for mainnet earned withdrawals');
+  }
 
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);

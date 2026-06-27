@@ -2544,7 +2544,7 @@ var require_websocket = __commonJS({
     var http = __require("http");
     var net = __require("net");
     var tls = __require("tls");
-    var { randomBytes: randomBytes2, createHash: createHash2 } = __require("crypto");
+    var { randomBytes: randomBytes3, createHash: createHash2 } = __require("crypto");
     var { Duplex, Readable } = __require("stream");
     var { URL: URL2 } = __require("url");
     var PerMessageDeflate2 = require_permessage_deflate();
@@ -3082,7 +3082,7 @@ var require_websocket = __commonJS({
         }
       }
       const defaultPort = isSecure ? 443 : 80;
-      const key2 = randomBytes2(16).toString("base64");
+      const key2 = randomBytes3(16).toString("base64");
       const request = isSecure ? https.request : http.request;
       const protocolSet = /* @__PURE__ */ new Set();
       let perMessageDeflate;
@@ -6913,10 +6913,10 @@ async function createKeyPairFromBytes(bytes, extractable = false) {
     ),
     createPrivateKeyFromBytes(bytes.slice(0, 32), extractable)
   ]);
-  const randomBytes2 = new Uint8Array(32);
-  crypto.getRandomValues(randomBytes2);
-  const signedData = await signBytes(privateKey, randomBytes2);
-  const isValid = await verifySignature(publicKey, signedData, randomBytes2);
+  const randomBytes3 = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes3);
+  const signedData = await signBytes(privateKey, randomBytes3);
+  const isValid = await verifySignature(publicKey, signedData, randomBytes3);
   if (!isValid) {
     throw new SolanaError(SOLANA_ERROR__KEYS__PUBLIC_KEY_MUST_MATCH_PRIVATE_KEY);
   }
@@ -18476,7 +18476,7 @@ function eddsa(Point, cHash, eddsaOpts = {}) {
   });
   const { prehash } = eddsaOpts;
   const { BASE, Fp: Fp2, Fn: Fn2 } = Point;
-  const randomBytes2 = eddsaOpts.randomBytes || randomBytes;
+  const randomBytes3 = eddsaOpts.randomBytes || randomBytes;
   const adjustScalarBytes2 = eddsaOpts.adjustScalarBytes || ((bytes) => bytes);
   const domain = eddsaOpts.domain || ((data, ctx, phflag) => {
     _abool2(phflag, "phflag");
@@ -18558,7 +18558,7 @@ function eddsa(Point, cHash, eddsaOpts = {}) {
     signature: 2 * _size,
     seed: _size
   };
-  function randomSecretKey(seed = randomBytes2(lengths.seed)) {
+  function randomSecretKey(seed = randomBytes3(lengths.seed)) {
     return _abytes2(seed, lengths.seed, "seed");
   }
   function keygen(seed) {
@@ -19228,6 +19228,7 @@ var PayoutStore = class {
 
 // src/server.ts
 import { createServer } from "node:http";
+import { randomBytes as randomBytes2 } from "node:crypto";
 
 // ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput2(inputName, value) {
@@ -19485,6 +19486,8 @@ async function buildPayTrafficTransaction(account, amount, config, latestBlockha
 }
 
 // src/server.ts
+var WITHDRAW_CHALLENGE_TTL_MS = 5 * 60 * 1e3;
+var addressEncoder = getAddressEncoder();
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let data = "";
@@ -19527,7 +19530,26 @@ function earnedSummary(store, payouts, operator) {
     nodes
   };
 }
+function challengeKey(operator, nodeId) {
+  return `${operator}:${nodeId || "all"}`;
+}
+function buildWithdrawMessage(challenge) {
+  return [
+    "Weft earned withdrawal",
+    `operator: ${challenge.operator}`,
+    `nodeId: ${challenge.nodeId || "all"}`,
+    `nonce: ${challenge.nonce}`,
+    `expiresAt: ${challenge.expiresAt}`
+  ].join("\n");
+}
+function verifyWithdrawalSignature(operator, message, signatureBase64) {
+  const publicKey = new Uint8Array(addressEncoder.encode(address(operator)));
+  const signature = Buffer.from(signatureBase64, "base64");
+  if (signature.length !== 64) return false;
+  return ed25519.verify(signature, Buffer.from(message, "utf8"), publicKey);
+}
 function createAggregatorServer(deps) {
+  const withdrawChallenges = /* @__PURE__ */ new Map();
   return createServer((req, res) => {
     void (async () => {
       try {
@@ -19622,18 +19644,59 @@ function createAggregatorServer(deps) {
           });
           return;
         }
+        if (url.pathname === "/withdraw-earned/challenge" && req.method === "POST") {
+          if (!deps.payout || !deps.payoutStore) {
+            json(404, { error: "earned payout disabled" });
+            return;
+          }
+          const body = JSON.parse(await readBody(req) || "{}");
+          const operator = body.operator ? String(address(body.operator)) : "";
+          if (!operator) {
+            json(400, { error: "operator required" });
+            return;
+          }
+          const nodeId = body.nodeId ? BigInt(body.nodeId).toString() : "";
+          const expiresAt = Date.now() + WITHDRAW_CHALLENGE_TTL_MS;
+          const challenge = {
+            operator,
+            nodeId,
+            nonce: randomBytes2(16).toString("hex"),
+            expiresAt
+          };
+          const full = { ...challenge, message: buildWithdrawMessage(challenge) };
+          withdrawChallenges.set(challengeKey(operator, nodeId), full);
+          json(200, {
+            operator,
+            nodeId,
+            message: full.message,
+            nonce: full.nonce,
+            expiresAt: full.expiresAt
+          });
+          return;
+        }
         if (url.pathname === "/withdraw-earned" && req.method === "POST") {
           if (!deps.payout || !deps.payoutStore) {
             json(404, { error: "earned payout disabled" });
             return;
           }
           const body = JSON.parse(await readBody(req) || "{}");
-          const operator = body.operator ?? "";
+          const operator = body.operator ? String(address(body.operator)) : "";
           if (!operator) {
             json(400, { error: "operator required" });
             return;
           }
-          const onlyNodeId = body.nodeId ? BigInt(body.nodeId) : null;
+          const nodeId = body.nodeId ? BigInt(body.nodeId).toString() : "";
+          const challenge = withdrawChallenges.get(challengeKey(operator, nodeId));
+          if (!challenge || challenge.message !== body.message || Date.now() > challenge.expiresAt) {
+            json(401, { error: "withdraw signature challenge expired or missing" });
+            return;
+          }
+          if (!body.signature || !verifyWithdrawalSignature(operator, body.message, body.signature)) {
+            json(401, { error: "invalid withdraw signature" });
+            return;
+          }
+          withdrawChallenges.delete(challengeKey(operator, nodeId));
+          const onlyNodeId = nodeId ? BigInt(nodeId) : null;
           const summary = earnedSummary(deps.store, deps.payoutStore, operator);
           const payableNodes = summary.nodes.filter(
             (node) => node.withdrawable > 0n && (onlyNodeId === null || node.nodeId === onlyNodeId)
@@ -19887,9 +19950,15 @@ function parseTrustedTotals() {
   }
   return [{ operator: address(operator), nodeId: BigInt(nodeId), bytes: BigInt(bytes) }];
 }
+function trustedTotalsConfigured() {
+  return Boolean(
+    process.env.WEFT_TRUSTED_TOTALS || process.env.WEFT_TRUSTED_OPERATOR || process.env.WEFT_TRUSTED_NODE_ID || process.env.WEFT_TRUSTED_BYTES
+  );
+}
 async function main() {
   const cluster = process.env.WEFT_CLUSTER ?? "devnet";
-  if (cluster.startsWith("mainnet") && !process.env.WEFT_RPC) {
+  const mainnet = cluster.startsWith("mainnet");
+  if (mainnet && !process.env.WEFT_RPC) {
     throw new Error(`WEFT_RPC must be set explicitly for ${cluster}`);
   }
   const rpcUrl = process.env.WEFT_RPC ?? "https://api.devnet.solana.com";
@@ -19909,6 +19978,12 @@ async function main() {
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? "/var/lib/weft/reward-epochs.json";
   const payoutStorePath = process.env.WEFT_PAYOUT_STORE ?? "/var/lib/weft/payouts.json";
   const payoutKeypairPath = process.env.WEFT_PAYOUT_KEYPAIR;
+  if (mainnet && trustedTotalsConfigured()) {
+    throw new Error("WEFT_TRUSTED_* totals are devnet-only and must be unset on mainnet");
+  }
+  if (mainnet && !payoutKeypairPath) {
+    throw new Error("WEFT_PAYOUT_KEYPAIR must be set explicitly for mainnet earned withdrawals");
+  }
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
   const nodes = await fetchNodeInfos(rpc);
