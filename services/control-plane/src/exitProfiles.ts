@@ -1,4 +1,5 @@
 import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
 import { dirname } from 'node:path';
 import type { NodeConfig } from './config.js';
 
@@ -67,9 +68,24 @@ export function registerExitProfile(cfg: NodeConfig, input: unknown, now = Date.
 }
 
 export function liveExitProfiles(cfg: NodeConfig, now = Date.now()): ExitProfile[] {
+  const onlinePorts = relayOnlinePorts(cfg);
+  return liveExitProfilesWithPorts(cfg, now, onlinePorts);
+}
+
+export function liveExitProfilesWithPorts(
+  cfg: NodeConfig,
+  now = Date.now(),
+  onlinePorts: Set<number> | null = null,
+): ExitProfile[] {
   const profiles = Object.values(readStore(cfg.relayProfilePath));
   return profiles
-    .filter((p) => now - p.updatedAt <= cfg.exitProfileTtlMs)
+    .filter((p) => {
+      const fresh = now - p.updatedAt <= cfg.exitProfileTtlMs;
+      if (fresh) return true;
+      // If the relay can still see the frp tunnel online, the last published Reality profile is
+      // still usable even when the node's local profile heartbeat missed its short TTL.
+      return onlinePorts?.has(p.port) ?? false;
+    })
     .sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));
 }
 
@@ -77,6 +93,26 @@ export function exitProfileSignature(cfg: NodeConfig, now = Date.now()): string 
   return liveExitProfiles(cfg, now)
     .map((p) => `${p.host}:${p.port}:${p.uuid}:${p.realityPub}:${p.sid}`)
     .join(',');
+}
+
+function relayOnlinePorts(cfg: NodeConfig): Set<number> | null {
+  if (!cfg.frpsApi) return null;
+  try {
+    const auth = Buffer.from(`${cfg.frpsUser}:${cfg.frpsPass}`).toString('base64');
+    const raw = execFileSync(
+      'curl',
+      ['-fsS', '--max-time', '2', '-H', `Authorization: Basic ${auth}`, `${cfg.frpsApi}/api/proxy/tcp`],
+      { encoding: 'utf8' },
+    );
+    const j = JSON.parse(raw) as { proxies?: { status?: string; conf?: { remotePort?: number } }[] };
+    return new Set(
+      (j.proxies ?? [])
+        .filter((p) => p.status === 'online' && Number.isInteger(p.conf?.remotePort))
+        .map((p) => Number(p.conf?.remotePort)),
+    );
+  } catch {
+    return null;
+  }
 }
 
 export async function publishOwnExitProfile(cfg: NodeConfig, servedBytesLifetime = 0n): Promise<void> {

@@ -15548,6 +15548,7 @@ import { randomUUID } from "node:crypto";
 
 // src/exitProfiles.ts
 import { existsSync as existsSync2, mkdirSync as mkdirSync2, readFileSync as readFileSync2, renameSync as renameSync2, writeFileSync as writeFileSync2 } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { dirname as dirname2 } from "node:path";
 var UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 var SID_RE = /^[0-9a-f]{2,32}$/i;
@@ -15595,11 +15596,36 @@ function registerExitProfile(cfg2, input, now = Date.now()) {
   return profile;
 }
 function liveExitProfiles(cfg2, now = Date.now()) {
+  const onlinePorts = relayOnlinePorts(cfg2);
+  return liveExitProfilesWithPorts(cfg2, now, onlinePorts);
+}
+function liveExitProfilesWithPorts(cfg2, now = Date.now(), onlinePorts = null) {
   const profiles = Object.values(readStore(cfg2.relayProfilePath));
-  return profiles.filter((p) => now - p.updatedAt <= cfg2.exitProfileTtlMs).sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));
+  return profiles.filter((p) => {
+    const fresh = now - p.updatedAt <= cfg2.exitProfileTtlMs;
+    if (fresh) return true;
+    return onlinePorts?.has(p.port) ?? false;
+  }).sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));
 }
 function exitProfileSignature(cfg2, now = Date.now()) {
   return liveExitProfiles(cfg2, now).map((p) => `${p.host}:${p.port}:${p.uuid}:${p.realityPub}:${p.sid}`).join(",");
+}
+function relayOnlinePorts(cfg2) {
+  if (!cfg2.frpsApi) return null;
+  try {
+    const auth = Buffer.from(`${cfg2.frpsUser}:${cfg2.frpsPass}`).toString("base64");
+    const raw = execFileSync(
+      "curl",
+      ["-fsS", "--max-time", "2", "-H", `Authorization: Basic ${auth}`, `${cfg2.frpsApi}/api/proxy/tcp`],
+      { encoding: "utf8" }
+    );
+    const j = JSON.parse(raw);
+    return new Set(
+      (j.proxies ?? []).filter((p) => p.status === "online" && Number.isInteger(p.conf?.remotePort)).map((p) => Number(p.conf?.remotePort))
+    );
+  } catch {
+    return null;
+  }
 }
 async function publishOwnExitProfile(cfg2, servedBytesLifetime = 0n) {
   if (!cfg2.relayProfileUrl) return;
@@ -15652,7 +15678,7 @@ function multiHopLink(cfg2, uuid) {
 }
 
 // src/xray.ts
-import { execFileSync, execSync } from "node:child_process";
+import { execFileSync as execFileSync2, execSync } from "node:child_process";
 import { writeFileSync as writeFileSync3 } from "node:fs";
 function userExitOutbound(profile) {
   return {
@@ -15774,7 +15800,7 @@ function applyConfig(cfg2, activeUsers) {
 function pollUsage(cfg2) {
   let raw;
   try {
-    raw = execFileSync(
+    raw = execFileSync2(
       cfg2.xrayBin,
       ["api", "statsquery", `--server=${cfg2.xrayApi}`, "-pattern", "user>>>", "-reset"],
       { encoding: "utf8" }

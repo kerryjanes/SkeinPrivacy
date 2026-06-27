@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { rewardsSettlement } from '@weft/sdk';
 import { loadConfig } from '../src/config.js';
-import { registerExitProfile } from '../src/exitProfiles.js';
+import { liveExitProfilesWithPorts, registerExitProfile } from '../src/exitProfiles.js';
 import { math } from '@weft/sdk';
 import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
 import { multiHopLink, oneHopLink } from '../src/links.js';
@@ -118,6 +118,31 @@ describe('relay exit profile stats', () => {
         },
       );
       expect(profile.servedBytesLifetime).toBe('12345');
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps a stale profile live while the matching frp relay port is online', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
+    try {
+      const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json'), exitProfileTtlMs: 1 };
+      registerExitProfile(
+        profileCfg,
+        {
+          host: cfg.host,
+          port: 20026,
+          uuid: cfg.founderUuid,
+          realityPub: cfg.realityPublicKey,
+          sid: cfg.shortId,
+          sni: cfg.sni,
+          geo: cfg.geo,
+          servedBytesLifetime: '0',
+        },
+        1_000,
+      );
+      expect(liveExitProfilesWithPorts(profileCfg, 10_000, new Set())).toHaveLength(0);
+      expect(liveExitProfilesWithPorts(profileCfg, 10_000, new Set([20026]))).toHaveLength(1);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
