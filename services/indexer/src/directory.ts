@@ -3,9 +3,9 @@
 // Bubblegum V2 indexing). DAS can later enrich owner/metadata where available.
 
 import { createSolanaRpc, getBase58Decoder, type Base58EncodedBytes } from '@solana/kit';
-import { nodeRegistry } from '@weft/sdk';
+import { weft } from '@weft/sdk';
 
-export const NODE_REGISTRY_PROGRAM = nodeRegistry.NODE_REGISTRY_PROGRAM_ADDRESS;
+export const NODE_REGISTRY_PROGRAM = weft.WEFT_PROGRAM_ADDRESS;
 export const GEO_BITS = 30;
 export const GEO_MAX = ((1 << GEO_BITS) - 1) >>> 0;
 
@@ -35,14 +35,14 @@ export type Rpc = ReturnType<typeof createSolanaRpc>;
 export const rpc = (url: string): Rpc => createSolanaRpc(url);
 
 export async function fetchNodes(client: Rpc): Promise<NodeRecord[]> {
-  const disc = getBase58Decoder().decode(nodeRegistry.NODE_STATE_DISCRIMINATOR);
+  const disc = getBase58Decoder().decode(weft.NODE_STATE_DISCRIMINATOR);
   const accounts = await client
     .getProgramAccounts(NODE_REGISTRY_PROGRAM, {
       encoding: 'base64',
       filters: [{ memcmp: { offset: 0n, bytes: disc as Base58EncodedBytes, encoding: 'base58' } }],
     })
     .send();
-  const decoder = nodeRegistry.getNodeStateDecoder();
+  const decoder = weft.getNodeStateDecoder();
   return accounts.map(({ pubkey, account }) => {
     let bytes = Buffer.from((account.data as readonly [string, string])[0], 'base64');
     if (bytes.length < decoder.fixedSize) {
@@ -55,8 +55,8 @@ export async function fetchNodes(client: Rpc): Promise<NodeRecord[]> {
       address: pubkey,
       operator: d.operator,
       nodeId: d.nodeId.toString(),
-      assetId: d.assetId,
-      merkleTree: d.merkleTree,
+      assetId: pubkey,
+      merkleTree: '',
       geo: d.geo,
       capabilities: d.capabilities,
       availability: d.availability,

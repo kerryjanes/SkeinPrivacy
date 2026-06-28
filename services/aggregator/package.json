@@ -7,7 +7,6 @@
     "build": "tsc -p tsconfig.json --noEmit",
     "bundle": "esbuild src/cli.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/aggregator.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
     "start": "tsx src/cli.ts",
-    "smoke": "tsx src/m4smoke.ts",
     "test": "vitest run"
   },
   "dependencies": {

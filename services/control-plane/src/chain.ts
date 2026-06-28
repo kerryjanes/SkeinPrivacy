@@ -2,7 +2,7 @@
 // verification of a user's settlement tx so we can clear their metered tab.
 
 import { address, createSolanaRpc, type Address } from '@solana/kit';
-import { math, rewardsSettlement } from '@weft/sdk';
+import { math, weft } from '@weft/sdk';
 
 export type Rpc = ReturnType<typeof createSolanaRpc>;
 
@@ -23,9 +23,9 @@ export function costBaseUnits(bytes: bigint): bigint {
 
 /** A wallet's prepaid escrow balance in base units. Returns 0 if the escrow doesn't exist yet. */
 export async function escrowBalance(r: Rpc, owner: string, mint: string): Promise<bigint> {
-  const [escrow] = await rewardsSettlement.findEscrowPda({ owner: address(owner) });
+  const [escrow] = await weft.findEscrowPda({ owner: address(owner) });
   try {
-    const acct = await rewardsSettlement.fetchPaymentEscrow(r, escrow);
+    const acct = await weft.fetchPaymentEscrow(r, escrow);
     if (acct.data.owner !== owner || acct.data.mint !== mint) return 0n;
     return acct.data.balance;
   } catch {
@@ -87,10 +87,10 @@ export function decodePayTraffic(
   instructions: RawInstruction[],
   expectedPayer: string,
 ): VerifiedPayment {
-  const programId = String(rewardsSettlement.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
+  const programId = String(weft.WEFT_PROGRAM_ADDRESS);
   const discriminators = [
-    rewardsSettlement.PAY_TRAFFIC_DISCRIMINATOR,
-    rewardsSettlement.PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR,
+    weft.PAY_TRAFFIC_DISCRIMINATOR,
+    weft.PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR,
   ];
 
   for (const ix of instructions) {

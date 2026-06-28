@@ -3,29 +3,18 @@
 // does not index Bubblegum V2, so `NodeState` — not DAS — is the directory of
 // record for reputation and stake.
 
-import {
-  createSolanaRpc,
-  getBase58Decoder,
-  type Address,
-  type Base58EncodedBytes,
-} from '@solana/kit';
-import { nodeRegistry } from '@weft/sdk';
+import { createSolanaRpc, getBase58Decoder, type Address, type Base58EncodedBytes } from '@solana/kit';
+import { weft } from '@weft/sdk';
 
 import type { NodeInfo } from './rewards';
 
 export type Rpc = ReturnType<typeof createSolanaRpc>;
 
-const NODE_MERKLE_TREE_OFFSET = 80n;
-const DEFAULT_DEVNET_MERKLE_TREE = '4RJP3AJ6NNoqjTCxjeJi2Erw3wwJJoHN3jpwUrSetJw5' as Address;
-
 const toHex = (u: ArrayLike<number>): string =>
   Array.from(u, (b) => b.toString(16).padStart(2, '0')).join('');
 
 export interface FetchNodeInfosOptions {
-  /**
-   * Restrict rewards to a provisioned registry tree. Pass `null` to include legacy
-   * devnet NodeState accounts, but production should always pin a tree.
-   */
+  /** Legacy option kept for CLI compatibility; ignored by the single-core program. */
   merkleTree?: Address | null;
 }
 
@@ -34,11 +23,11 @@ export interface FetchNodeInfosOptions {
 export async function fetchNodeStateTolerant(
   client: Rpc,
   addr: Address,
-): Promise<{ data: ReturnType<ReturnType<typeof nodeRegistry.getNodeStateDecoder>['decode']> }> {
+): Promise<{ data: ReturnType<ReturnType<typeof weft.getNodeStateDecoder>['decode']> }> {
   const info = await client.getAccountInfo(addr, { encoding: 'base64' }).send();
   if (!info.value) throw new Error(`NodeState not found: ${addr}`);
   let bytes = Buffer.from(info.value.data[0], 'base64');
-  const decoder = nodeRegistry.getNodeStateDecoder();
+  const decoder = weft.getNodeStateDecoder();
   if (bytes.length < decoder.fixedSize) {
     const padded = Buffer.alloc(decoder.fixedSize);
     bytes.copy(padded);
@@ -48,37 +37,22 @@ export async function fetchNodeStateTolerant(
 }
 
 export function rewardMerkleTreeFromEnv(): Address | null {
-  const raw = process.env.WEFT_MERKLE_TREE;
-  if (raw === '') return null;
-  return (raw ?? DEFAULT_DEVNET_MERKLE_TREE) as Address;
+  return process.env.WEFT_MERKLE_TREE ? (process.env.WEFT_MERKLE_TREE as Address) : null;
 }
 
 export async function fetchNodeInfos(
   client: Rpc,
   opts: FetchNodeInfosOptions = {},
 ): Promise<NodeInfo[]> {
-  const disc = getBase58Decoder().decode(nodeRegistry.NODE_STATE_DISCRIMINATOR);
-  const merkleTree = opts.merkleTree ?? rewardMerkleTreeFromEnv();
+  const disc = getBase58Decoder().decode(weft.NODE_STATE_DISCRIMINATOR);
+  void opts;
   const accounts = await client
-    .getProgramAccounts(nodeRegistry.NODE_REGISTRY_PROGRAM_ADDRESS, {
+    .getProgramAccounts(weft.WEFT_PROGRAM_ADDRESS, {
       encoding: 'base64',
-      filters: [
-        { memcmp: { offset: 0n, bytes: disc as Base58EncodedBytes, encoding: 'base58' } },
-        ...(merkleTree
-          ? [
-              {
-                memcmp: {
-                  offset: NODE_MERKLE_TREE_OFFSET,
-                  bytes: merkleTree as unknown as Base58EncodedBytes,
-                  encoding: 'base58' as const,
-                },
-              },
-            ]
-          : []),
-      ],
+      filters: [{ memcmp: { offset: 0n, bytes: disc as Base58EncodedBytes, encoding: 'base58' } }],
     })
     .send();
-  const decoder = nodeRegistry.getNodeStateDecoder();
+  const decoder = weft.getNodeStateDecoder();
   return accounts.map(({ account }) => {
     let bytes = Buffer.from((account.data as readonly [string, string])[0], 'base64');
     // Devnet's node-registry predates M8, so NodeState lacks the trailing `sequence`

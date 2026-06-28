@@ -3,7 +3,7 @@
 //   WEFT_NODE_ENDPOINT=relay.host:20001 WEFT_KEYPAIR=~/.config/solana/id.json tsx becomeNodeCli.ts
 // or: tsx becomeNodeCli.ts relay.host:20001
 
-import { nodeRegistry } from '@weft/sdk';
+import { weft } from '@weft/sdk';
 import { becomeNode } from './becomeNode';
 import { loadEnv } from './config';
 import { connect, loadSigner } from './kit';
@@ -32,7 +32,7 @@ console.log(
 // Read the node back from chain to confirm it landed under this wallet.
 const info = await conn.rpc.getAccountInfo(reg.node, { encoding: 'base64' }).send();
 if (info.value) {
-  const decoder = nodeRegistry.getNodeStateDecoder();
+  const decoder = weft.getNodeStateDecoder();
   let bytes = Buffer.from((info.value.data as readonly [string, string])[0], 'base64');
   // Devnet's registry program predates the M8 `sequence` field; pad it (reads as 0) so the
   // current SDK decoder applies cleanly to pre-M8 accounts.

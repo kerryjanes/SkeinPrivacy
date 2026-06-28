@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
-import { rewardsSettlement } from '@weft/sdk';
+import { weft } from '@weft/sdk';
 import { loadConfig } from '../src/config.js';
 import { liveExitProfilesWithPorts, registerExitProfile } from '../src/exitProfiles.js';
 import { math } from '@weft/sdk';
@@ -280,7 +280,7 @@ describe('xray config render', () => {
 });
 
 describe('settlement verification', () => {
-  const PROGRAM = String(rewardsSettlement.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
+  const PROGRAM = String(weft.WEFT_PROGRAM_ADDRESS);
   const PAYER = '2m5CoAk7ioZJbRYqHV9PJMNZN2gwpTPKQXR4GKyVifL7';
   const OTHER = 'FdLn2UPCmGGxzRDvX54qcQSrCyHSTzmaNeYdxY21FxNt';
 
@@ -297,11 +297,11 @@ describe('settlement verification', () => {
   }
   // The real on-chain instruction data (8-byte discriminator + u64 amount), as the SDK encodes it.
   function payTrafficData(amount: bigint): string {
-    const bytes = rewardsSettlement.getPayTrafficInstructionDataEncoder().encode({ amount });
+    const bytes = weft.getPayTrafficInstructionDataEncoder().encode({ amount });
     return b58(new Uint8Array(bytes));
   }
   function payTrafficFromEscrowData(amount: bigint): string {
-    const bytes = rewardsSettlement
+    const bytes = weft
       .getPayTrafficFromEscrowInstructionDataEncoder()
       .encode({ amount });
     return b58(new Uint8Array(bytes));

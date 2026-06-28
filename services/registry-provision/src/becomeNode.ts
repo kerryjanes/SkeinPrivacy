@@ -1,14 +1,12 @@
-// "Become a node" under your OWN Solana wallet — the realigned registration for the home-device
-// + relay model (replaces the old weft-node-manifest flow). Registers the device as a compressed
-// NFT in the node registry, signed by the OPERATOR WALLET, committing the node's public reachable
-// endpoint (relay host:port) on-chain. The same wallet that signs this is the wallet that earns
-// $WEFT for the traffic the node serves.
+// "Become a node" under your OWN Solana wallet. Registers the device in the
+// single Weft core program, signed by the operator wallet, committing the
+// public reachable endpoint (relay host:port) on-chain. The same wallet earns
+// $WEFT for the traffic this node serves.
 
 import { createHash } from 'node:crypto';
 import type { Address, TransactionSigner } from '@solana/kit';
 import { nodePda } from './config';
 import type { Connection } from './kit';
-import { loadManifest } from './manifest';
 import { registerNode } from './registerNode';
 
 // Capability bitmask advertised on-chain.
@@ -22,7 +20,6 @@ export interface BecomeNodeInput {
   geo?: number; // numeric region code (0 = unspecified)
   capabilities?: number; // default: 1hop | multihop
   availability?: number; // 0..100
-  metadataUri?: string;
 }
 
 export interface NodeRegistration {
@@ -32,7 +29,7 @@ export interface NodeRegistration {
   endpoint: string;
 }
 
-/** On-chain commitment over the node's public endpoint (so the endpoint is bound to the cNFT). */
+/** On-chain commitment over the node's public endpoint. */
 export function endpointHash(endpoint: string): Uint8Array {
   return new Uint8Array(createHash('sha256').update(endpoint).digest());
 }
@@ -49,17 +46,14 @@ export async function becomeNode(
   conn: Connection,
   operator: TransactionSigner,
   input: BecomeNodeInput,
-  cluster = 'devnet',
+  _cluster = 'devnet',
 ): Promise<NodeRegistration> {
-  const manifest = loadManifest(cluster);
-  if (!manifest) throw new Error(`no registry manifest for ${cluster} — registry not provisioned`);
   const nodeId = deriveNodeId(operator.address, input.endpoint);
-  const signature = await registerNode(conn, operator, manifest, {
+  const signature = await registerNode(conn, operator, {
     nodeId,
     geo: input.geo ?? 0,
     capabilities: input.capabilities ?? CAP_1HOP,
     availability: input.availability ?? 100,
-    metadataUri: input.metadataUri ?? `weft://node/${input.endpoint}`,
     endpointHash: endpointHash(input.endpoint),
   });
   const node = await nodePda(operator.address, nodeId);

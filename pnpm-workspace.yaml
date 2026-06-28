@@ -1,7 +1,9 @@
 packages:
   - 'sdk'
-  - 'services/*'
-  - 'clients/*'
+  - 'services/aggregator'
+  - 'services/control-plane'
+  - 'services/indexer'
+  - 'services/registry-provision'
 
 # esbuild (via tsx/vitest) ships a native binary and needs its install script.
 allowBuilds:

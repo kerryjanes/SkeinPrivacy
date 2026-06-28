@@ -20,6 +20,10 @@ services/registry-provision/manifests/*.json
 services/genesis/manifests/archive/*.json
 services/registry-provision/manifests/archive/*.json
 services/genesis/.m8-claimant.json
+legacy-services/genesis/service/manifests/*.json
+legacy-services/genesis/service/manifests/archive/*.json
+legacy-services/genesis/service/.m8-claimant.json
+.playwright-cli/
 
 # Secrets & local config
 .env
@@ -45,5 +49,6 @@ public/
 /vercel.json
 /.vercelignore
 scripts/build-web.sh
+scripts/weft-node.sh
 *.key
 node.json

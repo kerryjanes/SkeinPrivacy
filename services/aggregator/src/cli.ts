@@ -11,7 +11,7 @@ import {
   address,
   type Address,
 } from '@solana/kit';
-import { rewardsSettlement } from '@weft/sdk';
+import { weft } from '@weft/sdk';
 
 import { buildEpoch, buildEpochFromByteTotals, type BuildOptions, type ByteTotal } from './rewards';
 import { fetchNodeInfos } from './nodes';
@@ -159,10 +159,10 @@ async function main(): Promise<void> {
   }
   if (exitAfterPost) return;
 
-  const [distributor] = await rewardsSettlement.findDistributorPda();
+  const [distributor] = await weft.findDistributorPda();
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
   if (!distInfo.value) throw new Error('distributor not initialized');
-  const d = rewardsSettlement
+  const d = weft
     .getDistributorDecoder()
     .decode(Buffer.from(distInfo.value.data[0], 'base64'));
   const payout = payoutKeypairPath

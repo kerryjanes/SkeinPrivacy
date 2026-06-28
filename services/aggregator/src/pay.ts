@@ -17,7 +17,7 @@ import {
   type Address,
   type Blockhash,
 } from '@solana/kit';
-import { rewardsSettlement } from '@weft/sdk';
+import { weft } from '@weft/sdk';
 
 export interface PayConfig {
   rewardMint: Address;
@@ -74,7 +74,7 @@ export async function buildDepositEscrowTransaction(
     tokenProgram: TOKEN_PROGRAM_ADDRESS,
   });
 
-  const ix = await rewardsSettlement.getDepositEscrowInstructionAsync({
+  const ix = await weft.getDepositEscrowInstructionAsync({
     owner,
     rewardMint: config.rewardMint,
     ownerTokenAccount,
@@ -95,9 +95,9 @@ export async function buildPayTrafficFromEscrowTransaction(
   latestBlockhash: Blockhashish,
 ): Promise<{ transaction: string; message: string }> {
   const owner = createNoopSigner(account);
-  const [escrowVault] = await rewardsSettlement.findEscrowVaultPda({ owner: account });
+  const [escrowVault] = await weft.findEscrowVaultPda({ owner: account });
 
-  const ix = await rewardsSettlement.getPayTrafficFromEscrowInstructionAsync({
+  const ix = await weft.getPayTrafficFromEscrowInstructionAsync({
     owner,
     escrowVault,
     rewardMint: config.rewardMint,
@@ -126,7 +126,7 @@ export async function buildPayTrafficTransaction(
     tokenProgram: TOKEN_PROGRAM_ADDRESS,
   });
 
-  const ix = await rewardsSettlement.getPayTrafficInstructionAsync({
+  const ix = await weft.getPayTrafficInstructionAsync({
     payer,
     rewardMint: config.rewardMint,
     payerTokenAccount,

@@ -18,7 +18,7 @@ import {
   type SolanaRpcSubscriptionsApi,
   type TransactionSigner,
 } from '@solana/kit';
-import { math, rewardsSettlement } from '@weft/sdk';
+import { math, weft } from '@weft/sdk';
 
 import type { EpochBuild } from './rewards';
 
@@ -30,8 +30,8 @@ export interface PostContext {
 
 /** Submit `post_epoch` for a built epoch; returns the confirmed signature. */
 export async function postEpoch(ctx: PostContext, build: EpochBuild): Promise<string> {
-  const [rewardVault] = await rewardsSettlement.findRewardVaultPda();
-  const ix = await rewardsSettlement.getPostEpochInstructionAsync({
+  const [rewardVault] = await weft.findRewardVaultPda();
+  const ix = await weft.getPostEpochInstructionAsync({
     poster: ctx.poster,
     rewardVault,
     epoch: build.epoch,
