@@ -9928,6 +9928,290 @@ function sendAndConfirmTransactionFactory({
   };
 }
 
+// ../../sdk/dist/generated/weft/src/generated/index.js
+var generated_exports = {};
+__export(generated_exports, {
+  CLAIM_DISCRIMINATOR: () => CLAIM_DISCRIMINATOR,
+  CLAIM_STATUS_DISCRIMINATOR: () => CLAIM_STATUS_DISCRIMINATOR,
+  DEPOSIT_ESCROW_DISCRIMINATOR: () => DEPOSIT_ESCROW_DISCRIMINATOR,
+  DEREGISTER_NODE_DISCRIMINATOR: () => DEREGISTER_NODE_DISCRIMINATOR,
+  DISPUTE_DISCRIMINATOR: () => DISPUTE_DISCRIMINATOR,
+  DISTRIBUTOR_DISCRIMINATOR: () => DISTRIBUTOR_DISCRIMINATOR,
+  EPOCH_DISTRIBUTION_DISCRIMINATOR: () => EPOCH_DISTRIBUTION_DISCRIMINATOR,
+  FUND_REWARD_VAULT_DISCRIMINATOR: () => FUND_REWARD_VAULT_DISCRIMINATOR,
+  INITIALIZE_CORE_DISCRIMINATOR: () => INITIALIZE_CORE_DISCRIMINATOR,
+  NODE_STATE_DISCRIMINATOR: () => NODE_STATE_DISCRIMINATOR,
+  PAYMENT_ESCROW_DISCRIMINATOR: () => PAYMENT_ESCROW_DISCRIMINATOR,
+  PAY_TRAFFIC_DISCRIMINATOR: () => PAY_TRAFFIC_DISCRIMINATOR,
+  PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR: () => PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR,
+  POST_EPOCH_DISCRIMINATOR: () => POST_EPOCH_DISCRIMINATOR,
+  REGISTER_NODE_DISCRIMINATOR: () => REGISTER_NODE_DISCRIMINATOR,
+  REGISTRY_DISCRIMINATOR: () => REGISTRY_DISCRIMINATOR,
+  REQUEST_UNSTAKE_DISCRIMINATOR: () => REQUEST_UNSTAKE_DISCRIMINATOR,
+  SET_CORE_AUTHORITY_DISCRIMINATOR: () => SET_CORE_AUTHORITY_DISCRIMINATOR,
+  SET_DISPUTE_AUTHORITY_DISCRIMINATOR: () => SET_DISPUTE_AUTHORITY_DISCRIMINATOR,
+  SET_PAUSED_DISCRIMINATOR: () => SET_PAUSED_DISCRIMINATOR,
+  SET_POSTER_AUTHORITY_DISCRIMINATOR: () => SET_POSTER_AUTHORITY_DISCRIMINATOR,
+  WEFT_ERROR__DISPUTE_WINDOW_OPEN: () => WEFT_ERROR__DISPUTE_WINDOW_OPEN,
+  WEFT_ERROR__EPOCH_OVERCLAIM: () => WEFT_ERROR__EPOCH_OVERCLAIM,
+  WEFT_ERROR__INSUFFICIENT_ESCROW: () => WEFT_ERROR__INSUFFICIENT_ESCROW,
+  WEFT_ERROR__INSUFFICIENT_STAKE: () => WEFT_ERROR__INSUFFICIENT_STAKE,
+  WEFT_ERROR__INSUFFICIENT_VAULT: () => WEFT_ERROR__INSUFFICIENT_VAULT,
+  WEFT_ERROR__INVALID_AVAILABILITY: () => WEFT_ERROR__INVALID_AVAILABILITY,
+  WEFT_ERROR__INVALID_CAPABILITIES: () => WEFT_ERROR__INVALID_CAPABILITIES,
+  WEFT_ERROR__INVALID_ESCROW: () => WEFT_ERROR__INVALID_ESCROW,
+  WEFT_ERROR__INVALID_GEO: () => WEFT_ERROR__INVALID_GEO,
+  WEFT_ERROR__INVALID_LOCK: () => WEFT_ERROR__INVALID_LOCK,
+  WEFT_ERROR__INVALID_PROOF: () => WEFT_ERROR__INVALID_PROOF,
+  WEFT_ERROR__INVALID_UNBONDING: () => WEFT_ERROR__INVALID_UNBONDING,
+  WEFT_ERROR__INVALID_WINDOW: () => WEFT_ERROR__INVALID_WINDOW,
+  WEFT_ERROR__LOCKED: () => WEFT_ERROR__LOCKED,
+  WEFT_ERROR__MATH_OVERFLOW: () => WEFT_ERROR__MATH_OVERFLOW,
+  WEFT_ERROR__NON_MONOTONIC_EPOCH: () => WEFT_ERROR__NON_MONOTONIC_EPOCH,
+  WEFT_ERROR__PAUSED: () => WEFT_ERROR__PAUSED,
+  WEFT_ERROR__STILL_UNBONDING: () => WEFT_ERROR__STILL_UNBONDING,
+  WEFT_ERROR__UNAUTHORIZED: () => WEFT_ERROR__UNAUTHORIZED,
+  WEFT_ERROR__ZERO_AMOUNT: () => WEFT_ERROR__ZERO_AMOUNT,
+  WEFT_PROGRAM_ADDRESS: () => WEFT_PROGRAM_ADDRESS,
+  STAKE_DISCRIMINATOR: () => STAKE_DISCRIMINATOR,
+  STAKE_POSITION_DISCRIMINATOR: () => STAKE_POSITION_DISCRIMINATOR,
+  STAKING_CONFIG_DISCRIMINATOR: () => STAKING_CONFIG_DISCRIMINATOR,
+  WeftAccount: () => WeftAccount,
+  WeftInstruction: () => WeftInstruction,
+  UPDATE_NODE_DISCRIMINATOR: () => UPDATE_NODE_DISCRIMINATOR,
+  WITHDRAW_ESCROW_DISCRIMINATOR: () => WITHDRAW_ESCROW_DISCRIMINATOR,
+  WITHDRAW_UNSTAKED_DISCRIMINATOR: () => WITHDRAW_UNSTAKED_DISCRIMINATOR,
+  decodeClaimStatus: () => decodeClaimStatus,
+  decodeDistributor: () => decodeDistributor,
+  decodeEpochDistribution: () => decodeEpochDistribution,
+  decodeNodeState: () => decodeNodeState,
+  decodePaymentEscrow: () => decodePaymentEscrow,
+  decodeRegistry: () => decodeRegistry,
+  decodeStakePosition: () => decodeStakePosition,
+  decodeStakingConfig: () => decodeStakingConfig,
+  fetchAllClaimStatus: () => fetchAllClaimStatus,
+  fetchAllDistributor: () => fetchAllDistributor,
+  fetchAllEpochDistribution: () => fetchAllEpochDistribution,
+  fetchAllMaybeClaimStatus: () => fetchAllMaybeClaimStatus,
+  fetchAllMaybeDistributor: () => fetchAllMaybeDistributor,
+  fetchAllMaybeEpochDistribution: () => fetchAllMaybeEpochDistribution,
+  fetchAllMaybeNodeState: () => fetchAllMaybeNodeState,
+  fetchAllMaybePaymentEscrow: () => fetchAllMaybePaymentEscrow,
+  fetchAllMaybeRegistry: () => fetchAllMaybeRegistry,
+  fetchAllMaybeStakePosition: () => fetchAllMaybeStakePosition,
+  fetchAllMaybeStakingConfig: () => fetchAllMaybeStakingConfig,
+  fetchAllNodeState: () => fetchAllNodeState,
+  fetchAllPaymentEscrow: () => fetchAllPaymentEscrow,
+  fetchAllRegistry: () => fetchAllRegistry,
+  fetchAllStakePosition: () => fetchAllStakePosition,
+  fetchAllStakingConfig: () => fetchAllStakingConfig,
+  fetchClaimStatus: () => fetchClaimStatus,
+  fetchDistributor: () => fetchDistributor,
+  fetchEpochDistribution: () => fetchEpochDistribution,
+  fetchMaybeClaimStatus: () => fetchMaybeClaimStatus,
+  fetchMaybeDistributor: () => fetchMaybeDistributor,
+  fetchMaybeEpochDistribution: () => fetchMaybeEpochDistribution,
+  fetchMaybeNodeState: () => fetchMaybeNodeState,
+  fetchMaybePaymentEscrow: () => fetchMaybePaymentEscrow,
+  fetchMaybeRegistry: () => fetchMaybeRegistry,
+  fetchMaybeStakePosition: () => fetchMaybeStakePosition,
+  fetchMaybeStakingConfig: () => fetchMaybeStakingConfig,
+  fetchNodeState: () => fetchNodeState,
+  fetchPaymentEscrow: () => fetchPaymentEscrow,
+  fetchRegistry: () => fetchRegistry,
+  fetchStakePosition: () => fetchStakePosition,
+  fetchStakingConfig: () => fetchStakingConfig,
+  findClaimStatusPda: () => findClaimStatusPda,
+  findDistributorPda: () => findDistributorPda,
+  findEpochDistributionPda: () => findEpochDistributionPda,
+  findEscrowPda: () => findEscrowPda,
+  findEscrowVaultPda: () => findEscrowVaultPda,
+  findNodePda: () => findNodePda,
+  findPositionPda: () => findPositionPda,
+  findRegistryPda: () => findRegistryPda,
+  findRewardVaultPda: () => findRewardVaultPda,
+  findStakingConfigPda: () => findStakingConfigPda,
+  findVaultPda: () => findVaultPda,
+  getClaimDiscriminatorBytes: () => getClaimDiscriminatorBytes,
+  getClaimInstruction: () => getClaimInstruction,
+  getClaimInstructionAsync: () => getClaimInstructionAsync,
+  getClaimInstructionDataCodec: () => getClaimInstructionDataCodec,
+  getClaimInstructionDataDecoder: () => getClaimInstructionDataDecoder,
+  getClaimInstructionDataEncoder: () => getClaimInstructionDataEncoder,
+  getClaimStatusCodec: () => getClaimStatusCodec,
+  getClaimStatusDecoder: () => getClaimStatusDecoder,
+  getClaimStatusDiscriminatorBytes: () => getClaimStatusDiscriminatorBytes,
+  getClaimStatusEncoder: () => getClaimStatusEncoder,
+  getClaimStatusSize: () => getClaimStatusSize,
+  getDepositEscrowDiscriminatorBytes: () => getDepositEscrowDiscriminatorBytes,
+  getDepositEscrowInstruction: () => getDepositEscrowInstruction,
+  getDepositEscrowInstructionAsync: () => getDepositEscrowInstructionAsync,
+  getDepositEscrowInstructionDataCodec: () => getDepositEscrowInstructionDataCodec,
+  getDepositEscrowInstructionDataDecoder: () => getDepositEscrowInstructionDataDecoder,
+  getDepositEscrowInstructionDataEncoder: () => getDepositEscrowInstructionDataEncoder,
+  getDeregisterNodeDiscriminatorBytes: () => getDeregisterNodeDiscriminatorBytes,
+  getDeregisterNodeInstruction: () => getDeregisterNodeInstruction,
+  getDeregisterNodeInstructionAsync: () => getDeregisterNodeInstructionAsync,
+  getDeregisterNodeInstructionDataCodec: () => getDeregisterNodeInstructionDataCodec,
+  getDeregisterNodeInstructionDataDecoder: () => getDeregisterNodeInstructionDataDecoder,
+  getDeregisterNodeInstructionDataEncoder: () => getDeregisterNodeInstructionDataEncoder,
+  getDisputeDiscriminatorBytes: () => getDisputeDiscriminatorBytes,
+  getDisputeInstruction: () => getDisputeInstruction,
+  getDisputeInstructionAsync: () => getDisputeInstructionAsync,
+  getDisputeInstructionDataCodec: () => getDisputeInstructionDataCodec,
+  getDisputeInstructionDataDecoder: () => getDisputeInstructionDataDecoder,
+  getDisputeInstructionDataEncoder: () => getDisputeInstructionDataEncoder,
+  getDistributorCodec: () => getDistributorCodec,
+  getDistributorDecoder: () => getDistributorDecoder,
+  getDistributorDiscriminatorBytes: () => getDistributorDiscriminatorBytes,
+  getDistributorEncoder: () => getDistributorEncoder,
+  getDistributorSize: () => getDistributorSize,
+  getEpochDistributionCodec: () => getEpochDistributionCodec,
+  getEpochDistributionDecoder: () => getEpochDistributionDecoder,
+  getEpochDistributionDiscriminatorBytes: () => getEpochDistributionDiscriminatorBytes,
+  getEpochDistributionEncoder: () => getEpochDistributionEncoder,
+  getEpochDistributionSize: () => getEpochDistributionSize,
+  getFundRewardVaultDiscriminatorBytes: () => getFundRewardVaultDiscriminatorBytes,
+  getFundRewardVaultInstruction: () => getFundRewardVaultInstruction,
+  getFundRewardVaultInstructionAsync: () => getFundRewardVaultInstructionAsync,
+  getFundRewardVaultInstructionDataCodec: () => getFundRewardVaultInstructionDataCodec,
+  getFundRewardVaultInstructionDataDecoder: () => getFundRewardVaultInstructionDataDecoder,
+  getFundRewardVaultInstructionDataEncoder: () => getFundRewardVaultInstructionDataEncoder,
+  getInitializeCoreDiscriminatorBytes: () => getInitializeCoreDiscriminatorBytes,
+  getInitializeCoreInstruction: () => getInitializeCoreInstruction,
+  getInitializeCoreInstructionAsync: () => getInitializeCoreInstructionAsync,
+  getInitializeCoreInstructionDataCodec: () => getInitializeCoreInstructionDataCodec,
+  getInitializeCoreInstructionDataDecoder: () => getInitializeCoreInstructionDataDecoder,
+  getInitializeCoreInstructionDataEncoder: () => getInitializeCoreInstructionDataEncoder,
+  getNodeStateCodec: () => getNodeStateCodec,
+  getNodeStateDecoder: () => getNodeStateDecoder,
+  getNodeStateDiscriminatorBytes: () => getNodeStateDiscriminatorBytes,
+  getNodeStateEncoder: () => getNodeStateEncoder,
+  getNodeStateSize: () => getNodeStateSize,
+  getPayTrafficDiscriminatorBytes: () => getPayTrafficDiscriminatorBytes,
+  getPayTrafficFromEscrowDiscriminatorBytes: () => getPayTrafficFromEscrowDiscriminatorBytes,
+  getPayTrafficFromEscrowInstruction: () => getPayTrafficFromEscrowInstruction,
+  getPayTrafficFromEscrowInstructionAsync: () => getPayTrafficFromEscrowInstructionAsync,
+  getPayTrafficFromEscrowInstructionDataCodec: () => getPayTrafficFromEscrowInstructionDataCodec,
+  getPayTrafficFromEscrowInstructionDataDecoder: () => getPayTrafficFromEscrowInstructionDataDecoder,
+  getPayTrafficFromEscrowInstructionDataEncoder: () => getPayTrafficFromEscrowInstructionDataEncoder,
+  getPayTrafficInstruction: () => getPayTrafficInstruction,
+  getPayTrafficInstructionAsync: () => getPayTrafficInstructionAsync,
+  getPayTrafficInstructionDataCodec: () => getPayTrafficInstructionDataCodec,
+  getPayTrafficInstructionDataDecoder: () => getPayTrafficInstructionDataDecoder,
+  getPayTrafficInstructionDataEncoder: () => getPayTrafficInstructionDataEncoder,
+  getPaymentEscrowCodec: () => getPaymentEscrowCodec,
+  getPaymentEscrowDecoder: () => getPaymentEscrowDecoder,
+  getPaymentEscrowDiscriminatorBytes: () => getPaymentEscrowDiscriminatorBytes,
+  getPaymentEscrowEncoder: () => getPaymentEscrowEncoder,
+  getPaymentEscrowSize: () => getPaymentEscrowSize,
+  getPostEpochDiscriminatorBytes: () => getPostEpochDiscriminatorBytes,
+  getPostEpochInstruction: () => getPostEpochInstruction,
+  getPostEpochInstructionAsync: () => getPostEpochInstructionAsync,
+  getPostEpochInstructionDataCodec: () => getPostEpochInstructionDataCodec,
+  getPostEpochInstructionDataDecoder: () => getPostEpochInstructionDataDecoder,
+  getPostEpochInstructionDataEncoder: () => getPostEpochInstructionDataEncoder,
+  getRegisterNodeDiscriminatorBytes: () => getRegisterNodeDiscriminatorBytes,
+  getRegisterNodeInstruction: () => getRegisterNodeInstruction,
+  getRegisterNodeInstructionAsync: () => getRegisterNodeInstructionAsync,
+  getRegisterNodeInstructionDataCodec: () => getRegisterNodeInstructionDataCodec,
+  getRegisterNodeInstructionDataDecoder: () => getRegisterNodeInstructionDataDecoder,
+  getRegisterNodeInstructionDataEncoder: () => getRegisterNodeInstructionDataEncoder,
+  getRegistryCodec: () => getRegistryCodec,
+  getRegistryDecoder: () => getRegistryDecoder,
+  getRegistryDiscriminatorBytes: () => getRegistryDiscriminatorBytes,
+  getRegistryEncoder: () => getRegistryEncoder,
+  getRegistrySize: () => getRegistrySize,
+  getRequestUnstakeDiscriminatorBytes: () => getRequestUnstakeDiscriminatorBytes,
+  getRequestUnstakeInstruction: () => getRequestUnstakeInstruction,
+  getRequestUnstakeInstructionAsync: () => getRequestUnstakeInstructionAsync,
+  getRequestUnstakeInstructionDataCodec: () => getRequestUnstakeInstructionDataCodec,
+  getRequestUnstakeInstructionDataDecoder: () => getRequestUnstakeInstructionDataDecoder,
+  getRequestUnstakeInstructionDataEncoder: () => getRequestUnstakeInstructionDataEncoder,
+  getSetCoreAuthorityDiscriminatorBytes: () => getSetCoreAuthorityDiscriminatorBytes,
+  getSetCoreAuthorityInstruction: () => getSetCoreAuthorityInstruction,
+  getSetCoreAuthorityInstructionAsync: () => getSetCoreAuthorityInstructionAsync,
+  getSetCoreAuthorityInstructionDataCodec: () => getSetCoreAuthorityInstructionDataCodec,
+  getSetCoreAuthorityInstructionDataDecoder: () => getSetCoreAuthorityInstructionDataDecoder,
+  getSetCoreAuthorityInstructionDataEncoder: () => getSetCoreAuthorityInstructionDataEncoder,
+  getSetDisputeAuthorityDiscriminatorBytes: () => getSetDisputeAuthorityDiscriminatorBytes,
+  getSetDisputeAuthorityInstruction: () => getSetDisputeAuthorityInstruction,
+  getSetDisputeAuthorityInstructionAsync: () => getSetDisputeAuthorityInstructionAsync,
+  getSetDisputeAuthorityInstructionDataCodec: () => getSetDisputeAuthorityInstructionDataCodec,
+  getSetDisputeAuthorityInstructionDataDecoder: () => getSetDisputeAuthorityInstructionDataDecoder,
+  getSetDisputeAuthorityInstructionDataEncoder: () => getSetDisputeAuthorityInstructionDataEncoder,
+  getSetPausedDiscriminatorBytes: () => getSetPausedDiscriminatorBytes,
+  getSetPausedInstruction: () => getSetPausedInstruction,
+  getSetPausedInstructionAsync: () => getSetPausedInstructionAsync,
+  getSetPausedInstructionDataCodec: () => getSetPausedInstructionDataCodec,
+  getSetPausedInstructionDataDecoder: () => getSetPausedInstructionDataDecoder,
+  getSetPausedInstructionDataEncoder: () => getSetPausedInstructionDataEncoder,
+  getSetPosterAuthorityDiscriminatorBytes: () => getSetPosterAuthorityDiscriminatorBytes,
+  getSetPosterAuthorityInstruction: () => getSetPosterAuthorityInstruction,
+  getSetPosterAuthorityInstructionAsync: () => getSetPosterAuthorityInstructionAsync,
+  getSetPosterAuthorityInstructionDataCodec: () => getSetPosterAuthorityInstructionDataCodec,
+  getSetPosterAuthorityInstructionDataDecoder: () => getSetPosterAuthorityInstructionDataDecoder,
+  getSetPosterAuthorityInstructionDataEncoder: () => getSetPosterAuthorityInstructionDataEncoder,
+  getWeftErrorMessage: () => getWeftErrorMessage,
+  getStakeDiscriminatorBytes: () => getStakeDiscriminatorBytes,
+  getStakeInstruction: () => getStakeInstruction,
+  getStakeInstructionAsync: () => getStakeInstructionAsync,
+  getStakeInstructionDataCodec: () => getStakeInstructionDataCodec,
+  getStakeInstructionDataDecoder: () => getStakeInstructionDataDecoder,
+  getStakeInstructionDataEncoder: () => getStakeInstructionDataEncoder,
+  getStakePositionCodec: () => getStakePositionCodec,
+  getStakePositionDecoder: () => getStakePositionDecoder,
+  getStakePositionDiscriminatorBytes: () => getStakePositionDiscriminatorBytes,
+  getStakePositionEncoder: () => getStakePositionEncoder,
+  getStakePositionSize: () => getStakePositionSize,
+  getStakingConfigCodec: () => getStakingConfigCodec,
+  getStakingConfigDecoder: () => getStakingConfigDecoder,
+  getStakingConfigDiscriminatorBytes: () => getStakingConfigDiscriminatorBytes,
+  getStakingConfigEncoder: () => getStakingConfigEncoder,
+  getStakingConfigSize: () => getStakingConfigSize,
+  getUpdateNodeDiscriminatorBytes: () => getUpdateNodeDiscriminatorBytes,
+  getUpdateNodeInstruction: () => getUpdateNodeInstruction,
+  getUpdateNodeInstructionDataCodec: () => getUpdateNodeInstructionDataCodec,
+  getUpdateNodeInstructionDataDecoder: () => getUpdateNodeInstructionDataDecoder,
+  getUpdateNodeInstructionDataEncoder: () => getUpdateNodeInstructionDataEncoder,
+  getWithdrawEscrowDiscriminatorBytes: () => getWithdrawEscrowDiscriminatorBytes,
+  getWithdrawEscrowInstruction: () => getWithdrawEscrowInstruction,
+  getWithdrawEscrowInstructionAsync: () => getWithdrawEscrowInstructionAsync,
+  getWithdrawEscrowInstructionDataCodec: () => getWithdrawEscrowInstructionDataCodec,
+  getWithdrawEscrowInstructionDataDecoder: () => getWithdrawEscrowInstructionDataDecoder,
+  getWithdrawEscrowInstructionDataEncoder: () => getWithdrawEscrowInstructionDataEncoder,
+  getWithdrawUnstakedDiscriminatorBytes: () => getWithdrawUnstakedDiscriminatorBytes,
+  getWithdrawUnstakedInstruction: () => getWithdrawUnstakedInstruction,
+  getWithdrawUnstakedInstructionAsync: () => getWithdrawUnstakedInstructionAsync,
+  getWithdrawUnstakedInstructionDataCodec: () => getWithdrawUnstakedInstructionDataCodec,
+  getWithdrawUnstakedInstructionDataDecoder: () => getWithdrawUnstakedInstructionDataDecoder,
+  getWithdrawUnstakedInstructionDataEncoder: () => getWithdrawUnstakedInstructionDataEncoder,
+  identifyWeftAccount: () => identifyWeftAccount,
+  identifyWeftInstruction: () => identifyWeftInstruction,
+  isWeftError: () => isWeftError,
+  parseClaimInstruction: () => parseClaimInstruction,
+  parseDepositEscrowInstruction: () => parseDepositEscrowInstruction,
+  parseDeregisterNodeInstruction: () => parseDeregisterNodeInstruction,
+  parseDisputeInstruction: () => parseDisputeInstruction,
+  parseFundRewardVaultInstruction: () => parseFundRewardVaultInstruction,
+  parseInitializeCoreInstruction: () => parseInitializeCoreInstruction,
+  parsePayTrafficFromEscrowInstruction: () => parsePayTrafficFromEscrowInstruction,
+  parsePayTrafficInstruction: () => parsePayTrafficInstruction,
+  parsePostEpochInstruction: () => parsePostEpochInstruction,
+  parseRegisterNodeInstruction: () => parseRegisterNodeInstruction,
+  parseRequestUnstakeInstruction: () => parseRequestUnstakeInstruction,
+  parseSetCoreAuthorityInstruction: () => parseSetCoreAuthorityInstruction,
+  parseSetDisputeAuthorityInstruction: () => parseSetDisputeAuthorityInstruction,
+  parseSetPausedInstruction: () => parseSetPausedInstruction,
+  parseSetPosterAuthorityInstruction: () => parseSetPosterAuthorityInstruction,
+  parseWeftInstruction: () => parseWeftInstruction,
+  parseStakeInstruction: () => parseStakeInstruction,
+  parseUpdateNodeInstruction: () => parseUpdateNodeInstruction,
+  parseWithdrawEscrowInstruction: () => parseWithdrawEscrowInstruction,
+  parseWithdrawUnstakedInstruction: () => parseWithdrawUnstakedInstruction,
+  weftProgram: () => weftProgram
+});
+
 // ../../node_modules/.pnpm/@solana+errors@6.10.0_typescript@5.9.3/node_modules/@solana/errors/dist/index.node.mjs
 var SOLANA_ERROR__BLOCK_HEIGHT_EXCEEDED2 = 1;
 var SOLANA_ERROR__INVALID_NONCE2 = 2;
@@ -10776,6 +11060,11 @@ function createDecoder2(decoder) {
 function isFixedSize2(codec) {
   return "fixedSize" in codec && typeof codec.fixedSize === "number";
 }
+function assertIsFixedSize2(codec) {
+  if (!isFixedSize2(codec)) {
+    throw new SolanaError2(SOLANA_ERROR__CODECS__EXPECTED_FIXED_LENGTH2);
+  }
+}
 function isVariableSize2(codec) {
   return !isFixedSize2(codec);
 }
@@ -11292,6 +11581,19 @@ var getI64Decoder = (config = {}) => numberDecoderFactory({
   name: "i64",
   size: 8
 });
+var getU16Encoder2 = (config = {}) => numberEncoderFactory2({
+  config,
+  name: "u16",
+  range: [0, Number("0xffff")],
+  set: (view, value, le) => view.setUint16(0, Number(value), le),
+  size: 2
+});
+var getU16Decoder2 = (config = {}) => numberDecoderFactory({
+  config,
+  get: (view, le) => view.getUint16(0, le),
+  name: "u16",
+  size: 2
+});
 var getU32Encoder2 = (config = {}) => numberEncoderFactory2({
   config,
   name: "u32",
@@ -11339,6 +11641,12 @@ function assertValidNumberOfItemsForCodec2(codecDescription, expected, actual) {
       expected
     });
   }
+}
+function maxCodecSizes2(sizes) {
+  return sizes.reduce(
+    (all, size) => all === null || size === null ? null : Math.max(all, size),
+    0
+  );
 }
 function sumCodecSizes2(sizes) {
   return sizes.reduce((all, size) => all === null || size === null ? null : all + size, 0);
@@ -11434,6 +11742,137 @@ function getBytesDecoder2() {
     }
   });
 }
+var getBase16Decoder = () => createDecoder2({
+  read(bytes, offset) {
+    const value = bytes.slice(offset).reduce((str, byte) => str + byte.toString(16).padStart(2, "0"), "");
+    return [value, bytes.length];
+  }
+});
+function getConstantEncoder2(constant) {
+  return createEncoder2({
+    fixedSize: constant.length,
+    write: (_, bytes, offset) => {
+      bytes.set(constant, offset);
+      return offset + constant.length;
+    }
+  });
+}
+function getConstantDecoder(constant) {
+  return createDecoder2({
+    fixedSize: constant.length,
+    read: (bytes, offset) => {
+      const base16 = getBase16Decoder();
+      if (!containsBytes2(bytes, constant, offset)) {
+        throw new SolanaError2(SOLANA_ERROR__CODECS__INVALID_CONSTANT2, {
+          constant,
+          data: bytes,
+          hexConstant: base16.decode(constant),
+          hexData: base16.decode(bytes),
+          offset
+        });
+      }
+      return [void 0, offset + constant.length];
+    }
+  });
+}
+function getTupleEncoder2(items, config) {
+  const fixedSize = sumCodecSizes2(items.map(getFixedSize2));
+  const maxSize = sumCodecSizes2(items.map(getMaxSize2)) ?? void 0;
+  return createEncoder2({
+    ...fixedSize === null ? {
+      getSizeFromValue: (value) => items.map((item, index) => getEncodedSize2(value[index], item)).reduce((all, one) => all + one, 0),
+      maxSize
+    } : { fixedSize },
+    write: (value, bytes, offset) => {
+      assertValidNumberOfItemsForCodec2(config?.description ?? "tuple", items.length, value.length);
+      items.forEach((item, index) => {
+        offset = item.write(value[index], bytes, offset);
+      });
+      return offset;
+    }
+  });
+}
+function getTupleDecoder2(items) {
+  const fixedSize = sumCodecSizes2(items.map(getFixedSize2));
+  const maxSize = sumCodecSizes2(items.map(getMaxSize2)) ?? void 0;
+  return createDecoder2({
+    ...fixedSize === null ? { maxSize } : { fixedSize },
+    read: (bytes, offset) => {
+      const values = [];
+      items.forEach((item) => {
+        const [newValue, newOffset] = item.read(bytes, offset);
+        values.push(newValue);
+        offset = newOffset;
+      });
+      return [values, offset];
+    }
+  });
+}
+function getUnionEncoder2(variants, getIndexFromValue) {
+  const fixedSize = getUnionFixedSize2(variants);
+  const write = (variant, bytes, offset) => {
+    const index = getIndexFromValue(variant);
+    assertValidVariantIndex2(variants, index);
+    return variants[index].write(variant, bytes, offset);
+  };
+  if (fixedSize !== null) {
+    return createEncoder2({ fixedSize, write });
+  }
+  const maxSize = getUnionMaxSize2(variants);
+  return createEncoder2({
+    ...maxSize !== null ? { maxSize } : {},
+    getSizeFromValue: (variant) => {
+      const index = getIndexFromValue(variant);
+      assertValidVariantIndex2(variants, index);
+      return getEncodedSize2(variant, variants[index]);
+    },
+    write
+  });
+}
+function getUnionDecoder(variants, getIndexFromBytes) {
+  const fixedSize = getUnionFixedSize2(variants);
+  const read = (bytes, offset) => {
+    const index = getIndexFromBytes(bytes, offset);
+    assertValidVariantIndex2(variants, index);
+    return variants[index].read(bytes, offset);
+  };
+  if (fixedSize !== null) {
+    return createDecoder2({ fixedSize, read });
+  }
+  const maxSize = getUnionMaxSize2(variants);
+  return createDecoder2({ ...maxSize !== null ? { maxSize } : {}, read });
+}
+function assertValidVariantIndex2(variants, index) {
+  if (typeof variants[index] === "undefined") {
+    throw new SolanaError2(SOLANA_ERROR__CODECS__UNION_VARIANT_OUT_OF_RANGE2, {
+      maxRange: variants.length - 1,
+      minRange: 0,
+      variant: index
+    });
+  }
+}
+function getUnionFixedSize2(variants) {
+  if (variants.length === 0) return 0;
+  if (!isFixedSize2(variants[0])) return null;
+  const variantSize = variants[0].fixedSize;
+  const sameSizedVariants = variants.every((variant) => isFixedSize2(variant) && variant.fixedSize === variantSize);
+  return sameSizedVariants ? variantSize : null;
+}
+function getUnionMaxSize2(variants) {
+  return maxCodecSizes2(variants.map((variant) => getMaxSize2(variant)));
+}
+function getUnitEncoder2() {
+  return createEncoder2({
+    fixedSize: 0,
+    write: (_value, _bytes, offset) => offset
+  });
+}
+function getUnitDecoder2() {
+  return createDecoder2({
+    fixedSize: 0,
+    read: (_bytes, offset) => [void 0, offset]
+  });
+}
 function getStructEncoder2(fields) {
   const fieldCodecs = fields.map(([, codec]) => codec);
   const fixedSize = sumCodecSizes2(fieldCodecs.map(getFixedSize2));
@@ -11467,6 +11906,81 @@ function getStructDecoder2(fields) {
       return [struct, offset];
     }
   });
+}
+
+// ../../node_modules/.pnpm/@solana+options@6.10.0_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
+var some = (value) => ({ __option: "Some", value });
+var none = () => ({ __option: "None" });
+var isOption = (input) => !!(input && typeof input === "object" && "__option" in input && (input.__option === "Some" && "value" in input || input.__option === "None"));
+var isSome = (option) => option.__option === "Some";
+var wrapNullable = (nullable) => nullable !== null ? some(nullable) : none();
+function getOptionEncoder(item, config = {}) {
+  const prefix = (() => {
+    if (config.prefix === null) {
+      return transformEncoder2(getUnitEncoder2(), (_boolean) => void 0);
+    }
+    return getBooleanEncoder2({ size: config.prefix ?? getU8Encoder2() });
+  })();
+  const noneValue = (() => {
+    if (config.noneValue === "zeroes") {
+      assertIsFixedSize2(item);
+      return fixEncoderSize2(getUnitEncoder2(), item.fixedSize);
+    }
+    if (!config.noneValue) {
+      return getUnitEncoder2();
+    }
+    return getConstantEncoder2(config.noneValue);
+  })();
+  return getUnionEncoder2(
+    [
+      transformEncoder2(getTupleEncoder2([prefix, noneValue]), (_value) => [
+        false,
+        void 0
+      ]),
+      transformEncoder2(getTupleEncoder2([prefix, item]), (value) => [
+        true,
+        isOption(value) && isSome(value) ? value.value : value
+      ])
+    ],
+    (variant) => {
+      const option = isOption(variant) ? variant : wrapNullable(variant);
+      return Number(isSome(option));
+    }
+  );
+}
+function getOptionDecoder(item, config = {}) {
+  const prefix = (() => {
+    if (config.prefix === null) {
+      return transformDecoder2(getUnitDecoder2(), () => false);
+    }
+    return getBooleanDecoder({ size: config.prefix ?? getU8Decoder2() });
+  })();
+  const noneValue = (() => {
+    if (config.noneValue === "zeroes") {
+      assertIsFixedSize2(item);
+      return fixDecoderSize2(getUnitDecoder2(), item.fixedSize);
+    }
+    if (!config.noneValue) {
+      return getUnitDecoder2();
+    }
+    return getConstantDecoder(config.noneValue);
+  })();
+  return getUnionDecoder(
+    [
+      transformDecoder2(getTupleDecoder2([prefix, noneValue]), () => none()),
+      transformDecoder2(getTupleDecoder2([prefix, item]), ([, value]) => some(value))
+    ],
+    (bytes, offset) => {
+      if (config.prefix === null && !config.noneValue) {
+        return Number(offset < bytes.length);
+      }
+      if (config.prefix === null && config.noneValue != null) {
+        const zeroValue = config.noneValue === "zeroes" ? new Uint8Array(noneValue.fixedSize).fill(0) : config.noneValue;
+        return containsBytes2(bytes, zeroValue, offset) ? 0 : 1;
+      }
+      return Number(prefix.read(bytes, offset)[0]);
+    }
+  );
 }
 
 // ../../node_modules/.pnpm/@solana+instructions@6.10.0_typescript@5.9.3/node_modules/@solana/instructions/dist/index.node.mjs
@@ -11535,17 +12049,555 @@ function isTransactionSigner2(value) {
 }
 var o4 = globalThis.TextEncoder;
 
-// ../../sdk/dist/generated/weft_vesting/src/generated/accounts/vestingSchedule.js
-var VESTING_SCHEDULE_DISCRIMINATOR = new Uint8Array([
-  130,
-  200,
-  173,
-  148,
-  39,
-  75,
-  243,
-  147
+// ../../sdk/dist/generated/weft/src/generated/accounts/claimStatus.js
+var CLAIM_STATUS_DISCRIMINATOR = new Uint8Array([
+  22,
+  183,
+  249,
+  157,
+  247,
+  95,
+  150,
+  96
 ]);
+function getClaimStatusDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(CLAIM_STATUS_DISCRIMINATOR);
+}
+function getClaimStatusEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["epoch", getU64Encoder2()],
+    ["operator", getAddressEncoder2()],
+    ["nodeId", getU64Encoder2()],
+    ["amount", getU64Encoder2()],
+    ["claimedAt", getI64Encoder()],
+    ["disputed", getBooleanEncoder2()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: CLAIM_STATUS_DISCRIMINATOR }));
+}
+function getClaimStatusDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["epoch", getU64Decoder2()],
+    ["operator", getAddressDecoder2()],
+    ["nodeId", getU64Decoder2()],
+    ["amount", getU64Decoder2()],
+    ["claimedAt", getI64Decoder()],
+    ["disputed", getBooleanDecoder()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getClaimStatusCodec() {
+  return combineCodec2(getClaimStatusEncoder(), getClaimStatusDecoder());
+}
+function decodeClaimStatus(encodedAccount) {
+  return decodeAccount(encodedAccount, getClaimStatusDecoder());
+}
+async function fetchClaimStatus(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybeClaimStatus(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeClaimStatus(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodeClaimStatus(maybeAccount);
+}
+async function fetchAllClaimStatus(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeClaimStatus(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeClaimStatus(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeClaimStatus(maybeAccount));
+}
+function getClaimStatusSize() {
+  return 74;
+}
+
+// ../../sdk/dist/generated/weft/src/generated/accounts/distributor.js
+var DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
+  90,
+  90,
+  217,
+  147,
+  6,
+  32,
+  135,
+  4
+]);
+function getDistributorDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(DISTRIBUTOR_DISCRIMINATOR);
+}
+function getDistributorEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["authority", getAddressEncoder2()],
+    ["posterAuthority", getAddressEncoder2()],
+    ["disputeAuthority", getAddressEncoder2()],
+    ["rewardMint", getAddressEncoder2()],
+    ["rewardVault", getAddressEncoder2()],
+    ["treasury", getAddressEncoder2()],
+    ["disputeWindowSeconds", getI64Encoder()],
+    ["clawbackWindowSeconds", getI64Encoder()],
+    ["currentEpoch", getU64Encoder2()],
+    ["cumulativeObligated", getU64Encoder2()],
+    ["cumulativeClaimed", getU64Encoder2()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: DISTRIBUTOR_DISCRIMINATOR }));
+}
+function getDistributorDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["authority", getAddressDecoder2()],
+    ["posterAuthority", getAddressDecoder2()],
+    ["disputeAuthority", getAddressDecoder2()],
+    ["rewardMint", getAddressDecoder2()],
+    ["rewardVault", getAddressDecoder2()],
+    ["treasury", getAddressDecoder2()],
+    ["disputeWindowSeconds", getI64Decoder()],
+    ["clawbackWindowSeconds", getI64Decoder()],
+    ["currentEpoch", getU64Decoder2()],
+    ["cumulativeObligated", getU64Decoder2()],
+    ["cumulativeClaimed", getU64Decoder2()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getDistributorCodec() {
+  return combineCodec2(getDistributorEncoder(), getDistributorDecoder());
+}
+function decodeDistributor(encodedAccount) {
+  return decodeAccount(encodedAccount, getDistributorDecoder());
+}
+async function fetchDistributor(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybeDistributor(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeDistributor(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodeDistributor(maybeAccount);
+}
+async function fetchAllDistributor(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeDistributor(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeDistributor(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeDistributor(maybeAccount));
+}
+function getDistributorSize() {
+  return 241;
+}
+
+// ../../sdk/dist/generated/weft/src/generated/accounts/epochDistribution.js
+var EPOCH_DISTRIBUTION_DISCRIMINATOR = new Uint8Array([
+  44,
+  121,
+  108,
+  107,
+  92,
+  50,
+  81,
+  234
+]);
+function getEpochDistributionDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(EPOCH_DISTRIBUTION_DISCRIMINATOR);
+}
+function getEpochDistributionEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["epoch", getU64Encoder2()],
+    ["merkleRoot", fixEncoderSize2(getBytesEncoder2(), 32)],
+    ["totalReward", getU64Encoder2()],
+    ["totalClaimed", getU64Encoder2()],
+    ["numNodes", getU32Encoder2()],
+    ["postedAt", getI64Encoder()],
+    ["swept", getBooleanEncoder2()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: EPOCH_DISTRIBUTION_DISCRIMINATOR }));
+}
+function getEpochDistributionDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["epoch", getU64Decoder2()],
+    ["merkleRoot", fixDecoderSize2(getBytesDecoder2(), 32)],
+    ["totalReward", getU64Decoder2()],
+    ["totalClaimed", getU64Decoder2()],
+    ["numNodes", getU32Decoder2()],
+    ["postedAt", getI64Decoder()],
+    ["swept", getBooleanDecoder()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getEpochDistributionCodec() {
+  return combineCodec2(getEpochDistributionEncoder(), getEpochDistributionDecoder());
+}
+function decodeEpochDistribution(encodedAccount) {
+  return decodeAccount(encodedAccount, getEpochDistributionDecoder());
+}
+async function fetchEpochDistribution(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybeEpochDistribution(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeEpochDistribution(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodeEpochDistribution(maybeAccount);
+}
+async function fetchAllEpochDistribution(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeEpochDistribution(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeEpochDistribution(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeEpochDistribution(maybeAccount));
+}
+function getEpochDistributionSize() {
+  return 78;
+}
+
+// ../../sdk/dist/generated/weft/src/generated/accounts/nodeState.js
+var NODE_STATE_DISCRIMINATOR = new Uint8Array([
+  8,
+  21,
+  101,
+  224,
+  245,
+  142,
+  157,
+  156
+]);
+function getNodeStateDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(NODE_STATE_DISCRIMINATOR);
+}
+function getNodeStateEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["operator", getAddressEncoder2()],
+    ["nodeId", getU64Encoder2()],
+    ["geo", getU32Encoder2()],
+    ["capabilities", getU32Encoder2()],
+    ["endpointHash", fixEncoderSize2(getBytesEncoder2(), 32)],
+    ["availability", getU8Encoder2()],
+    ["status", getU8Encoder2()],
+    ["registeredAt", getI64Encoder()],
+    ["updatedAt", getI64Encoder()],
+    ["reputation", getU16Encoder2()],
+    ["stakeAmount", getU64Encoder2()],
+    ["bump", getU8Encoder2()],
+    ["sequence", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: NODE_STATE_DISCRIMINATOR }));
+}
+function getNodeStateDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["operator", getAddressDecoder2()],
+    ["nodeId", getU64Decoder2()],
+    ["geo", getU32Decoder2()],
+    ["capabilities", getU32Decoder2()],
+    ["endpointHash", fixDecoderSize2(getBytesDecoder2(), 32)],
+    ["availability", getU8Decoder2()],
+    ["status", getU8Decoder2()],
+    ["registeredAt", getI64Decoder()],
+    ["updatedAt", getI64Decoder()],
+    ["reputation", getU16Decoder2()],
+    ["stakeAmount", getU64Decoder2()],
+    ["bump", getU8Decoder2()],
+    ["sequence", getU64Decoder2()]
+  ]);
+}
+function getNodeStateCodec() {
+  return combineCodec2(getNodeStateEncoder(), getNodeStateDecoder());
+}
+function decodeNodeState(encodedAccount) {
+  return decodeAccount(encodedAccount, getNodeStateDecoder());
+}
+async function fetchNodeState(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybeNodeState(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeNodeState(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodeNodeState(maybeAccount);
+}
+async function fetchAllNodeState(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeNodeState(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeNodeState(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeNodeState(maybeAccount));
+}
+function getNodeStateSize() {
+  return 125;
+}
+
+// ../../sdk/dist/generated/weft/src/generated/accounts/paymentEscrow.js
+var PAYMENT_ESCROW_DISCRIMINATOR = new Uint8Array([
+  4,
+  248,
+  157,
+  210,
+  63,
+  156,
+  163,
+  90
+]);
+function getPaymentEscrowDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(PAYMENT_ESCROW_DISCRIMINATOR);
+}
+function getPaymentEscrowEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["owner", getAddressEncoder2()],
+    ["mint", getAddressEncoder2()],
+    ["vault", getAddressEncoder2()],
+    ["balance", getU64Encoder2()],
+    ["totalDeposited", getU64Encoder2()],
+    ["totalSpent", getU64Encoder2()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: PAYMENT_ESCROW_DISCRIMINATOR }));
+}
+function getPaymentEscrowDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["owner", getAddressDecoder2()],
+    ["mint", getAddressDecoder2()],
+    ["vault", getAddressDecoder2()],
+    ["balance", getU64Decoder2()],
+    ["totalDeposited", getU64Decoder2()],
+    ["totalSpent", getU64Decoder2()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getPaymentEscrowCodec() {
+  return combineCodec2(getPaymentEscrowEncoder(), getPaymentEscrowDecoder());
+}
+function decodePaymentEscrow(encodedAccount) {
+  return decodeAccount(encodedAccount, getPaymentEscrowDecoder());
+}
+async function fetchPaymentEscrow(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybePaymentEscrow(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybePaymentEscrow(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodePaymentEscrow(maybeAccount);
+}
+async function fetchAllPaymentEscrow(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybePaymentEscrow(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybePaymentEscrow(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodePaymentEscrow(maybeAccount));
+}
+function getPaymentEscrowSize() {
+  return 129;
+}
+
+// ../../sdk/dist/generated/weft/src/generated/accounts/registry.js
+var REGISTRY_DISCRIMINATOR = new Uint8Array([
+  47,
+  174,
+  110,
+  246,
+  184,
+  182,
+  252,
+  218
+]);
+function getRegistryDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(REGISTRY_DISCRIMINATOR);
+}
+function getRegistryEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["authority", getAddressEncoder2()],
+    ["nodeCount", getU64Encoder2()],
+    ["paused", getBooleanEncoder2()],
+    ["bump", getU8Encoder2()],
+    ["nodeSequence", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: REGISTRY_DISCRIMINATOR }));
+}
+function getRegistryDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["authority", getAddressDecoder2()],
+    ["nodeCount", getU64Decoder2()],
+    ["paused", getBooleanDecoder()],
+    ["bump", getU8Decoder2()],
+    ["nodeSequence", getU64Decoder2()]
+  ]);
+}
+function getRegistryCodec() {
+  return combineCodec2(getRegistryEncoder(), getRegistryDecoder());
+}
+function decodeRegistry(encodedAccount) {
+  return decodeAccount(encodedAccount, getRegistryDecoder());
+}
+async function fetchRegistry(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybeRegistry(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeRegistry(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodeRegistry(maybeAccount);
+}
+async function fetchAllRegistry(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeRegistry(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeRegistry(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeRegistry(maybeAccount));
+}
+function getRegistrySize() {
+  return 58;
+}
+
+// ../../sdk/dist/generated/weft/src/generated/accounts/stakePosition.js
+var STAKE_POSITION_DISCRIMINATOR = new Uint8Array([
+  78,
+  165,
+  30,
+  111,
+  171,
+  125,
+  11,
+  220
+]);
+function getStakePositionDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(STAKE_POSITION_DISCRIMINATOR);
+}
+function getStakePositionEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["operator", getAddressEncoder2()],
+    ["nodeId", getU64Encoder2()],
+    ["mint", getAddressEncoder2()],
+    ["vault", getAddressEncoder2()],
+    ["amount", getU64Encoder2()],
+    ["unbondingAmount", getU64Encoder2()],
+    ["lockedUntil", getI64Encoder()],
+    ["unbondingUntil", getI64Encoder()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: STAKE_POSITION_DISCRIMINATOR }));
+}
+function getStakePositionDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["operator", getAddressDecoder2()],
+    ["nodeId", getU64Decoder2()],
+    ["mint", getAddressDecoder2()],
+    ["vault", getAddressDecoder2()],
+    ["amount", getU64Decoder2()],
+    ["unbondingAmount", getU64Decoder2()],
+    ["lockedUntil", getI64Decoder()],
+    ["unbondingUntil", getI64Decoder()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getStakePositionCodec() {
+  return combineCodec2(getStakePositionEncoder(), getStakePositionDecoder());
+}
+function decodeStakePosition(encodedAccount) {
+  return decodeAccount(encodedAccount, getStakePositionDecoder());
+}
+async function fetchStakePosition(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybeStakePosition(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeStakePosition(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodeStakePosition(maybeAccount);
+}
+async function fetchAllStakePosition(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeStakePosition(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeStakePosition(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeStakePosition(maybeAccount));
+}
+function getStakePositionSize() {
+  return 145;
+}
+
+// ../../sdk/dist/generated/weft/src/generated/accounts/stakingConfig.js
+var STAKING_CONFIG_DISCRIMINATOR = new Uint8Array([
+  45,
+  134,
+  252,
+  82,
+  37,
+  57,
+  84,
+  25
+]);
+function getStakingConfigDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(STAKING_CONFIG_DISCRIMINATOR);
+}
+function getStakingConfigEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["authority", getAddressEncoder2()],
+    ["slashAuthority", getAddressEncoder2()],
+    ["treasury", getAddressEncoder2()],
+    ["mint", getAddressEncoder2()],
+    ["unbondingSeconds", getI64Encoder()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: STAKING_CONFIG_DISCRIMINATOR }));
+}
+function getStakingConfigDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["authority", getAddressDecoder2()],
+    ["slashAuthority", getAddressDecoder2()],
+    ["treasury", getAddressDecoder2()],
+    ["mint", getAddressDecoder2()],
+    ["unbondingSeconds", getI64Decoder()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getStakingConfigCodec() {
+  return combineCodec2(getStakingConfigEncoder(), getStakingConfigDecoder());
+}
+function decodeStakingConfig(encodedAccount) {
+  return decodeAccount(encodedAccount, getStakingConfigDecoder());
+}
+async function fetchStakingConfig(rpc2, address3, config) {
+  const maybeAccount = await fetchMaybeStakingConfig(rpc2, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeStakingConfig(rpc2, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
+  return decodeStakingConfig(maybeAccount);
+}
+async function fetchAllStakingConfig(rpc2, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeStakingConfig(rpc2, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeStakingConfig(rpc2, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeStakingConfig(maybeAccount));
+}
+function getStakingConfigSize() {
+  return 145;
+}
 
 // ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput(inputName, value) {
@@ -11627,1014 +12679,9 @@ function isPromiseLike(item) {
   return !!item && (typeof item === "object" || typeof item === "function") && typeof item.then === "function";
 }
 
-// ../../sdk/dist/generated/weft_vesting/src/generated/instructions/claim.js
-var CLAIM_DISCRIMINATOR = new Uint8Array([
-  62,
-  198,
-  214,
-  193,
-  213,
-  159,
-  108,
-  210
-]);
-
-// ../../sdk/dist/generated/weft_vesting/src/generated/instructions/createSchedule.js
-var CREATE_SCHEDULE_DISCRIMINATOR = new Uint8Array([
-  200,
-  176,
-  213,
-  214,
-  210,
-  121,
-  35,
-  225
-]);
-
-// ../../sdk/dist/generated/weft_vesting/src/generated/instructions/revoke.js
-var REVOKE_DISCRIMINATOR = new Uint8Array([
-  170,
-  23,
-  31,
-  34,
-  133,
-  173,
-  93,
-  242
-]);
-
-// ../../sdk/dist/generated/weft_vesting/src/generated/programs/weftVesting.js
-var WeftVestingAccount;
-(function(WeftVestingAccount2) {
-  WeftVestingAccount2[WeftVestingAccount2["VestingSchedule"] = 0] = "VestingSchedule";
-})(WeftVestingAccount || (WeftVestingAccount = {}));
-var WeftVestingInstruction;
-(function(WeftVestingInstruction2) {
-  WeftVestingInstruction2[WeftVestingInstruction2["Claim"] = 0] = "Claim";
-  WeftVestingInstruction2[WeftVestingInstruction2["CreateSchedule"] = 1] = "CreateSchedule";
-  WeftVestingInstruction2[WeftVestingInstruction2["Revoke"] = 2] = "Revoke";
-})(WeftVestingInstruction || (WeftVestingInstruction = {}));
-
-// ../../sdk/dist/generated/weft_vesting/src/generated/errors/weftVesting.js
-var WEFT_VESTING_ERROR__UNAUTHORIZED = 6e3;
-var WEFT_VESTING_ERROR__NOTHING_TO_CLAIM = 6001;
-var WEFT_VESTING_ERROR__NOT_REVOCABLE = 6002;
-var WEFT_VESTING_ERROR__ALREADY_REVOKED = 6003;
-var WEFT_VESTING_ERROR__INVALID_PARAMS = 6004;
-var WEFT_VESTING_ERROR__MATH_OVERFLOW = 6005;
-var weftVestingErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  weftVestingErrorMessages = {
-    [WEFT_VESTING_ERROR__ALREADY_REVOKED]: `Schedule already revoked`,
-    [WEFT_VESTING_ERROR__INVALID_PARAMS]: `Invalid schedule parameters`,
-    [WEFT_VESTING_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
-    [WEFT_VESTING_ERROR__NOTHING_TO_CLAIM]: `Nothing is currently claimable`,
-    [WEFT_VESTING_ERROR__NOT_REVOCABLE]: `Schedule is not revocable`,
-    [WEFT_VESTING_ERROR__UNAUTHORIZED]: `Caller is not authorized for this schedule`
-  };
-}
-
-// ../../sdk/dist/generated/node_registry/src/generated/accounts/nodeState.js
-var NODE_STATE_DISCRIMINATOR = new Uint8Array([
-  8,
-  21,
-  101,
-  224,
-  245,
-  142,
-  157,
-  156
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/accounts/registry.js
-var REGISTRY_DISCRIMINATOR = new Uint8Array([
-  47,
-  174,
-  110,
-  246,
-  184,
-  182,
-  252,
-  218
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/accounts/treeShard.js
-var TREE_SHARD_DISCRIMINATOR = new Uint8Array([
-  103,
-  111,
-  212,
-  23,
-  42,
-  107,
-  59,
-  169
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/deregister.js
-var DEREGISTER_DISCRIMINATOR = new Uint8Array([
-  161,
-  178,
-  39,
-  189,
-  231,
-  224,
-  13,
-  187
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/initializeRegistry.js
-var INITIALIZE_REGISTRY_DISCRIMINATOR = new Uint8Array([
-  189,
-  181,
-  20,
-  17,
-  174,
-  57,
-  249,
-  59
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/register.js
-var REGISTER_DISCRIMINATOR = new Uint8Array([
-  211,
-  124,
-  67,
-  15,
-  211,
-  194,
-  178,
-  240
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/registerTree.js
-var REGISTER_TREE_DISCRIMINATOR = new Uint8Array([
-  22,
-  52,
-  192,
-  74,
-  201,
-  240,
-  87,
-  252
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/setAuthority.js
-var SET_AUTHORITY_DISCRIMINATOR = new Uint8Array([
-  133,
-  250,
-  37,
-  21,
-  110,
-  163,
-  26,
-  121
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/setMetricsAuthorities.js
-var SET_METRICS_AUTHORITIES_DISCRIMINATOR = new Uint8Array([
-  51,
-  50,
-  93,
-  210,
-  105,
-  78,
-  78,
-  104
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/setPaused.js
-var SET_PAUSED_DISCRIMINATOR = new Uint8Array([
-  91,
-  60,
-  125,
-  192,
-  176,
-  225,
-  166,
-  218
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/setReputation.js
-var SET_REPUTATION_DISCRIMINATOR = new Uint8Array([
-  140,
-  34,
-  179,
-  36,
-  67,
-  85,
-  58,
-  225
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/setStake.js
-var SET_STAKE_DISCRIMINATOR = new Uint8Array([
-  86,
-  173,
-  233,
-  196,
-  120,
-  133,
-  103,
-  254
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/instructions/update.js
-var UPDATE_DISCRIMINATOR = new Uint8Array([
-  219,
-  200,
-  88,
-  176,
-  158,
-  63,
-  253,
-  127
-]);
-
-// ../../sdk/dist/generated/node_registry/src/generated/programs/nodeRegistry.js
-var NodeRegistryAccount;
-(function(NodeRegistryAccount2) {
-  NodeRegistryAccount2[NodeRegistryAccount2["NodeState"] = 0] = "NodeState";
-  NodeRegistryAccount2[NodeRegistryAccount2["Registry"] = 1] = "Registry";
-  NodeRegistryAccount2[NodeRegistryAccount2["TreeShard"] = 2] = "TreeShard";
-})(NodeRegistryAccount || (NodeRegistryAccount = {}));
-var NodeRegistryInstruction;
-(function(NodeRegistryInstruction2) {
-  NodeRegistryInstruction2[NodeRegistryInstruction2["Deregister"] = 0] = "Deregister";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["InitializeRegistry"] = 1] = "InitializeRegistry";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["Register"] = 2] = "Register";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["RegisterTree"] = 3] = "RegisterTree";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["SetAuthority"] = 4] = "SetAuthority";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["SetMetricsAuthorities"] = 5] = "SetMetricsAuthorities";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["SetPaused"] = 6] = "SetPaused";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["SetReputation"] = 7] = "SetReputation";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["SetStake"] = 8] = "SetStake";
-  NodeRegistryInstruction2[NodeRegistryInstruction2["Update"] = 9] = "Update";
-})(NodeRegistryInstruction || (NodeRegistryInstruction = {}));
-
-// ../../sdk/dist/generated/node_registry/src/generated/errors/nodeRegistry.js
-var NODE_REGISTRY_ERROR__UNAUTHORIZED = 6e3;
-var NODE_REGISTRY_ERROR__PAUSED = 6001;
-var NODE_REGISTRY_ERROR__INVALID_GEO = 6002;
-var NODE_REGISTRY_ERROR__INVALID_CAPABILITIES = 6003;
-var NODE_REGISTRY_ERROR__INVALID_AVAILABILITY = 6004;
-var NODE_REGISTRY_ERROR__INVALID_TREE = 6005;
-var NODE_REGISTRY_ERROR__TREE_INDEX_MISMATCH = 6006;
-var NODE_REGISTRY_ERROR__TREE_FULL = 6007;
-var NODE_REGISTRY_ERROR__NODE_NOT_ACTIVE = 6008;
-var NODE_REGISTRY_ERROR__MATH_OVERFLOW = 6009;
-var nodeRegistryErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  nodeRegistryErrorMessages = {
-    [NODE_REGISTRY_ERROR__INVALID_AVAILABILITY]: `Invalid availability value`,
-    [NODE_REGISTRY_ERROR__INVALID_CAPABILITIES]: `Invalid capability flags`,
-    [NODE_REGISTRY_ERROR__INVALID_GEO]: `Invalid geo value`,
-    [NODE_REGISTRY_ERROR__INVALID_TREE]: `Invalid tree parameters`,
-    [NODE_REGISTRY_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
-    [NODE_REGISTRY_ERROR__NODE_NOT_ACTIVE]: `Node is not active`,
-    [NODE_REGISTRY_ERROR__PAUSED]: `Registry is paused`,
-    [NODE_REGISTRY_ERROR__TREE_FULL]: `Active tree is full`,
-    [NODE_REGISTRY_ERROR__TREE_INDEX_MISMATCH]: `Tree shard index must be sequential`,
-    [NODE_REGISTRY_ERROR__UNAUTHORIZED]: `Caller is not the registry authority`
-  };
-}
-
-// ../../sdk/dist/generated/staking/src/generated/accounts/stakePosition.js
-var STAKE_POSITION_DISCRIMINATOR = new Uint8Array([
-  78,
-  165,
-  30,
-  111,
-  171,
-  125,
-  11,
-  220
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/accounts/stakingConfig.js
-var STAKING_CONFIG_DISCRIMINATOR = new Uint8Array([
-  45,
-  134,
-  252,
-  82,
-  37,
-  57,
-  84,
-  25
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/initializeConfig.js
-var INITIALIZE_CONFIG_DISCRIMINATOR = new Uint8Array([
-  208,
-  127,
-  21,
-  1,
-  194,
-  190,
-  196,
-  70
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/requestUnstake.js
-var REQUEST_UNSTAKE_DISCRIMINATOR = new Uint8Array([
-  44,
-  154,
-  110,
-  253,
-  160,
-  202,
-  54,
-  34
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/resync.js
-var RESYNC_DISCRIMINATOR = new Uint8Array([
-  162,
-  92,
-  69,
-  92,
-  8,
-  51,
-  143,
-  101
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/setSlashAuthority.js
-var SET_SLASH_AUTHORITY_DISCRIMINATOR = new Uint8Array([
-  238,
-  118,
-  102,
-  67,
-  38,
-  193,
-  62,
-  183
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/slash.js
-var SLASH_DISCRIMINATOR = new Uint8Array([
-  204,
-  141,
-  18,
-  161,
-  8,
-  177,
-  92,
-  142
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/stake.js
-var STAKE_DISCRIMINATOR = new Uint8Array([
-  206,
-  176,
-  202,
-  18,
-  200,
-  209,
-  179,
-  108
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/transferAuthority.js
-var TRANSFER_AUTHORITY_DISCRIMINATOR = new Uint8Array([
-  48,
-  169,
-  76,
-  72,
-  229,
-  180,
-  55,
-  161
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/instructions/withdrawUnstaked.js
-var WITHDRAW_UNSTAKED_DISCRIMINATOR = new Uint8Array([
-  19,
-  202,
-  68,
-  255,
-  216,
-  40,
-  205,
-  61
-]);
-
-// ../../sdk/dist/generated/staking/src/generated/programs/staking.js
-var StakingAccount;
-(function(StakingAccount2) {
-  StakingAccount2[StakingAccount2["StakePosition"] = 0] = "StakePosition";
-  StakingAccount2[StakingAccount2["StakingConfig"] = 1] = "StakingConfig";
-})(StakingAccount || (StakingAccount = {}));
-var StakingInstruction;
-(function(StakingInstruction2) {
-  StakingInstruction2[StakingInstruction2["InitializeConfig"] = 0] = "InitializeConfig";
-  StakingInstruction2[StakingInstruction2["RequestUnstake"] = 1] = "RequestUnstake";
-  StakingInstruction2[StakingInstruction2["Resync"] = 2] = "Resync";
-  StakingInstruction2[StakingInstruction2["SetSlashAuthority"] = 3] = "SetSlashAuthority";
-  StakingInstruction2[StakingInstruction2["Slash"] = 4] = "Slash";
-  StakingInstruction2[StakingInstruction2["Stake"] = 5] = "Stake";
-  StakingInstruction2[StakingInstruction2["TransferAuthority"] = 6] = "TransferAuthority";
-  StakingInstruction2[StakingInstruction2["WithdrawUnstaked"] = 7] = "WithdrawUnstaked";
-})(StakingInstruction || (StakingInstruction = {}));
-
-// ../../sdk/dist/generated/staking/src/generated/errors/staking.js
-var STAKING_ERROR__UNAUTHORIZED = 6e3;
-var STAKING_ERROR__LOCKED = 6001;
-var STAKING_ERROR__STILL_UNBONDING = 6002;
-var STAKING_ERROR__INVALID_LOCK = 6003;
-var STAKING_ERROR__INVALID_UNBONDING = 6004;
-var STAKING_ERROR__ZERO_AMOUNT = 6005;
-var STAKING_ERROR__INSUFFICIENT_STAKE = 6006;
-var STAKING_ERROR__MATH_OVERFLOW = 6007;
-var stakingErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  stakingErrorMessages = {
-    [STAKING_ERROR__INSUFFICIENT_STAKE]: `Insufficient staked balance`,
-    [STAKING_ERROR__INVALID_LOCK]: `Invalid lock duration`,
-    [STAKING_ERROR__INVALID_UNBONDING]: `Invalid unbonding duration`,
-    [STAKING_ERROR__LOCKED]: `Stake is still locked`,
-    [STAKING_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
-    [STAKING_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
-    [STAKING_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
-    [STAKING_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`
-  };
-}
-
-// ../../sdk/dist/generated/reputation/src/generated/accounts/reputationConfig.js
-var REPUTATION_CONFIG_DISCRIMINATOR = new Uint8Array([
-  46,
-  222,
-  226,
-  114,
-  243,
-  60,
-  242,
-  75
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/accounts/reputationState.js
-var REPUTATION_STATE_DISCRIMINATOR = new Uint8Array([
-  245,
-  80,
-  180,
-  222,
-  93,
-  218,
-  20,
-  207
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/instructions/initializeConfig.js
-var INITIALIZE_CONFIG_DISCRIMINATOR2 = new Uint8Array([
-  208,
-  127,
-  21,
-  1,
-  194,
-  190,
-  196,
-  70
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/instructions/penalize.js
-var PENALIZE_DISCRIMINATOR = new Uint8Array([
-  199,
-  108,
-  32,
-  0,
-  171,
-  77,
-  145,
-  223
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/instructions/resync.js
-var RESYNC_DISCRIMINATOR2 = new Uint8Array([
-  162,
-  92,
-  69,
-  92,
-  8,
-  51,
-  143,
-  101
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/instructions/setOracle.js
-var SET_ORACLE_DISCRIMINATOR = new Uint8Array([
-  186,
-  128,
-  81,
-  104,
-  74,
-  79,
-  18,
-  224
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/instructions/transferAuthority.js
-var TRANSFER_AUTHORITY_DISCRIMINATOR2 = new Uint8Array([
-  48,
-  169,
-  76,
-  72,
-  229,
-  180,
-  55,
-  161
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/instructions/updateMetrics.js
-var UPDATE_METRICS_DISCRIMINATOR = new Uint8Array([
-  79,
-  114,
-  128,
-  135,
-  148,
-  137,
-  172,
-  185
-]);
-
-// ../../sdk/dist/generated/reputation/src/generated/programs/reputation.js
-var ReputationAccount;
-(function(ReputationAccount2) {
-  ReputationAccount2[ReputationAccount2["ReputationConfig"] = 0] = "ReputationConfig";
-  ReputationAccount2[ReputationAccount2["ReputationState"] = 1] = "ReputationState";
-})(ReputationAccount || (ReputationAccount = {}));
-var ReputationInstruction;
-(function(ReputationInstruction2) {
-  ReputationInstruction2[ReputationInstruction2["InitializeConfig"] = 0] = "InitializeConfig";
-  ReputationInstruction2[ReputationInstruction2["Penalize"] = 1] = "Penalize";
-  ReputationInstruction2[ReputationInstruction2["Resync"] = 2] = "Resync";
-  ReputationInstruction2[ReputationInstruction2["SetOracle"] = 3] = "SetOracle";
-  ReputationInstruction2[ReputationInstruction2["TransferAuthority"] = 4] = "TransferAuthority";
-  ReputationInstruction2[ReputationInstruction2["UpdateMetrics"] = 5] = "UpdateMetrics";
-})(ReputationInstruction || (ReputationInstruction = {}));
-
-// ../../sdk/dist/generated/reputation/src/generated/errors/reputation.js
-var REPUTATION_ERROR__UNAUTHORIZED = 6e3;
-var REPUTATION_ERROR__INVALID_METRIC = 6001;
-var reputationErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  reputationErrorMessages = {
-    [REPUTATION_ERROR__INVALID_METRIC]: `Metric value out of range`,
-    [REPUTATION_ERROR__UNAUTHORIZED]: `Caller is not the reputation oracle`
-  };
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/index.js
-var generated_exports = {};
-__export(generated_exports, {
-  CLAIM_DISCRIMINATOR: () => CLAIM_DISCRIMINATOR2,
-  CLAIM_STATUS_DISCRIMINATOR: () => CLAIM_STATUS_DISCRIMINATOR,
-  DEPOSIT_ESCROW_DISCRIMINATOR: () => DEPOSIT_ESCROW_DISCRIMINATOR,
-  DISPUTE_DISCRIMINATOR: () => DISPUTE_DISCRIMINATOR,
-  DISTRIBUTOR_DISCRIMINATOR: () => DISTRIBUTOR_DISCRIMINATOR,
-  EPOCH_DISTRIBUTION_DISCRIMINATOR: () => EPOCH_DISTRIBUTION_DISCRIMINATOR,
-  FUND_VAULT_DISCRIMINATOR: () => FUND_VAULT_DISCRIMINATOR,
-  INITIALIZE_DISTRIBUTOR_DISCRIMINATOR: () => INITIALIZE_DISTRIBUTOR_DISCRIMINATOR,
-  PAYMENT_ESCROW_DISCRIMINATOR: () => PAYMENT_ESCROW_DISCRIMINATOR,
-  PAY_TRAFFIC_DISCRIMINATOR: () => PAY_TRAFFIC_DISCRIMINATOR,
-  PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR: () => PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR,
-  POST_EPOCH_DISCRIMINATOR: () => POST_EPOCH_DISCRIMINATOR,
-  REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT: () => REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT,
-  REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN: () => REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN,
-  REWARDS_SETTLEMENT_ERROR__DISPUTED: () => REWARDS_SETTLEMENT_ERROR__DISPUTED,
-  REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN: () => REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN,
-  REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM: () => REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM,
-  REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW: () => REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW,
-  REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT: () => REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT,
-  REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW: () => REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW,
-  REWARDS_SETTLEMENT_ERROR__INVALID_PROOF: () => REWARDS_SETTLEMENT_ERROR__INVALID_PROOF,
-  REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW: () => REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW,
-  REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH: () => REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH,
-  REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED: () => REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED,
-  REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT: () => REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT,
-  REWARDS_SETTLEMENT_PROGRAM_ADDRESS: () => REWARDS_SETTLEMENT_PROGRAM_ADDRESS,
-  RewardsSettlementAccount: () => RewardsSettlementAccount,
-  RewardsSettlementInstruction: () => RewardsSettlementInstruction,
-  SET_AUTHORITIES_DISCRIMINATOR: () => SET_AUTHORITIES_DISCRIMINATOR,
-  SWEEP_EPOCH_DISCRIMINATOR: () => SWEEP_EPOCH_DISCRIMINATOR,
-  TRANSFER_AUTHORITY_DISCRIMINATOR: () => TRANSFER_AUTHORITY_DISCRIMINATOR3,
-  WITHDRAW_ESCROW_DISCRIMINATOR: () => WITHDRAW_ESCROW_DISCRIMINATOR,
-  decodeClaimStatus: () => decodeClaimStatus,
-  decodeDistributor: () => decodeDistributor,
-  decodeEpochDistribution: () => decodeEpochDistribution,
-  decodePaymentEscrow: () => decodePaymentEscrow,
-  fetchAllClaimStatus: () => fetchAllClaimStatus,
-  fetchAllDistributor: () => fetchAllDistributor,
-  fetchAllEpochDistribution: () => fetchAllEpochDistribution,
-  fetchAllMaybeClaimStatus: () => fetchAllMaybeClaimStatus,
-  fetchAllMaybeDistributor: () => fetchAllMaybeDistributor,
-  fetchAllMaybeEpochDistribution: () => fetchAllMaybeEpochDistribution,
-  fetchAllMaybePaymentEscrow: () => fetchAllMaybePaymentEscrow,
-  fetchAllPaymentEscrow: () => fetchAllPaymentEscrow,
-  fetchClaimStatus: () => fetchClaimStatus,
-  fetchDistributor: () => fetchDistributor,
-  fetchEpochDistribution: () => fetchEpochDistribution,
-  fetchMaybeClaimStatus: () => fetchMaybeClaimStatus,
-  fetchMaybeDistributor: () => fetchMaybeDistributor,
-  fetchMaybeEpochDistribution: () => fetchMaybeEpochDistribution,
-  fetchMaybePaymentEscrow: () => fetchMaybePaymentEscrow,
-  fetchPaymentEscrow: () => fetchPaymentEscrow,
-  findClaimStatusPda: () => findClaimStatusPda,
-  findDistributorPda: () => findDistributorPda,
-  findEpochDistributionPda: () => findEpochDistributionPda,
-  findEscrowPda: () => findEscrowPda,
-  findEscrowVaultPda: () => findEscrowVaultPda,
-  findProgramAuthorityPda: () => findProgramAuthorityPda3,
-  findRewardVaultPda: () => findRewardVaultPda,
-  getClaimDiscriminatorBytes: () => getClaimDiscriminatorBytes,
-  getClaimInstruction: () => getClaimInstruction2,
-  getClaimInstructionAsync: () => getClaimInstructionAsync,
-  getClaimInstructionDataCodec: () => getClaimInstructionDataCodec,
-  getClaimInstructionDataDecoder: () => getClaimInstructionDataDecoder,
-  getClaimInstructionDataEncoder: () => getClaimInstructionDataEncoder,
-  getClaimStatusCodec: () => getClaimStatusCodec,
-  getClaimStatusDecoder: () => getClaimStatusDecoder,
-  getClaimStatusDiscriminatorBytes: () => getClaimStatusDiscriminatorBytes,
-  getClaimStatusEncoder: () => getClaimStatusEncoder,
-  getClaimStatusSize: () => getClaimStatusSize,
-  getDepositEscrowDiscriminatorBytes: () => getDepositEscrowDiscriminatorBytes,
-  getDepositEscrowInstruction: () => getDepositEscrowInstruction,
-  getDepositEscrowInstructionAsync: () => getDepositEscrowInstructionAsync,
-  getDepositEscrowInstructionDataCodec: () => getDepositEscrowInstructionDataCodec,
-  getDepositEscrowInstructionDataDecoder: () => getDepositEscrowInstructionDataDecoder,
-  getDepositEscrowInstructionDataEncoder: () => getDepositEscrowInstructionDataEncoder,
-  getDisputeDiscriminatorBytes: () => getDisputeDiscriminatorBytes,
-  getDisputeInstruction: () => getDisputeInstruction,
-  getDisputeInstructionAsync: () => getDisputeInstructionAsync,
-  getDisputeInstructionDataCodec: () => getDisputeInstructionDataCodec,
-  getDisputeInstructionDataDecoder: () => getDisputeInstructionDataDecoder,
-  getDisputeInstructionDataEncoder: () => getDisputeInstructionDataEncoder,
-  getDistributorCodec: () => getDistributorCodec,
-  getDistributorDecoder: () => getDistributorDecoder,
-  getDistributorDiscriminatorBytes: () => getDistributorDiscriminatorBytes,
-  getDistributorEncoder: () => getDistributorEncoder,
-  getDistributorSize: () => getDistributorSize,
-  getEpochDistributionCodec: () => getEpochDistributionCodec,
-  getEpochDistributionDecoder: () => getEpochDistributionDecoder,
-  getEpochDistributionDiscriminatorBytes: () => getEpochDistributionDiscriminatorBytes,
-  getEpochDistributionEncoder: () => getEpochDistributionEncoder,
-  getEpochDistributionSize: () => getEpochDistributionSize,
-  getFundVaultDiscriminatorBytes: () => getFundVaultDiscriminatorBytes,
-  getFundVaultInstruction: () => getFundVaultInstruction,
-  getFundVaultInstructionAsync: () => getFundVaultInstructionAsync,
-  getFundVaultInstructionDataCodec: () => getFundVaultInstructionDataCodec,
-  getFundVaultInstructionDataDecoder: () => getFundVaultInstructionDataDecoder,
-  getFundVaultInstructionDataEncoder: () => getFundVaultInstructionDataEncoder,
-  getInitializeDistributorDiscriminatorBytes: () => getInitializeDistributorDiscriminatorBytes,
-  getInitializeDistributorInstruction: () => getInitializeDistributorInstruction,
-  getInitializeDistributorInstructionAsync: () => getInitializeDistributorInstructionAsync,
-  getInitializeDistributorInstructionDataCodec: () => getInitializeDistributorInstructionDataCodec,
-  getInitializeDistributorInstructionDataDecoder: () => getInitializeDistributorInstructionDataDecoder,
-  getInitializeDistributorInstructionDataEncoder: () => getInitializeDistributorInstructionDataEncoder,
-  getPayTrafficDiscriminatorBytes: () => getPayTrafficDiscriminatorBytes,
-  getPayTrafficFromEscrowDiscriminatorBytes: () => getPayTrafficFromEscrowDiscriminatorBytes,
-  getPayTrafficFromEscrowInstruction: () => getPayTrafficFromEscrowInstruction,
-  getPayTrafficFromEscrowInstructionAsync: () => getPayTrafficFromEscrowInstructionAsync,
-  getPayTrafficFromEscrowInstructionDataCodec: () => getPayTrafficFromEscrowInstructionDataCodec,
-  getPayTrafficFromEscrowInstructionDataDecoder: () => getPayTrafficFromEscrowInstructionDataDecoder,
-  getPayTrafficFromEscrowInstructionDataEncoder: () => getPayTrafficFromEscrowInstructionDataEncoder,
-  getPayTrafficInstruction: () => getPayTrafficInstruction,
-  getPayTrafficInstructionAsync: () => getPayTrafficInstructionAsync,
-  getPayTrafficInstructionDataCodec: () => getPayTrafficInstructionDataCodec,
-  getPayTrafficInstructionDataDecoder: () => getPayTrafficInstructionDataDecoder,
-  getPayTrafficInstructionDataEncoder: () => getPayTrafficInstructionDataEncoder,
-  getPaymentEscrowCodec: () => getPaymentEscrowCodec,
-  getPaymentEscrowDecoder: () => getPaymentEscrowDecoder,
-  getPaymentEscrowDiscriminatorBytes: () => getPaymentEscrowDiscriminatorBytes,
-  getPaymentEscrowEncoder: () => getPaymentEscrowEncoder,
-  getPaymentEscrowSize: () => getPaymentEscrowSize,
-  getPostEpochDiscriminatorBytes: () => getPostEpochDiscriminatorBytes,
-  getPostEpochInstruction: () => getPostEpochInstruction,
-  getPostEpochInstructionAsync: () => getPostEpochInstructionAsync,
-  getPostEpochInstructionDataCodec: () => getPostEpochInstructionDataCodec,
-  getPostEpochInstructionDataDecoder: () => getPostEpochInstructionDataDecoder,
-  getPostEpochInstructionDataEncoder: () => getPostEpochInstructionDataEncoder,
-  getRewardsSettlementErrorMessage: () => getRewardsSettlementErrorMessage,
-  getSetAuthoritiesDiscriminatorBytes: () => getSetAuthoritiesDiscriminatorBytes,
-  getSetAuthoritiesInstruction: () => getSetAuthoritiesInstruction,
-  getSetAuthoritiesInstructionAsync: () => getSetAuthoritiesInstructionAsync,
-  getSetAuthoritiesInstructionDataCodec: () => getSetAuthoritiesInstructionDataCodec,
-  getSetAuthoritiesInstructionDataDecoder: () => getSetAuthoritiesInstructionDataDecoder,
-  getSetAuthoritiesInstructionDataEncoder: () => getSetAuthoritiesInstructionDataEncoder,
-  getSweepEpochDiscriminatorBytes: () => getSweepEpochDiscriminatorBytes,
-  getSweepEpochInstruction: () => getSweepEpochInstruction,
-  getSweepEpochInstructionAsync: () => getSweepEpochInstructionAsync,
-  getSweepEpochInstructionDataCodec: () => getSweepEpochInstructionDataCodec,
-  getSweepEpochInstructionDataDecoder: () => getSweepEpochInstructionDataDecoder,
-  getSweepEpochInstructionDataEncoder: () => getSweepEpochInstructionDataEncoder,
-  getTransferAuthorityDiscriminatorBytes: () => getTransferAuthorityDiscriminatorBytes,
-  getTransferAuthorityInstruction: () => getTransferAuthorityInstruction,
-  getTransferAuthorityInstructionAsync: () => getTransferAuthorityInstructionAsync3,
-  getTransferAuthorityInstructionDataCodec: () => getTransferAuthorityInstructionDataCodec,
-  getTransferAuthorityInstructionDataDecoder: () => getTransferAuthorityInstructionDataDecoder,
-  getTransferAuthorityInstructionDataEncoder: () => getTransferAuthorityInstructionDataEncoder,
-  getWithdrawEscrowDiscriminatorBytes: () => getWithdrawEscrowDiscriminatorBytes,
-  getWithdrawEscrowInstruction: () => getWithdrawEscrowInstruction,
-  getWithdrawEscrowInstructionAsync: () => getWithdrawEscrowInstructionAsync,
-  getWithdrawEscrowInstructionDataCodec: () => getWithdrawEscrowInstructionDataCodec,
-  getWithdrawEscrowInstructionDataDecoder: () => getWithdrawEscrowInstructionDataDecoder,
-  getWithdrawEscrowInstructionDataEncoder: () => getWithdrawEscrowInstructionDataEncoder,
-  identifyRewardsSettlementAccount: () => identifyRewardsSettlementAccount,
-  identifyRewardsSettlementInstruction: () => identifyRewardsSettlementInstruction,
-  isRewardsSettlementError: () => isRewardsSettlementError,
-  parseClaimInstruction: () => parseClaimInstruction2,
-  parseDepositEscrowInstruction: () => parseDepositEscrowInstruction,
-  parseDisputeInstruction: () => parseDisputeInstruction,
-  parseFundVaultInstruction: () => parseFundVaultInstruction,
-  parseInitializeDistributorInstruction: () => parseInitializeDistributorInstruction,
-  parsePayTrafficFromEscrowInstruction: () => parsePayTrafficFromEscrowInstruction,
-  parsePayTrafficInstruction: () => parsePayTrafficInstruction,
-  parsePostEpochInstruction: () => parsePostEpochInstruction,
-  parseRewardsSettlementInstruction: () => parseRewardsSettlementInstruction,
-  parseSetAuthoritiesInstruction: () => parseSetAuthoritiesInstruction,
-  parseSweepEpochInstruction: () => parseSweepEpochInstruction,
-  parseTransferAuthorityInstruction: () => parseTransferAuthorityInstruction3,
-  parseWithdrawEscrowInstruction: () => parseWithdrawEscrowInstruction,
-  rewardsSettlementProgram: () => rewardsSettlementProgram
-});
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/claimStatus.js
-var CLAIM_STATUS_DISCRIMINATOR = new Uint8Array([
-  22,
-  183,
-  249,
-  157,
-  247,
-  95,
-  150,
-  96
-]);
-function getClaimStatusDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(CLAIM_STATUS_DISCRIMINATOR);
-}
-function getClaimStatusEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()],
-    ["operator", getAddressEncoder2()],
-    ["nodeId", getU64Encoder2()],
-    ["amount", getU64Encoder2()],
-    ["claimedAt", getI64Encoder()],
-    ["disputed", getBooleanEncoder2()],
-    ["bump", getU8Encoder2()]
-  ]), (value) => ({ ...value, discriminator: CLAIM_STATUS_DISCRIMINATOR }));
-}
-function getClaimStatusDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()],
-    ["operator", getAddressDecoder2()],
-    ["nodeId", getU64Decoder2()],
-    ["amount", getU64Decoder2()],
-    ["claimedAt", getI64Decoder()],
-    ["disputed", getBooleanDecoder()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getClaimStatusCodec() {
-  return combineCodec2(getClaimStatusEncoder(), getClaimStatusDecoder());
-}
-function decodeClaimStatus(encodedAccount) {
-  return decodeAccount(encodedAccount, getClaimStatusDecoder());
-}
-async function fetchClaimStatus(rpc2, address3, config) {
-  const maybeAccount = await fetchMaybeClaimStatus(rpc2, address3, config);
-  assertAccountExists(maybeAccount);
-  return maybeAccount;
-}
-async function fetchMaybeClaimStatus(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
-  return decodeClaimStatus(maybeAccount);
-}
-async function fetchAllClaimStatus(rpc2, addresses, config) {
-  const maybeAccounts = await fetchAllMaybeClaimStatus(rpc2, addresses, config);
-  assertAccountsExist(maybeAccounts);
-  return maybeAccounts;
-}
-async function fetchAllMaybeClaimStatus(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodeClaimStatus(maybeAccount));
-}
-function getClaimStatusSize() {
-  return 74;
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/distributor.js
-var DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
-  90,
-  90,
-  217,
-  147,
-  6,
-  32,
-  135,
-  4
-]);
-function getDistributorDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(DISTRIBUTOR_DISCRIMINATOR);
-}
-function getDistributorEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["authority", getAddressEncoder2()],
-    ["posterAuthority", getAddressEncoder2()],
-    ["disputeAuthority", getAddressEncoder2()],
-    ["rewardMint", getAddressEncoder2()],
-    ["rewardVault", getAddressEncoder2()],
-    ["treasury", getAddressEncoder2()],
-    ["disputeWindowSeconds", getI64Encoder()],
-    ["clawbackWindowSeconds", getI64Encoder()],
-    ["currentEpoch", getU64Encoder2()],
-    ["cumulativeObligated", getU64Encoder2()],
-    ["cumulativeClaimed", getU64Encoder2()],
-    ["bump", getU8Encoder2()]
-  ]), (value) => ({ ...value, discriminator: DISTRIBUTOR_DISCRIMINATOR }));
-}
-function getDistributorDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["authority", getAddressDecoder2()],
-    ["posterAuthority", getAddressDecoder2()],
-    ["disputeAuthority", getAddressDecoder2()],
-    ["rewardMint", getAddressDecoder2()],
-    ["rewardVault", getAddressDecoder2()],
-    ["treasury", getAddressDecoder2()],
-    ["disputeWindowSeconds", getI64Decoder()],
-    ["clawbackWindowSeconds", getI64Decoder()],
-    ["currentEpoch", getU64Decoder2()],
-    ["cumulativeObligated", getU64Decoder2()],
-    ["cumulativeClaimed", getU64Decoder2()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getDistributorCodec() {
-  return combineCodec2(getDistributorEncoder(), getDistributorDecoder());
-}
-function decodeDistributor(encodedAccount) {
-  return decodeAccount(encodedAccount, getDistributorDecoder());
-}
-async function fetchDistributor(rpc2, address3, config) {
-  const maybeAccount = await fetchMaybeDistributor(rpc2, address3, config);
-  assertAccountExists(maybeAccount);
-  return maybeAccount;
-}
-async function fetchMaybeDistributor(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
-  return decodeDistributor(maybeAccount);
-}
-async function fetchAllDistributor(rpc2, addresses, config) {
-  const maybeAccounts = await fetchAllMaybeDistributor(rpc2, addresses, config);
-  assertAccountsExist(maybeAccounts);
-  return maybeAccounts;
-}
-async function fetchAllMaybeDistributor(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodeDistributor(maybeAccount));
-}
-function getDistributorSize() {
-  return 241;
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/epochDistribution.js
-var EPOCH_DISTRIBUTION_DISCRIMINATOR = new Uint8Array([
-  44,
-  121,
-  108,
-  107,
-  92,
-  50,
-  81,
-  234
-]);
-function getEpochDistributionDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(EPOCH_DISTRIBUTION_DISCRIMINATOR);
-}
-function getEpochDistributionEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()],
-    ["merkleRoot", fixEncoderSize2(getBytesEncoder2(), 32)],
-    ["totalReward", getU64Encoder2()],
-    ["totalClaimed", getU64Encoder2()],
-    ["numNodes", getU32Encoder2()],
-    ["postedAt", getI64Encoder()],
-    ["swept", getBooleanEncoder2()],
-    ["bump", getU8Encoder2()]
-  ]), (value) => ({ ...value, discriminator: EPOCH_DISTRIBUTION_DISCRIMINATOR }));
-}
-function getEpochDistributionDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()],
-    ["merkleRoot", fixDecoderSize2(getBytesDecoder2(), 32)],
-    ["totalReward", getU64Decoder2()],
-    ["totalClaimed", getU64Decoder2()],
-    ["numNodes", getU32Decoder2()],
-    ["postedAt", getI64Decoder()],
-    ["swept", getBooleanDecoder()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getEpochDistributionCodec() {
-  return combineCodec2(getEpochDistributionEncoder(), getEpochDistributionDecoder());
-}
-function decodeEpochDistribution(encodedAccount) {
-  return decodeAccount(encodedAccount, getEpochDistributionDecoder());
-}
-async function fetchEpochDistribution(rpc2, address3, config) {
-  const maybeAccount = await fetchMaybeEpochDistribution(rpc2, address3, config);
-  assertAccountExists(maybeAccount);
-  return maybeAccount;
-}
-async function fetchMaybeEpochDistribution(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
-  return decodeEpochDistribution(maybeAccount);
-}
-async function fetchAllEpochDistribution(rpc2, addresses, config) {
-  const maybeAccounts = await fetchAllMaybeEpochDistribution(rpc2, addresses, config);
-  assertAccountsExist(maybeAccounts);
-  return maybeAccounts;
-}
-async function fetchAllMaybeEpochDistribution(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodeEpochDistribution(maybeAccount));
-}
-function getEpochDistributionSize() {
-  return 78;
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/accounts/paymentEscrow.js
-var PAYMENT_ESCROW_DISCRIMINATOR = new Uint8Array([
-  4,
-  248,
-  157,
-  210,
-  63,
-  156,
-  163,
-  90
-]);
-function getPaymentEscrowDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(PAYMENT_ESCROW_DISCRIMINATOR);
-}
-function getPaymentEscrowEncoder() {
-  return transformEncoder2(getStructEncoder2([
-    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["owner", getAddressEncoder2()],
-    ["mint", getAddressEncoder2()],
-    ["vault", getAddressEncoder2()],
-    ["balance", getU64Encoder2()],
-    ["totalDeposited", getU64Encoder2()],
-    ["totalSpent", getU64Encoder2()],
-    ["bump", getU8Encoder2()]
-  ]), (value) => ({ ...value, discriminator: PAYMENT_ESCROW_DISCRIMINATOR }));
-}
-function getPaymentEscrowDecoder() {
-  return getStructDecoder2([
-    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["owner", getAddressDecoder2()],
-    ["mint", getAddressDecoder2()],
-    ["vault", getAddressDecoder2()],
-    ["balance", getU64Decoder2()],
-    ["totalDeposited", getU64Decoder2()],
-    ["totalSpent", getU64Decoder2()],
-    ["bump", getU8Decoder2()]
-  ]);
-}
-function getPaymentEscrowCodec() {
-  return combineCodec2(getPaymentEscrowEncoder(), getPaymentEscrowDecoder());
-}
-function decodePaymentEscrow(encodedAccount) {
-  return decodeAccount(encodedAccount, getPaymentEscrowDecoder());
-}
-async function fetchPaymentEscrow(rpc2, address3, config) {
-  const maybeAccount = await fetchMaybePaymentEscrow(rpc2, address3, config);
-  assertAccountExists(maybeAccount);
-  return maybeAccount;
-}
-async function fetchMaybePaymentEscrow(rpc2, address3, config) {
-  const maybeAccount = await fetchEncodedAccount(rpc2, address3, config);
-  return decodePaymentEscrow(maybeAccount);
-}
-async function fetchAllPaymentEscrow(rpc2, addresses, config) {
-  const maybeAccounts = await fetchAllMaybePaymentEscrow(rpc2, addresses, config);
-  assertAccountsExist(maybeAccounts);
-  return maybeAccounts;
-}
-async function fetchAllMaybePaymentEscrow(rpc2, addresses, config) {
-  const maybeAccounts = await fetchEncodedAccounts(rpc2, addresses, config);
-  return maybeAccounts.map((maybeAccount) => decodePaymentEscrow(maybeAccount));
-}
-function getPaymentEscrowSize() {
-  return 129;
-}
-
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/claimStatus.js
+// ../../sdk/dist/generated/weft/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12646,9 +12693,9 @@ async function findClaimStatusPda(seeds, config = {}) {
   });
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/distributor.js
+// ../../sdk/dist/generated/weft/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12657,9 +12704,9 @@ async function findDistributorPda(config = {}) {
   });
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/epochDistribution.js
+// ../../sdk/dist/generated/weft/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12669,9 +12716,9 @@ async function findEpochDistributionPda(seeds, config = {}) {
   });
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/escrow.js
+// ../../sdk/dist/generated/weft/src/generated/pdas/escrow.js
 async function findEscrowPda(seeds, config = {}) {
-  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12681,9 +12728,9 @@ async function findEscrowPda(seeds, config = {}) {
   });
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/escrowVault.js
+// ../../sdk/dist/generated/weft/src/generated/pdas/escrowVault.js
 async function findEscrowVaultPda(seeds, config = {}) {
-  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12693,18 +12740,44 @@ async function findEscrowVaultPda(seeds, config = {}) {
   });
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/programAuthority.js
-async function findProgramAuthorityPda3(config = {}) {
-  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+// ../../sdk/dist/generated/weft/src/generated/pdas/node.js
+async function findNodePda(seeds, config = {}) {
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
-    seeds: [getBytesEncoder2().encode(new Uint8Array([97, 117, 116, 104, 111, 114, 105, 116, 121]))]
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([110, 111, 100, 101])),
+      getAddressEncoder2().encode(seeds.operator),
+      getU64Encoder2().encode(seeds.nodeId)
+    ]
   });
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/pdas/rewardVault.js
+// ../../sdk/dist/generated/weft/src/generated/pdas/position.js
+async function findPositionPda(seeds, config = {}) {
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([115, 116, 97, 107, 101])),
+      getAddressEncoder2().encode(seeds.operator),
+      getU64Encoder2().encode(seeds.nodeId)
+    ]
+  });
+}
+
+// ../../sdk/dist/generated/weft/src/generated/pdas/registry.js
+async function findRegistryPda(config = {}) {
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
+  });
+}
+
+// ../../sdk/dist/generated/weft/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5" } = config;
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12713,8 +12786,31 @@ async function findRewardVaultPda(config = {}) {
   });
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/claim.js
-var CLAIM_DISCRIMINATOR2 = new Uint8Array([
+// ../../sdk/dist/generated/weft/src/generated/pdas/stakingConfig.js
+async function findStakingConfigPda(config = {}) {
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([115, 116, 97, 107, 105, 110, 103, 95, 99, 111, 110, 102, 105, 103]))
+    ]
+  });
+}
+
+// ../../sdk/dist/generated/weft/src/generated/pdas/vault.js
+async function findVaultPda(seeds, config = {}) {
+  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([115, 116, 97, 107, 101, 95, 118, 97, 117, 108, 116])),
+      getAddressEncoder2().encode(seeds.position)
+    ]
+  });
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/claim.js
+var CLAIM_DISCRIMINATOR = new Uint8Array([
   62,
   198,
   214,
@@ -12725,7 +12821,7 @@ var CLAIM_DISCRIMINATOR2 = new Uint8Array([
   210
 ]);
 function getClaimDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(CLAIM_DISCRIMINATOR2);
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(CLAIM_DISCRIMINATOR);
 }
 function getClaimInstructionDataEncoder() {
   return transformEncoder2(getStructEncoder2([
@@ -12734,7 +12830,7 @@ function getClaimInstructionDataEncoder() {
     ["nodeId", getU64Encoder2()],
     ["amount", getU64Encoder2()],
     ["proof", getArrayEncoder2(fixEncoderSize2(getBytesEncoder2(), 32))]
-  ]), (value) => ({ ...value, discriminator: CLAIM_DISCRIMINATOR2 }));
+  ]), (value) => ({ ...value, discriminator: CLAIM_DISCRIMINATOR }));
 }
 function getClaimInstructionDataDecoder() {
   return getStructDecoder2([
@@ -12749,7 +12845,7 @@ function getClaimInstructionDataCodec() {
   return combineCodec2(getClaimInstructionDataEncoder(), getClaimInstructionDataDecoder());
 }
 async function getClaimInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     claimant: { value: input.claimant ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true },
@@ -12803,8 +12899,8 @@ async function getClaimInstructionAsync(input, config) {
     programAddress
   });
 }
-function getClaimInstruction2(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+function getClaimInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     claimant: { value: input.claimant ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true },
@@ -12843,7 +12939,7 @@ function getClaimInstruction2(input, config) {
     programAddress
   });
 }
-function parseClaimInstruction2(instruction) {
+function parseClaimInstruction(instruction) {
   if (instruction.accounts.length < 10) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
@@ -12874,7 +12970,7 @@ function parseClaimInstruction2(instruction) {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/depositEscrow.js
+// ../../sdk/dist/generated/weft/src/generated/instructions/depositEscrow.js
 var DEPOSIT_ESCROW_DISCRIMINATOR = new Uint8Array([
   226,
   112,
@@ -12904,13 +13000,13 @@ function getDepositEscrowInstructionDataCodec() {
   return combineCodec2(getDepositEscrowInstructionDataEncoder(), getDepositEscrowInstructionDataDecoder());
 }
 async function getDepositEscrowInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
     escrow: { value: input.escrow ?? null, isWritable: true },
     escrowVault: { value: input.escrowVault ?? null, isWritable: true },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
     ownerTokenAccount: { value: input.ownerTokenAccount ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false }
@@ -12953,13 +13049,13 @@ async function getDepositEscrowInstructionAsync(input, config) {
   });
 }
 function getDepositEscrowInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
     escrow: { value: input.escrow ?? null, isWritable: true },
     escrowVault: { value: input.escrowVault ?? null, isWritable: true },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
     ownerTokenAccount: { value: input.ownerTokenAccount ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false }
@@ -13017,7 +13113,91 @@ function parseDepositEscrowInstruction(instruction) {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/dispute.js
+// ../../sdk/dist/generated/weft/src/generated/instructions/deregisterNode.js
+var DEREGISTER_NODE_DISCRIMINATOR = new Uint8Array([
+  92,
+  177,
+  93,
+  30,
+  69,
+  177,
+  46,
+  177
+]);
+function getDeregisterNodeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(DEREGISTER_NODE_DISCRIMINATOR);
+}
+function getDeregisterNodeInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)]]), (value) => ({ ...value, discriminator: DEREGISTER_NODE_DISCRIMINATOR }));
+}
+function getDeregisterNodeInstructionDataDecoder() {
+  return getStructDecoder2([["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)]]);
+}
+function getDeregisterNodeInstructionDataCodec() {
+  return combineCodec2(getDeregisterNodeInstructionDataEncoder(), getDeregisterNodeInstructionDataDecoder());
+}
+async function getDeregisterNodeInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getDeregisterNodeInstructionDataEncoder().encode({}),
+    programAddress
+  });
+}
+function getDeregisterNodeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getDeregisterNodeInstructionDataEncoder().encode({}),
+    programAddress
+  });
+}
+function parseDeregisterNodeInstruction(instruction) {
+  if (instruction.accounts.length < 3) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 3
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: { operator: getNextAccount(), registry: getNextAccount(), node: getNextAccount() },
+    data: getDeregisterNodeInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/dispute.js
 var DISPUTE_DISCRIMINATOR = new Uint8Array([
   216,
   92,
@@ -13055,31 +13235,19 @@ function getDisputeInstructionDataCodec() {
   return combineCodec2(getDisputeInstructionDataEncoder(), getDisputeInstructionDataDecoder());
 }
 async function getDisputeInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
     epochDistribution: { value: input.epochDistribution ?? null, isWritable: false },
     operator: { value: input.operator ?? null, isWritable: false },
     claimStatus: { value: input.claimStatus ?? null, isWritable: true },
-    programAuthority: { value: input.programAuthority ?? null, isWritable: false },
-    stakingProgram: { value: input.stakingProgram ?? null, isWritable: false },
-    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
-    stakingPosition: { value: input.stakingPosition ?? null, isWritable: true },
-    stakingVault: { value: input.stakingVault ?? null, isWritable: true },
-    stakingTreasury: { value: input.stakingTreasury ?? null, isWritable: true },
-    stakeMint: { value: input.stakeMint ?? null, isWritable: false },
-    stakingProgramAuthority: { value: input.stakingProgramAuthority ?? null, isWritable: false },
-    reputationProgram: { value: input.reputationProgram ?? null, isWritable: false },
-    reputationConfig: { value: input.reputationConfig ?? null, isWritable: false },
-    reputationState: { value: input.reputationState ?? null, isWritable: true },
-    reputationProgramAuthority: {
-      value: input.reputationProgramAuthority ?? null,
-      isWritable: false
-    },
-    nodeRegistryProgram: { value: input.nodeRegistryProgram ?? null, isWritable: false },
-    registry: { value: input.registry ?? null, isWritable: false },
     node: { value: input.node ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
+    position: { value: input.position ?? null, isWritable: true },
+    vault: { value: input.vault ?? null, isWritable: true },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    stakeMint: { value: input.stakeMint ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false }
   };
@@ -13100,17 +13268,20 @@ async function getDisputeInstructionAsync(input, config) {
       nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
     });
   }
-  if (!accounts.programAuthority.value) {
-    accounts.programAuthority.value = await findProgramAuthorityPda3();
+  if (!accounts.node.value) {
+    accounts.node.value = await findNodePda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
   }
-  if (!accounts.stakingProgram.value) {
-    accounts.stakingProgram.value = "CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU";
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
   }
-  if (!accounts.reputationProgram.value) {
-    accounts.reputationProgram.value = "6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ";
-  }
-  if (!accounts.nodeRegistryProgram.value) {
-    accounts.nodeRegistryProgram.value = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH";
+  if (!accounts.position.value) {
+    accounts.position.value = await findPositionPda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
   }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
@@ -13126,21 +13297,12 @@ async function getDisputeInstructionAsync(input, config) {
       getAccountMeta("epochDistribution", accounts.epochDistribution),
       getAccountMeta("operator", accounts.operator),
       getAccountMeta("claimStatus", accounts.claimStatus),
-      getAccountMeta("programAuthority", accounts.programAuthority),
-      getAccountMeta("stakingProgram", accounts.stakingProgram),
-      getAccountMeta("stakingConfig", accounts.stakingConfig),
-      getAccountMeta("stakingPosition", accounts.stakingPosition),
-      getAccountMeta("stakingVault", accounts.stakingVault),
-      getAccountMeta("stakingTreasury", accounts.stakingTreasury),
-      getAccountMeta("stakeMint", accounts.stakeMint),
-      getAccountMeta("stakingProgramAuthority", accounts.stakingProgramAuthority),
-      getAccountMeta("reputationProgram", accounts.reputationProgram),
-      getAccountMeta("reputationConfig", accounts.reputationConfig),
-      getAccountMeta("reputationState", accounts.reputationState),
-      getAccountMeta("reputationProgramAuthority", accounts.reputationProgramAuthority),
-      getAccountMeta("nodeRegistryProgram", accounts.nodeRegistryProgram),
-      getAccountMeta("registry", accounts.registry),
       getAccountMeta("node", accounts.node),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("vault", accounts.vault),
+      getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("stakeMint", accounts.stakeMint),
       getAccountMeta("tokenProgram", accounts.tokenProgram),
       getAccountMeta("systemProgram", accounts.systemProgram)
     ],
@@ -13149,45 +13311,24 @@ async function getDisputeInstructionAsync(input, config) {
   });
 }
 function getDisputeInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
     epochDistribution: { value: input.epochDistribution ?? null, isWritable: false },
     operator: { value: input.operator ?? null, isWritable: false },
     claimStatus: { value: input.claimStatus ?? null, isWritable: true },
-    programAuthority: { value: input.programAuthority ?? null, isWritable: false },
-    stakingProgram: { value: input.stakingProgram ?? null, isWritable: false },
-    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
-    stakingPosition: { value: input.stakingPosition ?? null, isWritable: true },
-    stakingVault: { value: input.stakingVault ?? null, isWritable: true },
-    stakingTreasury: { value: input.stakingTreasury ?? null, isWritable: true },
-    stakeMint: { value: input.stakeMint ?? null, isWritable: false },
-    stakingProgramAuthority: { value: input.stakingProgramAuthority ?? null, isWritable: false },
-    reputationProgram: { value: input.reputationProgram ?? null, isWritable: false },
-    reputationConfig: { value: input.reputationConfig ?? null, isWritable: false },
-    reputationState: { value: input.reputationState ?? null, isWritable: true },
-    reputationProgramAuthority: {
-      value: input.reputationProgramAuthority ?? null,
-      isWritable: false
-    },
-    nodeRegistryProgram: { value: input.nodeRegistryProgram ?? null, isWritable: false },
-    registry: { value: input.registry ?? null, isWritable: false },
     node: { value: input.node ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
+    position: { value: input.position ?? null, isWritable: true },
+    vault: { value: input.vault ?? null, isWritable: true },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    stakeMint: { value: input.stakeMint ?? null, isWritable: false },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
   const args = { ...input };
-  if (!accounts.stakingProgram.value) {
-    accounts.stakingProgram.value = "CvvsFn1SFV2R19WhXmqYyMjbKUWADcej93F6DadHv3yU";
-  }
-  if (!accounts.reputationProgram.value) {
-    accounts.reputationProgram.value = "6E9RfpzBbyshMBrbnSHne8wzjMqQgYPFMDdP2Xra8SEZ";
-  }
-  if (!accounts.nodeRegistryProgram.value) {
-    accounts.nodeRegistryProgram.value = "GxhrTKKPybHZPv2MsaLovzKaq9Pq8jHmjNyRMrKZY6aH";
-  }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
   }
@@ -13202,21 +13343,12 @@ function getDisputeInstruction(input, config) {
       getAccountMeta("epochDistribution", accounts.epochDistribution),
       getAccountMeta("operator", accounts.operator),
       getAccountMeta("claimStatus", accounts.claimStatus),
-      getAccountMeta("programAuthority", accounts.programAuthority),
-      getAccountMeta("stakingProgram", accounts.stakingProgram),
-      getAccountMeta("stakingConfig", accounts.stakingConfig),
-      getAccountMeta("stakingPosition", accounts.stakingPosition),
-      getAccountMeta("stakingVault", accounts.stakingVault),
-      getAccountMeta("stakingTreasury", accounts.stakingTreasury),
-      getAccountMeta("stakeMint", accounts.stakeMint),
-      getAccountMeta("stakingProgramAuthority", accounts.stakingProgramAuthority),
-      getAccountMeta("reputationProgram", accounts.reputationProgram),
-      getAccountMeta("reputationConfig", accounts.reputationConfig),
-      getAccountMeta("reputationState", accounts.reputationState),
-      getAccountMeta("reputationProgramAuthority", accounts.reputationProgramAuthority),
-      getAccountMeta("nodeRegistryProgram", accounts.nodeRegistryProgram),
-      getAccountMeta("registry", accounts.registry),
       getAccountMeta("node", accounts.node),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("vault", accounts.vault),
+      getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("stakeMint", accounts.stakeMint),
       getAccountMeta("tokenProgram", accounts.tokenProgram),
       getAccountMeta("systemProgram", accounts.systemProgram)
     ],
@@ -13225,10 +13357,10 @@ function getDisputeInstruction(input, config) {
   });
 }
 function parseDisputeInstruction(instruction) {
-  if (instruction.accounts.length < 22) {
+  if (instruction.accounts.length < 13) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 22
+      expectedAccountMetas: 13
     });
   }
   let accountIndex = 0;
@@ -13236,10 +13368,6 @@ function parseDisputeInstruction(instruction) {
     const accountMeta = instruction.accounts[accountIndex];
     accountIndex += 1;
     return accountMeta;
-  };
-  const getNextOptionalAccount = () => {
-    const accountMeta = getNextAccount();
-    return accountMeta.address === REWARDS_SETTLEMENT_PROGRAM_ADDRESS ? void 0 : accountMeta;
   };
   return {
     programAddress: instruction.programAddress,
@@ -13249,21 +13377,12 @@ function parseDisputeInstruction(instruction) {
       epochDistribution: getNextAccount(),
       operator: getNextAccount(),
       claimStatus: getNextAccount(),
-      programAuthority: getNextAccount(),
-      stakingProgram: getNextAccount(),
+      node: getNextAccount(),
       stakingConfig: getNextAccount(),
-      stakingPosition: getNextAccount(),
-      stakingVault: getNextAccount(),
-      stakingTreasury: getNextAccount(),
+      position: getNextAccount(),
+      vault: getNextAccount(),
+      treasury: getNextAccount(),
       stakeMint: getNextAccount(),
-      stakingProgramAuthority: getNextAccount(),
-      reputationProgram: getNextAccount(),
-      reputationConfig: getNextAccount(),
-      reputationState: getNextAccount(),
-      reputationProgramAuthority: getNextAccount(),
-      nodeRegistryProgram: getNextAccount(),
-      registry: getNextAccount(),
-      node: getNextOptionalAccount(),
       tokenProgram: getNextAccount(),
       systemProgram: getNextAccount()
     },
@@ -13271,41 +13390,41 @@ function parseDisputeInstruction(instruction) {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/fundVault.js
-var FUND_VAULT_DISCRIMINATOR = new Uint8Array([
-  26,
-  33,
-  207,
-  242,
-  119,
-  108,
-  134,
-  73
+// ../../sdk/dist/generated/weft/src/generated/instructions/fundRewardVault.js
+var FUND_REWARD_VAULT_DISCRIMINATOR = new Uint8Array([
+  9,
+  198,
+  202,
+  115,
+  106,
+  247,
+  227,
+  119
 ]);
-function getFundVaultDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(FUND_VAULT_DISCRIMINATOR);
+function getFundRewardVaultDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(FUND_REWARD_VAULT_DISCRIMINATOR);
 }
-function getFundVaultInstructionDataEncoder() {
+function getFundRewardVaultInstructionDataEncoder() {
   return transformEncoder2(getStructEncoder2([
     ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
     ["amount", getU64Encoder2()]
-  ]), (value) => ({ ...value, discriminator: FUND_VAULT_DISCRIMINATOR }));
+  ]), (value) => ({ ...value, discriminator: FUND_REWARD_VAULT_DISCRIMINATOR }));
 }
-function getFundVaultInstructionDataDecoder() {
+function getFundRewardVaultInstructionDataDecoder() {
   return getStructDecoder2([
     ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
     ["amount", getU64Decoder2()]
   ]);
 }
-function getFundVaultInstructionDataCodec() {
-  return combineCodec2(getFundVaultInstructionDataEncoder(), getFundVaultInstructionDataDecoder());
+function getFundRewardVaultInstructionDataCodec() {
+  return combineCodec2(getFundRewardVaultInstructionDataEncoder(), getFundRewardVaultInstructionDataDecoder());
 }
-async function getFundVaultInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+async function getFundRewardVaultInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     funder: { value: input.funder ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
     funderTokenAccount: { value: input.funderTokenAccount ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
@@ -13328,16 +13447,16 @@ async function getFundVaultInstructionAsync(input, config) {
       getAccountMeta("rewardVault", accounts.rewardVault),
       getAccountMeta("tokenProgram", accounts.tokenProgram)
     ],
-    data: getFundVaultInstructionDataEncoder().encode(args),
+    data: getFundRewardVaultInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function getFundVaultInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+function getFundRewardVaultInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     funder: { value: input.funder ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
-    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: false },
     funderTokenAccount: { value: input.funderTokenAccount ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
@@ -13357,11 +13476,11 @@ function getFundVaultInstruction(input, config) {
       getAccountMeta("rewardVault", accounts.rewardVault),
       getAccountMeta("tokenProgram", accounts.tokenProgram)
     ],
-    data: getFundVaultInstructionDataEncoder().encode(args),
+    data: getFundRewardVaultInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function parseFundVaultInstruction(instruction) {
+function parseFundRewardVaultInstruction(instruction) {
   if (instruction.accounts.length < 6) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
@@ -13384,49 +13503,53 @@ function parseFundVaultInstruction(instruction) {
       rewardVault: getNextAccount(),
       tokenProgram: getNextAccount()
     },
-    data: getFundVaultInstructionDataDecoder().decode(instruction.data)
+    data: getFundRewardVaultInstructionDataDecoder().decode(instruction.data)
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/initializeDistributor.js
-var INITIALIZE_DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
-  189,
-  128,
-  103,
-  10,
-  73,
-  227,
-  37,
-  18
+// ../../sdk/dist/generated/weft/src/generated/instructions/initializeCore.js
+var INITIALIZE_CORE_DISCRIMINATOR = new Uint8Array([
+  26,
+  107,
+  177,
+  14,
+  71,
+  136,
+  11,
+  91
 ]);
-function getInitializeDistributorDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(INITIALIZE_DISTRIBUTOR_DISCRIMINATOR);
+function getInitializeCoreDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(INITIALIZE_CORE_DISCRIMINATOR);
 }
-function getInitializeDistributorInstructionDataEncoder() {
+function getInitializeCoreInstructionDataEncoder() {
   return transformEncoder2(getStructEncoder2([
     ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["unbondingSeconds", getI64Encoder()],
     ["disputeWindowSeconds", getI64Encoder()],
     ["clawbackWindowSeconds", getI64Encoder()]
-  ]), (value) => ({ ...value, discriminator: INITIALIZE_DISTRIBUTOR_DISCRIMINATOR }));
+  ]), (value) => ({ ...value, discriminator: INITIALIZE_CORE_DISCRIMINATOR }));
 }
-function getInitializeDistributorInstructionDataDecoder() {
+function getInitializeCoreInstructionDataDecoder() {
   return getStructDecoder2([
     ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["unbondingSeconds", getI64Decoder()],
     ["disputeWindowSeconds", getI64Decoder()],
     ["clawbackWindowSeconds", getI64Decoder()]
   ]);
 }
-function getInitializeDistributorInstructionDataCodec() {
-  return combineCodec2(getInitializeDistributorInstructionDataEncoder(), getInitializeDistributorInstructionDataDecoder());
+function getInitializeCoreInstructionDataCodec() {
+  return combineCodec2(getInitializeCoreInstructionDataEncoder(), getInitializeCoreInstructionDataDecoder());
 }
-async function getInitializeDistributorInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+async function getInitializeCoreInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     authority: { value: input.authority ?? null, isWritable: true },
     rewardMint: { value: input.rewardMint ?? null, isWritable: false },
     posterAuthority: { value: input.posterAuthority ?? null, isWritable: false },
     disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: false },
-    treasury: { value: input.treasury ?? null, isWritable: false },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
@@ -13434,6 +13557,12 @@ async function getInitializeDistributorInstructionAsync(input, config) {
   };
   const accounts = originalAccounts;
   const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
+  }
   if (!accounts.distributor.value) {
     accounts.distributor.value = await findDistributorPda();
   }
@@ -13454,23 +13583,27 @@ async function getInitializeDistributorInstructionAsync(input, config) {
       getAccountMeta("posterAuthority", accounts.posterAuthority),
       getAccountMeta("disputeAuthority", accounts.disputeAuthority),
       getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
       getAccountMeta("distributor", accounts.distributor),
       getAccountMeta("rewardVault", accounts.rewardVault),
       getAccountMeta("tokenProgram", accounts.tokenProgram),
       getAccountMeta("systemProgram", accounts.systemProgram)
     ],
-    data: getInitializeDistributorInstructionDataEncoder().encode(args),
+    data: getInitializeCoreInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function getInitializeDistributorInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+function getInitializeCoreInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     authority: { value: input.authority ?? null, isWritable: true },
     rewardMint: { value: input.rewardMint ?? null, isWritable: false },
     posterAuthority: { value: input.posterAuthority ?? null, isWritable: false },
     disputeAuthority: { value: input.disputeAuthority ?? null, isWritable: false },
-    treasury: { value: input.treasury ?? null, isWritable: false },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
     tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
@@ -13492,20 +13625,22 @@ function getInitializeDistributorInstruction(input, config) {
       getAccountMeta("posterAuthority", accounts.posterAuthority),
       getAccountMeta("disputeAuthority", accounts.disputeAuthority),
       getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
       getAccountMeta("distributor", accounts.distributor),
       getAccountMeta("rewardVault", accounts.rewardVault),
       getAccountMeta("tokenProgram", accounts.tokenProgram),
       getAccountMeta("systemProgram", accounts.systemProgram)
     ],
-    data: getInitializeDistributorInstructionDataEncoder().encode(args),
+    data: getInitializeCoreInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function parseInitializeDistributorInstruction(instruction) {
-  if (instruction.accounts.length < 9) {
+function parseInitializeCoreInstruction(instruction) {
+  if (instruction.accounts.length < 11) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 9
+      expectedAccountMetas: 11
     });
   }
   let accountIndex = 0;
@@ -13522,16 +13657,18 @@ function parseInitializeDistributorInstruction(instruction) {
       posterAuthority: getNextAccount(),
       disputeAuthority: getNextAccount(),
       treasury: getNextAccount(),
+      registry: getNextAccount(),
+      stakingConfig: getNextAccount(),
       distributor: getNextAccount(),
       rewardVault: getNextAccount(),
       tokenProgram: getNextAccount(),
       systemProgram: getNextAccount()
     },
-    data: getInitializeDistributorInstructionDataDecoder().decode(instruction.data)
+    data: getInitializeCoreInstructionDataDecoder().decode(instruction.data)
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/payTraffic.js
+// ../../sdk/dist/generated/weft/src/generated/instructions/payTraffic.js
 var PAY_TRAFFIC_DISCRIMINATOR = new Uint8Array([
   41,
   55,
@@ -13561,11 +13698,10 @@ function getPayTrafficInstructionDataCodec() {
   return combineCodec2(getPayTrafficInstructionDataEncoder(), getPayTrafficInstructionDataDecoder());
 }
 async function getPayTrafficInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     payer: { value: input.payer ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
-    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
     rewardMint: { value: input.rewardMint ?? null, isWritable: true },
     payerTokenAccount: { value: input.payerTokenAccount ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
@@ -13577,14 +13713,6 @@ async function getPayTrafficInstructionAsync(input, config) {
   if (!accounts.distributor.value) {
     accounts.distributor.value = await findDistributorPda();
   }
-  if (!accounts.protocolConfig.value) {
-    accounts.protocolConfig.value = await getProgramDerivedAddress2({
-      programAddress: "8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE",
-      seeds: [
-        getBytesEncoder2().encode(new Uint8Array([112, 114, 111, 116, 111, 99, 111, 108, 95, 99, 111, 110, 102, 105, 103]))
-      ]
-    });
-  }
   if (!accounts.tokenProgram.value) {
     accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
   }
@@ -13593,7 +13721,6 @@ async function getPayTrafficInstructionAsync(input, config) {
     accounts: [
       getAccountMeta("payer", accounts.payer),
       getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("protocolConfig", accounts.protocolConfig),
       getAccountMeta("rewardMint", accounts.rewardMint),
       getAccountMeta("payerTokenAccount", accounts.payerTokenAccount),
       getAccountMeta("rewardVault", accounts.rewardVault),
@@ -13605,11 +13732,10 @@ async function getPayTrafficInstructionAsync(input, config) {
   });
 }
 function getPayTrafficInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     payer: { value: input.payer ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: false },
-    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
     rewardMint: { value: input.rewardMint ?? null, isWritable: true },
     payerTokenAccount: { value: input.payerTokenAccount ?? null, isWritable: true },
     rewardVault: { value: input.rewardVault ?? null, isWritable: true },
@@ -13626,7 +13752,6 @@ function getPayTrafficInstruction(input, config) {
     accounts: [
       getAccountMeta("payer", accounts.payer),
       getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("protocolConfig", accounts.protocolConfig),
       getAccountMeta("rewardMint", accounts.rewardMint),
       getAccountMeta("payerTokenAccount", accounts.payerTokenAccount),
       getAccountMeta("rewardVault", accounts.rewardVault),
@@ -13638,10 +13763,10 @@ function getPayTrafficInstruction(input, config) {
   });
 }
 function parsePayTrafficInstruction(instruction) {
-  if (instruction.accounts.length < 8) {
+  if (instruction.accounts.length < 7) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 8
+      expectedAccountMetas: 7
     });
   }
   let accountIndex = 0;
@@ -13655,7 +13780,6 @@ function parsePayTrafficInstruction(instruction) {
     accounts: {
       payer: getNextAccount(),
       distributor: getNextAccount(),
-      protocolConfig: getNextAccount(),
       rewardMint: getNextAccount(),
       payerTokenAccount: getNextAccount(),
       rewardVault: getNextAccount(),
@@ -13666,7 +13790,7 @@ function parsePayTrafficInstruction(instruction) {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/payTrafficFromEscrow.js
+// ../../sdk/dist/generated/weft/src/generated/instructions/payTrafficFromEscrow.js
 var PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR = new Uint8Array([
   95,
   155,
@@ -13696,11 +13820,10 @@ function getPayTrafficFromEscrowInstructionDataCodec() {
   return combineCodec2(getPayTrafficFromEscrowInstructionDataEncoder(), getPayTrafficFromEscrowInstructionDataDecoder());
 }
 async function getPayTrafficFromEscrowInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: false },
     distributor: { value: input.distributor ?? null, isWritable: false },
-    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
     escrow: { value: input.escrow ?? null, isWritable: true },
     escrowVault: { value: input.escrowVault ?? null, isWritable: true },
     rewardMint: { value: input.rewardMint ?? null, isWritable: true },
@@ -13712,14 +13835,6 @@ async function getPayTrafficFromEscrowInstructionAsync(input, config) {
   const args = { ...input };
   if (!accounts.distributor.value) {
     accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.protocolConfig.value) {
-    accounts.protocolConfig.value = await getProgramDerivedAddress2({
-      programAddress: "8uywvvcGdANC1WM7g1iuEq3crjBwhy5uP5UReKb3xNUE",
-      seeds: [
-        getBytesEncoder2().encode(new Uint8Array([112, 114, 111, 116, 111, 99, 111, 108, 95, 99, 111, 110, 102, 105, 103]))
-      ]
-    });
   }
   if (!accounts.escrow.value) {
     accounts.escrow.value = await findEscrowPda({
@@ -13734,7 +13849,6 @@ async function getPayTrafficFromEscrowInstructionAsync(input, config) {
     accounts: [
       getAccountMeta("owner", accounts.owner),
       getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("protocolConfig", accounts.protocolConfig),
       getAccountMeta("escrow", accounts.escrow),
       getAccountMeta("escrowVault", accounts.escrowVault),
       getAccountMeta("rewardMint", accounts.rewardMint),
@@ -13747,11 +13861,10 @@ async function getPayTrafficFromEscrowInstructionAsync(input, config) {
   });
 }
 function getPayTrafficFromEscrowInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: false },
     distributor: { value: input.distributor ?? null, isWritable: false },
-    protocolConfig: { value: input.protocolConfig ?? null, isWritable: false },
     escrow: { value: input.escrow ?? null, isWritable: true },
     escrowVault: { value: input.escrowVault ?? null, isWritable: true },
     rewardMint: { value: input.rewardMint ?? null, isWritable: true },
@@ -13769,7 +13882,6 @@ function getPayTrafficFromEscrowInstruction(input, config) {
     accounts: [
       getAccountMeta("owner", accounts.owner),
       getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("protocolConfig", accounts.protocolConfig),
       getAccountMeta("escrow", accounts.escrow),
       getAccountMeta("escrowVault", accounts.escrowVault),
       getAccountMeta("rewardMint", accounts.rewardMint),
@@ -13782,10 +13894,10 @@ function getPayTrafficFromEscrowInstruction(input, config) {
   });
 }
 function parsePayTrafficFromEscrowInstruction(instruction) {
-  if (instruction.accounts.length < 9) {
+  if (instruction.accounts.length < 8) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 9
+      expectedAccountMetas: 8
     });
   }
   let accountIndex = 0;
@@ -13799,7 +13911,6 @@ function parsePayTrafficFromEscrowInstruction(instruction) {
     accounts: {
       owner: getNextAccount(),
       distributor: getNextAccount(),
-      protocolConfig: getNextAccount(),
       escrow: getNextAccount(),
       escrowVault: getNextAccount(),
       rewardMint: getNextAccount(),
@@ -13811,7 +13922,7 @@ function parsePayTrafficFromEscrowInstruction(instruction) {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/postEpoch.js
+// ../../sdk/dist/generated/weft/src/generated/instructions/postEpoch.js
 var POST_EPOCH_DISCRIMINATOR = new Uint8Array([
   45,
   8,
@@ -13847,7 +13958,7 @@ function getPostEpochInstructionDataCodec() {
   return combineCodec2(getPostEpochInstructionDataEncoder(), getPostEpochInstructionDataDecoder());
 }
 async function getPostEpochInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     poster: { value: input.poster ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true },
@@ -13882,7 +13993,7 @@ async function getPostEpochInstructionAsync(input, config) {
   });
 }
 function getPostEpochInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     poster: { value: input.poster ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true },
@@ -13934,81 +14045,107 @@ function parsePostEpochInstruction(instruction) {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/setAuthorities.js
-var SET_AUTHORITIES_DISCRIMINATOR = new Uint8Array([
-  124,
-  254,
-  44,
-  240,
-  197,
-  70,
-  190,
-  107
+// ../../sdk/dist/generated/weft/src/generated/instructions/registerNode.js
+var REGISTER_NODE_DISCRIMINATOR = new Uint8Array([
+  102,
+  85,
+  117,
+  114,
+  194,
+  188,
+  211,
+  168
 ]);
-function getSetAuthoritiesDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_AUTHORITIES_DISCRIMINATOR);
+function getRegisterNodeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(REGISTER_NODE_DISCRIMINATOR);
 }
-function getSetAuthoritiesInstructionDataEncoder() {
+function getRegisterNodeInstructionDataEncoder() {
   return transformEncoder2(getStructEncoder2([
     ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["posterAuthority", getAddressEncoder2()],
-    ["disputeAuthority", getAddressEncoder2()]
-  ]), (value) => ({ ...value, discriminator: SET_AUTHORITIES_DISCRIMINATOR }));
+    ["nodeId", getU64Encoder2()],
+    ["geo", getU32Encoder2()],
+    ["capabilities", getU32Encoder2()],
+    ["endpointHash", fixEncoderSize2(getBytesEncoder2(), 32)],
+    ["availability", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: REGISTER_NODE_DISCRIMINATOR }));
 }
-function getSetAuthoritiesInstructionDataDecoder() {
+function getRegisterNodeInstructionDataDecoder() {
   return getStructDecoder2([
     ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["posterAuthority", getAddressDecoder2()],
-    ["disputeAuthority", getAddressDecoder2()]
+    ["nodeId", getU64Decoder2()],
+    ["geo", getU32Decoder2()],
+    ["capabilities", getU32Decoder2()],
+    ["endpointHash", fixDecoderSize2(getBytesDecoder2(), 32)],
+    ["availability", getU8Decoder2()]
   ]);
 }
-function getSetAuthoritiesInstructionDataCodec() {
-  return combineCodec2(getSetAuthoritiesInstructionDataEncoder(), getSetAuthoritiesInstructionDataDecoder());
+function getRegisterNodeInstructionDataCodec() {
+  return combineCodec2(getRegisterNodeInstructionDataEncoder(), getRegisterNodeInstructionDataDecoder());
 }
-async function getSetAuthoritiesInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+async function getRegisterNodeInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true }
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
   const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.node.value) {
+    accounts.node.value = await findNodePda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
   }
   const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor)
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("systemProgram", accounts.systemProgram)
     ],
-    data: getSetAuthoritiesInstructionDataEncoder().encode(args),
+    data: getRegisterNodeInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function getSetAuthoritiesInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+function getRegisterNodeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true }
+    operator: { value: input.operator ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
   const args = { ...input };
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
   const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor)
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("systemProgram", accounts.systemProgram)
     ],
-    data: getSetAuthoritiesInstructionDataEncoder().encode(args),
+    data: getRegisterNodeInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function parseSetAuthoritiesInstruction(instruction) {
-  if (instruction.accounts.length < 2) {
+function parseRegisterNodeInstruction(instruction) {
+  if (instruction.accounts.length < 4) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 2
+      expectedAccountMetas: 4
     });
   }
   let accountIndex = 0;
@@ -14019,89 +14156,97 @@ function parseSetAuthoritiesInstruction(instruction) {
   };
   return {
     programAddress: instruction.programAddress,
-    accounts: { authority: getNextAccount(), distributor: getNextAccount() },
-    data: getSetAuthoritiesInstructionDataDecoder().decode(instruction.data)
+    accounts: {
+      operator: getNextAccount(),
+      registry: getNextAccount(),
+      node: getNextAccount(),
+      systemProgram: getNextAccount()
+    },
+    data: getRegisterNodeInstructionDataDecoder().decode(instruction.data)
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/sweepEpoch.js
-var SWEEP_EPOCH_DISCRIMINATOR = new Uint8Array([
-  187,
-  9,
-  52,
-  111,
-  60,
-  24,
-  52,
-  28
+// ../../sdk/dist/generated/weft/src/generated/instructions/requestUnstake.js
+var REQUEST_UNSTAKE_DISCRIMINATOR = new Uint8Array([
+  44,
+  154,
+  110,
+  253,
+  160,
+  202,
+  54,
+  34
 ]);
-function getSweepEpochDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SWEEP_EPOCH_DISCRIMINATOR);
+function getRequestUnstakeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(REQUEST_UNSTAKE_DISCRIMINATOR);
 }
-function getSweepEpochInstructionDataEncoder() {
+function getRequestUnstakeInstructionDataEncoder() {
   return transformEncoder2(getStructEncoder2([
     ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
-    ["epoch", getU64Encoder2()]
-  ]), (value) => ({ ...value, discriminator: SWEEP_EPOCH_DISCRIMINATOR }));
+    ["nodeId", getU64Encoder2()],
+    ["amount", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: REQUEST_UNSTAKE_DISCRIMINATOR }));
 }
-function getSweepEpochInstructionDataDecoder() {
+function getRequestUnstakeInstructionDataDecoder() {
   return getStructDecoder2([
     ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
-    ["epoch", getU64Decoder2()]
+    ["nodeId", getU64Decoder2()],
+    ["amount", getU64Decoder2()]
   ]);
 }
-function getSweepEpochInstructionDataCodec() {
-  return combineCodec2(getSweepEpochInstructionDataEncoder(), getSweepEpochInstructionDataDecoder());
+function getRequestUnstakeInstructionDataCodec() {
+  return combineCodec2(getRequestUnstakeInstructionDataEncoder(), getRequestUnstakeInstructionDataDecoder());
 }
-async function getSweepEpochInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+async function getRequestUnstakeInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true }
+    operator: { value: input.operator ?? null, isWritable: false },
+    position: { value: input.position ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
   const args = { ...input };
-  if (!accounts.distributor.value) {
-    accounts.distributor.value = await findDistributorPda();
-  }
-  if (!accounts.epochDistribution.value) {
-    accounts.epochDistribution.value = await findEpochDistributionPda({
-      epoch: getNonNullResolvedInstructionInput("epoch", args.epoch)
+  if (!accounts.position.value) {
+    accounts.position.value = await findPositionPda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
     });
   }
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
+  }
   const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution)
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("stakingConfig", accounts.stakingConfig)
     ],
-    data: getSweepEpochInstructionDataEncoder().encode(args),
+    data: getRequestUnstakeInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function getSweepEpochInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+function getRequestUnstakeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
-    authority: { value: input.authority ?? null, isWritable: false },
-    distributor: { value: input.distributor ?? null, isWritable: true },
-    epochDistribution: { value: input.epochDistribution ?? null, isWritable: true }
+    operator: { value: input.operator ?? null, isWritable: false },
+    position: { value: input.position ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
   const args = { ...input };
   const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
   return Object.freeze({
     accounts: [
-      getAccountMeta("authority", accounts.authority),
-      getAccountMeta("distributor", accounts.distributor),
-      getAccountMeta("epochDistribution", accounts.epochDistribution)
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("stakingConfig", accounts.stakingConfig)
     ],
-    data: getSweepEpochInstructionDataEncoder().encode(args),
+    data: getRequestUnstakeInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function parseSweepEpochInstruction(instruction) {
+function parseRequestUnstakeInstruction(instruction) {
   if (instruction.accounts.length < 3) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
@@ -14117,51 +14262,59 @@ function parseSweepEpochInstruction(instruction) {
   return {
     programAddress: instruction.programAddress,
     accounts: {
-      authority: getNextAccount(),
-      distributor: getNextAccount(),
-      epochDistribution: getNextAccount()
+      operator: getNextAccount(),
+      position: getNextAccount(),
+      stakingConfig: getNextAccount()
     },
-    data: getSweepEpochInstructionDataDecoder().decode(instruction.data)
+    data: getRequestUnstakeInstructionDataDecoder().decode(instruction.data)
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/transferAuthority.js
-var TRANSFER_AUTHORITY_DISCRIMINATOR3 = new Uint8Array([
-  48,
-  169,
-  76,
-  72,
-  229,
-  180,
-  55,
-  161
+// ../../sdk/dist/generated/weft/src/generated/instructions/setCoreAuthority.js
+var SET_CORE_AUTHORITY_DISCRIMINATOR = new Uint8Array([
+  114,
+  126,
+  137,
+  19,
+  21,
+  4,
+  11,
+  29
 ]);
-function getTransferAuthorityDiscriminatorBytes() {
-  return fixEncoderSize2(getBytesEncoder2(), 8).encode(TRANSFER_AUTHORITY_DISCRIMINATOR3);
+function getSetCoreAuthorityDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_CORE_AUTHORITY_DISCRIMINATOR);
 }
-function getTransferAuthorityInstructionDataEncoder() {
+function getSetCoreAuthorityInstructionDataEncoder() {
   return transformEncoder2(getStructEncoder2([
     ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
     ["newAuthority", getAddressEncoder2()]
-  ]), (value) => ({ ...value, discriminator: TRANSFER_AUTHORITY_DISCRIMINATOR3 }));
+  ]), (value) => ({ ...value, discriminator: SET_CORE_AUTHORITY_DISCRIMINATOR }));
 }
-function getTransferAuthorityInstructionDataDecoder() {
+function getSetCoreAuthorityInstructionDataDecoder() {
   return getStructDecoder2([
     ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
     ["newAuthority", getAddressDecoder2()]
   ]);
 }
-function getTransferAuthorityInstructionDataCodec() {
-  return combineCodec2(getTransferAuthorityInstructionDataEncoder(), getTransferAuthorityInstructionDataDecoder());
+function getSetCoreAuthorityInstructionDataCodec() {
+  return combineCodec2(getSetCoreAuthorityInstructionDataEncoder(), getSetCoreAuthorityInstructionDataDecoder());
 }
-async function getTransferAuthorityInstructionAsync3(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+async function getSetCoreAuthorityInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true }
   };
   const accounts = originalAccounts;
   const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
+  }
   if (!accounts.distributor.value) {
     accounts.distributor.value = await findDistributorPda();
   }
@@ -14169,16 +14322,20 @@ async function getTransferAuthorityInstructionAsync3(input, config) {
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
       getAccountMeta("distributor", accounts.distributor)
     ],
-    data: getTransferAuthorityInstructionDataEncoder().encode(args),
+    data: getSetCoreAuthorityInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function getTransferAuthorityInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+function getSetCoreAuthorityInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
     distributor: { value: input.distributor ?? null, isWritable: true }
   };
   const accounts = originalAccounts;
@@ -14187,13 +14344,573 @@ function getTransferAuthorityInstruction(input, config) {
   return Object.freeze({
     accounts: [
       getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
       getAccountMeta("distributor", accounts.distributor)
     ],
-    data: getTransferAuthorityInstructionDataEncoder().encode(args),
+    data: getSetCoreAuthorityInstructionDataEncoder().encode(args),
     programAddress
   });
 }
-function parseTransferAuthorityInstruction3(instruction) {
+function parseSetCoreAuthorityInstruction(instruction) {
+  if (instruction.accounts.length < 4) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 4
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      authority: getNextAccount(),
+      registry: getNextAccount(),
+      stakingConfig: getNextAccount(),
+      distributor: getNextAccount()
+    },
+    data: getSetCoreAuthorityInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/setDisputeAuthority.js
+var SET_DISPUTE_AUTHORITY_DISCRIMINATOR = new Uint8Array([
+  112,
+  228,
+  48,
+  162,
+  228,
+  160,
+  135,
+  62
+]);
+function getSetDisputeAuthorityDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_DISPUTE_AUTHORITY_DISCRIMINATOR);
+}
+function getSetDisputeAuthorityInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["disputeAuthority", getAddressEncoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_DISPUTE_AUTHORITY_DISCRIMINATOR }));
+}
+function getSetDisputeAuthorityInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["disputeAuthority", getAddressDecoder2()]
+  ]);
+}
+function getSetDisputeAuthorityInstructionDataCodec() {
+  return combineCodec2(getSetDisputeAuthorityInstructionDataEncoder(), getSetDisputeAuthorityInstructionDataDecoder());
+}
+async function getSetDisputeAuthorityInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
+  }
+  if (!accounts.distributor.value) {
+    accounts.distributor.value = await findDistributorPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("distributor", accounts.distributor)
+    ],
+    data: getSetDisputeAuthorityInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetDisputeAuthorityInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("distributor", accounts.distributor)
+    ],
+    data: getSetDisputeAuthorityInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetDisputeAuthorityInstruction(instruction) {
+  if (instruction.accounts.length < 4) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 4
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      authority: getNextAccount(),
+      registry: getNextAccount(),
+      stakingConfig: getNextAccount(),
+      distributor: getNextAccount()
+    },
+    data: getSetDisputeAuthorityInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/setPaused.js
+var SET_PAUSED_DISCRIMINATOR = new Uint8Array([
+  91,
+  60,
+  125,
+  192,
+  176,
+  225,
+  166,
+  218
+]);
+function getSetPausedDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_PAUSED_DISCRIMINATOR);
+}
+function getSetPausedInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["paused", getBooleanEncoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_PAUSED_DISCRIMINATOR }));
+}
+function getSetPausedInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["paused", getBooleanDecoder()]
+  ]);
+}
+function getSetPausedInstructionDataCodec() {
+  return combineCodec2(getSetPausedInstructionDataEncoder(), getSetPausedInstructionDataDecoder());
+}
+async function getSetPausedInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
+  }
+  if (!accounts.distributor.value) {
+    accounts.distributor.value = await findDistributorPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("distributor", accounts.distributor)
+    ],
+    data: getSetPausedInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetPausedInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("distributor", accounts.distributor)
+    ],
+    data: getSetPausedInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetPausedInstruction(instruction) {
+  if (instruction.accounts.length < 4) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 4
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      authority: getNextAccount(),
+      registry: getNextAccount(),
+      stakingConfig: getNextAccount(),
+      distributor: getNextAccount()
+    },
+    data: getSetPausedInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/setPosterAuthority.js
+var SET_POSTER_AUTHORITY_DISCRIMINATOR = new Uint8Array([
+  130,
+  140,
+  117,
+  42,
+  27,
+  24,
+  88,
+  71
+]);
+function getSetPosterAuthorityDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_POSTER_AUTHORITY_DISCRIMINATOR);
+}
+function getSetPosterAuthorityInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["posterAuthority", getAddressEncoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_POSTER_AUTHORITY_DISCRIMINATOR }));
+}
+function getSetPosterAuthorityInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["posterAuthority", getAddressDecoder2()]
+  ]);
+}
+function getSetPosterAuthorityInstructionDataCodec() {
+  return combineCodec2(getSetPosterAuthorityInstructionDataEncoder(), getSetPosterAuthorityInstructionDataDecoder());
+}
+async function getSetPosterAuthorityInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
+  }
+  if (!accounts.distributor.value) {
+    accounts.distributor.value = await findDistributorPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("distributor", accounts.distributor)
+    ],
+    data: getSetPosterAuthorityInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetPosterAuthorityInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: true },
+    distributor: { value: input.distributor ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("distributor", accounts.distributor)
+    ],
+    data: getSetPosterAuthorityInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetPosterAuthorityInstruction(instruction) {
+  if (instruction.accounts.length < 4) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 4
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      authority: getNextAccount(),
+      registry: getNextAccount(),
+      stakingConfig: getNextAccount(),
+      distributor: getNextAccount()
+    },
+    data: getSetPosterAuthorityInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/stake.js
+var STAKE_DISCRIMINATOR = new Uint8Array([
+  206,
+  176,
+  202,
+  18,
+  200,
+  209,
+  179,
+  108
+]);
+function getStakeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(STAKE_DISCRIMINATOR);
+}
+function getStakeInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["nodeId", getU64Encoder2()],
+    ["amount", getU64Encoder2()],
+    ["lockDuration", getI64Encoder()]
+  ]), (value) => ({ ...value, discriminator: STAKE_DISCRIMINATOR }));
+}
+function getStakeInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["nodeId", getU64Decoder2()],
+    ["amount", getU64Decoder2()],
+    ["lockDuration", getI64Decoder()]
+  ]);
+}
+function getStakeInstructionDataCodec() {
+  return combineCodec2(getStakeInstructionDataEncoder(), getStakeInstructionDataDecoder());
+}
+async function getStakeInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true },
+    position: { value: input.position ?? null, isWritable: true },
+    vault: { value: input.vault ?? null, isWritable: true },
+    operatorTokenAccount: { value: input.operatorTokenAccount ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.stakingConfig.value) {
+    accounts.stakingConfig.value = await findStakingConfigPda();
+  }
+  if (!accounts.node.value) {
+    accounts.node.value = await findNodePda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
+  }
+  if (!accounts.position.value) {
+    accounts.position.value = await findPositionPda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
+  }
+  if (!accounts.vault.value) {
+    accounts.vault.value = await findVaultPda({
+      position: getAddressFromResolvedInstructionAccount("position", accounts.position.value)
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("vault", accounts.vault),
+      getAccountMeta("operatorTokenAccount", accounts.operatorTokenAccount),
+      getAccountMeta("mint", accounts.mint),
+      getAccountMeta("tokenProgram", accounts.tokenProgram),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getStakeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getStakeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    stakingConfig: { value: input.stakingConfig ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true },
+    position: { value: input.position ?? null, isWritable: true },
+    vault: { value: input.vault ?? null, isWritable: true },
+    operatorTokenAccount: { value: input.operatorTokenAccount ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("stakingConfig", accounts.stakingConfig),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("vault", accounts.vault),
+      getAccountMeta("operatorTokenAccount", accounts.operatorTokenAccount),
+      getAccountMeta("mint", accounts.mint),
+      getAccountMeta("tokenProgram", accounts.tokenProgram),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getStakeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseStakeInstruction(instruction) {
+  if (instruction.accounts.length < 9) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 9
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      operator: getNextAccount(),
+      stakingConfig: getNextAccount(),
+      node: getNextAccount(),
+      position: getNextAccount(),
+      vault: getNextAccount(),
+      operatorTokenAccount: getNextAccount(),
+      mint: getNextAccount(),
+      tokenProgram: getNextAccount(),
+      systemProgram: getNextAccount()
+    },
+    data: getStakeInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/updateNode.js
+var UPDATE_NODE_DISCRIMINATOR = new Uint8Array([
+  13,
+  65,
+  246,
+  102,
+  101,
+  91,
+  98,
+  43
+]);
+function getUpdateNodeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(UPDATE_NODE_DISCRIMINATOR);
+}
+function getUpdateNodeInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["geo", getOptionEncoder(getU32Encoder2())],
+    ["capabilities", getOptionEncoder(getU32Encoder2())],
+    ["endpointHash", getOptionEncoder(fixEncoderSize2(getBytesEncoder2(), 32))],
+    ["availability", getOptionEncoder(getU8Encoder2())]
+  ]), (value) => ({ ...value, discriminator: UPDATE_NODE_DISCRIMINATOR }));
+}
+function getUpdateNodeInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["geo", getOptionDecoder(getU32Decoder2())],
+    ["capabilities", getOptionDecoder(getU32Decoder2())],
+    ["endpointHash", getOptionDecoder(fixDecoderSize2(getBytesDecoder2(), 32))],
+    ["availability", getOptionDecoder(getU8Decoder2())]
+  ]);
+}
+function getUpdateNodeInstructionDataCodec() {
+  return combineCodec2(getUpdateNodeInstructionDataEncoder(), getUpdateNodeInstructionDataDecoder());
+}
+function getUpdateNodeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: false },
+    node: { value: input.node ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("node", accounts.node)
+    ],
+    data: getUpdateNodeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseUpdateNodeInstruction(instruction) {
   if (instruction.accounts.length < 2) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
@@ -14208,12 +14925,12 @@ function parseTransferAuthorityInstruction3(instruction) {
   };
   return {
     programAddress: instruction.programAddress,
-    accounts: { authority: getNextAccount(), distributor: getNextAccount() },
-    data: getTransferAuthorityInstructionDataDecoder().decode(instruction.data)
+    accounts: { operator: getNextAccount(), node: getNextAccount() },
+    data: getUpdateNodeInstructionDataDecoder().decode(instruction.data)
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/instructions/withdrawEscrow.js
+// ../../sdk/dist/generated/weft/src/generated/instructions/withdrawEscrow.js
 var WITHDRAW_ESCROW_DISCRIMINATOR = new Uint8Array([
   81,
   84,
@@ -14243,7 +14960,7 @@ function getWithdrawEscrowInstructionDataCodec() {
   return combineCodec2(getWithdrawEscrowInstructionDataEncoder(), getWithdrawEscrowInstructionDataDecoder());
 }
 async function getWithdrawEscrowInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
     escrow: { value: input.escrow ?? null, isWritable: true },
@@ -14277,7 +14994,7 @@ async function getWithdrawEscrowInstructionAsync(input, config) {
   });
 }
 function getWithdrawEscrowInstruction(input, config) {
-  const programAddress = config?.programAddress ?? REWARDS_SETTLEMENT_PROGRAM_ADDRESS;
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
   const originalAccounts = {
     owner: { value: input.owner ?? null, isWritable: true },
     escrow: { value: input.escrow ?? null, isWritable: true },
@@ -14332,209 +15049,435 @@ function parseWithdrawEscrowInstruction(instruction) {
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/programs/rewardsSettlement.js
-var REWARDS_SETTLEMENT_PROGRAM_ADDRESS = "3Xn3H6DBCVhJxz2kGSBEJj8tKYVfyLzJ1ugG8VHViJe5";
-var RewardsSettlementAccount;
-(function(RewardsSettlementAccount2) {
-  RewardsSettlementAccount2[RewardsSettlementAccount2["ClaimStatus"] = 0] = "ClaimStatus";
-  RewardsSettlementAccount2[RewardsSettlementAccount2["Distributor"] = 1] = "Distributor";
-  RewardsSettlementAccount2[RewardsSettlementAccount2["EpochDistribution"] = 2] = "EpochDistribution";
-  RewardsSettlementAccount2[RewardsSettlementAccount2["PaymentEscrow"] = 3] = "PaymentEscrow";
-})(RewardsSettlementAccount || (RewardsSettlementAccount = {}));
-function identifyRewardsSettlementAccount(account) {
+// ../../sdk/dist/generated/weft/src/generated/instructions/withdrawUnstaked.js
+var WITHDRAW_UNSTAKED_DISCRIMINATOR = new Uint8Array([
+  19,
+  202,
+  68,
+  255,
+  216,
+  40,
+  205,
+  61
+]);
+function getWithdrawUnstakedDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(WITHDRAW_UNSTAKED_DISCRIMINATOR);
+}
+function getWithdrawUnstakedInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["nodeId", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: WITHDRAW_UNSTAKED_DISCRIMINATOR }));
+}
+function getWithdrawUnstakedInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["nodeId", getU64Decoder2()]
+  ]);
+}
+function getWithdrawUnstakedInstructionDataCodec() {
+  return combineCodec2(getWithdrawUnstakedInstructionDataEncoder(), getWithdrawUnstakedInstructionDataDecoder());
+}
+async function getWithdrawUnstakedInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true },
+    position: { value: input.position ?? null, isWritable: true },
+    vault: { value: input.vault ?? null, isWritable: true },
+    operatorTokenAccount: { value: input.operatorTokenAccount ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.node.value) {
+    accounts.node.value = await findNodePda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
+  }
+  if (!accounts.position.value) {
+    accounts.position.value = await findPositionPda({
+      operator: getAddressFromResolvedInstructionAccount("operator", accounts.operator.value),
+      nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
+    });
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("vault", accounts.vault),
+      getAccountMeta("operatorTokenAccount", accounts.operatorTokenAccount),
+      getAccountMeta("mint", accounts.mint),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getWithdrawUnstakedInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getWithdrawUnstakedInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    operator: { value: input.operator ?? null, isWritable: true },
+    node: { value: input.node ?? null, isWritable: true },
+    position: { value: input.position ?? null, isWritable: true },
+    vault: { value: input.vault ?? null, isWritable: true },
+    operatorTokenAccount: { value: input.operatorTokenAccount ?? null, isWritable: true },
+    mint: { value: input.mint ?? null, isWritable: false },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("operator", accounts.operator),
+      getAccountMeta("node", accounts.node),
+      getAccountMeta("position", accounts.position),
+      getAccountMeta("vault", accounts.vault),
+      getAccountMeta("operatorTokenAccount", accounts.operatorTokenAccount),
+      getAccountMeta("mint", accounts.mint),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getWithdrawUnstakedInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseWithdrawUnstakedInstruction(instruction) {
+  if (instruction.accounts.length < 7) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 7
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      operator: getNextAccount(),
+      node: getNextAccount(),
+      position: getNextAccount(),
+      vault: getNextAccount(),
+      operatorTokenAccount: getNextAccount(),
+      mint: getNextAccount(),
+      tokenProgram: getNextAccount()
+    },
+    data: getWithdrawUnstakedInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/programs/weft.js
+var WEFT_PROGRAM_ADDRESS = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr";
+var WeftAccount;
+(function(WeftAccount2) {
+  WeftAccount2[WeftAccount2["ClaimStatus"] = 0] = "ClaimStatus";
+  WeftAccount2[WeftAccount2["Distributor"] = 1] = "Distributor";
+  WeftAccount2[WeftAccount2["EpochDistribution"] = 2] = "EpochDistribution";
+  WeftAccount2[WeftAccount2["NodeState"] = 3] = "NodeState";
+  WeftAccount2[WeftAccount2["PaymentEscrow"] = 4] = "PaymentEscrow";
+  WeftAccount2[WeftAccount2["Registry"] = 5] = "Registry";
+  WeftAccount2[WeftAccount2["StakePosition"] = 6] = "StakePosition";
+  WeftAccount2[WeftAccount2["StakingConfig"] = 7] = "StakingConfig";
+})(WeftAccount || (WeftAccount = {}));
+function identifyWeftAccount(account) {
   const data = "data" in account ? account.data : account;
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([22, 183, 249, 157, 247, 95, 150, 96])), 0)) {
-    return RewardsSettlementAccount.ClaimStatus;
+    return WeftAccount.ClaimStatus;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([90, 90, 217, 147, 6, 32, 135, 4])), 0)) {
-    return RewardsSettlementAccount.Distributor;
+    return WeftAccount.Distributor;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([44, 121, 108, 107, 92, 50, 81, 234])), 0)) {
-    return RewardsSettlementAccount.EpochDistribution;
+    return WeftAccount.EpochDistribution;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([8, 21, 101, 224, 245, 142, 157, 156])), 0)) {
+    return WeftAccount.NodeState;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([4, 248, 157, 210, 63, 156, 163, 90])), 0)) {
-    return RewardsSettlementAccount.PaymentEscrow;
+    return WeftAccount.PaymentEscrow;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([47, 174, 110, 246, 184, 182, 252, 218])), 0)) {
+    return WeftAccount.Registry;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([78, 165, 30, 111, 171, 125, 11, 220])), 0)) {
+    return WeftAccount.StakePosition;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([45, 134, 252, 82, 37, 57, 84, 25])), 0)) {
+    return WeftAccount.StakingConfig;
   }
   throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT2, {
     accountData: data,
-    programName: "rewardsSettlement"
+    programName: "weft"
   });
 }
-var RewardsSettlementInstruction;
-(function(RewardsSettlementInstruction2) {
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["Claim"] = 0] = "Claim";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["DepositEscrow"] = 1] = "DepositEscrow";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["Dispute"] = 2] = "Dispute";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["FundVault"] = 3] = "FundVault";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["InitializeDistributor"] = 4] = "InitializeDistributor";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PayTraffic"] = 5] = "PayTraffic";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PayTrafficFromEscrow"] = 6] = "PayTrafficFromEscrow";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["PostEpoch"] = 7] = "PostEpoch";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["SetAuthorities"] = 8] = "SetAuthorities";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["SweepEpoch"] = 9] = "SweepEpoch";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["TransferAuthority"] = 10] = "TransferAuthority";
-  RewardsSettlementInstruction2[RewardsSettlementInstruction2["WithdrawEscrow"] = 11] = "WithdrawEscrow";
-})(RewardsSettlementInstruction || (RewardsSettlementInstruction = {}));
-function identifyRewardsSettlementInstruction(instruction) {
+var WeftInstruction;
+(function(WeftInstruction2) {
+  WeftInstruction2[WeftInstruction2["Claim"] = 0] = "Claim";
+  WeftInstruction2[WeftInstruction2["DepositEscrow"] = 1] = "DepositEscrow";
+  WeftInstruction2[WeftInstruction2["DeregisterNode"] = 2] = "DeregisterNode";
+  WeftInstruction2[WeftInstruction2["Dispute"] = 3] = "Dispute";
+  WeftInstruction2[WeftInstruction2["FundRewardVault"] = 4] = "FundRewardVault";
+  WeftInstruction2[WeftInstruction2["InitializeCore"] = 5] = "InitializeCore";
+  WeftInstruction2[WeftInstruction2["PayTraffic"] = 6] = "PayTraffic";
+  WeftInstruction2[WeftInstruction2["PayTrafficFromEscrow"] = 7] = "PayTrafficFromEscrow";
+  WeftInstruction2[WeftInstruction2["PostEpoch"] = 8] = "PostEpoch";
+  WeftInstruction2[WeftInstruction2["RegisterNode"] = 9] = "RegisterNode";
+  WeftInstruction2[WeftInstruction2["RequestUnstake"] = 10] = "RequestUnstake";
+  WeftInstruction2[WeftInstruction2["SetCoreAuthority"] = 11] = "SetCoreAuthority";
+  WeftInstruction2[WeftInstruction2["SetDisputeAuthority"] = 12] = "SetDisputeAuthority";
+  WeftInstruction2[WeftInstruction2["SetPaused"] = 13] = "SetPaused";
+  WeftInstruction2[WeftInstruction2["SetPosterAuthority"] = 14] = "SetPosterAuthority";
+  WeftInstruction2[WeftInstruction2["Stake"] = 15] = "Stake";
+  WeftInstruction2[WeftInstruction2["UpdateNode"] = 16] = "UpdateNode";
+  WeftInstruction2[WeftInstruction2["WithdrawEscrow"] = 17] = "WithdrawEscrow";
+  WeftInstruction2[WeftInstruction2["WithdrawUnstaked"] = 18] = "WithdrawUnstaked";
+})(WeftInstruction || (WeftInstruction = {}));
+function identifyWeftInstruction(instruction) {
   const data = "data" in instruction ? instruction.data : instruction;
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([62, 198, 214, 193, 213, 159, 108, 210])), 0)) {
-    return RewardsSettlementInstruction.Claim;
+    return WeftInstruction.Claim;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([226, 112, 158, 176, 178, 118, 153, 128])), 0)) {
-    return RewardsSettlementInstruction.DepositEscrow;
+    return WeftInstruction.DepositEscrow;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([92, 177, 93, 30, 69, 177, 46, 177])), 0)) {
+    return WeftInstruction.DeregisterNode;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([216, 92, 128, 146, 202, 85, 135, 73])), 0)) {
-    return RewardsSettlementInstruction.Dispute;
+    return WeftInstruction.Dispute;
   }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([26, 33, 207, 242, 119, 108, 134, 73])), 0)) {
-    return RewardsSettlementInstruction.FundVault;
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([9, 198, 202, 115, 106, 247, 227, 119])), 0)) {
+    return WeftInstruction.FundRewardVault;
   }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([189, 128, 103, 10, 73, 227, 37, 18])), 0)) {
-    return RewardsSettlementInstruction.InitializeDistributor;
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([26, 107, 177, 14, 71, 136, 11, 91])), 0)) {
+    return WeftInstruction.InitializeCore;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([41, 55, 84, 58, 0, 176, 93, 66])), 0)) {
-    return RewardsSettlementInstruction.PayTraffic;
+    return WeftInstruction.PayTraffic;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([95, 155, 20, 224, 108, 76, 154, 176])), 0)) {
-    return RewardsSettlementInstruction.PayTrafficFromEscrow;
+    return WeftInstruction.PayTrafficFromEscrow;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([45, 8, 238, 205, 94, 1, 200, 51])), 0)) {
-    return RewardsSettlementInstruction.PostEpoch;
+    return WeftInstruction.PostEpoch;
   }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([124, 254, 44, 240, 197, 70, 190, 107])), 0)) {
-    return RewardsSettlementInstruction.SetAuthorities;
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([102, 85, 117, 114, 194, 188, 211, 168])), 0)) {
+    return WeftInstruction.RegisterNode;
   }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([187, 9, 52, 111, 60, 24, 52, 28])), 0)) {
-    return RewardsSettlementInstruction.SweepEpoch;
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([44, 154, 110, 253, 160, 202, 54, 34])), 0)) {
+    return WeftInstruction.RequestUnstake;
   }
-  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([48, 169, 76, 72, 229, 180, 55, 161])), 0)) {
-    return RewardsSettlementInstruction.TransferAuthority;
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([114, 126, 137, 19, 21, 4, 11, 29])), 0)) {
+    return WeftInstruction.SetCoreAuthority;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([112, 228, 48, 162, 228, 160, 135, 62])), 0)) {
+    return WeftInstruction.SetDisputeAuthority;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([91, 60, 125, 192, 176, 225, 166, 218])), 0)) {
+    return WeftInstruction.SetPaused;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([130, 140, 117, 42, 27, 24, 88, 71])), 0)) {
+    return WeftInstruction.SetPosterAuthority;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([206, 176, 202, 18, 200, 209, 179, 108])), 0)) {
+    return WeftInstruction.Stake;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([13, 65, 246, 102, 101, 91, 98, 43])), 0)) {
+    return WeftInstruction.UpdateNode;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([81, 84, 226, 128, 245, 47, 96, 104])), 0)) {
-    return RewardsSettlementInstruction.WithdrawEscrow;
+    return WeftInstruction.WithdrawEscrow;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([19, 202, 68, 255, 216, 40, 205, 61])), 0)) {
+    return WeftInstruction.WithdrawUnstaked;
   }
   throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_INSTRUCTION2, {
     instructionData: data,
-    programName: "rewardsSettlement"
+    programName: "weft"
   });
 }
-function parseRewardsSettlementInstruction(instruction) {
-  const instructionType = identifyRewardsSettlementInstruction(instruction);
+function parseWeftInstruction(instruction) {
+  const instructionType = identifyWeftInstruction(instruction);
   switch (instructionType) {
-    case RewardsSettlementInstruction.Claim: {
+    case WeftInstruction.Claim: {
       assertIsInstructionWithAccounts(instruction);
-      return {
-        instructionType: RewardsSettlementInstruction.Claim,
-        ...parseClaimInstruction2(instruction)
-      };
+      return { instructionType: WeftInstruction.Claim, ...parseClaimInstruction(instruction) };
     }
-    case RewardsSettlementInstruction.DepositEscrow: {
+    case WeftInstruction.DepositEscrow: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.DepositEscrow,
+        instructionType: WeftInstruction.DepositEscrow,
         ...parseDepositEscrowInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.Dispute: {
+    case WeftInstruction.DeregisterNode: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.Dispute,
-        ...parseDisputeInstruction(instruction)
+        instructionType: WeftInstruction.DeregisterNode,
+        ...parseDeregisterNodeInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.FundVault: {
+    case WeftInstruction.Dispute: {
+      assertIsInstructionWithAccounts(instruction);
+      return { instructionType: WeftInstruction.Dispute, ...parseDisputeInstruction(instruction) };
+    }
+    case WeftInstruction.FundRewardVault: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.FundVault,
-        ...parseFundVaultInstruction(instruction)
+        instructionType: WeftInstruction.FundRewardVault,
+        ...parseFundRewardVaultInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.InitializeDistributor: {
+    case WeftInstruction.InitializeCore: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.InitializeDistributor,
-        ...parseInitializeDistributorInstruction(instruction)
+        instructionType: WeftInstruction.InitializeCore,
+        ...parseInitializeCoreInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.PayTraffic: {
+    case WeftInstruction.PayTraffic: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.PayTraffic,
+        instructionType: WeftInstruction.PayTraffic,
         ...parsePayTrafficInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.PayTrafficFromEscrow: {
+    case WeftInstruction.PayTrafficFromEscrow: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.PayTrafficFromEscrow,
+        instructionType: WeftInstruction.PayTrafficFromEscrow,
         ...parsePayTrafficFromEscrowInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.PostEpoch: {
+    case WeftInstruction.PostEpoch: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.PostEpoch,
+        instructionType: WeftInstruction.PostEpoch,
         ...parsePostEpochInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.SetAuthorities: {
+    case WeftInstruction.RegisterNode: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.SetAuthorities,
-        ...parseSetAuthoritiesInstruction(instruction)
+        instructionType: WeftInstruction.RegisterNode,
+        ...parseRegisterNodeInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.SweepEpoch: {
+    case WeftInstruction.RequestUnstake: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.SweepEpoch,
-        ...parseSweepEpochInstruction(instruction)
+        instructionType: WeftInstruction.RequestUnstake,
+        ...parseRequestUnstakeInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.TransferAuthority: {
+    case WeftInstruction.SetCoreAuthority: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.TransferAuthority,
-        ...parseTransferAuthorityInstruction3(instruction)
+        instructionType: WeftInstruction.SetCoreAuthority,
+        ...parseSetCoreAuthorityInstruction(instruction)
       };
     }
-    case RewardsSettlementInstruction.WithdrawEscrow: {
+    case WeftInstruction.SetDisputeAuthority: {
       assertIsInstructionWithAccounts(instruction);
       return {
-        instructionType: RewardsSettlementInstruction.WithdrawEscrow,
+        instructionType: WeftInstruction.SetDisputeAuthority,
+        ...parseSetDisputeAuthorityInstruction(instruction)
+      };
+    }
+    case WeftInstruction.SetPaused: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.SetPaused,
+        ...parseSetPausedInstruction(instruction)
+      };
+    }
+    case WeftInstruction.SetPosterAuthority: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.SetPosterAuthority,
+        ...parseSetPosterAuthorityInstruction(instruction)
+      };
+    }
+    case WeftInstruction.Stake: {
+      assertIsInstructionWithAccounts(instruction);
+      return { instructionType: WeftInstruction.Stake, ...parseStakeInstruction(instruction) };
+    }
+    case WeftInstruction.UpdateNode: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.UpdateNode,
+        ...parseUpdateNodeInstruction(instruction)
+      };
+    }
+    case WeftInstruction.WithdrawEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.WithdrawEscrow,
         ...parseWithdrawEscrowInstruction(instruction)
+      };
+    }
+    case WeftInstruction.WithdrawUnstaked: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.WithdrawUnstaked,
+        ...parseWithdrawUnstakedInstruction(instruction)
       };
     }
     default:
       throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__UNRECOGNIZED_INSTRUCTION_TYPE2, {
         instructionType,
-        programName: "rewardsSettlement"
+        programName: "weft"
       });
   }
 }
-function rewardsSettlementProgram() {
+function weftProgram() {
   return (client) => {
     return extendClient(client, {
-      rewardsSettlement: {
+      weft: {
         accounts: {
           claimStatus: addSelfFetchFunctions(client, getClaimStatusCodec()),
           distributor: addSelfFetchFunctions(client, getDistributorCodec()),
           epochDistribution: addSelfFetchFunctions(client, getEpochDistributionCodec()),
-          paymentEscrow: addSelfFetchFunctions(client, getPaymentEscrowCodec())
+          nodeState: addSelfFetchFunctions(client, getNodeStateCodec()),
+          paymentEscrow: addSelfFetchFunctions(client, getPaymentEscrowCodec()),
+          registry: addSelfFetchFunctions(client, getRegistryCodec()),
+          stakePosition: addSelfFetchFunctions(client, getStakePositionCodec()),
+          stakingConfig: addSelfFetchFunctions(client, getStakingConfigCodec())
         },
         instructions: {
           claim: (input) => addSelfPlanAndSendFunctions(client, getClaimInstructionAsync(input)),
           depositEscrow: (input) => addSelfPlanAndSendFunctions(client, getDepositEscrowInstructionAsync(input)),
+          deregisterNode: (input) => addSelfPlanAndSendFunctions(client, getDeregisterNodeInstructionAsync(input)),
           dispute: (input) => addSelfPlanAndSendFunctions(client, getDisputeInstructionAsync(input)),
-          fundVault: (input) => addSelfPlanAndSendFunctions(client, getFundVaultInstructionAsync(input)),
-          initializeDistributor: (input) => addSelfPlanAndSendFunctions(client, getInitializeDistributorInstructionAsync(input)),
+          fundRewardVault: (input) => addSelfPlanAndSendFunctions(client, getFundRewardVaultInstructionAsync(input)),
+          initializeCore: (input) => addSelfPlanAndSendFunctions(client, getInitializeCoreInstructionAsync(input)),
           payTraffic: (input) => addSelfPlanAndSendFunctions(client, getPayTrafficInstructionAsync({ ...input, payer: input.payer ?? client.payer })),
           payTrafficFromEscrow: (input) => addSelfPlanAndSendFunctions(client, getPayTrafficFromEscrowInstructionAsync(input)),
           postEpoch: (input) => addSelfPlanAndSendFunctions(client, getPostEpochInstructionAsync(input)),
-          setAuthorities: (input) => addSelfPlanAndSendFunctions(client, getSetAuthoritiesInstructionAsync(input)),
-          sweepEpoch: (input) => addSelfPlanAndSendFunctions(client, getSweepEpochInstructionAsync(input)),
-          transferAuthority: (input) => addSelfPlanAndSendFunctions(client, getTransferAuthorityInstructionAsync3(input)),
-          withdrawEscrow: (input) => addSelfPlanAndSendFunctions(client, getWithdrawEscrowInstructionAsync(input))
+          registerNode: (input) => addSelfPlanAndSendFunctions(client, getRegisterNodeInstructionAsync(input)),
+          requestUnstake: (input) => addSelfPlanAndSendFunctions(client, getRequestUnstakeInstructionAsync(input)),
+          setCoreAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetCoreAuthorityInstructionAsync(input)),
+          setDisputeAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetDisputeAuthorityInstructionAsync(input)),
+          setPaused: (input) => addSelfPlanAndSendFunctions(client, getSetPausedInstructionAsync(input)),
+          setPosterAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetPosterAuthorityInstructionAsync(input)),
+          stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),
+          updateNode: (input) => addSelfPlanAndSendFunctions(client, getUpdateNodeInstruction(input)),
+          withdrawEscrow: (input) => addSelfPlanAndSendFunctions(client, getWithdrawEscrowInstructionAsync(input)),
+          withdrawUnstaked: (input) => addSelfPlanAndSendFunctions(client, getWithdrawUnstakedInstructionAsync(input))
         },
         pdas: {
           distributor: findDistributorPda,
@@ -14542,444 +15485,75 @@ function rewardsSettlementProgram() {
           claimStatus: findClaimStatusPda,
           escrow: findEscrowPda,
           escrowVault: findEscrowVaultPda,
-          programAuthority: findProgramAuthorityPda3,
-          rewardVault: findRewardVaultPda
+          registry: findRegistryPda,
+          node: findNodePda,
+          stakingConfig: findStakingConfigPda,
+          position: findPositionPda,
+          rewardVault: findRewardVaultPda,
+          vault: findVaultPda
         },
-        identifyAccount: identifyRewardsSettlementAccount,
-        identifyInstruction: identifyRewardsSettlementInstruction,
-        parseInstruction: parseRewardsSettlementInstruction
+        identifyAccount: identifyWeftAccount,
+        identifyInstruction: identifyWeftInstruction,
+        parseInstruction: parseWeftInstruction
       }
     });
   };
 }
 
-// ../../sdk/dist/generated/rewards_settlement/src/generated/errors/rewardsSettlement.js
-var REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED = 6e3;
-var REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH = 6001;
-var REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT = 6002;
-var REWARDS_SETTLEMENT_ERROR__INVALID_PROOF = 6003;
-var REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN = 6004;
-var REWARDS_SETTLEMENT_ERROR__DISPUTED = 6005;
-var REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM = 6006;
-var REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN = 6007;
-var REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT = 6008;
-var REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT = 6009;
-var REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW = 6010;
-var REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW = 6011;
-var REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW = 6012;
-var rewardsSettlementErrorMessages;
+// ../../sdk/dist/generated/weft/src/generated/errors/weft.js
+var WEFT_ERROR__UNAUTHORIZED = 6e3;
+var WEFT_ERROR__PAUSED = 6001;
+var WEFT_ERROR__INVALID_GEO = 6002;
+var WEFT_ERROR__INVALID_CAPABILITIES = 6003;
+var WEFT_ERROR__INVALID_AVAILABILITY = 6004;
+var WEFT_ERROR__INVALID_LOCK = 6005;
+var WEFT_ERROR__INVALID_UNBONDING = 6006;
+var WEFT_ERROR__INVALID_WINDOW = 6007;
+var WEFT_ERROR__LOCKED = 6008;
+var WEFT_ERROR__STILL_UNBONDING = 6009;
+var WEFT_ERROR__INSUFFICIENT_STAKE = 6010;
+var WEFT_ERROR__ZERO_AMOUNT = 6011;
+var WEFT_ERROR__MATH_OVERFLOW = 6012;
+var WEFT_ERROR__INSUFFICIENT_ESCROW = 6013;
+var WEFT_ERROR__INVALID_ESCROW = 6014;
+var WEFT_ERROR__NON_MONOTONIC_EPOCH = 6015;
+var WEFT_ERROR__INSUFFICIENT_VAULT = 6016;
+var WEFT_ERROR__DISPUTE_WINDOW_OPEN = 6017;
+var WEFT_ERROR__INVALID_PROOF = 6018;
+var WEFT_ERROR__EPOCH_OVERCLAIM = 6019;
+var weftErrorMessages;
 if (process.env["NODE_ENV"] !== "production") {
-  rewardsSettlementErrorMessages = {
-    [REWARDS_SETTLEMENT_ERROR__ALREADY_SWEPT]: `Epoch already swept`,
-    [REWARDS_SETTLEMENT_ERROR__CLAWBACK_WINDOW_OPEN]: `Clawback window has not elapsed`,
-    [REWARDS_SETTLEMENT_ERROR__DISPUTED]: `This leaf has been disputed`,
-    [REWARDS_SETTLEMENT_ERROR__DISPUTE_WINDOW_OPEN]: `Dispute window has not elapsed`,
-    [REWARDS_SETTLEMENT_ERROR__EPOCH_OVERCLAIM]: `Epoch over-claimed`,
-    [REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_ESCROW]: `Escrow balance is insufficient`,
-    [REWARDS_SETTLEMENT_ERROR__INSUFFICIENT_VAULT]: `Reward vault cannot cover the posted obligations`,
-    [REWARDS_SETTLEMENT_ERROR__INVALID_ESCROW]: `Escrow account does not match the expected owner, mint, or vault`,
-    [REWARDS_SETTLEMENT_ERROR__INVALID_PROOF]: `Merkle proof is invalid`,
-    [REWARDS_SETTLEMENT_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
-    [REWARDS_SETTLEMENT_ERROR__NON_MONOTONIC_EPOCH]: `Epoch must be strictly increasing`,
-    [REWARDS_SETTLEMENT_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
-    [REWARDS_SETTLEMENT_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`
+  weftErrorMessages = {
+    [WEFT_ERROR__DISPUTE_WINDOW_OPEN]: `Dispute window has not elapsed`,
+    [WEFT_ERROR__EPOCH_OVERCLAIM]: `Epoch over-claimed`,
+    [WEFT_ERROR__INSUFFICIENT_ESCROW]: `Escrow balance is insufficient`,
+    [WEFT_ERROR__INSUFFICIENT_STAKE]: `Insufficient staked balance`,
+    [WEFT_ERROR__INSUFFICIENT_VAULT]: `Reward vault cannot cover the posted obligations`,
+    [WEFT_ERROR__INVALID_AVAILABILITY]: `Invalid availability value`,
+    [WEFT_ERROR__INVALID_CAPABILITIES]: `Invalid capability flags`,
+    [WEFT_ERROR__INVALID_ESCROW]: `Escrow account does not match the expected owner, mint, or vault`,
+    [WEFT_ERROR__INVALID_GEO]: `Invalid geo value`,
+    [WEFT_ERROR__INVALID_LOCK]: `Invalid lock duration`,
+    [WEFT_ERROR__INVALID_PROOF]: `Merkle proof is invalid`,
+    [WEFT_ERROR__INVALID_UNBONDING]: `Invalid unbonding duration`,
+    [WEFT_ERROR__INVALID_WINDOW]: `Invalid settlement window`,
+    [WEFT_ERROR__LOCKED]: `Stake is still locked`,
+    [WEFT_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
+    [WEFT_ERROR__NON_MONOTONIC_EPOCH]: `Epoch must be strictly increasing`,
+    [WEFT_ERROR__PAUSED]: `Registry is paused`,
+    [WEFT_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
+    [WEFT_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
+    [WEFT_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`
   };
 }
-function getRewardsSettlementErrorMessage(code) {
+function getWeftErrorMessage(code) {
   if (process.env["NODE_ENV"] !== "production") {
-    return rewardsSettlementErrorMessages[code];
+    return weftErrorMessages[code];
   }
   return "Error message not available in production bundles.";
 }
-function isRewardsSettlementError(error, transactionMessage, code) {
-  return isProgramError(error, transactionMessage, REWARDS_SETTLEMENT_PROGRAM_ADDRESS, code);
-}
-
-// ../../sdk/dist/generated/governance/src/generated/accounts/governanceConfig.js
-var GOVERNANCE_CONFIG_DISCRIMINATOR = new Uint8Array([
-  81,
-  63,
-  124,
-  107,
-  210,
-  100,
-  145,
-  70
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/types/proposalState.js
-var ProposalState;
-(function(ProposalState2) {
-  ProposalState2[ProposalState2["Draft"] = 0] = "Draft";
-  ProposalState2[ProposalState2["Voting"] = 1] = "Voting";
-  ProposalState2[ProposalState2["Succeeded"] = 2] = "Succeeded";
-  ProposalState2[ProposalState2["Defeated"] = 3] = "Defeated";
-  ProposalState2[ProposalState2["Executed"] = 4] = "Executed";
-  ProposalState2[ProposalState2["Cancelled"] = 5] = "Cancelled";
-})(ProposalState || (ProposalState = {}));
-
-// ../../sdk/dist/generated/governance/src/generated/types/voteKind.js
-var VoteKind;
-(function(VoteKind2) {
-  VoteKind2[VoteKind2["Yes"] = 0] = "Yes";
-  VoteKind2[VoteKind2["No"] = 1] = "No";
-  VoteKind2[VoteKind2["Abstain"] = 2] = "Abstain";
-})(VoteKind || (VoteKind = {}));
-
-// ../../sdk/dist/generated/governance/src/generated/accounts/proposal.js
-var PROPOSAL_DISCRIMINATOR = new Uint8Array([
-  26,
-  94,
-  189,
-  187,
-  116,
-  136,
-  53,
-  33
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/accounts/proposalTransaction.js
-var PROPOSAL_TRANSACTION_DISCRIMINATOR = new Uint8Array([
-  28,
-  171,
-  211,
-  239,
-  212,
-  104,
-  14,
-  97
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/accounts/protocolConfig.js
-var PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
-  207,
-  91,
-  250,
-  28,
-  152,
-  179,
-  215,
-  209
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/accounts/voteRecord.js
-var VOTE_RECORD_DISCRIMINATOR = new Uint8Array([
-  112,
-  9,
-  123,
-  165,
-  234,
-  9,
-  157,
-  167
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/activateProposal.js
-var ACTIVATE_PROPOSAL_DISCRIMINATOR = new Uint8Array([
-  90,
-  186,
-  203,
-  234,
-  70,
-  185,
-  191,
-  21
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/addTransaction.js
-var ADD_TRANSACTION_DISCRIMINATOR = new Uint8Array([
-  48,
-  96,
-  174,
-  112,
-  81,
-  30,
-  239,
-  89
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/cancelProposal.js
-var CANCEL_PROPOSAL_DISCRIMINATOR = new Uint8Array([
-  106,
-  74,
-  128,
-  146,
-  19,
-  65,
-  39,
-  23
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/castVote.js
-var CAST_VOTE_DISCRIMINATOR = new Uint8Array([
-  20,
-  212,
-  15,
-  189,
-  69,
-  180,
-  69,
-  151
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/createProposal.js
-var CREATE_PROPOSAL_DISCRIMINATOR = new Uint8Array([
-  132,
-  116,
-  68,
-  174,
-  216,
-  160,
-  198,
-  22
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/executeTransaction.js
-var EXECUTE_TRANSACTION_DISCRIMINATOR = new Uint8Array([
-  231,
-  173,
-  49,
-  91,
-  235,
-  24,
-  68,
-  19
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/finalizeProposal.js
-var FINALIZE_PROPOSAL_DISCRIMINATOR = new Uint8Array([
-  23,
-  68,
-  51,
-  167,
-  109,
-  173,
-  187,
-  164
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/initializeGovernance.js
-var INITIALIZE_GOVERNANCE_DISCRIMINATOR = new Uint8Array([
-  171,
-  87,
-  101,
-  237,
-  27,
-  107,
-  201,
-  57
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/initializeProtocolConfig.js
-var INITIALIZE_PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
-  28,
-  50,
-  43,
-  233,
-  244,
-  98,
-  123,
-  118
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/migrateProtocolConfig.js
-var MIGRATE_PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
-  240,
-  133,
-  241,
-  218,
-  118,
-  253,
-  139,
-  28
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/setGovernanceAuthority.js
-var SET_GOVERNANCE_AUTHORITY_DISCRIMINATOR = new Uint8Array([
-  0,
-  113,
-  148,
-  253,
-  151,
-  181,
-  148,
-  42
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/instructions/updateProtocolConfig.js
-var UPDATE_PROTOCOL_CONFIG_DISCRIMINATOR = new Uint8Array([
-  197,
-  97,
-  123,
-  54,
-  221,
-  168,
-  11,
-  135
-]);
-
-// ../../sdk/dist/generated/governance/src/generated/programs/governance.js
-var GovernanceAccount;
-(function(GovernanceAccount2) {
-  GovernanceAccount2[GovernanceAccount2["GovernanceConfig"] = 0] = "GovernanceConfig";
-  GovernanceAccount2[GovernanceAccount2["Proposal"] = 1] = "Proposal";
-  GovernanceAccount2[GovernanceAccount2["ProposalTransaction"] = 2] = "ProposalTransaction";
-  GovernanceAccount2[GovernanceAccount2["ProtocolConfig"] = 3] = "ProtocolConfig";
-  GovernanceAccount2[GovernanceAccount2["VoteRecord"] = 4] = "VoteRecord";
-})(GovernanceAccount || (GovernanceAccount = {}));
-var GovernanceInstruction;
-(function(GovernanceInstruction2) {
-  GovernanceInstruction2[GovernanceInstruction2["ActivateProposal"] = 0] = "ActivateProposal";
-  GovernanceInstruction2[GovernanceInstruction2["AddTransaction"] = 1] = "AddTransaction";
-  GovernanceInstruction2[GovernanceInstruction2["CancelProposal"] = 2] = "CancelProposal";
-  GovernanceInstruction2[GovernanceInstruction2["CastVote"] = 3] = "CastVote";
-  GovernanceInstruction2[GovernanceInstruction2["CreateProposal"] = 4] = "CreateProposal";
-  GovernanceInstruction2[GovernanceInstruction2["ExecuteTransaction"] = 5] = "ExecuteTransaction";
-  GovernanceInstruction2[GovernanceInstruction2["FinalizeProposal"] = 6] = "FinalizeProposal";
-  GovernanceInstruction2[GovernanceInstruction2["InitializeGovernance"] = 7] = "InitializeGovernance";
-  GovernanceInstruction2[GovernanceInstruction2["InitializeProtocolConfig"] = 8] = "InitializeProtocolConfig";
-  GovernanceInstruction2[GovernanceInstruction2["MigrateProtocolConfig"] = 9] = "MigrateProtocolConfig";
-  GovernanceInstruction2[GovernanceInstruction2["SetGovernanceAuthority"] = 10] = "SetGovernanceAuthority";
-  GovernanceInstruction2[GovernanceInstruction2["UpdateProtocolConfig"] = 11] = "UpdateProtocolConfig";
-})(GovernanceInstruction || (GovernanceInstruction = {}));
-
-// ../../sdk/dist/generated/governance/src/generated/errors/governance.js
-var GOVERNANCE_ERROR__UNAUTHORIZED = 6e3;
-var GOVERNANCE_ERROR__INVALID_STATE = 6001;
-var GOVERNANCE_ERROR__VOTING_CLOSED = 6002;
-var GOVERNANCE_ERROR__VOTING_ONGOING = 6003;
-var GOVERNANCE_ERROR__QUORUM_NOT_MET = 6004;
-var GOVERNANCE_ERROR__THRESHOLD_NOT_MET = 6005;
-var GOVERNANCE_ERROR__POSITION_UNLOCKED_BEFORE_VOTE_ENDS = 6006;
-var GOVERNANCE_ERROR__INVALID_POSITION_OWNER = 6007;
-var GOVERNANCE_ERROR__POSITION_OPERATOR_MISMATCH = 6008;
-var GOVERNANCE_ERROR__TIMELOCK_NOT_ELAPSED = 6009;
-var GOVERNANCE_ERROR__ALREADY_EXECUTED = 6010;
-var GOVERNANCE_ERROR__INSUFFICIENT_PROPOSAL_STAKE = 6011;
-var GOVERNANCE_ERROR__INVALID_SPLIT = 6012;
-var GOVERNANCE_ERROR__INVALID_PARAM = 6013;
-var GOVERNANCE_ERROR__TOO_MANY_ACCOUNTS = 6014;
-var GOVERNANCE_ERROR__DATA_TOO_LONG = 6015;
-var GOVERNANCE_ERROR__ACCOUNT_MISMATCH = 6016;
-var GOVERNANCE_ERROR__MATH_OVERFLOW = 6017;
-var governanceErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  governanceErrorMessages = {
-    [GOVERNANCE_ERROR__ACCOUNT_MISMATCH]: `Account list does not match the queued instruction`,
-    [GOVERNANCE_ERROR__ALREADY_EXECUTED]: `Transaction already executed`,
-    [GOVERNANCE_ERROR__DATA_TOO_LONG]: `Queued instruction data is too long`,
-    [GOVERNANCE_ERROR__INSUFFICIENT_PROPOSAL_STAKE]: `Proposer stake is below the minimum`,
-    [GOVERNANCE_ERROR__INVALID_PARAM]: `Parameter out of range`,
-    [GOVERNANCE_ERROR__INVALID_POSITION_OWNER]: `Stake position is not owned by the staking program`,
-    [GOVERNANCE_ERROR__INVALID_SPLIT]: `Payment split shares must sum to 10000 bps`,
-    [GOVERNANCE_ERROR__INVALID_STATE]: `Proposal is not in the required state`,
-    [GOVERNANCE_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
-    [GOVERNANCE_ERROR__POSITION_OPERATOR_MISMATCH]: `Stake position operator does not match the signer`,
-    [GOVERNANCE_ERROR__POSITION_UNLOCKED_BEFORE_VOTE_ENDS]: `Stake position unlocks before voting ends`,
-    [GOVERNANCE_ERROR__QUORUM_NOT_MET]: `Quorum was not reached`,
-    [GOVERNANCE_ERROR__THRESHOLD_NOT_MET]: `Approval threshold was not reached`,
-    [GOVERNANCE_ERROR__TIMELOCK_NOT_ELAPSED]: `Execution timelock has not elapsed`,
-    [GOVERNANCE_ERROR__TOO_MANY_ACCOUNTS]: `Too many accounts in the queued instruction`,
-    [GOVERNANCE_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
-    [GOVERNANCE_ERROR__VOTING_CLOSED]: `Voting window is closed`,
-    [GOVERNANCE_ERROR__VOTING_ONGOING]: `Voting window is still open`
-  };
-}
-
-// ../../sdk/dist/generated/token_distributor/src/generated/accounts/allocationClaim.js
-var ALLOCATION_CLAIM_DISCRIMINATOR = new Uint8Array([
-  146,
-  223,
-  135,
-  73,
-  206,
-  11,
-  148,
-  251
-]);
-
-// ../../sdk/dist/generated/token_distributor/src/generated/accounts/idoDistributor.js
-var IDO_DISTRIBUTOR_DISCRIMINATOR = new Uint8Array([
-  232,
-  136,
-  45,
-  26,
-  254,
-  31,
-  254,
-  33
-]);
-
-// ../../sdk/dist/generated/token_distributor/src/generated/instructions/claim.js
-var CLAIM_DISCRIMINATOR3 = new Uint8Array([
-  62,
-  198,
-  214,
-  193,
-  213,
-  159,
-  108,
-  210
-]);
-
-// ../../sdk/dist/generated/token_distributor/src/generated/instructions/initializeIdo.js
-var INITIALIZE_IDO_DISCRIMINATOR = new Uint8Array([
-  110,
-  47,
-  0,
-  148,
-  18,
-  227,
-  42,
-  218
-]);
-
-// ../../sdk/dist/generated/token_distributor/src/generated/instructions/setRoot.js
-var SET_ROOT_DISCRIMINATOR = new Uint8Array([
-  183,
-  49,
-  10,
-  206,
-  168,
-  183,
-  131,
-  67
-]);
-
-// ../../sdk/dist/generated/token_distributor/src/generated/programs/tokenDistributor.js
-var TokenDistributorAccount;
-(function(TokenDistributorAccount2) {
-  TokenDistributorAccount2[TokenDistributorAccount2["AllocationClaim"] = 0] = "AllocationClaim";
-  TokenDistributorAccount2[TokenDistributorAccount2["IdoDistributor"] = 1] = "IdoDistributor";
-})(TokenDistributorAccount || (TokenDistributorAccount = {}));
-var TokenDistributorInstruction;
-(function(TokenDistributorInstruction2) {
-  TokenDistributorInstruction2[TokenDistributorInstruction2["Claim"] = 0] = "Claim";
-  TokenDistributorInstruction2[TokenDistributorInstruction2["InitializeIdo"] = 1] = "InitializeIdo";
-  TokenDistributorInstruction2[TokenDistributorInstruction2["SetRoot"] = 2] = "SetRoot";
-})(TokenDistributorInstruction || (TokenDistributorInstruction = {}));
-
-// ../../sdk/dist/generated/token_distributor/src/generated/errors/tokenDistributor.js
-var TOKEN_DISTRIBUTOR_ERROR__UNAUTHORIZED = 6e3;
-var TOKEN_DISTRIBUTOR_ERROR__INVALID_PROOF = 6001;
-var TOKEN_DISTRIBUTOR_ERROR__BEFORE_TGE = 6002;
-var TOKEN_DISTRIBUTOR_ERROR__ROOT_LOCKED_AFTER_TGE = 6003;
-var TOKEN_DISTRIBUTOR_ERROR__OVERCLAIM = 6004;
-var TOKEN_DISTRIBUTOR_ERROR__INSUFFICIENT_VAULT = 6005;
-var TOKEN_DISTRIBUTOR_ERROR__INVALID_PARAM = 6006;
-var TOKEN_DISTRIBUTOR_ERROR__MATH_OVERFLOW = 6007;
-var tokenDistributorErrorMessages;
-if (process.env["NODE_ENV"] !== "production") {
-  tokenDistributorErrorMessages = {
-    [TOKEN_DISTRIBUTOR_ERROR__BEFORE_TGE]: `Claiming is not open until the TGE timestamp`,
-    [TOKEN_DISTRIBUTOR_ERROR__INSUFFICIENT_VAULT]: `Distributor vault has insufficient balance`,
-    [TOKEN_DISTRIBUTOR_ERROR__INVALID_PARAM]: `Parameter out of range`,
-    [TOKEN_DISTRIBUTOR_ERROR__INVALID_PROOF]: `Merkle proof did not verify against the posted root`,
-    [TOKEN_DISTRIBUTOR_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
-    [TOKEN_DISTRIBUTOR_ERROR__OVERCLAIM]: `Claim would exceed the total allocation`,
-    [TOKEN_DISTRIBUTOR_ERROR__ROOT_LOCKED_AFTER_TGE]: `The root may only be changed before the TGE`,
-    [TOKEN_DISTRIBUTOR_ERROR__UNAUTHORIZED]: `Caller is not the distributor authority`
-  };
+function isWeftError(error, transactionMessage, code) {
+  return isProgramError(error, transactionMessage, WEFT_PROGRAM_ADDRESS, code);
 }
 
 // ../../sdk/dist/math.js
@@ -15513,7 +16087,7 @@ async function verifyPayTraffic(r, signature, expectedPayer) {
   );
 }
 function decodePayTraffic(accountKeys, instructions, expectedPayer) {
-  const programId = String(generated_exports.REWARDS_SETTLEMENT_PROGRAM_ADDRESS);
+  const programId = String(generated_exports.WEFT_PROGRAM_ADDRESS);
   const discriminators = [
     generated_exports.PAY_TRAFFIC_DISCRIMINATOR,
     generated_exports.PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR
