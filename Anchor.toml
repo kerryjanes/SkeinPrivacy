@@ -11,6 +11,9 @@ weft = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr"
 [programs.localnet]
 weft = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr"
 
+[programs.mainnet]
+weft = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr"
+
 [provider]
 cluster = "localnet"
 wallet = "~/.config/solana/id.json"
