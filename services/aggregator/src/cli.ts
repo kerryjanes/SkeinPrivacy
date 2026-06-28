@@ -122,6 +122,8 @@ async function main(): Promise<void> {
 
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
+  const store = new EpochStore(epochStorePath);
+  const payoutStore = new PayoutStore(payoutStorePath);
 
   const nodes = await fetchNodeInfos(rpc);
   const receipts = parseReceipts(receiptsPath);
@@ -137,9 +139,9 @@ async function main(): Promise<void> {
     `[aggregator] epoch ${epoch}: ${build.numNodes} nodes, ${build.totalReward} base units, root ${build.root || '(empty)'}`,
   );
 
-  const store = new EpochStore(epochStorePath);
-  const payoutStore = new PayoutStore(payoutStorePath);
-  store.put(build);
+  if ((receipts.length > 0 || trustedTotals.length > 0) && build.numNodes > 0) {
+    store.put(build);
+  }
 
   const poster = posterPath
     ? await createKeyPairSignerFromBytes(
@@ -168,7 +170,11 @@ async function main(): Promise<void> {
   const payout = payoutKeypairPath
     ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint)
     : undefined;
-  let nextAutoEpoch = BigInt(d.currentEpoch) + 1n;
+  const highestKnownEpoch = store.maxEpoch();
+  let nextAutoEpoch =
+    (highestKnownEpoch !== null && highestKnownEpoch > BigInt(d.currentEpoch)
+      ? highestKnownEpoch
+      : BigInt(d.currentEpoch)) + 1n;
 
   const server = createAggregatorServer({
     store,

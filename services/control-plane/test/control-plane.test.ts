@@ -9,6 +9,7 @@ import { math } from '@weft/sdk';
 import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
 import { Controller } from '../src/controller.js';
 import { multiHopLink, oneHopLink } from '../src/links.js';
+import { filterRegisteredEndpointHashes } from '../src/relay.js';
 import { parseUsage, renderConfig } from '../src/xray.js';
 import { Store, type User } from '../src/store.js';
 
@@ -168,6 +169,12 @@ describe('relay exit profile stats', () => {
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
+  });
+
+  it('only exposes live endpoint hashes that are registered on-chain', () => {
+    expect(filterRegisteredEndpointHashes(['registered', 'stale'], new Set(['registered']))).toEqual([
+      'registered',
+    ]);
   });
 });
 

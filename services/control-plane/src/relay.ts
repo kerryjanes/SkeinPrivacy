@@ -4,10 +4,41 @@
 // on-chain change — the registration stays, so restarting never re-pays).
 
 import { createHash } from 'node:crypto';
+import { createSolanaRpc, getBase58Decoder, type Base58EncodedBytes } from '@solana/kit';
+import { weft } from '@weft/sdk';
 import type { NodeConfig } from './config.js';
 import { liveExitProfilesWithPorts } from './exitProfiles.js';
 
 const hashEndpoint = (ep: string): string => createHash('sha256').update(ep).digest('hex');
+const toHex = (u: ArrayLike<number>): string =>
+  Array.from(u, (b) => b.toString(16).padStart(2, '0')).join('');
+
+export function filterRegisteredEndpointHashes(hashes: string[], registered: Set<string>): string[] {
+  return hashes.filter((hash) => registered.has(hash));
+}
+
+export async function registeredEndpointHashes(cfg: NodeConfig): Promise<Set<string>> {
+  const client = createSolanaRpc(cfg.rpcUrl);
+  const disc = getBase58Decoder().decode(weft.NODE_STATE_DISCRIMINATOR);
+  const accounts = await client
+    .getProgramAccounts(weft.WEFT_PROGRAM_ADDRESS, {
+      encoding: 'base64',
+      filters: [{ memcmp: { offset: 0n, bytes: disc as Base58EncodedBytes, encoding: 'base58' } }],
+    })
+    .send();
+  const decoder = weft.getNodeStateDecoder();
+  return new Set(
+    accounts.map(({ account }) => {
+      let bytes = Buffer.from((account.data as readonly [string, string])[0], 'base64');
+      if (bytes.length < decoder.fixedSize) {
+        const padded = Buffer.alloc(decoder.fixedSize);
+        bytes.copy(padded);
+        bytes = padded;
+      }
+      return toHex(decoder.decode(bytes).endpointHash);
+    }),
+  );
+}
 
 /** sha256(host:port) for every endpoint live right now — matches each node's on-chain endpointHash. */
 export async function liveEndpointHashes(cfg: NodeConfig): Promise<string[]> {
@@ -36,5 +67,10 @@ export async function liveEndpointHashes(cfg: NodeConfig): Promise<string[]> {
       /* relay API unreachable → just the direct endpoints */
     }
   }
-  return [...endpoints].map(hashEndpoint);
+  const liveHashes = [...endpoints].map(hashEndpoint);
+  return filterRegisteredEndpointHashes(liveHashes, await registeredEndpointHashes(cfg));
+}
+
+export async function isRegisteredEndpoint(cfg: NodeConfig, host: string, port: number): Promise<boolean> {
+  return (await registeredEndpointHashes(cfg)).has(hashEndpoint(`${host}:${port}`));
 }

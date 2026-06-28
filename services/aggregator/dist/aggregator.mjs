@@ -17989,6 +17989,13 @@ var EpochStore = class {
   epochs() {
     return [...this.byEpoch.values()].map((b) => b.epoch);
   }
+  maxEpoch() {
+    let max = null;
+    for (const build of this.byEpoch.values()) {
+      if (max === null || build.epoch > max) max = build.epoch;
+    }
+    return max;
+  }
   claimable(operator) {
     const byNode = /* @__PURE__ */ new Map();
     for (const build of this.byEpoch.values()) {
@@ -18855,6 +18862,8 @@ async function main() {
   }
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
+  const store = new EpochStore(epochStorePath);
+  const payoutStore = new PayoutStore(payoutStorePath);
   const nodes = await fetchNodeInfos(rpc);
   const receipts = parseReceipts(receiptsPath);
   const trustedTotals = parseTrustedTotals();
@@ -18865,9 +18874,9 @@ async function main() {
   console.log(
     `[aggregator] epoch ${epoch}: ${build.numNodes} nodes, ${build.totalReward} base units, root ${build.root || "(empty)"}`
   );
-  const store = new EpochStore(epochStorePath);
-  const payoutStore = new PayoutStore(payoutStorePath);
-  store.put(build);
+  if ((receipts.length > 0 || trustedTotals.length > 0) && build.numNodes > 0) {
+    store.put(build);
+  }
   const poster = posterPath ? await createKeyPairSignerFromBytes(
     Uint8Array.from(JSON.parse(readFileSync4(posterPath, "utf8")))
   ) : null;
@@ -18886,7 +18895,8 @@ async function main() {
   if (!distInfo.value) throw new Error("distributor not initialized");
   const d = generated_exports.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], "base64"));
   const payout = payoutKeypairPath ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint) : void 0;
-  let nextAutoEpoch = BigInt(d.currentEpoch) + 1n;
+  const highestKnownEpoch = store.maxEpoch();
+  let nextAutoEpoch = (highestKnownEpoch !== null && highestKnownEpoch > BigInt(d.currentEpoch) ? highestKnownEpoch : BigInt(d.currentEpoch)) + 1n;
   const server = createAggregatorServer({
     store,
     payoutStore,

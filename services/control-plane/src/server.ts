@@ -10,7 +10,7 @@ import type { NodeConfig } from './config.js';
 import type { Controller } from './controller.js';
 import { registerExitProfile } from './exitProfiles.js';
 import type { Faucet } from './faucet.js';
-import { liveEndpointHashes } from './relay.js';
+import { isRegisteredEndpoint, liveEndpointHashes } from './relay.js';
 import { math } from '@weft/sdk';
 
 function send(res: ServerResponse, code: number, body: unknown): void {
@@ -98,7 +98,13 @@ export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet):
 
     if (req.method === 'POST' && url.pathname === '/relay/node-profile') {
       if (bearer(req) !== cfg.relayToken) return send(res, 401, { error: 'unauthorized' });
-      const profile = registerExitProfile(cfg, await readJson(req));
+      const body = await readJson(req);
+      const host = typeof body.host === 'string' ? body.host : '';
+      const port = Number(body.port);
+      if (!(await isRegisteredEndpoint(cfg, host, port))) {
+        return send(res, 409, { error: 'node endpoint is not registered on-chain' });
+      }
+      const profile = registerExitProfile(cfg, body);
       ctrl.reconcile(); // fresh profile can become the active hop1 exit immediately
       return send(res, 200, { ok: true, endpoint: `${profile.host}:${profile.port}` });
     }

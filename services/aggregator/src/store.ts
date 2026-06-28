@@ -56,6 +56,14 @@ export class EpochStore {
     return [...this.byEpoch.values()].map((b) => b.epoch);
   }
 
+  maxEpoch(): bigint | null {
+    let max: bigint | null = null;
+    for (const build of this.byEpoch.values()) {
+      if (max === null || build.epoch > max) max = build.epoch;
+    }
+    return max;
+  }
+
   claimable(operator: string): ClaimableSummary {
     const byNode = new Map<string, ClaimableNode>();
     for (const build of this.byEpoch.values()) {

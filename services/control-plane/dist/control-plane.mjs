@@ -16929,6 +16929,30 @@ import { createServer } from "node:http";
 // src/relay.ts
 import { createHash } from "node:crypto";
 var hashEndpoint = (ep) => createHash("sha256").update(ep).digest("hex");
+var toHex2 = (u) => Array.from(u, (b) => b.toString(16).padStart(2, "0")).join("");
+function filterRegisteredEndpointHashes(hashes, registered) {
+  return hashes.filter((hash) => registered.has(hash));
+}
+async function registeredEndpointHashes(cfg2) {
+  const client = createSolanaRpc(cfg2.rpcUrl);
+  const disc = getBase58Decoder().decode(generated_exports.NODE_STATE_DISCRIMINATOR);
+  const accounts = await client.getProgramAccounts(generated_exports.WEFT_PROGRAM_ADDRESS, {
+    encoding: "base64",
+    filters: [{ memcmp: { offset: 0n, bytes: disc, encoding: "base58" } }]
+  }).send();
+  const decoder = generated_exports.getNodeStateDecoder();
+  return new Set(
+    accounts.map(({ account }) => {
+      let bytes = Buffer.from(account.data[0], "base64");
+      if (bytes.length < decoder.fixedSize) {
+        const padded = Buffer.alloc(decoder.fixedSize);
+        bytes.copy(padded);
+        bytes = padded;
+      }
+      return toHex2(decoder.decode(bytes).endpointHash);
+    })
+  );
+}
 async function liveEndpointHashes(cfg2) {
   const endpoints = /* @__PURE__ */ new Set();
   for (const p of [cfg2.publicHop1Port, cfg2.publicHopnPort, cfg2.hop1Port, cfg2.hopnPort])
@@ -16948,7 +16972,11 @@ async function liveEndpointHashes(cfg2) {
     } catch {
     }
   }
-  return [...endpoints].map(hashEndpoint);
+  const liveHashes = [...endpoints].map(hashEndpoint);
+  return filterRegisteredEndpointHashes(liveHashes, await registeredEndpointHashes(cfg2));
+}
+async function isRegisteredEndpoint(cfg2, host, port) {
+  return (await registeredEndpointHashes(cfg2)).has(hashEndpoint(`${host}:${port}`));
 }
 
 // src/server.ts
@@ -17024,7 +17052,13 @@ function startServer(cfg2, ctrl2, faucet2) {
     }
     if (req.method === "POST" && url.pathname === "/relay/node-profile") {
       if (bearer(req) !== cfg2.relayToken) return send(res, 401, { error: "unauthorized" });
-      const profile = registerExitProfile(cfg2, await readJson(req));
+      const body = await readJson(req);
+      const host = typeof body.host === "string" ? body.host : "";
+      const port = Number(body.port);
+      if (!await isRegisteredEndpoint(cfg2, host, port)) {
+        return send(res, 409, { error: "node endpoint is not registered on-chain" });
+      }
+      const profile = registerExitProfile(cfg2, body);
       ctrl2.reconcile();
       return send(res, 200, { ok: true, endpoint: `${profile.host}:${profile.port}` });
     }

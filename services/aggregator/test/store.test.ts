@@ -28,4 +28,27 @@ describe('epoch store persistence', () => {
       rmSync(dir, { recursive: true, force: true });
     }
   });
+
+  it('reports the highest persisted epoch so auto-settlement never reuses old ids', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-epochs-'));
+    try {
+      const path = join(dir, 'epochs.json');
+      const operator = makeSigner().address;
+      const store = new EpochStore(path);
+      for (const epoch of [2n, 9n, 4n]) {
+        store.put(
+          buildEpochFromByteTotals(
+            epoch,
+            [{ operator, nodeId: 7n, bytes: 1_000_000n }],
+            [{ operator, nodeId: 7n, endpointHash: 'abc', reputationBps: 10_000, geo: 0, stake: 0n }],
+            { minStakeToEarn: 0n },
+          ),
+        );
+      }
+
+      expect(new EpochStore(path).maxEpoch()).toBe(9n);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 });
