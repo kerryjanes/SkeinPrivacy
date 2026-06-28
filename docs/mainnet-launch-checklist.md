@@ -4,12 +4,14 @@ This checklist is the manual launch gate. Do not launch while any item is unknow
 
 ## On-chain deployment
 
+- Run `./scripts/mainnet-preflight.sh` before funding or sending any mainnet transaction.
 - Deploy the single Anchor program `programs/weft` to mainnet-beta from a clean toolchain.
 - Do not deploy legacy programs from `legacy-programs/*`; they are not part of the mainnet MVP.
 - Update `declare_id!` in `programs/weft/src/lib.rs` to the deployed mainnet program id.
 - Add `[programs.mainnet]` to `Anchor.toml`.
 - Regenerate `@weft/sdk` from the final `weft` IDL and confirm `WEFT_PROGRAM_ADDRESS` matches mainnet.
 - Verify the deployed program buffer and upgrade authority are controlled by the intended multisig or are intentionally immutable.
+- Current preflight size estimate for the single `weft` program is about `529,912` bytes / `3.6890784 SOL` rent-exempt programdata. Keep the deploy wallet funded above this for buffer accounts, fees, and initialization accounts; this is not a seven-program deploy.
 
 ## Genesis
 
