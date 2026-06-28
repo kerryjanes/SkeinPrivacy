@@ -125,6 +125,36 @@ describe('relay exit profile stats', () => {
     }
   });
 
+  it('keeps served lifetime cumulative when a Windows node counter resets', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
+    try {
+      const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json') };
+      const input = {
+        host: cfg.host,
+        port: 20026,
+        uuid: cfg.founderUuid,
+        realityPub: cfg.realityPublicKey,
+        sid: cfg.shortId,
+        sni: cfg.sni,
+        geo: cfg.geo,
+      };
+      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '1000' }).servedBytesLifetime).toBe(
+        '1000',
+      );
+      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '1200' }).servedBytesLifetime).toBe(
+        '1200',
+      );
+      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '40' }).servedBytesLifetime).toBe(
+        '1240',
+      );
+      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '90' }).servedBytesLifetime).toBe(
+        '1290',
+      );
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it('keeps a stale profile live while the matching frp relay port is online', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
     try {

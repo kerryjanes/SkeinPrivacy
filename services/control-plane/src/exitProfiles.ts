@@ -12,6 +12,7 @@ export interface ExitProfile {
   sni: string;
   geo: number;
   servedBytesLifetime: string;
+  lastReportedServedBytes?: string;
   updatedAt: number;
 }
 
@@ -50,6 +51,15 @@ export function registerExitProfile(cfg: NodeConfig, input: unknown, now = Date.
   }
   if (typeof p.sid !== 'string' || !SID_RE.test(p.sid)) throw new Error('invalid profile sid');
   if (typeof p.sni !== 'string' || p.sni.length < 3) throw new Error('invalid profile sni');
+  const profiles = readStore(cfg.relayProfilePath);
+  const incomingServed = BigInt(String(p.servedBytesLifetime ?? 0));
+  const existing = profiles[key({ host: p.host, port })];
+  const existingServed = BigInt(existing?.servedBytesLifetime ?? '0');
+  const lastReported = BigInt(existing?.lastReportedServedBytes ?? existing?.servedBytesLifetime ?? '0');
+  const servedBytesLifetime =
+    existing && incomingServed < lastReported
+      ? existingServed + incomingServed
+      : existingServed + (incomingServed > lastReported ? incomingServed - lastReported : 0n);
   const profile: ExitProfile = {
     host: p.host,
     port,
@@ -58,10 +68,10 @@ export function registerExitProfile(cfg: NodeConfig, input: unknown, now = Date.
     sid: p.sid,
     sni: p.sni,
     geo: Number(p.geo ?? 0),
-    servedBytesLifetime: BigInt(String(p.servedBytesLifetime ?? 0)).toString(),
+    servedBytesLifetime: servedBytesLifetime.toString(),
+    lastReportedServedBytes: incomingServed.toString(),
     updatedAt: now,
   };
-  const profiles = readStore(cfg.relayProfilePath);
   profiles[key(profile)] = profile;
   writeStore(cfg.relayProfilePath, profiles);
   return profile;
