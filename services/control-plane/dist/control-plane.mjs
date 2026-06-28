@@ -16191,8 +16191,8 @@ function liveExitProfiles(cfg2, now = Date.now()) {
 function liveExitProfilesWithPorts(cfg2, now = Date.now(), onlinePorts = null) {
   const profiles = Object.values(readStore(cfg2.relayProfilePath));
   return profiles.filter((p) => {
-    if (onlinePorts) return onlinePorts.has(p.port);
     const fresh = now - p.updatedAt <= cfg2.exitProfileTtlMs;
+    if (onlinePorts) return onlinePorts.has(p.port) && fresh;
     return fresh;
   }).sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));
 }

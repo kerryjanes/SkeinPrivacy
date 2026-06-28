@@ -90,8 +90,8 @@ export function liveExitProfilesWithPorts(
   const profiles = Object.values(readStore(cfg.relayProfilePath));
   return profiles
     .filter((p) => {
-      if (onlinePorts) return onlinePorts.has(p.port);
       const fresh = now - p.updatedAt <= cfg.exitProfileTtlMs;
+      if (onlinePorts) return onlinePorts.has(p.port) && fresh;
       return fresh;
     })
     .sort((a, b) => `${a.host}:${a.port}`.localeCompare(`${b.host}:${b.port}`));

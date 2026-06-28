@@ -155,7 +155,7 @@ describe('relay exit profile stats', () => {
     }
   });
 
-  it('keeps a stale profile live while the matching frp relay port is online', () => {
+  it('drops a stale profile even while the matching frp relay port is online', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
     try {
       const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json'), exitProfileTtlMs: 1 };
@@ -174,7 +174,32 @@ describe('relay exit profile stats', () => {
         1_000,
       );
       expect(liveExitProfilesWithPorts(profileCfg, 10_000, new Set())).toHaveLength(0);
+      expect(liveExitProfilesWithPorts(profileCfg, 10_000, new Set([20026]))).toHaveLength(0);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
+  it('keeps a fresh profile live only when the matching frp relay port is online', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
+    try {
+      const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json'), exitProfileTtlMs: 60_000 };
+      registerExitProfile(
+        profileCfg,
+        {
+          host: cfg.host,
+          port: 20026,
+          uuid: cfg.founderUuid,
+          realityPub: cfg.realityPublicKey,
+          sid: cfg.shortId,
+          sni: cfg.sni,
+          geo: cfg.geo,
+          servedBytesLifetime: '0',
+        },
+        1_000,
+      );
       expect(liveExitProfilesWithPorts(profileCfg, 10_000, new Set([20026]))).toHaveLength(1);
+      expect(liveExitProfilesWithPorts(profileCfg, 10_000, new Set())).toHaveLength(0);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
