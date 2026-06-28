@@ -26,6 +26,7 @@ need() {
 
 need anchor
 need solana
+need node
 need pnpm
 need rg
 need wc
@@ -36,7 +37,10 @@ solana --version
 rustc --version
 
 echo "== program layout =="
-mapfile -t active_programs < <(find programs -mindepth 2 -maxdepth 2 -name Cargo.toml | sort)
+active_programs=()
+while IFS= read -r program_manifest; do
+  active_programs+=("${program_manifest}")
+done < <(find programs -mindepth 2 -maxdepth 2 -name Cargo.toml | sort)
 [[ "${#active_programs[@]}" == "1" ]] || fail "expected exactly one active program under programs/, got ${#active_programs[@]}"
 [[ "${active_programs[0]}" == "programs/weft/Cargo.toml" ]] || fail "active program must be programs/weft"
 rg -n 'members = \["crates/\*", "programs/weft"\]' Cargo.toml >/dev/null \
