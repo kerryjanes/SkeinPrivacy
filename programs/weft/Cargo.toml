@@ -24,6 +24,7 @@ custom-panic = []
 anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-spl = { workspace = true }
 weft-primitives = { workspace = true }
+spl-token-interface = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }

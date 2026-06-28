@@ -97,22 +97,15 @@ pub mod weft {
         Ok(())
     }
 
-    pub fn set_dispute_authority(
-        ctx: Context<CoreAdmin>,
-        dispute_authority: Pubkey,
-    ) -> Result<()> {
+    pub fn set_dispute_authority(ctx: Context<CoreAdmin>, dispute_authority: Pubkey) -> Result<()> {
         ctx.accounts.distributor.dispute_authority = dispute_authority;
         ctx.accounts.staking_config.slash_authority = dispute_authority;
         Ok(())
     }
 
-    pub fn stake(
-        ctx: Context<Stake>,
-        node_id: u64,
-        amount: u64,
-        lock_duration: i64,
-    ) -> Result<()> {
-        ctx.accounts.stake(node_id, amount, lock_duration, ctx.bumps.position)
+    pub fn stake(ctx: Context<Stake>, node_id: u64, amount: u64, lock_duration: i64) -> Result<()> {
+        ctx.accounts
+            .stake(node_id, amount, lock_duration, ctx.bumps.position)
     }
 
     pub fn request_unstake(ctx: Context<RequestUnstake>, _node_id: u64, amount: u64) -> Result<()> {
@@ -123,12 +116,23 @@ pub mod weft {
         ctx.accounts.withdraw_unstaked(node_id)
     }
 
+    pub fn close_empty_stake_position(
+        ctx: Context<CloseEmptyStakePosition>,
+        node_id: u64,
+    ) -> Result<()> {
+        ctx.accounts.close_empty_stake_position(node_id)
+    }
+
     pub fn deposit_escrow(ctx: Context<DepositEscrow>, amount: u64) -> Result<()> {
         ctx.accounts.deposit_escrow(amount, ctx.bumps.escrow)
     }
 
     pub fn withdraw_escrow(ctx: Context<WithdrawEscrow>, amount: u64) -> Result<()> {
         ctx.accounts.withdraw_escrow(amount)
+    }
+
+    pub fn close_escrow(ctx: Context<CloseEscrow>) -> Result<()> {
+        ctx.accounts.close_escrow()
     }
 
     pub fn pay_traffic(ctx: Context<PayTraffic>, amount: u64) -> Result<()> {
@@ -186,6 +190,10 @@ pub mod weft {
             slash_amount,
             ctx.bumps.claim_status,
         )
+    }
+
+    pub fn shutdown_core(ctx: Context<ShutdownCore>) -> Result<()> {
+        ctx.accounts.shutdown_core()
     }
 }
 
@@ -404,7 +412,10 @@ impl RegisterNode<'_> {
         bump: u8,
     ) -> Result<()> {
         require!(geo_is_valid(geo), WeftError::InvalidGeo);
-        require!(capabilities_valid(capabilities), WeftError::InvalidCapabilities);
+        require!(
+            capabilities_valid(capabilities),
+            WeftError::InvalidCapabilities
+        );
         require!(
             availability_is_valid(availability),
             WeftError::InvalidAvailability
@@ -680,15 +691,13 @@ impl WithdrawUnstaked<'_> {
         let now = Clock::get()?.unix_timestamp;
         let amount = self.position.unbonding_amount;
         require!(amount > 0, WeftError::ZeroAmount);
-        require!(now >= self.position.unbonding_until, WeftError::StillUnbonding);
+        require!(
+            now >= self.position.unbonding_until,
+            WeftError::StillUnbonding
+        );
         let id = node_id.to_le_bytes();
         let bump = self.position.bump;
-        let seeds: &[&[&[u8]]] = &[&[
-            STAKE_SEED,
-            self.operator.key.as_ref(),
-            &id,
-            &[bump],
-        ]];
+        let seeds: &[&[&[u8]]] = &[&[STAKE_SEED, self.operator.key.as_ref(), &id, &[bump]]];
         transfer_checked(
             CpiContext::new_with_signer(
                 self.token_program.key(),
@@ -712,6 +721,46 @@ impl WithdrawUnstaked<'_> {
         self.node.stake_amount = self.position.amount;
         self.node.updated_at = now;
         Ok(())
+    }
+}
+
+#[derive(Accounts)]
+#[instruction(node_id: u64)]
+pub struct CloseEmptyStakePosition<'info> {
+    #[account(mut)]
+    pub operator: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [STAKE_SEED, operator.key().as_ref(), &node_id.to_le_bytes()],
+        bump = position.bump,
+        constraint = position.operator == operator.key() @ WeftError::Unauthorized,
+        has_one = vault,
+        close = operator,
+    )]
+    pub position: Account<'info, StakePosition>,
+    #[account(mut, token::authority = position)]
+    pub vault: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+impl CloseEmptyStakePosition<'_> {
+    fn close_empty_stake_position(&mut self, node_id: u64) -> Result<()> {
+        require!(self.position.amount == 0, WeftError::AccountNotEmpty);
+        require!(
+            self.position.unbonding_amount == 0,
+            WeftError::AccountNotEmpty
+        );
+        require!(self.vault.amount == 0, WeftError::AccountNotEmpty);
+        let id = node_id.to_le_bytes();
+        let bump = self.position.bump;
+        let seeds: &[&[&[u8]]] = &[&[STAKE_SEED, self.operator.key.as_ref(), &id, &[bump]]];
+        close_token_account_ctx(
+            self.token_program.key(),
+            self.vault.to_account_info(),
+            self.operator.to_account_info(),
+            self.position.to_account_info(),
+            seeds,
+        )
     }
 }
 
@@ -805,7 +854,10 @@ pub struct WithdrawEscrow<'info> {
 impl WithdrawEscrow<'_> {
     fn withdraw_escrow(&mut self, amount: u64) -> Result<()> {
         require!(amount > 0, WeftError::ZeroAmount);
-        require!(self.escrow.balance >= amount, WeftError::InsufficientEscrow);
+        require!(
+            self.escrow.balance >= amount,
+            WeftError::InsufficientEscrow
+        );
         self.escrow.balance = self
             .escrow
             .balance
@@ -826,6 +878,40 @@ impl WithdrawEscrow<'_> {
             ),
             amount,
             self.reward_mint.decimals,
+        )
+    }
+}
+
+#[derive(Accounts)]
+pub struct CloseEscrow<'info> {
+    #[account(mut)]
+    pub owner: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [ESCROW_SEED, owner.key().as_ref()],
+        bump = escrow.bump,
+        constraint = escrow.owner == owner.key() @ WeftError::Unauthorized,
+        constraint = escrow.vault == escrow_vault.key() @ WeftError::InvalidEscrow,
+        close = owner,
+    )]
+    pub escrow: Account<'info, PaymentEscrow>,
+    #[account(mut, token::authority = escrow)]
+    pub escrow_vault: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+impl CloseEscrow<'_> {
+    fn close_escrow(&mut self) -> Result<()> {
+        require!(self.escrow.balance == 0, WeftError::AccountNotEmpty);
+        require!(self.escrow_vault.amount == 0, WeftError::AccountNotEmpty);
+        let owner = self.owner.key();
+        let seeds: &[&[&[u8]]] = &[&[ESCROW_SEED, owner.as_ref(), &[self.escrow.bump]]];
+        close_token_account_ctx(
+            self.token_program.key(),
+            self.escrow_vault.to_account_info(),
+            self.owner.to_account_info(),
+            self.escrow.to_account_info(),
+            seeds,
         )
     }
 }
@@ -892,7 +978,10 @@ pub struct PayTrafficFromEscrow<'info> {
 impl PayTrafficFromEscrow<'_> {
     fn pay_traffic_from_escrow(&mut self, amount: u64) -> Result<()> {
         require!(amount > 0, WeftError::ZeroAmount);
-        require!(self.escrow.balance >= amount, WeftError::InsufficientEscrow);
+        require!(
+            self.escrow.balance >= amount,
+            WeftError::InsufficientEscrow
+        );
         self.escrow.balance = self
             .escrow
             .balance
@@ -980,7 +1069,10 @@ impl PostEpoch<'_> {
         num_nodes: u32,
         bump: u8,
     ) -> Result<()> {
-        require!(epoch > self.distributor.current_epoch, WeftError::NonMonotonicEpoch);
+        require!(
+            epoch > self.distributor.current_epoch,
+            WeftError::NonMonotonicEpoch
+        );
         let outstanding = self
             .distributor
             .cumulative_obligated
@@ -989,7 +1081,10 @@ impl PostEpoch<'_> {
         let needed = outstanding
             .checked_add(total_reward)
             .ok_or(WeftError::MathOverflow)?;
-        require!(self.reward_vault.amount >= needed, WeftError::InsufficientVault);
+        require!(
+            self.reward_vault.amount >= needed,
+            WeftError::InsufficientVault
+        );
         self.epoch_distribution.set_inner(EpochDistribution {
             epoch,
             merkle_root,
@@ -1181,6 +1276,60 @@ impl Dispute<'_> {
     }
 }
 
+#[derive(Accounts)]
+pub struct ShutdownCore<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [REGISTRY_SEED],
+        bump = registry.bump,
+        constraint = registry.authority == authority.key() @ WeftError::Unauthorized,
+        close = authority,
+    )]
+    pub registry: Account<'info, Registry>,
+    #[account(
+        mut,
+        seeds = [STAKING_CONFIG_SEED],
+        bump = staking_config.bump,
+        constraint = staking_config.authority == authority.key() @ WeftError::Unauthorized,
+        close = authority,
+    )]
+    pub staking_config: Account<'info, StakingConfig>,
+    #[account(
+        mut,
+        seeds = [DISTRIBUTOR_SEED],
+        bump = distributor.bump,
+        constraint = distributor.authority == authority.key() @ WeftError::Unauthorized,
+        has_one = reward_vault,
+        close = authority,
+    )]
+    pub distributor: Account<'info, Distributor>,
+    #[account(mut, token::authority = distributor)]
+    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+impl ShutdownCore<'_> {
+    fn shutdown_core(&mut self) -> Result<()> {
+        require!(self.registry.paused, WeftError::ShutdownRequiresPaused);
+        require!(self.registry.node_count == 0, WeftError::ShutdownBlocked);
+        require!(
+            self.distributor.cumulative_obligated == self.distributor.cumulative_claimed,
+            WeftError::ShutdownBlocked
+        );
+        require!(self.reward_vault.amount == 0, WeftError::AccountNotEmpty);
+        let seeds: &[&[&[u8]]] = &[&[DISTRIBUTOR_SEED, &[self.distributor.bump]]];
+        close_token_account_ctx(
+            self.token_program.key(),
+            self.reward_vault.to_account_info(),
+            self.authority.to_account_info(),
+            self.distributor.to_account_info(),
+            seeds,
+        )
+    }
+}
+
 fn init_or_validate_escrow(
     escrow: &mut PaymentEscrow,
     owner: Pubkey,
@@ -1199,6 +1348,28 @@ fn init_or_validate_escrow(
     require!(escrow.mint == mint, WeftError::InvalidEscrow);
     require!(escrow.vault == vault, WeftError::InvalidEscrow);
     Ok(())
+}
+
+fn close_token_account_ctx<'info>(
+    token_program: Pubkey,
+    account: AccountInfo<'info>,
+    destination: AccountInfo<'info>,
+    authority: AccountInfo<'info>,
+    signer_seeds: &[&[&[u8]]],
+) -> Result<()> {
+    let ix = spl_token_interface::instruction::close_account(
+        &token_program,
+        account.key,
+        destination.key,
+        authority.key,
+        &[],
+    )?;
+    anchor_lang::solana_program::program::invoke_signed(
+        &ix,
+        &[account, destination, authority],
+        signer_seeds,
+    )
+    .map_err(Into::into)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -1324,4 +1495,10 @@ pub enum WeftError {
     InvalidProof,
     #[msg("Epoch over-claimed")]
     EpochOverclaim,
+    #[msg("Account must be empty before it can be closed")]
+    AccountNotEmpty,
+    #[msg("Core must be paused before shutdown")]
+    ShutdownRequiresPaused,
+    #[msg("Core still has active state and cannot be shut down")]
+    ShutdownBlocked,
 }

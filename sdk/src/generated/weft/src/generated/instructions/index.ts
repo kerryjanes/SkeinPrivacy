@@ -7,6 +7,8 @@
  */
 
 export * from './claim';
+export * from './closeEmptyStakePosition';
+export * from './closeEscrow';
 export * from './depositEscrow';
 export * from './deregisterNode';
 export * from './dispute';
@@ -21,6 +23,7 @@ export * from './setCoreAuthority';
 export * from './setDisputeAuthority';
 export * from './setPaused';
 export * from './setPosterAuthority';
+export * from './shutdownCore';
 export * from './stake';
 export * from './updateNode';
 export * from './withdrawEscrow';

@@ -11,7 +11,18 @@ This checklist is the manual launch gate. Do not launch while any item is unknow
 - Add `[programs.mainnet]` to `Anchor.toml`.
 - Regenerate `@weft/sdk` from the final `weft` IDL and confirm `WEFT_PROGRAM_ADDRESS` matches mainnet.
 - Verify the deployed program buffer and upgrade authority are controlled by the intended multisig or are intentionally immutable.
-- Current preflight size estimate for the single `weft` program is about `529,912` bytes / `3.6890784 SOL` rent-exempt programdata. Keep the deploy wallet funded above this for buffer accounts, fees, and initialization accounts; this is not a seven-program deploy.
+- Current preflight size estimate for the single `weft` program is about `564,496` bytes / `3.92978304 SOL` rent-exempt programdata. Keep the deploy wallet funded above this for buffer accounts, fees, and initialization accounts; this is not a seven-program deploy.
+
+## SOL Rent Recovery
+
+- Programdata rent is refundable by the upgrade authority with `solana program close <PROGRAM_ID> --bypass-warning`; this permanently closes that program id and cannot be used as a normal restart.
+- Transaction fees are not refundable.
+- Failed or abandoned deploy buffers must be closed by the buffer authority if a deploy is interrupted.
+- `deregister_node` closes the operator's `NodeState` and refunds its SOL rent to the operator.
+- `withdraw_escrow` returns unused `$WEFT`; after the balance is zero, `close_escrow` closes the escrow PDA and escrow token vault and refunds their SOL rent to the wallet.
+- `withdraw_unstaked` returns unstaked `$WEFT`; after the stake position and vault are empty, `close_empty_stake_position` closes them and refunds SOL rent to the operator.
+- `shutdown_core` is an authority-only retirement path. It can close `registry`, `staking_config`, `distributor`, and `reward_vault` only after the registry is paused, node count is zero, the reward vault is empty, and all posted obligations are claimed.
+- Do not close epoch/claim marker accounts while an epoch can still be claimed or disputed; these markers prevent double-claims and must be handled only by a separate audited archival/sweep design.
 
 ## Genesis
 

@@ -54,8 +54,15 @@ export const WEFT_ERROR__DISPUTE_WINDOW_OPEN = 0x1781; // 6017
 export const WEFT_ERROR__INVALID_PROOF = 0x1782; // 6018
 /** EpochOverclaim: Epoch over-claimed */
 export const WEFT_ERROR__EPOCH_OVERCLAIM = 0x1783; // 6019
+/** AccountNotEmpty: Account must be empty before it can be closed */
+export const WEFT_ERROR__ACCOUNT_NOT_EMPTY = 0x1784; // 6020
+/** ShutdownRequiresPaused: Core must be paused before shutdown */
+export const WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED = 0x1785; // 6021
+/** ShutdownBlocked: Core still has active state and cannot be shut down */
+export const WEFT_ERROR__SHUTDOWN_BLOCKED = 0x1786; // 6022
 
 export type WeftError =
+  | typeof WEFT_ERROR__ACCOUNT_NOT_EMPTY
   | typeof WEFT_ERROR__DISPUTE_WINDOW_OPEN
   | typeof WEFT_ERROR__EPOCH_OVERCLAIM
   | typeof WEFT_ERROR__INSUFFICIENT_ESCROW
@@ -73,6 +80,8 @@ export type WeftError =
   | typeof WEFT_ERROR__MATH_OVERFLOW
   | typeof WEFT_ERROR__NON_MONOTONIC_EPOCH
   | typeof WEFT_ERROR__PAUSED
+  | typeof WEFT_ERROR__SHUTDOWN_BLOCKED
+  | typeof WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED
   | typeof WEFT_ERROR__STILL_UNBONDING
   | typeof WEFT_ERROR__UNAUTHORIZED
   | typeof WEFT_ERROR__ZERO_AMOUNT;
@@ -80,6 +89,7 @@ export type WeftError =
 let weftErrorMessages: Record<WeftError, string> | undefined;
 if (process.env['NODE_ENV'] !== 'production') {
   weftErrorMessages = {
+    [WEFT_ERROR__ACCOUNT_NOT_EMPTY]: `Account must be empty before it can be closed`,
     [WEFT_ERROR__DISPUTE_WINDOW_OPEN]: `Dispute window has not elapsed`,
     [WEFT_ERROR__EPOCH_OVERCLAIM]: `Epoch over-claimed`,
     [WEFT_ERROR__INSUFFICIENT_ESCROW]: `Escrow balance is insufficient`,
@@ -97,6 +107,8 @@ if (process.env['NODE_ENV'] !== 'production') {
     [WEFT_ERROR__MATH_OVERFLOW]: `Arithmetic overflow`,
     [WEFT_ERROR__NON_MONOTONIC_EPOCH]: `Epoch must be strictly increasing`,
     [WEFT_ERROR__PAUSED]: `Registry is paused`,
+    [WEFT_ERROR__SHUTDOWN_BLOCKED]: `Core still has active state and cannot be shut down`,
+    [WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED]: `Core must be paused before shutdown`,
     [WEFT_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
     [WEFT_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
     [WEFT_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`,

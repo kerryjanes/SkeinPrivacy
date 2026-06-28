@@ -62,6 +62,8 @@ import {
 } from '../accounts';
 import {
   getClaimInstructionAsync,
+  getCloseEmptyStakePositionInstructionAsync,
+  getCloseEscrowInstructionAsync,
   getDepositEscrowInstructionAsync,
   getDeregisterNodeInstructionAsync,
   getDisputeInstructionAsync,
@@ -76,11 +78,14 @@ import {
   getSetDisputeAuthorityInstructionAsync,
   getSetPausedInstructionAsync,
   getSetPosterAuthorityInstructionAsync,
+  getShutdownCoreInstructionAsync,
   getStakeInstructionAsync,
   getUpdateNodeInstruction,
   getWithdrawEscrowInstructionAsync,
   getWithdrawUnstakedInstructionAsync,
   parseClaimInstruction,
+  parseCloseEmptyStakePositionInstruction,
+  parseCloseEscrowInstruction,
   parseDepositEscrowInstruction,
   parseDeregisterNodeInstruction,
   parseDisputeInstruction,
@@ -95,17 +100,22 @@ import {
   parseSetDisputeAuthorityInstruction,
   parseSetPausedInstruction,
   parseSetPosterAuthorityInstruction,
+  parseShutdownCoreInstruction,
   parseStakeInstruction,
   parseUpdateNodeInstruction,
   parseWithdrawEscrowInstruction,
   parseWithdrawUnstakedInstruction,
   type ClaimAsyncInput,
+  type CloseEmptyStakePositionAsyncInput,
+  type CloseEscrowAsyncInput,
   type DepositEscrowAsyncInput,
   type DeregisterNodeAsyncInput,
   type DisputeAsyncInput,
   type FundRewardVaultAsyncInput,
   type InitializeCoreAsyncInput,
   type ParsedClaimInstruction,
+  type ParsedCloseEmptyStakePositionInstruction,
+  type ParsedCloseEscrowInstruction,
   type ParsedDepositEscrowInstruction,
   type ParsedDeregisterNodeInstruction,
   type ParsedDisputeInstruction,
@@ -120,6 +130,7 @@ import {
   type ParsedSetDisputeAuthorityInstruction,
   type ParsedSetPausedInstruction,
   type ParsedSetPosterAuthorityInstruction,
+  type ParsedShutdownCoreInstruction,
   type ParsedStakeInstruction,
   type ParsedUpdateNodeInstruction,
   type ParsedWithdrawEscrowInstruction,
@@ -133,6 +144,7 @@ import {
   type SetDisputeAuthorityAsyncInput,
   type SetPausedAsyncInput,
   type SetPosterAuthorityAsyncInput,
+  type ShutdownCoreAsyncInput,
   type StakeAsyncInput,
   type UpdateNodeInput,
   type WithdrawEscrowAsyncInput,
@@ -266,6 +278,8 @@ export function identifyWeftAccount(
 
 export enum WeftInstruction {
   Claim,
+  CloseEmptyStakePosition,
+  CloseEscrow,
   DepositEscrow,
   DeregisterNode,
   Dispute,
@@ -280,6 +294,7 @@ export enum WeftInstruction {
   SetDisputeAuthority,
   SetPaused,
   SetPosterAuthority,
+  ShutdownCore,
   Stake,
   UpdateNode,
   WithdrawEscrow,
@@ -300,6 +315,28 @@ export function identifyWeftInstruction(
     )
   ) {
     return WeftInstruction.Claim;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([193, 160, 128, 71, 243, 233, 10, 32]),
+      ),
+      0,
+    )
+  ) {
+    return WeftInstruction.CloseEmptyStakePosition;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([139, 171, 94, 146, 191, 91, 144, 50]),
+      ),
+      0,
+    )
+  ) {
+    return WeftInstruction.CloseEscrow;
   }
   if (
     containsBytes(
@@ -457,6 +494,17 @@ export function identifyWeftInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([123, 138, 136, 220, 227, 54, 2, 41]),
+      ),
+      0,
+    )
+  ) {
+    return WeftInstruction.ShutdownCore;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([206, 176, 202, 18, 200, 209, 179, 108]),
       ),
       0,
@@ -507,6 +555,10 @@ export type ParsedWeftInstruction<
   TProgram extends string = 'HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr',
 > =
   | ({ instructionType: WeftInstruction.Claim } & ParsedClaimInstruction<TProgram>)
+  | ({
+      instructionType: WeftInstruction.CloseEmptyStakePosition;
+    } & ParsedCloseEmptyStakePositionInstruction<TProgram>)
+  | ({ instructionType: WeftInstruction.CloseEscrow } & ParsedCloseEscrowInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.DepositEscrow } & ParsedDepositEscrowInstruction<TProgram>)
   | ({
       instructionType: WeftInstruction.DeregisterNode;
@@ -537,6 +589,7 @@ export type ParsedWeftInstruction<
   | ({
       instructionType: WeftInstruction.SetPosterAuthority;
     } & ParsedSetPosterAuthorityInstruction<TProgram>)
+  | ({ instructionType: WeftInstruction.ShutdownCore } & ParsedShutdownCoreInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.Stake } & ParsedStakeInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.UpdateNode } & ParsedUpdateNodeInstruction<TProgram>)
   | ({
@@ -554,6 +607,20 @@ export function parseWeftInstruction<TProgram extends string>(
     case WeftInstruction.Claim: {
       assertIsInstructionWithAccounts(instruction);
       return { instructionType: WeftInstruction.Claim, ...parseClaimInstruction(instruction) };
+    }
+    case WeftInstruction.CloseEmptyStakePosition: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.CloseEmptyStakePosition,
+        ...parseCloseEmptyStakePositionInstruction(instruction),
+      };
+    }
+    case WeftInstruction.CloseEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.CloseEscrow,
+        ...parseCloseEscrowInstruction(instruction),
+      };
     }
     case WeftInstruction.DepositEscrow: {
       assertIsInstructionWithAccounts(instruction);
@@ -650,6 +717,13 @@ export function parseWeftInstruction<TProgram extends string>(
         ...parseSetPosterAuthorityInstruction(instruction),
       };
     }
+    case WeftInstruction.ShutdownCore: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.ShutdownCore,
+        ...parseShutdownCoreInstruction(instruction),
+      };
+    }
     case WeftInstruction.Stake: {
       assertIsInstructionWithAccounts(instruction);
       return { instructionType: WeftInstruction.Stake, ...parseStakeInstruction(instruction) };
@@ -713,6 +787,12 @@ export type WeftPluginInstructions = {
   claim: (
     input: ClaimAsyncInput,
   ) => ReturnType<typeof getClaimInstructionAsync> & SelfPlanAndSendFunctions;
+  closeEmptyStakePosition: (
+    input: CloseEmptyStakePositionAsyncInput,
+  ) => ReturnType<typeof getCloseEmptyStakePositionInstructionAsync> & SelfPlanAndSendFunctions;
+  closeEscrow: (
+    input: CloseEscrowAsyncInput,
+  ) => ReturnType<typeof getCloseEscrowInstructionAsync> & SelfPlanAndSendFunctions;
   depositEscrow: (
     input: DepositEscrowAsyncInput,
   ) => ReturnType<typeof getDepositEscrowInstructionAsync> & SelfPlanAndSendFunctions;
@@ -755,6 +835,9 @@ export type WeftPluginInstructions = {
   setPosterAuthority: (
     input: SetPosterAuthorityAsyncInput,
   ) => ReturnType<typeof getSetPosterAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
+  shutdownCore: (
+    input: ShutdownCoreAsyncInput,
+  ) => ReturnType<typeof getShutdownCoreInstructionAsync> & SelfPlanAndSendFunctions;
   stake: (
     input: StakeAsyncInput,
   ) => ReturnType<typeof getStakeInstructionAsync> & SelfPlanAndSendFunctions;
@@ -773,12 +856,12 @@ export type WeftPluginPdas = {
   distributor: typeof findDistributorPda;
   epochDistribution: typeof findEpochDistributionPda;
   claimStatus: typeof findClaimStatusPda;
+  position: typeof findPositionPda;
   escrow: typeof findEscrowPda;
   escrowVault: typeof findEscrowVaultPda;
   registry: typeof findRegistryPda;
   node: typeof findNodePda;
   stakingConfig: typeof findStakingConfigPda;
-  position: typeof findPositionPda;
   rewardVault: typeof findRewardVaultPda;
   vault: typeof findVaultPda;
 };
@@ -806,6 +889,10 @@ export function weftProgram() {
         },
         instructions: {
           claim: (input) => addSelfPlanAndSendFunctions(client, getClaimInstructionAsync(input)),
+          closeEmptyStakePosition: (input) =>
+            addSelfPlanAndSendFunctions(client, getCloseEmptyStakePositionInstructionAsync(input)),
+          closeEscrow: (input) =>
+            addSelfPlanAndSendFunctions(client, getCloseEscrowInstructionAsync(input)),
           depositEscrow: (input) =>
             addSelfPlanAndSendFunctions(client, getDepositEscrowInstructionAsync(input)),
           deregisterNode: (input) =>
@@ -837,6 +924,8 @@ export function weftProgram() {
             addSelfPlanAndSendFunctions(client, getSetPausedInstructionAsync(input)),
           setPosterAuthority: (input) =>
             addSelfPlanAndSendFunctions(client, getSetPosterAuthorityInstructionAsync(input)),
+          shutdownCore: (input) =>
+            addSelfPlanAndSendFunctions(client, getShutdownCoreInstructionAsync(input)),
           stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),
           updateNode: (input) =>
             addSelfPlanAndSendFunctions(client, getUpdateNodeInstruction(input)),
@@ -849,12 +938,12 @@ export function weftProgram() {
           distributor: findDistributorPda,
           epochDistribution: findEpochDistributionPda,
           claimStatus: findClaimStatusPda,
+          position: findPositionPda,
           escrow: findEscrowPda,
           escrowVault: findEscrowVaultPda,
           registry: findRegistryPda,
           node: findNodePda,
           stakingConfig: findStakingConfigPda,
-          position: findPositionPda,
           rewardVault: findRewardVaultPda,
           vault: findVaultPda,
         },

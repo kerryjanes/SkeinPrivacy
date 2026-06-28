@@ -2447,6 +2447,7 @@ dependencies = [
  "solana-pubkey 3.0.0",
  "solana-signer",
  "solana-transaction",
+ "spl-token-interface",
 ]
 
 [[package]]
