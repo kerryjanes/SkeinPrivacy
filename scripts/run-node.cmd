@@ -17,6 +17,7 @@ if /I "%~1"=="allow-defender-admin" (
     echo Open Command Prompt as Administrator and run: weft-node.cmd allow-defender
     exit /b %ERRORLEVEL%
   )
+  echo OK>"%WEFT_DIR%\defender-exclusion.ok"
   echo OK: Windows Defender exclusion added for %WEFT_DIR%
   exit /b 0
 )
@@ -31,6 +32,13 @@ if /I "%~1"=="allow-defender" (
   echo -^> approve the UAC prompt; the elevated window closes automatically
   powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process -FilePath $env:ComSpec -Verb RunAs -Wait -ArgumentList '/c ""%~f0"" allow-defender-admin'"
   exit /b %ERRORLEVEL%
+)
+
+if /I not "%~1"=="stop" if /I not "%~1"=="--stop" if not exist "%WEFT_DIR%\defender-exclusion.ok" (
+  call "%~f0" allow-defender
+  if errorlevel 1 (
+    echo WARNING: Defender exclusion was not added automatically; continuing anyway.
+  )
 )
 
 if exist "%PS1_LOCAL%" (

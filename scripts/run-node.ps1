@@ -269,11 +269,8 @@ if (!(Test-Path -LiteralPath $FrpcExe)) {
   } catch {
     Write-Host ""
     Write-Host "Windows blocked frpc.exe while extracting it."
-    Write-Host "Open Windows Security -> Virus & threat protection -> Protection history and allow frpc.exe,"
-    Write-Host "or stay in Command Prompt and run:"
-    Write-Host "  weft-node.cmd allow-defender"
-    Write-Host "  weft-node.cmd stop --purge"
-    Write-Host "  weft-node.cmd <your-node-key>"
+    Write-Host "Open Windows Security -> Virus & threat protection -> Protection history and allow frpc.exe."
+    Write-Host "Then run the same copied Windows CMD command again."
     throw
   } finally {
     if (Test-Path -LiteralPath $FrpZip) { Remove-Item -LiteralPath $FrpZip -Force }
@@ -284,11 +281,8 @@ if (!(Test-Executable $FrpcExe "--version" "frpc")) {
   Write-Host ""
   Write-Host "frpc.exe is present but Windows cannot run it."
   Write-Host "Most common causes: Windows Defender quarantined it, the file is corrupted, or this Windows is not x64."
-  Write-Host "Open Windows Security -> Virus & threat protection -> Protection history and allow frpc.exe,"
-  Write-Host "or stay in Command Prompt and run:"
-  Write-Host "  weft-node.cmd allow-defender"
-  Write-Host "  weft-node.cmd stop --purge"
-  Write-Host "  weft-node.cmd <your-node-key>"
+  Write-Host "Open Windows Security -> Virus & threat protection -> Protection history and allow frpc.exe."
+  Write-Host "Then run the same copied Windows CMD command again."
   Write-Host "Diagnostic log: $Sk\frpc.check.err.log"
   throw "frpc.exe is not executable"
 }
