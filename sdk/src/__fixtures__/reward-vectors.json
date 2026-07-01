@@ -1,20 +1,20 @@
 {
   "rewards": [
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "reward": "700000000000" },
-    { "bytes": "5000000000", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "reward": "12600000000000" },
-    { "bytes": "2500000000", "reputationBps": 3000, "geoBonusBps": 9000, "stakingBonusBps": 9000, "reward": "1575000000000" },
+    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "reward": "700000000" },
+    { "bytes": "5000000000", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "reward": "12600000000" },
+    { "bytes": "2500000000", "reputationBps": 3000, "geoBonusBps": 9000, "stakingBonusBps": 9000, "reward": "1575000000" },
     { "bytes": "0", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "reward": "0" },
-    { "bytes": "123456789", "reputationBps": 14237, "geoBonusBps": 1234, "stakingBonusBps": 2000, "reward": "165862103082" },
-    { "bytes": "1000000000000", "reputationBps": 12000, "geoBonusBps": 2500, "stakingBonusBps": 0, "reward": "1050000000000000" }
+    { "bytes": "123456789", "reputationBps": 14237, "geoBonusBps": 1234, "stakingBonusBps": 2000, "reward": "165862100" },
+    { "bytes": "1000000000000", "reputationBps": 12000, "geoBonusBps": 2500, "stakingBonusBps": 0, "reward": "1050000000000" }
   ],
   "bootstrap": [
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 0, "reward": "700000000000" },
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 5000, "reward": "1050000000000" },
-    { "bytes": "1000000000", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "bootstrapBonusBps": 5000, "reward": "3780000000000" },
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 99999, "reward": "1400000000000" }
+    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 0, "reward": "700000000" },
+    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 5000, "reward": "1050000000" },
+    { "bytes": "1000000000", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "bootstrapBonusBps": 5000, "reward": "3780000000" },
+    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 99999, "reward": "1400000000" }
   ],
   "tge": [
-    { "allocation": "150000000000000000", "tgeBps": 2500, "tge": "37500000000000000", "vesting": "112500000000000000" },
+    { "allocation": "150000000000000", "tgeBps": 2500, "tge": "37500000000000", "vesting": "112500000000000" },
     { "allocation": "1000000", "tgeBps": 2500, "tge": "250000", "vesting": "750000" },
     { "allocation": "3", "tgeBps": 2500, "tge": "0", "vesting": "3" },
     { "allocation": "1000", "tgeBps": 10000, "tge": "1000", "vesting": "0" }

@@ -21,12 +21,11 @@ pub const BPS: u32 = 10_000;
 // $WEFT token
 // ---------------------------------------------------------------------------
 
-/// Token decimals. 9 mirrors SOL and gives sub-micro-token granularity for
-/// per-gigabyte micropayments.
-pub const DECIMALS: u8 = 9;
+/// Token decimals. 6 matches the pump.fun launch standard for $WEFT.
+pub const DECIMALS: u8 = 6;
 
 /// Base units in one whole $WEFT (`10^DECIMALS`).
-pub const ONE_WEFT: u64 = 1_000_000_000;
+pub const ONE_WEFT: u64 = 1_000_000;
 
 /// Maximum total supply in whole tokens (the protocol spec: 1,000,000,000).
 pub const TOTAL_SUPPLY: u64 = 1_000_000_000;
@@ -492,7 +491,7 @@ mod tests {
 
     #[test]
     fn token_supply_is_1e18_base_units() {
-        assert_eq!(TOTAL_SUPPLY_BASE_UNITS, 1_000_000_000_000_000_000);
+        assert_eq!(TOTAL_SUPPLY_BASE_UNITS, 1_000_000_000_000_000);
         assert_eq!(ONE_WEFT, 10u64.pow(DECIMALS as u32));
     }
 
@@ -548,8 +547,8 @@ mod tests {
         // 1 GB, reputation 1.0x, no geo bonus, no staking bonus.
         let r = traffic_reward(BYTES_PER_GB, BPS, 0, 0);
         assert_eq!(r, NODE_REWARD_RATE_PER_GB);
-        assert_eq!(r, 700_000_000_000); // 700 WEFT
-        assert_eq!(USER_PRICE_PER_GB, 1_000_000_000_000); // 1000 WEFT
+        assert_eq!(r, 700_000_000); // 700 WEFT
+        assert_eq!(USER_PRICE_PER_GB, 1_000_000_000); // 1000 WEFT
     }
 
     #[test]
@@ -561,13 +560,13 @@ mod tests {
             GEO_BONUS_MAX_BPS,
             STAKING_BONUS_BPS,
         );
-        assert_eq!(r, 2_520_000_000_000);
+        assert_eq!(r, 2_520_000_000);
     }
 
     #[test]
     fn minimum_reputation_halves_reward() {
         let r = traffic_reward(BYTES_PER_GB, REPUTATION_MIN_BPS, 0, 0);
-        assert_eq!(r, 350_000_000_000); // 350 WEFT
+        assert_eq!(r, 350_000_000); // 350 WEFT
     }
 
     #[test]
