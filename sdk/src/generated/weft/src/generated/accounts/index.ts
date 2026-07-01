@@ -14,3 +14,4 @@ export * from './paymentEscrow';
 export * from './registry';
 export * from './stakePosition';
 export * from './stakingConfig';
+export * from './treeShard';

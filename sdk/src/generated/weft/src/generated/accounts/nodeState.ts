@@ -68,6 +68,12 @@ export type NodeState = {
   stakeAmount: bigint;
   bump: number;
   sequence: bigint;
+  /** Bubblegum V2 cNFT asset id bound to this node (the ownership/identity token). */
+  assetId: Address;
+  /** Tree shard holding the cNFT leaf. */
+  merkleTree: Address;
+  /** Leaf index / nonce at mint time (to recompute the leaf / fetch proofs). */
+  leafNonce: bigint;
 };
 
 export type NodeStateArgs = {
@@ -84,6 +90,12 @@ export type NodeStateArgs = {
   stakeAmount: number | bigint;
   bump: number;
   sequence: number | bigint;
+  /** Bubblegum V2 cNFT asset id bound to this node (the ownership/identity token). */
+  assetId: Address;
+  /** Tree shard holding the cNFT leaf. */
+  merkleTree: Address;
+  /** Leaf index / nonce at mint time (to recompute the leaf / fetch proofs). */
+  leafNonce: number | bigint;
 };
 
 /** Gets the encoder for {@link NodeStateArgs} account data. */
@@ -104,6 +116,9 @@ export function getNodeStateEncoder(): FixedSizeEncoder<NodeStateArgs> {
       ['stakeAmount', getU64Encoder()],
       ['bump', getU8Encoder()],
       ['sequence', getU64Encoder()],
+      ['assetId', getAddressEncoder()],
+      ['merkleTree', getAddressEncoder()],
+      ['leafNonce', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: NODE_STATE_DISCRIMINATOR }),
   );
@@ -126,6 +141,9 @@ export function getNodeStateDecoder(): FixedSizeDecoder<NodeState> {
     ['stakeAmount', getU64Decoder()],
     ['bump', getU8Decoder()],
     ['sequence', getU64Decoder()],
+    ['assetId', getAddressDecoder()],
+    ['merkleTree', getAddressDecoder()],
+    ['leafNonce', getU64Decoder()],
   ]);
 }
 
@@ -185,5 +203,5 @@ export async function fetchAllMaybeNodeState(
 }
 
 export function getNodeStateSize(): number {
-  return 125;
+  return 197;
 }

@@ -7,6 +7,8 @@
  */
 
 import {
+  addDecoderSizePrefix,
+  addEncoderSizePrefix,
   combineCodec,
   fixDecoderSize,
   fixEncoderSize,
@@ -20,15 +22,17 @@ import {
   getU64Encoder,
   getU8Decoder,
   getU8Encoder,
+  getUtf8Decoder,
+  getUtf8Encoder,
   SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS,
   SolanaError,
   transformEncoder,
   type AccountMeta,
   type AccountSignerMeta,
   type Address,
-  type FixedSizeCodec,
-  type FixedSizeDecoder,
-  type FixedSizeEncoder,
+  type Codec,
+  type Decoder,
+  type Encoder,
   type Instruction,
   type InstructionWithAccounts,
   type InstructionWithData,
@@ -59,7 +63,18 @@ export type RegisterNodeInstruction<
   TProgram extends string = typeof WEFT_PROGRAM_ADDRESS,
   TAccountOperator extends string | AccountMeta<string> = string,
   TAccountRegistry extends string | AccountMeta<string> = string,
+  TAccountTreeShard extends string | AccountMeta<string> = string,
   TAccountNode extends string | AccountMeta<string> = string,
+  TAccountTreeConfig extends string | AccountMeta<string> = string,
+  TAccountMerkleTree extends string | AccountMeta<string> = string,
+  TAccountCoreCollection extends string | AccountMeta<string> = string,
+  TAccountMplCoreCpiSigner extends string | AccountMeta<string> = string,
+  TAccountLogWrapper extends string | AccountMeta<string> = string,
+  TAccountCompressionProgram extends string | AccountMeta<string> = string,
+  TAccountMplCoreProgram extends string | AccountMeta<string> =
+    'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d',
+  TAccountBubblegumProgram extends string | AccountMeta<string> =
+    'BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY',
   TAccountSystemProgram extends string | AccountMeta<string> = '11111111111111111111111111111111',
   TRemainingAccounts extends readonly AccountMeta<string>[] = [],
 > = Instruction<TProgram> &
@@ -70,7 +85,26 @@ export type RegisterNodeInstruction<
         ? WritableSignerAccount<TAccountOperator> & AccountSignerMeta<TAccountOperator>
         : TAccountOperator,
       TAccountRegistry extends string ? WritableAccount<TAccountRegistry> : TAccountRegistry,
+      TAccountTreeShard extends string ? WritableAccount<TAccountTreeShard> : TAccountTreeShard,
       TAccountNode extends string ? WritableAccount<TAccountNode> : TAccountNode,
+      TAccountTreeConfig extends string ? WritableAccount<TAccountTreeConfig> : TAccountTreeConfig,
+      TAccountMerkleTree extends string ? WritableAccount<TAccountMerkleTree> : TAccountMerkleTree,
+      TAccountCoreCollection extends string
+        ? WritableAccount<TAccountCoreCollection>
+        : TAccountCoreCollection,
+      TAccountMplCoreCpiSigner extends string
+        ? ReadonlyAccount<TAccountMplCoreCpiSigner>
+        : TAccountMplCoreCpiSigner,
+      TAccountLogWrapper extends string ? ReadonlyAccount<TAccountLogWrapper> : TAccountLogWrapper,
+      TAccountCompressionProgram extends string
+        ? ReadonlyAccount<TAccountCompressionProgram>
+        : TAccountCompressionProgram,
+      TAccountMplCoreProgram extends string
+        ? ReadonlyAccount<TAccountMplCoreProgram>
+        : TAccountMplCoreProgram,
+      TAccountBubblegumProgram extends string
+        ? ReadonlyAccount<TAccountBubblegumProgram>
+        : TAccountBubblegumProgram,
       TAccountSystemProgram extends string
         ? ReadonlyAccount<TAccountSystemProgram>
         : TAccountSystemProgram,
@@ -85,6 +119,7 @@ export type RegisterNodeInstructionData = {
   capabilities: number;
   endpointHash: ReadonlyUint8Array;
   availability: number;
+  metadataUri: string;
 };
 
 export type RegisterNodeInstructionDataArgs = {
@@ -93,9 +128,10 @@ export type RegisterNodeInstructionDataArgs = {
   capabilities: number;
   endpointHash: ReadonlyUint8Array;
   availability: number;
+  metadataUri: string;
 };
 
-export function getRegisterNodeInstructionDataEncoder(): FixedSizeEncoder<RegisterNodeInstructionDataArgs> {
+export function getRegisterNodeInstructionDataEncoder(): Encoder<RegisterNodeInstructionDataArgs> {
   return transformEncoder(
     getStructEncoder([
       ['discriminator', fixEncoderSize(getBytesEncoder(), 8)],
@@ -104,12 +140,13 @@ export function getRegisterNodeInstructionDataEncoder(): FixedSizeEncoder<Regist
       ['capabilities', getU32Encoder()],
       ['endpointHash', fixEncoderSize(getBytesEncoder(), 32)],
       ['availability', getU8Encoder()],
+      ['metadataUri', addEncoderSizePrefix(getUtf8Encoder(), getU32Encoder())],
     ]),
     (value) => ({ ...value, discriminator: REGISTER_NODE_DISCRIMINATOR }),
   );
 }
 
-export function getRegisterNodeInstructionDataDecoder(): FixedSizeDecoder<RegisterNodeInstructionData> {
+export function getRegisterNodeInstructionDataDecoder(): Decoder<RegisterNodeInstructionData> {
   return getStructDecoder([
     ['discriminator', fixDecoderSize(getBytesDecoder(), 8)],
     ['nodeId', getU64Decoder()],
@@ -117,10 +154,11 @@ export function getRegisterNodeInstructionDataDecoder(): FixedSizeDecoder<Regist
     ['capabilities', getU32Decoder()],
     ['endpointHash', fixDecoderSize(getBytesDecoder(), 32)],
     ['availability', getU8Decoder()],
+    ['metadataUri', addDecoderSizePrefix(getUtf8Decoder(), getU32Decoder())],
   ]);
 }
 
-export function getRegisterNodeInstructionDataCodec(): FixedSizeCodec<
+export function getRegisterNodeInstructionDataCodec(): Codec<
   RegisterNodeInstructionDataArgs,
   RegisterNodeInstructionData
 > {
@@ -133,31 +171,68 @@ export function getRegisterNodeInstructionDataCodec(): FixedSizeCodec<
 export type RegisterNodeAsyncInput<
   TAccountOperator extends string = string,
   TAccountRegistry extends string = string,
+  TAccountTreeShard extends string = string,
   TAccountNode extends string = string,
+  TAccountTreeConfig extends string = string,
+  TAccountMerkleTree extends string = string,
+  TAccountCoreCollection extends string = string,
+  TAccountMplCoreCpiSigner extends string = string,
+  TAccountLogWrapper extends string = string,
+  TAccountCompressionProgram extends string = string,
+  TAccountMplCoreProgram extends string = string,
+  TAccountBubblegumProgram extends string = string,
   TAccountSystemProgram extends string = string,
 > = {
   operator: TransactionSigner<TAccountOperator>;
   registry?: Address<TAccountRegistry>;
+  treeShard: Address<TAccountTreeShard>;
   node?: Address<TAccountNode>;
+  treeConfig: Address<TAccountTreeConfig>;
+  merkleTree: Address<TAccountMerkleTree>;
+  coreCollection: Address<TAccountCoreCollection>;
+  mplCoreCpiSigner: Address<TAccountMplCoreCpiSigner>;
+  logWrapper: Address<TAccountLogWrapper>;
+  compressionProgram: Address<TAccountCompressionProgram>;
+  mplCoreProgram?: Address<TAccountMplCoreProgram>;
+  bubblegumProgram?: Address<TAccountBubblegumProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   nodeId: RegisterNodeInstructionDataArgs['nodeId'];
   geo: RegisterNodeInstructionDataArgs['geo'];
   capabilities: RegisterNodeInstructionDataArgs['capabilities'];
   endpointHash: RegisterNodeInstructionDataArgs['endpointHash'];
   availability: RegisterNodeInstructionDataArgs['availability'];
+  metadataUri: RegisterNodeInstructionDataArgs['metadataUri'];
 };
 
 export async function getRegisterNodeInstructionAsync<
   TAccountOperator extends string,
   TAccountRegistry extends string,
+  TAccountTreeShard extends string,
   TAccountNode extends string,
+  TAccountTreeConfig extends string,
+  TAccountMerkleTree extends string,
+  TAccountCoreCollection extends string,
+  TAccountMplCoreCpiSigner extends string,
+  TAccountLogWrapper extends string,
+  TAccountCompressionProgram extends string,
+  TAccountMplCoreProgram extends string,
+  TAccountBubblegumProgram extends string,
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof WEFT_PROGRAM_ADDRESS,
 >(
   input: RegisterNodeAsyncInput<
     TAccountOperator,
     TAccountRegistry,
+    TAccountTreeShard,
     TAccountNode,
+    TAccountTreeConfig,
+    TAccountMerkleTree,
+    TAccountCoreCollection,
+    TAccountMplCoreCpiSigner,
+    TAccountLogWrapper,
+    TAccountCompressionProgram,
+    TAccountMplCoreProgram,
+    TAccountBubblegumProgram,
     TAccountSystemProgram
   >,
   config?: { programAddress?: TProgramAddress },
@@ -166,7 +241,16 @@ export async function getRegisterNodeInstructionAsync<
     TProgramAddress,
     TAccountOperator,
     TAccountRegistry,
+    TAccountTreeShard,
     TAccountNode,
+    TAccountTreeConfig,
+    TAccountMerkleTree,
+    TAccountCoreCollection,
+    TAccountMplCoreCpiSigner,
+    TAccountLogWrapper,
+    TAccountCompressionProgram,
+    TAccountMplCoreProgram,
+    TAccountBubblegumProgram,
     TAccountSystemProgram
   >
 > {
@@ -177,7 +261,16 @@ export async function getRegisterNodeInstructionAsync<
   const originalAccounts = {
     operator: { value: input.operator ?? null, isWritable: true },
     registry: { value: input.registry ?? null, isWritable: true },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
     node: { value: input.node ?? null, isWritable: true },
+    treeConfig: { value: input.treeConfig ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: true },
+    coreCollection: { value: input.coreCollection ?? null, isWritable: true },
+    mplCoreCpiSigner: { value: input.mplCoreCpiSigner ?? null, isWritable: false },
+    logWrapper: { value: input.logWrapper ?? null, isWritable: false },
+    compressionProgram: { value: input.compressionProgram ?? null, isWritable: false },
+    mplCoreProgram: { value: input.mplCoreProgram ?? null, isWritable: false },
+    bubblegumProgram: { value: input.bubblegumProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -198,6 +291,14 @@ export async function getRegisterNodeInstructionAsync<
       nodeId: getNonNullResolvedInstructionInput('nodeId', args.nodeId),
     });
   }
+  if (!accounts.mplCoreProgram.value) {
+    accounts.mplCoreProgram.value =
+      'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d' as Address<'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d'>;
+  }
+  if (!accounts.bubblegumProgram.value) {
+    accounts.bubblegumProgram.value =
+      'BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY' as Address<'BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY'>;
+  }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =
       '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
@@ -208,7 +309,16 @@ export async function getRegisterNodeInstructionAsync<
     accounts: [
       getAccountMeta('operator', accounts.operator),
       getAccountMeta('registry', accounts.registry),
+      getAccountMeta('treeShard', accounts.treeShard),
       getAccountMeta('node', accounts.node),
+      getAccountMeta('treeConfig', accounts.treeConfig),
+      getAccountMeta('merkleTree', accounts.merkleTree),
+      getAccountMeta('coreCollection', accounts.coreCollection),
+      getAccountMeta('mplCoreCpiSigner', accounts.mplCoreCpiSigner),
+      getAccountMeta('logWrapper', accounts.logWrapper),
+      getAccountMeta('compressionProgram', accounts.compressionProgram),
+      getAccountMeta('mplCoreProgram', accounts.mplCoreProgram),
+      getAccountMeta('bubblegumProgram', accounts.bubblegumProgram),
       getAccountMeta('systemProgram', accounts.systemProgram),
     ],
     data: getRegisterNodeInstructionDataEncoder().encode(args as RegisterNodeInstructionDataArgs),
@@ -217,7 +327,16 @@ export async function getRegisterNodeInstructionAsync<
     TProgramAddress,
     TAccountOperator,
     TAccountRegistry,
+    TAccountTreeShard,
     TAccountNode,
+    TAccountTreeConfig,
+    TAccountMerkleTree,
+    TAccountCoreCollection,
+    TAccountMplCoreCpiSigner,
+    TAccountLogWrapper,
+    TAccountCompressionProgram,
+    TAccountMplCoreProgram,
+    TAccountBubblegumProgram,
     TAccountSystemProgram
   >);
 }
@@ -225,34 +344,85 @@ export async function getRegisterNodeInstructionAsync<
 export type RegisterNodeInput<
   TAccountOperator extends string = string,
   TAccountRegistry extends string = string,
+  TAccountTreeShard extends string = string,
   TAccountNode extends string = string,
+  TAccountTreeConfig extends string = string,
+  TAccountMerkleTree extends string = string,
+  TAccountCoreCollection extends string = string,
+  TAccountMplCoreCpiSigner extends string = string,
+  TAccountLogWrapper extends string = string,
+  TAccountCompressionProgram extends string = string,
+  TAccountMplCoreProgram extends string = string,
+  TAccountBubblegumProgram extends string = string,
   TAccountSystemProgram extends string = string,
 > = {
   operator: TransactionSigner<TAccountOperator>;
   registry: Address<TAccountRegistry>;
+  treeShard: Address<TAccountTreeShard>;
   node: Address<TAccountNode>;
+  treeConfig: Address<TAccountTreeConfig>;
+  merkleTree: Address<TAccountMerkleTree>;
+  coreCollection: Address<TAccountCoreCollection>;
+  mplCoreCpiSigner: Address<TAccountMplCoreCpiSigner>;
+  logWrapper: Address<TAccountLogWrapper>;
+  compressionProgram: Address<TAccountCompressionProgram>;
+  mplCoreProgram?: Address<TAccountMplCoreProgram>;
+  bubblegumProgram?: Address<TAccountBubblegumProgram>;
   systemProgram?: Address<TAccountSystemProgram>;
   nodeId: RegisterNodeInstructionDataArgs['nodeId'];
   geo: RegisterNodeInstructionDataArgs['geo'];
   capabilities: RegisterNodeInstructionDataArgs['capabilities'];
   endpointHash: RegisterNodeInstructionDataArgs['endpointHash'];
   availability: RegisterNodeInstructionDataArgs['availability'];
+  metadataUri: RegisterNodeInstructionDataArgs['metadataUri'];
 };
 
 export function getRegisterNodeInstruction<
   TAccountOperator extends string,
   TAccountRegistry extends string,
+  TAccountTreeShard extends string,
   TAccountNode extends string,
+  TAccountTreeConfig extends string,
+  TAccountMerkleTree extends string,
+  TAccountCoreCollection extends string,
+  TAccountMplCoreCpiSigner extends string,
+  TAccountLogWrapper extends string,
+  TAccountCompressionProgram extends string,
+  TAccountMplCoreProgram extends string,
+  TAccountBubblegumProgram extends string,
   TAccountSystemProgram extends string,
   TProgramAddress extends Address = typeof WEFT_PROGRAM_ADDRESS,
 >(
-  input: RegisterNodeInput<TAccountOperator, TAccountRegistry, TAccountNode, TAccountSystemProgram>,
+  input: RegisterNodeInput<
+    TAccountOperator,
+    TAccountRegistry,
+    TAccountTreeShard,
+    TAccountNode,
+    TAccountTreeConfig,
+    TAccountMerkleTree,
+    TAccountCoreCollection,
+    TAccountMplCoreCpiSigner,
+    TAccountLogWrapper,
+    TAccountCompressionProgram,
+    TAccountMplCoreProgram,
+    TAccountBubblegumProgram,
+    TAccountSystemProgram
+  >,
   config?: { programAddress?: TProgramAddress },
 ): RegisterNodeInstruction<
   TProgramAddress,
   TAccountOperator,
   TAccountRegistry,
+  TAccountTreeShard,
   TAccountNode,
+  TAccountTreeConfig,
+  TAccountMerkleTree,
+  TAccountCoreCollection,
+  TAccountMplCoreCpiSigner,
+  TAccountLogWrapper,
+  TAccountCompressionProgram,
+  TAccountMplCoreProgram,
+  TAccountBubblegumProgram,
   TAccountSystemProgram
 > {
   // Program address.
@@ -262,7 +432,16 @@ export function getRegisterNodeInstruction<
   const originalAccounts = {
     operator: { value: input.operator ?? null, isWritable: true },
     registry: { value: input.registry ?? null, isWritable: true },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
     node: { value: input.node ?? null, isWritable: true },
+    treeConfig: { value: input.treeConfig ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: true },
+    coreCollection: { value: input.coreCollection ?? null, isWritable: true },
+    mplCoreCpiSigner: { value: input.mplCoreCpiSigner ?? null, isWritable: false },
+    logWrapper: { value: input.logWrapper ?? null, isWritable: false },
+    compressionProgram: { value: input.compressionProgram ?? null, isWritable: false },
+    mplCoreProgram: { value: input.mplCoreProgram ?? null, isWritable: false },
+    bubblegumProgram: { value: input.bubblegumProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false },
   };
   const accounts = originalAccounts as Record<
@@ -274,6 +453,14 @@ export function getRegisterNodeInstruction<
   const args = { ...input };
 
   // Resolve default values.
+  if (!accounts.mplCoreProgram.value) {
+    accounts.mplCoreProgram.value =
+      'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d' as Address<'CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d'>;
+  }
+  if (!accounts.bubblegumProgram.value) {
+    accounts.bubblegumProgram.value =
+      'BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY' as Address<'BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY'>;
+  }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value =
       '11111111111111111111111111111111' as Address<'11111111111111111111111111111111'>;
@@ -284,7 +471,16 @@ export function getRegisterNodeInstruction<
     accounts: [
       getAccountMeta('operator', accounts.operator),
       getAccountMeta('registry', accounts.registry),
+      getAccountMeta('treeShard', accounts.treeShard),
       getAccountMeta('node', accounts.node),
+      getAccountMeta('treeConfig', accounts.treeConfig),
+      getAccountMeta('merkleTree', accounts.merkleTree),
+      getAccountMeta('coreCollection', accounts.coreCollection),
+      getAccountMeta('mplCoreCpiSigner', accounts.mplCoreCpiSigner),
+      getAccountMeta('logWrapper', accounts.logWrapper),
+      getAccountMeta('compressionProgram', accounts.compressionProgram),
+      getAccountMeta('mplCoreProgram', accounts.mplCoreProgram),
+      getAccountMeta('bubblegumProgram', accounts.bubblegumProgram),
       getAccountMeta('systemProgram', accounts.systemProgram),
     ],
     data: getRegisterNodeInstructionDataEncoder().encode(args as RegisterNodeInstructionDataArgs),
@@ -293,7 +489,16 @@ export function getRegisterNodeInstruction<
     TProgramAddress,
     TAccountOperator,
     TAccountRegistry,
+    TAccountTreeShard,
     TAccountNode,
+    TAccountTreeConfig,
+    TAccountMerkleTree,
+    TAccountCoreCollection,
+    TAccountMplCoreCpiSigner,
+    TAccountLogWrapper,
+    TAccountCompressionProgram,
+    TAccountMplCoreProgram,
+    TAccountBubblegumProgram,
     TAccountSystemProgram
   >);
 }
@@ -306,8 +511,17 @@ export type ParsedRegisterNodeInstruction<
   accounts: {
     operator: TAccountMetas[0];
     registry: TAccountMetas[1];
-    node: TAccountMetas[2];
-    systemProgram: TAccountMetas[3];
+    treeShard: TAccountMetas[2];
+    node: TAccountMetas[3];
+    treeConfig: TAccountMetas[4];
+    merkleTree: TAccountMetas[5];
+    coreCollection: TAccountMetas[6];
+    mplCoreCpiSigner: TAccountMetas[7];
+    logWrapper: TAccountMetas[8];
+    compressionProgram: TAccountMetas[9];
+    mplCoreProgram: TAccountMetas[10];
+    bubblegumProgram: TAccountMetas[11];
+    systemProgram: TAccountMetas[12];
   };
   data: RegisterNodeInstructionData;
 };
@@ -320,10 +534,10 @@ export function parseRegisterNodeInstruction<
     InstructionWithAccounts<TAccountMetas> &
     InstructionWithData<ReadonlyUint8Array>,
 ): ParsedRegisterNodeInstruction<TProgram, TAccountMetas> {
-  if (instruction.accounts.length < 4) {
+  if (instruction.accounts.length < 13) {
     throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 4,
+      expectedAccountMetas: 13,
     });
   }
   let accountIndex = 0;
@@ -337,7 +551,16 @@ export function parseRegisterNodeInstruction<
     accounts: {
       operator: getNextAccount(),
       registry: getNextAccount(),
+      treeShard: getNextAccount(),
       node: getNextAccount(),
+      treeConfig: getNextAccount(),
+      merkleTree: getNextAccount(),
+      coreCollection: getNextAccount(),
+      mplCoreCpiSigner: getNextAccount(),
+      logWrapper: getNextAccount(),
+      compressionProgram: getNextAccount(),
+      mplCoreProgram: getNextAccount(),
+      bubblegumProgram: getNextAccount(),
       systemProgram: getNextAccount(),
     },
     data: getRegisterNodeInstructionDataDecoder().decode(instruction.data),

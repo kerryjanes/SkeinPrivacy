@@ -43,6 +43,7 @@ import {
   getRegistryCodec,
   getStakePositionCodec,
   getStakingConfigCodec,
+  getTreeShardCodec,
   type ClaimStatus,
   type ClaimStatusArgs,
   type Distributor,
@@ -59,6 +60,8 @@ import {
   type StakePositionArgs,
   type StakingConfig,
   type StakingConfigArgs,
+  type TreeShard,
+  type TreeShardArgs,
 } from '../accounts';
 import {
   getClaimInstructionAsync,
@@ -73,11 +76,13 @@ import {
   getPayTrafficInstructionAsync,
   getPostEpochInstructionAsync,
   getRegisterNodeInstructionAsync,
+  getRegisterTreeInstructionAsync,
   getRequestUnstakeInstructionAsync,
   getSetCoreAuthorityInstructionAsync,
   getSetDisputeAuthorityInstructionAsync,
   getSetPausedInstructionAsync,
   getSetPosterAuthorityInstructionAsync,
+  getSetRegistryCollectionInstructionAsync,
   getShutdownCoreInstructionAsync,
   getStakeInstructionAsync,
   getUpdateNodeInstruction,
@@ -95,11 +100,13 @@ import {
   parsePayTrafficInstruction,
   parsePostEpochInstruction,
   parseRegisterNodeInstruction,
+  parseRegisterTreeInstruction,
   parseRequestUnstakeInstruction,
   parseSetCoreAuthorityInstruction,
   parseSetDisputeAuthorityInstruction,
   parseSetPausedInstruction,
   parseSetPosterAuthorityInstruction,
+  parseSetRegistryCollectionInstruction,
   parseShutdownCoreInstruction,
   parseStakeInstruction,
   parseUpdateNodeInstruction,
@@ -125,11 +132,13 @@ import {
   type ParsedPayTrafficInstruction,
   type ParsedPostEpochInstruction,
   type ParsedRegisterNodeInstruction,
+  type ParsedRegisterTreeInstruction,
   type ParsedRequestUnstakeInstruction,
   type ParsedSetCoreAuthorityInstruction,
   type ParsedSetDisputeAuthorityInstruction,
   type ParsedSetPausedInstruction,
   type ParsedSetPosterAuthorityInstruction,
+  type ParsedSetRegistryCollectionInstruction,
   type ParsedShutdownCoreInstruction,
   type ParsedStakeInstruction,
   type ParsedUpdateNodeInstruction,
@@ -139,11 +148,13 @@ import {
   type PayTrafficFromEscrowAsyncInput,
   type PostEpochAsyncInput,
   type RegisterNodeAsyncInput,
+  type RegisterTreeAsyncInput,
   type RequestUnstakeAsyncInput,
   type SetCoreAuthorityAsyncInput,
   type SetDisputeAuthorityAsyncInput,
   type SetPausedAsyncInput,
   type SetPosterAuthorityAsyncInput,
+  type SetRegistryCollectionAsyncInput,
   type ShutdownCoreAsyncInput,
   type StakeAsyncInput,
   type UpdateNodeInput,
@@ -161,6 +172,7 @@ import {
   findRegistryPda,
   findRewardVaultPda,
   findStakingConfigPda,
+  findTreeShardPda,
   findVaultPda,
 } from '../pdas';
 
@@ -176,6 +188,7 @@ export enum WeftAccount {
   Registry,
   StakePosition,
   StakingConfig,
+  TreeShard,
 }
 
 export function identifyWeftAccount(
@@ -270,6 +283,17 @@ export function identifyWeftAccount(
   ) {
     return WeftAccount.StakingConfig;
   }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([103, 111, 212, 23, 42, 107, 59, 169]),
+      ),
+      0,
+    )
+  ) {
+    return WeftAccount.TreeShard;
+  }
   throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT, {
     accountData: data,
     programName: 'weft',
@@ -289,11 +313,13 @@ export enum WeftInstruction {
   PayTrafficFromEscrow,
   PostEpoch,
   RegisterNode,
+  RegisterTree,
   RequestUnstake,
   SetCoreAuthority,
   SetDisputeAuthority,
   SetPaused,
   SetPosterAuthority,
+  SetRegistryCollection,
   ShutdownCore,
   Stake,
   UpdateNode,
@@ -439,6 +465,17 @@ export function identifyWeftInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([22, 52, 192, 74, 201, 240, 87, 252]),
+      ),
+      0,
+    )
+  ) {
+    return WeftInstruction.RegisterTree;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([44, 154, 110, 253, 160, 202, 54, 34]),
       ),
       0,
@@ -489,6 +526,17 @@ export function identifyWeftInstruction(
     )
   ) {
     return WeftInstruction.SetPosterAuthority;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([244, 80, 202, 113, 72, 108, 36, 189]),
+      ),
+      0,
+    )
+  ) {
+    return WeftInstruction.SetRegistryCollection;
   }
   if (
     containsBytes(
@@ -576,6 +624,7 @@ export type ParsedWeftInstruction<
     } & ParsedPayTrafficFromEscrowInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.PostEpoch } & ParsedPostEpochInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.RegisterNode } & ParsedRegisterNodeInstruction<TProgram>)
+  | ({ instructionType: WeftInstruction.RegisterTree } & ParsedRegisterTreeInstruction<TProgram>)
   | ({
       instructionType: WeftInstruction.RequestUnstake;
     } & ParsedRequestUnstakeInstruction<TProgram>)
@@ -589,6 +638,9 @@ export type ParsedWeftInstruction<
   | ({
       instructionType: WeftInstruction.SetPosterAuthority;
     } & ParsedSetPosterAuthorityInstruction<TProgram>)
+  | ({
+      instructionType: WeftInstruction.SetRegistryCollection;
+    } & ParsedSetRegistryCollectionInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.ShutdownCore } & ParsedShutdownCoreInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.Stake } & ParsedStakeInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.UpdateNode } & ParsedUpdateNodeInstruction<TProgram>)
@@ -682,6 +734,13 @@ export function parseWeftInstruction<TProgram extends string>(
         ...parseRegisterNodeInstruction(instruction),
       };
     }
+    case WeftInstruction.RegisterTree: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.RegisterTree,
+        ...parseRegisterTreeInstruction(instruction),
+      };
+    }
     case WeftInstruction.RequestUnstake: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -715,6 +774,13 @@ export function parseWeftInstruction<TProgram extends string>(
       return {
         instructionType: WeftInstruction.SetPosterAuthority,
         ...parseSetPosterAuthorityInstruction(instruction),
+      };
+    }
+    case WeftInstruction.SetRegistryCollection: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.SetRegistryCollection,
+        ...parseSetRegistryCollectionInstruction(instruction),
       };
     }
     case WeftInstruction.ShutdownCore: {
@@ -781,6 +847,7 @@ export type WeftPluginAccounts = {
     SelfFetchFunctions<StakePositionArgs, StakePosition>;
   stakingConfig: ReturnType<typeof getStakingConfigCodec> &
     SelfFetchFunctions<StakingConfigArgs, StakingConfig>;
+  treeShard: ReturnType<typeof getTreeShardCodec> & SelfFetchFunctions<TreeShardArgs, TreeShard>;
 };
 
 export type WeftPluginInstructions = {
@@ -820,6 +887,9 @@ export type WeftPluginInstructions = {
   registerNode: (
     input: RegisterNodeAsyncInput,
   ) => ReturnType<typeof getRegisterNodeInstructionAsync> & SelfPlanAndSendFunctions;
+  registerTree: (
+    input: RegisterTreeAsyncInput,
+  ) => ReturnType<typeof getRegisterTreeInstructionAsync> & SelfPlanAndSendFunctions;
   requestUnstake: (
     input: RequestUnstakeAsyncInput,
   ) => ReturnType<typeof getRequestUnstakeInstructionAsync> & SelfPlanAndSendFunctions;
@@ -835,6 +905,9 @@ export type WeftPluginInstructions = {
   setPosterAuthority: (
     input: SetPosterAuthorityAsyncInput,
   ) => ReturnType<typeof getSetPosterAuthorityInstructionAsync> & SelfPlanAndSendFunctions;
+  setRegistryCollection: (
+    input: SetRegistryCollectionAsyncInput,
+  ) => ReturnType<typeof getSetRegistryCollectionInstructionAsync> & SelfPlanAndSendFunctions;
   shutdownCore: (
     input: ShutdownCoreAsyncInput,
   ) => ReturnType<typeof getShutdownCoreInstructionAsync> & SelfPlanAndSendFunctions;
@@ -863,6 +936,7 @@ export type WeftPluginPdas = {
   node: typeof findNodePda;
   stakingConfig: typeof findStakingConfigPda;
   rewardVault: typeof findRewardVaultPda;
+  treeShard: typeof findTreeShardPda;
   vault: typeof findVaultPda;
 };
 
@@ -886,6 +960,7 @@ export function weftProgram() {
           registry: addSelfFetchFunctions(client, getRegistryCodec()),
           stakePosition: addSelfFetchFunctions(client, getStakePositionCodec()),
           stakingConfig: addSelfFetchFunctions(client, getStakingConfigCodec()),
+          treeShard: addSelfFetchFunctions(client, getTreeShardCodec()),
         },
         instructions: {
           claim: (input) => addSelfPlanAndSendFunctions(client, getClaimInstructionAsync(input)),
@@ -914,6 +989,8 @@ export function weftProgram() {
             addSelfPlanAndSendFunctions(client, getPostEpochInstructionAsync(input)),
           registerNode: (input) =>
             addSelfPlanAndSendFunctions(client, getRegisterNodeInstructionAsync(input)),
+          registerTree: (input) =>
+            addSelfPlanAndSendFunctions(client, getRegisterTreeInstructionAsync(input)),
           requestUnstake: (input) =>
             addSelfPlanAndSendFunctions(client, getRequestUnstakeInstructionAsync(input)),
           setCoreAuthority: (input) =>
@@ -924,6 +1001,8 @@ export function weftProgram() {
             addSelfPlanAndSendFunctions(client, getSetPausedInstructionAsync(input)),
           setPosterAuthority: (input) =>
             addSelfPlanAndSendFunctions(client, getSetPosterAuthorityInstructionAsync(input)),
+          setRegistryCollection: (input) =>
+            addSelfPlanAndSendFunctions(client, getSetRegistryCollectionInstructionAsync(input)),
           shutdownCore: (input) =>
             addSelfPlanAndSendFunctions(client, getShutdownCoreInstructionAsync(input)),
           stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),
@@ -945,6 +1024,7 @@ export function weftProgram() {
           node: findNodePda,
           stakingConfig: findStakingConfigPda,
           rewardVault: findRewardVaultPda,
+          treeShard: findTreeShardPda,
           vault: findVaultPda,
         },
         identifyAccount: identifyWeftAccount,

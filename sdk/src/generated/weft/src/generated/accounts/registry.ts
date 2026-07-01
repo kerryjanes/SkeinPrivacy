@@ -23,6 +23,8 @@ import {
   getBytesEncoder,
   getStructDecoder,
   getStructEncoder,
+  getU16Decoder,
+  getU16Encoder,
   getU64Decoder,
   getU64Encoder,
   getU8Decoder,
@@ -56,6 +58,12 @@ export type Registry = {
   paused: boolean;
   bump: number;
   nodeSequence: bigint;
+  /** MPL-Core collection all node cNFTs belong to (set via `set_registry_collection`). */
+  collection: Address;
+  /** Merkle tree new node cNFTs currently mint into (set via `register_tree`). */
+  activeTree: Address;
+  /** Number of tree shards provisioned so far. */
+  treeCount: number;
 };
 
 export type RegistryArgs = {
@@ -64,6 +72,12 @@ export type RegistryArgs = {
   paused: boolean;
   bump: number;
   nodeSequence: number | bigint;
+  /** MPL-Core collection all node cNFTs belong to (set via `set_registry_collection`). */
+  collection: Address;
+  /** Merkle tree new node cNFTs currently mint into (set via `register_tree`). */
+  activeTree: Address;
+  /** Number of tree shards provisioned so far. */
+  treeCount: number;
 };
 
 /** Gets the encoder for {@link RegistryArgs} account data. */
@@ -76,6 +90,9 @@ export function getRegistryEncoder(): FixedSizeEncoder<RegistryArgs> {
       ['paused', getBooleanEncoder()],
       ['bump', getU8Encoder()],
       ['nodeSequence', getU64Encoder()],
+      ['collection', getAddressEncoder()],
+      ['activeTree', getAddressEncoder()],
+      ['treeCount', getU16Encoder()],
     ]),
     (value) => ({ ...value, discriminator: REGISTRY_DISCRIMINATOR }),
   );
@@ -90,6 +107,9 @@ export function getRegistryDecoder(): FixedSizeDecoder<Registry> {
     ['paused', getBooleanDecoder()],
     ['bump', getU8Decoder()],
     ['nodeSequence', getU64Decoder()],
+    ['collection', getAddressDecoder()],
+    ['activeTree', getAddressDecoder()],
+    ['treeCount', getU16Decoder()],
   ]);
 }
 
@@ -149,5 +169,5 @@ export async function fetchAllMaybeRegistry(
 }
 
 export function getRegistrySize(): number {
-  return 58;
+  return 124;
 }

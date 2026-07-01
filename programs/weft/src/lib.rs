@@ -5,6 +5,11 @@ use anchor_spl::token_interface::{
     burn_checked, transfer_checked, BurnChecked, Mint, TokenAccount, TokenInterface,
     TransferChecked,
 };
+use mpl_bubblegum::{
+    instructions::MintV2CpiBuilder,
+    types::{MetadataArgsV2, TokenStandard},
+    utils::get_asset_id,
+};
 use weft_primitives::{
     availability_is_valid, capabilities_valid, geo_is_valid,
     merkle::{hash_reward_leaf, merkle_verify},
@@ -15,6 +20,7 @@ declare_id!("HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr");
 
 pub const REGISTRY_SEED: &[u8] = b"registry";
 pub const NODE_SEED: &[u8] = b"node";
+pub const TREE_SEED: &[u8] = b"tree";
 pub const STAKING_CONFIG_SEED: &[u8] = b"staking_config";
 pub const STAKE_SEED: &[u8] = b"stake";
 pub const STAKE_VAULT_SEED: &[u8] = b"stake_vault";
@@ -30,6 +36,8 @@ pub const STATUS_SUSPENDED: u8 = 1;
 pub const STATUS_DEREGISTERED: u8 = 2;
 pub const MIN_LOCK_SECONDS: i64 = 0;
 pub const MAX_LOCK_SECONDS: i64 = 4 * 365 * 24 * 3_600;
+/// Maximum allowed merkle-tree depth (2^30 leaves) for a node cNFT tree shard.
+pub const MAX_TREE_DEPTH: u32 = 30;
 
 #[program]
 pub mod weft {
@@ -51,6 +59,24 @@ pub mod weft {
         )
     }
 
+    /// Provision a merkle-tree shard (created off-chain) and make it the active
+    /// tree new node cNFTs mint into. Admin only.
+    pub fn register_tree(ctx: Context<RegisterTree>, index: u16, max_depth: u32) -> Result<()> {
+        ctx.accounts
+            .register_tree(index, max_depth, ctx.bumps.tree_shard)
+    }
+
+    /// Point the registry at the MPL-Core collection (created off-chain with the
+    /// registry PDA as update authority) that all node cNFTs belong to. Admin only.
+    pub fn set_registry_collection(
+        ctx: Context<ConfigureRegistry>,
+        collection: Pubkey,
+    ) -> Result<()> {
+        ctx.accounts.registry.collection = collection;
+        Ok(())
+    }
+
+    #[allow(clippy::too_many_arguments)]
     pub fn register_node(
         ctx: Context<RegisterNode>,
         node_id: u64,
@@ -58,6 +84,7 @@ pub mod weft {
         capabilities: u32,
         endpoint_hash: [u8; 32],
         availability: u8,
+        metadata_uri: String,
     ) -> Result<()> {
         ctx.accounts.register_node(
             node_id,
@@ -65,6 +92,7 @@ pub mod weft {
             capabilities,
             endpoint_hash,
             availability,
+            metadata_uri,
             ctx.bumps.node,
         )
     }
@@ -205,6 +233,28 @@ pub struct Registry {
     pub paused: bool,
     pub bump: u8,
     pub node_sequence: u64,
+    /// MPL-Core collection all node cNFTs belong to (set via `set_registry_collection`).
+    pub collection: Pubkey,
+    /// Merkle tree new node cNFTs currently mint into (set via `register_tree`).
+    pub active_tree: Pubkey,
+    /// Number of tree shards provisioned so far.
+    pub tree_count: u16,
+}
+
+/// One merkle-tree shard node cNFTs mint into. PDA `[TREE_SEED, index_le]`.
+/// The tree itself is created off-chain (Bubblegum `createTreeV2`); this account
+/// tracks how many leaves have been minted so the next `leaf_nonce` is known.
+#[account]
+#[derive(InitSpace)]
+pub struct TreeShard {
+    pub merkle_tree: Pubkey,
+    pub index: u16,
+    /// Leaves minted into this tree so far (the next leaf nonce).
+    pub minted: u64,
+    /// Maximum leaves (`2^max_depth`).
+    pub capacity: u64,
+    pub full: bool,
+    pub bump: u8,
 }
 
 #[account]
@@ -223,6 +273,12 @@ pub struct NodeState {
     pub stake_amount: u64,
     pub bump: u8,
     pub sequence: u64,
+    /// Bubblegum V2 cNFT asset id bound to this node (the ownership/identity token).
+    pub asset_id: Pubkey,
+    /// Tree shard holding the cNFT leaf.
+    pub merkle_tree: Pubkey,
+    /// Leaf index / nonce at mint time (to recompute the leaf / fetch proofs).
+    pub leaf_nonce: u64,
 }
 
 #[account]
@@ -356,6 +412,11 @@ impl InitializeCore<'_> {
             paused: false,
             bump: registry_bump,
             node_sequence: 0,
+            // The cNFT collection + first tree are provisioned off-chain right after
+            // init, then stamped via `set_registry_collection` / `register_tree`.
+            collection: Pubkey::default(),
+            active_tree: Pubkey::default(),
+            tree_count: 0,
         });
         self.staking_config.set_inner(StakingConfig {
             authority,
@@ -384,12 +445,85 @@ impl InitializeCore<'_> {
 }
 
 #[derive(Accounts)]
+pub struct ConfigureRegistry<'info> {
+    pub authority: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [REGISTRY_SEED],
+        bump = registry.bump,
+        constraint = registry.authority == authority.key() @ WeftError::Unauthorized,
+    )]
+    pub registry: Account<'info, Registry>,
+}
+
+#[derive(Accounts)]
+#[instruction(index: u16)]
+pub struct RegisterTree<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    #[account(
+        mut,
+        seeds = [REGISTRY_SEED],
+        bump = registry.bump,
+        constraint = registry.authority == authority.key() @ WeftError::Unauthorized,
+    )]
+    pub registry: Account<'info, Registry>,
+    /// CHECK: the merkle tree account (created off-chain, delegated to the registry PDA).
+    pub merkle_tree: UncheckedAccount<'info>,
+    #[account(
+        init,
+        payer = authority,
+        space = 8 + TreeShard::INIT_SPACE,
+        seeds = [TREE_SEED, &index.to_le_bytes()],
+        bump
+    )]
+    pub tree_shard: Account<'info, TreeShard>,
+    pub system_program: Program<'info, System>,
+}
+
+impl RegisterTree<'_> {
+    fn register_tree(&mut self, index: u16, max_depth: u32, bump: u8) -> Result<()> {
+        require!(
+            index == self.registry.tree_count,
+            WeftError::TreeIndexMismatch
+        );
+        require!(
+            max_depth > 0 && max_depth <= MAX_TREE_DEPTH,
+            WeftError::InvalidTree
+        );
+        self.tree_shard.set_inner(TreeShard {
+            merkle_tree: self.merkle_tree.key(),
+            index,
+            minted: 0,
+            capacity: 1u64 << max_depth,
+            full: false,
+            bump,
+        });
+        self.registry.active_tree = self.merkle_tree.key();
+        self.registry.tree_count = self
+            .registry
+            .tree_count
+            .checked_add(1)
+            .ok_or(WeftError::MathOverflow)?;
+        Ok(())
+    }
+}
+
+#[derive(Accounts)]
 #[instruction(node_id: u64)]
 pub struct RegisterNode<'info> {
     #[account(mut)]
     pub operator: Signer<'info>,
     #[account(mut, seeds = [REGISTRY_SEED], bump = registry.bump, constraint = !registry.paused @ WeftError::Paused)]
     pub registry: Account<'info, Registry>,
+    #[account(
+        mut,
+        seeds = [TREE_SEED, &tree_shard.index.to_le_bytes()],
+        bump = tree_shard.bump,
+        constraint = tree_shard.merkle_tree == registry.active_tree @ WeftError::InvalidTree,
+        constraint = !tree_shard.full @ WeftError::TreeFull,
+    )]
+    pub tree_shard: Account<'info, TreeShard>,
     #[account(
         init,
         payer = operator,
@@ -398,10 +532,32 @@ pub struct RegisterNode<'info> {
         bump
     )]
     pub node: Account<'info, NodeState>,
+    // --- Bubblegum V2 mintV2 accounts ---
+    /// CHECK: Bubblegum tree-config PDA; validated by the Bubblegum program.
+    #[account(mut)]
+    pub tree_config: UncheckedAccount<'info>,
+    /// CHECK: must be the registry's active tree; validated by the Bubblegum program.
+    #[account(mut, address = registry.active_tree @ WeftError::InvalidTree)]
+    pub merkle_tree: UncheckedAccount<'info>,
+    /// CHECK: the registry's MPL-Core collection.
+    #[account(mut, address = registry.collection @ WeftError::InvalidCollection)]
+    pub core_collection: UncheckedAccount<'info>,
+    /// CHECK: Bubblegum's mpl-core CPI signer PDA.
+    pub mpl_core_cpi_signer: UncheckedAccount<'info>,
+    /// CHECK: mpl-noop / log wrapper program.
+    pub log_wrapper: UncheckedAccount<'info>,
+    /// CHECK: mpl-account-compression program.
+    pub compression_program: UncheckedAccount<'info>,
+    /// CHECK: mpl-core program.
+    pub mpl_core_program: UncheckedAccount<'info>,
+    /// CHECK: the Bubblegum program.
+    #[account(address = mpl_bubblegum::ID)]
+    pub bubblegum_program: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
 }
 
 impl RegisterNode<'_> {
+    #[allow(clippy::too_many_arguments)]
     fn register_node(
         &mut self,
         node_id: u64,
@@ -409,6 +565,7 @@ impl RegisterNode<'_> {
         capabilities: u32,
         endpoint_hash: [u8; 32],
         availability: u8,
+        metadata_uri: String,
         bump: u8,
     ) -> Result<()> {
         require!(geo_is_valid(geo), WeftError::InvalidGeo);
@@ -421,6 +578,9 @@ impl RegisterNode<'_> {
             WeftError::InvalidAvailability
         );
         let now = Clock::get()?.unix_timestamp;
+        let merkle_tree = self.registry.active_tree;
+        let leaf_nonce = self.tree_shard.minted;
+        let asset_id = get_asset_id(&merkle_tree, leaf_nonce);
         let sequence = self
             .registry
             .node_sequence
@@ -446,7 +606,64 @@ impl RegisterNode<'_> {
             stake_amount: 0,
             bump,
             sequence,
+            asset_id,
+            merkle_tree,
+            leaf_nonce,
         });
+
+        // Mint the node's ownership/identity cNFT into the registry collection,
+        // signed by the registry PDA (tree delegate + collection authority).
+        let metadata = MetadataArgsV2 {
+            name: format!("Weft Node #{node_id}"),
+            symbol: "WEFTODE".to_string(),
+            uri: metadata_uri,
+            seller_fee_basis_points: 0,
+            primary_sale_happened: false,
+            is_mutable: true,
+            token_standard: Some(TokenStandard::NonFungible),
+            creators: vec![],
+            collection: Some(self.registry.collection),
+        };
+
+        let bubblegum = self.bubblegum_program.to_account_info();
+        let tree_config = self.tree_config.to_account_info();
+        let operator = self.operator.to_account_info();
+        let registry_ai = self.registry.to_account_info();
+        let merkle_tree_ai = self.merkle_tree.to_account_info();
+        let core_collection = self.core_collection.to_account_info();
+        let cpi_signer = self.mpl_core_cpi_signer.to_account_info();
+        let log_wrapper = self.log_wrapper.to_account_info();
+        let compression = self.compression_program.to_account_info();
+        let core_program = self.mpl_core_program.to_account_info();
+        let system = self.system_program.to_account_info();
+
+        let registry_bump = self.registry.bump;
+        let signer_seeds: &[&[&[u8]]] = &[&[REGISTRY_SEED, &[registry_bump]]];
+
+        MintV2CpiBuilder::new(&bubblegum)
+            .tree_config(&tree_config)
+            .payer(&operator)
+            .tree_creator_or_delegate(Some(&registry_ai))
+            .collection_authority(Some(&registry_ai))
+            .leaf_owner(&operator)
+            .merkle_tree(&merkle_tree_ai)
+            .core_collection(Some(&core_collection))
+            .mpl_core_cpi_signer(Some(&cpi_signer))
+            .log_wrapper(&log_wrapper)
+            .compression_program(&compression)
+            .mpl_core_program(&core_program)
+            .system_program(&system)
+            .metadata(metadata)
+            .invoke_signed(signer_seeds)?;
+
+        self.tree_shard.minted = self
+            .tree_shard
+            .minted
+            .checked_add(1)
+            .ok_or(WeftError::MathOverflow)?;
+        if self.tree_shard.minted >= self.tree_shard.capacity {
+            self.tree_shard.full = true;
+        }
         Ok(())
     }
 }
@@ -1387,7 +1604,7 @@ fn split_from_user<'info>(
     let split = split_payment(amount);
     if split.nodes > 0 {
         transfer_checked_ctx(
-            token_program.clone(),
+            token_program,
             source.clone(),
             mint.clone(),
             reward_vault,
@@ -1399,7 +1616,7 @@ fn split_from_user<'info>(
     }
     if split.treasury > 0 {
         transfer_checked_ctx(
-            token_program.clone(),
+            token_program,
             source.clone(),
             mint.clone(),
             treasury,
@@ -1501,4 +1718,12 @@ pub enum WeftError {
     ShutdownRequiresPaused,
     #[msg("Core still has active state and cannot be shut down")]
     ShutdownBlocked,
+    #[msg("Tree shard index must equal the current tree count")]
+    TreeIndexMismatch,
+    #[msg("Invalid merkle tree or depth")]
+    InvalidTree,
+    #[msg("Active tree shard is full")]
+    TreeFull,
+    #[msg("Registry collection does not match")]
+    InvalidCollection,
 }

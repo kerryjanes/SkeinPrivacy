@@ -46,16 +46,21 @@ export async function becomeNode(
   conn: Connection,
   operator: TransactionSigner,
   input: BecomeNodeInput,
-  _cluster = 'devnet',
+  cluster = 'devnet',
 ): Promise<NodeRegistration> {
   const nodeId = deriveNodeId(operator.address, input.endpoint);
-  const signature = await registerNode(conn, operator, {
-    nodeId,
-    geo: input.geo ?? 0,
-    capabilities: input.capabilities ?? CAP_1HOP,
-    availability: input.availability ?? 100,
-    endpointHash: endpointHash(input.endpoint),
-  });
+  const signature = await registerNode(
+    conn,
+    operator,
+    {
+      nodeId,
+      geo: input.geo ?? 0,
+      capabilities: input.capabilities ?? CAP_1HOP,
+      availability: input.availability ?? 100,
+      endpointHash: endpointHash(input.endpoint),
+    },
+    cluster,
+  );
   const node = await nodePda(operator.address, nodeId);
   return { signature, nodeId, node, endpoint: input.endpoint };
 }

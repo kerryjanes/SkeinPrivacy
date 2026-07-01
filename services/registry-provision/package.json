@@ -7,6 +7,7 @@
     "build": "tsc -p tsconfig.json --noEmit",
     "bundle": "esbuild src/nodeAgent.ts --bundle --platform=node --format=esm --target=node20 --outfile=dist/node-agent.mjs --banner:js=\"import{createRequire}from'module';const require=createRequire(import.meta.url);\"",
     "core:init": "tsx src/initCore.ts",
+    "nft:provision": "tsx src/provision.ts",
     "node:register": "tsx src/nodeAgent.ts"
   },
   "devDependencies": {
@@ -17,6 +18,10 @@
     "vitest": "^4.1.9"
   },
   "dependencies": {
+    "@metaplex-foundation/mpl-bubblegum": "^5.0.2",
+    "@metaplex-foundation/mpl-core": "^1.10.0",
+    "@metaplex-foundation/umi": "^1.5.1",
+    "@metaplex-foundation/umi-bundle-defaults": "^1.5.1",
     "@noble/curves": "^1.6.0",
     "@weft/sdk": "workspace:*",
     "@solana-program/system": "^0.12.2",

@@ -60,6 +60,14 @@ export const WEFT_ERROR__ACCOUNT_NOT_EMPTY = 0x1784; // 6020
 export const WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED = 0x1785; // 6021
 /** ShutdownBlocked: Core still has active state and cannot be shut down */
 export const WEFT_ERROR__SHUTDOWN_BLOCKED = 0x1786; // 6022
+/** TreeIndexMismatch: Tree shard index must equal the current tree count */
+export const WEFT_ERROR__TREE_INDEX_MISMATCH = 0x1787; // 6023
+/** InvalidTree: Invalid merkle tree or depth */
+export const WEFT_ERROR__INVALID_TREE = 0x1788; // 6024
+/** TreeFull: Active tree shard is full */
+export const WEFT_ERROR__TREE_FULL = 0x1789; // 6025
+/** InvalidCollection: Registry collection does not match */
+export const WEFT_ERROR__INVALID_COLLECTION = 0x178a; // 6026
 
 export type WeftError =
   | typeof WEFT_ERROR__ACCOUNT_NOT_EMPTY
@@ -70,10 +78,12 @@ export type WeftError =
   | typeof WEFT_ERROR__INSUFFICIENT_VAULT
   | typeof WEFT_ERROR__INVALID_AVAILABILITY
   | typeof WEFT_ERROR__INVALID_CAPABILITIES
+  | typeof WEFT_ERROR__INVALID_COLLECTION
   | typeof WEFT_ERROR__INVALID_ESCROW
   | typeof WEFT_ERROR__INVALID_GEO
   | typeof WEFT_ERROR__INVALID_LOCK
   | typeof WEFT_ERROR__INVALID_PROOF
+  | typeof WEFT_ERROR__INVALID_TREE
   | typeof WEFT_ERROR__INVALID_UNBONDING
   | typeof WEFT_ERROR__INVALID_WINDOW
   | typeof WEFT_ERROR__LOCKED
@@ -83,6 +93,8 @@ export type WeftError =
   | typeof WEFT_ERROR__SHUTDOWN_BLOCKED
   | typeof WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED
   | typeof WEFT_ERROR__STILL_UNBONDING
+  | typeof WEFT_ERROR__TREE_FULL
+  | typeof WEFT_ERROR__TREE_INDEX_MISMATCH
   | typeof WEFT_ERROR__UNAUTHORIZED
   | typeof WEFT_ERROR__ZERO_AMOUNT;
 
@@ -97,10 +109,12 @@ if (process.env['NODE_ENV'] !== 'production') {
     [WEFT_ERROR__INSUFFICIENT_VAULT]: `Reward vault cannot cover the posted obligations`,
     [WEFT_ERROR__INVALID_AVAILABILITY]: `Invalid availability value`,
     [WEFT_ERROR__INVALID_CAPABILITIES]: `Invalid capability flags`,
+    [WEFT_ERROR__INVALID_COLLECTION]: `Registry collection does not match`,
     [WEFT_ERROR__INVALID_ESCROW]: `Escrow account does not match the expected owner, mint, or vault`,
     [WEFT_ERROR__INVALID_GEO]: `Invalid geo value`,
     [WEFT_ERROR__INVALID_LOCK]: `Invalid lock duration`,
     [WEFT_ERROR__INVALID_PROOF]: `Merkle proof is invalid`,
+    [WEFT_ERROR__INVALID_TREE]: `Invalid merkle tree or depth`,
     [WEFT_ERROR__INVALID_UNBONDING]: `Invalid unbonding duration`,
     [WEFT_ERROR__INVALID_WINDOW]: `Invalid settlement window`,
     [WEFT_ERROR__LOCKED]: `Stake is still locked`,
@@ -110,6 +124,8 @@ if (process.env['NODE_ENV'] !== 'production') {
     [WEFT_ERROR__SHUTDOWN_BLOCKED]: `Core still has active state and cannot be shut down`,
     [WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED]: `Core must be paused before shutdown`,
     [WEFT_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
+    [WEFT_ERROR__TREE_FULL]: `Active tree shard is full`,
+    [WEFT_ERROR__TREE_INDEX_MISMATCH]: `Tree shard index must equal the current tree count`,
     [WEFT_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
     [WEFT_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`,
   };

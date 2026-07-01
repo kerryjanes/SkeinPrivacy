@@ -16,4 +16,5 @@ export * from './position';
 export * from './registry';
 export * from './rewardVault';
 export * from './stakingConfig';
+export * from './treeShard';
 export * from './vault';

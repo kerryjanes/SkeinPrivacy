@@ -1,6 +1,8 @@
 // Node directory built from the authoritative NodeState PDAs via
 // getProgramAccounts (works without DAS — required while Helius devnet lacks
-// Bubblegum V2 indexing). DAS can later enrich owner/metadata where available.
+// Bubblegum V2 indexing). Each NodeState now carries the real Bubblegum cNFT
+// asset id + tree, so the directory reports them directly; DAS can further
+// enrich owner/metadata where Bubblegum V2 indexing is available.
 
 import { createSolanaRpc, getBase58Decoder, type Base58EncodedBytes } from '@solana/kit';
 import { weft } from '@weft/sdk';
@@ -55,8 +57,8 @@ export async function fetchNodes(client: Rpc): Promise<NodeRecord[]> {
       address: pubkey,
       operator: d.operator,
       nodeId: d.nodeId.toString(),
-      assetId: pubkey,
-      merkleTree: '',
+      assetId: d.assetId,
+      merkleTree: d.merkleTree,
       geo: d.geo,
       capabilities: d.capabilities,
       availability: d.availability,

@@ -25,6 +25,8 @@ anchor-lang = { workspace = true, features = ["init-if-needed"] }
 anchor-spl = { workspace = true }
 weft-primitives = { workspace = true }
 spl-token-interface = { workspace = true }
+# Compressed-NFT node identity: register_node mints a Bubblegum V2 cNFT.
+mpl-bubblegum = { workspace = true }
 
 [dev-dependencies]
 anchor-lang = { workspace = true }

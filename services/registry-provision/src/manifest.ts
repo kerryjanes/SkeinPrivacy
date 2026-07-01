@@ -10,6 +10,14 @@ export interface Manifest {
   cluster: string;
   complete: boolean;
   registryProgram: string;
+  /** MPL-Core collection all node cNFTs belong to (set once at provisioning). */
+  collection?: string;
+  /** Active Bubblegum V2 merkle tree new node cNFTs mint into. */
+  merkleTree?: string;
+  /** TreeShard PDA for the active tree (index 0). */
+  treeShard?: string;
+  /** Tree depth used at creation (2^maxDepth leaves). */
+  maxDepth?: number;
 }
 
 export const manifestPath = (cluster: string) => join(dir, `${cluster}.json`);

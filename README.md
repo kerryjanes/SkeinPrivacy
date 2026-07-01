@@ -47,7 +47,9 @@ exits from your device.
 4. Press **Register Node**.
 5. Copy the generated **node key**.
 
-Registration is the only on-chain step required to create the node.
+Registration is the only on-chain step required to create the node. It mints a **node
+NFT** (a Metaplex Bubblegum compressed NFT) to your wallet — your proof that you own the
+node. Live reputation, stake, and status are tracked in the node's on-chain state account.
 
 ### 2. Start The Node Script
 
