@@ -17,7 +17,7 @@ export async function findDistributorPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = 'HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr' as Address<'HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr'>,
+    programAddress = '7NMVGmT9opvnw4d16f3hw52hCcHsqtTz4QPzxD2uWPAx' as Address<'7NMVGmT9opvnw4d16f3hw52hCcHsqtTz4QPzxD2uWPAx'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,
