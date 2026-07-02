@@ -3,6 +3,12 @@
 
 import type { NodeConfig } from './config.js';
 
+// Client-facing server names (the vless `#fragment`). The 🇪🇺 flag makes Happ/V2Box show a
+// country badge instead of a blank one, and the label reads cleanly. URL-encoded so the
+// emoji + spaces survive import.
+const NAME_1HOP = encodeURIComponent('🇪🇺 Weft · Fast');
+const NAME_MULTIHOP = encodeURIComponent('🇪🇺 Weft · Private');
+
 export function oneHopLink(cfg: NodeConfig, uuid: string): string {
   const q = new URLSearchParams({
     flow: 'xtls-rprx-vision',
@@ -14,7 +20,7 @@ export function oneHopLink(cfg: NodeConfig, uuid: string): string {
     sid: cfg.shortId,
     spx: '/',
   });
-  return `vless://${uuid}@${cfg.host}:${cfg.publicHop1Port}?${q}#Weft-1hop`;
+  return `vless://${uuid}@${cfg.host}:${cfg.publicHop1Port}?${q}#${NAME_1HOP}`;
 }
 
 export function multiHopLink(cfg: NodeConfig, uuid: string): string {
@@ -27,5 +33,5 @@ export function multiHopLink(cfg: NodeConfig, uuid: string): string {
     sid: cfg.shortId,
     spx: '/',
   });
-  return `vless://${uuid}@${cfg.host}:${cfg.publicHopnPort}?${q}#Weft-multihop`;
+  return `vless://${uuid}@${cfg.host}:${cfg.publicHopnPort}?${q}#${NAME_MULTIHOP}`;
 }
