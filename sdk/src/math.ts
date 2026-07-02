@@ -23,6 +23,19 @@ export const SPLIT_NODES_BPS = 7_000n;
 export const SPLIT_BURN_BPS = 2_000n;
 export const U64_MAX = 2n ** 64n - 1n;
 
+/**
+ * Base-unit scale for a reward mint of `decimals`, relative to the 6-decimal base
+ * these constants are expressed in. $WEFT launches at 6 decimals (pump.fun), so the
+ * scale is 1 on mainnet; a 9-decimal devnet test mint scales by 1000. The token's own
+ * decimals drive the switch — the same code runs on every cluster, no per-cluster build.
+ * Multiply 6-decimal amounts (prices, rewards, thresholds) by this to reach the mint's
+ * base units.
+ */
+export function baseUnitScale(decimals: number): bigint {
+  if (decimals < 6) throw new Error(`reward mint decimals ${decimals} < 6 unsupported`);
+  return 10n ** BigInt(decimals - 6);
+}
+
 function clamp(x: bigint, lo: bigint, hi: bigint): bigint {
   return x < lo ? lo : x > hi ? hi : x;
 }

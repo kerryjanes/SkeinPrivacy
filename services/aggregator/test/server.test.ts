@@ -189,9 +189,9 @@ describe('aggregator HTTP receipt ingest', () => {
 
     expect(res.status).toBe(200);
     expect(body.nodes).toHaveLength(1);
-    expect(BigInt(body.totalEarned)).toBe(700n * 1_000_000_000n);
+    expect(BigInt(body.totalEarned)).toBe(700n * 1_000_000n);
     expect(body.totalPaid).toBe('100');
-    expect(body.withdrawable).toBe((700n * 1_000_000_000n - 100n).toString());
+    expect(body.withdrawable).toBe((700n * 1_000_000n - 100n).toString());
     expect(body.nodes[0]).toMatchObject({ nodeId: '11', paid: '100' });
   });
 
@@ -269,9 +269,9 @@ describe('aggregator HTTP receipt ingest', () => {
     const body = (await res.json()) as { signature: string; amount: string };
 
     expect(res.status).toBe(200);
-    expect(body.amount).toBe((700n * 1_000_000_000n).toString());
+    expect(body.amount).toBe((700n * 1_000_000n).toString());
     expect(body.signature).toContain('paid-');
-    expect(payouts.paid(operator.address, 11n)).toBe(700n * 1_000_000_000n);
+    expect(payouts.paid(operator.address, 11n)).toBe(700n * 1_000_000n);
   });
 
   it('refuses earned withdrawals when payout wallet balance cannot cover amount plus reserve', async () => {
@@ -293,7 +293,7 @@ describe('aggregator HTTP receipt ingest', () => {
       payoutStore: payouts,
       payoutReserve: 10n,
       payout: {
-        availableBalance: async () => 700n * 1_000_000_000n,
+        availableBalance: async () => 500n * 1_000_000n, // < 700 WEFT earned → cannot cover
         pay: async () => {
           paid = true;
           return { signature: 'should-not-pay' };

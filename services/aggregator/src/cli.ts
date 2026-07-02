@@ -84,6 +84,18 @@ function trustedTotalsConfigured(): boolean {
   );
 }
 
+/** Read the reward mint's decimals from chain (distributor → reward_mint → mint account).
+ *  Falls back to 6 (mainnet $WEFT) if the core isn't initialized. */
+async function fetchRewardMintDecimals(rpc: ReturnType<typeof createSolanaRpc>): Promise<number> {
+  const [distributor] = await weft.findDistributorPda();
+  const di = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
+  if (!di.value) return 6;
+  const mint = weft.getDistributorDecoder().decode(Buffer.from(di.value.data[0], 'base64')).rewardMint;
+  const mi = await rpc.getAccountInfo(mint, { encoding: 'base64' }).send();
+  if (!mi.value) return 6;
+  return Buffer.from(mi.value.data[0], 'base64')[44]; // SPL Mint: decimals at byte 44
+}
+
 async function main(): Promise<void> {
   const cluster = process.env.WEFT_CLUSTER ?? 'devnet';
   const mainnet = cluster.startsWith('mainnet');
@@ -130,7 +142,10 @@ async function main(): Promise<void> {
   const trustedTotals = parseTrustedTotals();
   const receiptsByEpoch = new Map<string, TrafficReceipt[]>();
   receiptsByEpoch.set(epoch.toString(), receipts);
-  const opts: BuildOptions = { minStakeToEarn, maxBytesPerEpoch };
+  // Read the reward mint's decimals from chain so reward math adapts to the token
+  // (6 on mainnet's pump.fun $WEFT, 9 on a devnet test mint) — same code either way.
+  const rewardDecimals = await fetchRewardMintDecimals(rpc);
+  const opts: BuildOptions = { minStakeToEarn, maxBytesPerEpoch, decimals: rewardDecimals };
   const build =
     trustedTotals.length > 0
       ? buildEpochFromByteTotals(epoch, trustedTotals, nodes, opts)
@@ -168,7 +183,7 @@ async function main(): Promise<void> {
     .getDistributorDecoder()
     .decode(Buffer.from(distInfo.value.data[0], 'base64'));
   const payout = payoutKeypairPath
-    ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint)
+    ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals)
     : undefined;
   const highestKnownEpoch = store.maxEpoch();
   let nextAutoEpoch =

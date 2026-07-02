@@ -32,6 +32,7 @@ export class TokenPayout implements PayoutBackend {
     private wsUrl: string,
     private keypairPath: string,
     private mint: Address,
+    private decimals: number,
   ) {}
 
   private async payer() {
@@ -86,7 +87,7 @@ export class TokenPayout implements PayoutBackend {
       destination: destinationAta,
       authority: payer,
       amount,
-      decimals: 9,
+      decimals: this.decimals,
     });
     const { value: bh } = await rpc.getLatestBlockhash().send();
     const msg = pipe(

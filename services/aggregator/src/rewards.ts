@@ -47,6 +47,9 @@ export interface BuildOptions {
   maxBytesPerEpoch?: bigint;
   /** Cold-start bonus (M8). Omit to disable. */
   bootstrap?: BootstrapConfig;
+  /** Reward-mint decimals (read from the mint). $WEFT math is 6-decimal; a mint with
+   *  more decimals (e.g. a 9-decimal devnet test mint) scales up. Default 6 (mainnet). */
+  decimals?: number;
 }
 
 export const DEFAULT_MIN_STAKE_TO_EARN = 1_000n * math.ONE_WEFT;
@@ -160,7 +163,11 @@ export function buildEpochFromByteTotals(
   rejectedReceipts = 0,
 ): EpochBuild {
   const geoTable = opts.geoTable ?? EMPTY_GEO_TABLE;
-  const minStake = opts.minStakeToEarn ?? DEFAULT_MIN_STAKE_TO_EARN;
+  // $WEFT math is expressed in 6-decimal units; scale to the reward mint's decimals
+  // (1× on mainnet's 6-decimal token, 1000× on a 9-decimal devnet test mint).
+  const scale = math.baseUnitScale(opts.decimals ?? 6);
+  const stakingThreshold = math.STAKING_BONUS_THRESHOLD * scale;
+  const minStake = opts.minStakeToEarn ?? DEFAULT_MIN_STAKE_TO_EARN * scale;
 
   const nodeByKey = new Map<string, NodeInfo>();
   for (const n of nodes) nodeByKey.set(key(n.operator, n.nodeId), n);
@@ -178,7 +185,8 @@ export function buildEpochFromByteTotals(
       continue;
     }
     const geoBonus = geoBonusBps(geoTable, info.geo);
-    const stakingBonus = Number(math.stakingBonusForStake(info.stake));
+    // stake is in the mint's base units; compare against the decimals-scaled threshold.
+    const stakingBonus = info.stake >= stakingThreshold ? Number(math.STAKING_BONUS_BPS) : 0;
     // Cold-start bonus (M8): a node within the early-adopter sequence limit, while the
     // governed window is open, earns an extra multiplier on top of the base reward.
     const bootstrapBonus = bootstrapBonusFor(info, opts.bootstrap, epoch);
@@ -190,7 +198,8 @@ export function buildEpochFromByteTotals(
       bootstrapBonus,
     );
     const cap = nodeShareCap(bytes);
-    const reward = uncappedReward > cap ? cap : uncappedReward;
+    // Cap in 6-decimal units, then scale the final amount to the mint's base units.
+    const reward = (uncappedReward > cap ? cap : uncappedReward) * scale;
     if (reward === 0n) {
       skipped.push({ operator, nodeId, bytes, reason: 'zero-reward' });
       continue;

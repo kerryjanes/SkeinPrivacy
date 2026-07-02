@@ -470,8 +470,11 @@ pub struct RegisterTree<'info> {
     pub registry: Account<'info, Registry>,
     /// CHECK: the merkle tree account (created off-chain, delegated to the registry PDA).
     pub merkle_tree: UncheckedAccount<'info>,
+    // `init_if_needed`: a shard PDA may already exist from a prior core (shutdown_core
+    // does not close tree shards), so re-provisioning a fresh tree reuses the slot.
+    // Authority-gated, so no re-init attack surface.
     #[account(
-        init,
+        init_if_needed,
         payer = authority,
         space = 8 + TreeShard::INIT_SPACE,
         seeds = [TREE_SEED, &index.to_le_bytes()],

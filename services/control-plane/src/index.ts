@@ -39,6 +39,7 @@ const faucet = cfg.faucetKeypairPath
     )
   : undefined;
 
+await ctrl.loadDecimals(); // read reward-mint decimals so quota/price adapt to the token
 ctrl.bootstrap(); // sync xray to saved state on boot
 startServer(cfg, ctrl, faucet);
 

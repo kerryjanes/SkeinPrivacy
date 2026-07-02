@@ -10,15 +10,22 @@ export function rpc(url: string): Rpc {
   return createSolanaRpc(url);
 }
 
-/** Bytes a given $WEFT balance (base units, 9 decimals) buys at the 1000 WEFT/GB access price. */
-export function quotaBytes(balanceBaseUnits: bigint): bigint {
-  // inverse of `base = USER_PRICE_PER_GB * bytes / BYTES_PER_GB` (sdk/math.ts)
-  return (balanceBaseUnits * math.BYTES_PER_GB) / math.USER_PRICE_PER_GB;
+// Price per GB in the reward mint's base units. $WEFT math is 6-decimal; scale to the
+// mint's actual decimals (read from chain) so devnet's 9-decimal test mint and mainnet's
+// 6-decimal pump.fun token both price correctly under the same code.
+function pricePerGb(decimals: number): bigint {
+  return math.USER_PRICE_PER_GB * math.baseUnitScale(decimals);
+}
+
+/** Bytes a given $WEFT balance (mint base units) buys at the 1000 WEFT/GB access price. */
+export function quotaBytes(balanceBaseUnits: bigint, decimals: number): bigint {
+  // inverse of `base = pricePerGb * bytes / BYTES_PER_GB`
+  return (balanceBaseUnits * math.BYTES_PER_GB) / pricePerGb(decimals);
 }
 
 /** $WEFT base units a given number of bytes costs a VPN user. */
-export function costBaseUnits(bytes: bigint): bigint {
-  return (math.USER_PRICE_PER_GB * bytes) / math.BYTES_PER_GB;
+export function costBaseUnits(bytes: bigint, decimals: number): bigint {
+  return (pricePerGb(decimals) * bytes) / math.BYTES_PER_GB;
 }
 
 /** A wallet's prepaid escrow balance in base units. Returns 0 if the escrow doesn't exist yet. */

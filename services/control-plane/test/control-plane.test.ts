@@ -78,22 +78,28 @@ describe('mainnet config safety', () => {
 });
 
 describe('pricing (1000 WEFT/GB)', () => {
-  it('1 WEFT buys 1 MB', () => {
-    expect(quotaBytes(1_000_000_000n)).toBe(1_000_000n); // 1 WEFT → 1 MB
+  // 6-decimal $WEFT (mainnet pump.fun): 1 WEFT = 1_000_000 base units.
+  it('1 WEFT buys 1 MB (6 decimals)', () => {
+    expect(quotaBytes(1_000_000n, 6)).toBe(1_000_000n); // 1 WEFT → 1 MB
   });
-  it('1000 WEFT buys 1 GB', () => {
-    expect(quotaBytes(1_000_000_000_000n)).toBe(1_000_000_000n);
+  it('1000 WEFT buys 1 GB (6 decimals)', () => {
+    expect(quotaBytes(1_000_000_000n, 6)).toBe(1_000_000_000n);
   });
-  it('cost is the inverse of quota', () => {
-    expect(costBaseUnits(1_000_000_000n)).toBe(1_000_000_000_000n); // 1 GB costs 1000 WEFT
-    expect(costBaseUnits(quotaBytes(5_000_000_000_000n))).toBe(5_000_000_000_000n);
+  it('cost is the inverse of quota (6 decimals)', () => {
+    expect(costBaseUnits(1_000_000_000n, 6)).toBe(1_000_000_000n); // 1 GB costs 1000 WEFT
+    expect(costBaseUnits(quotaBytes(5_000_000_000_000n, 6), 6)).toBe(5_000_000_000_000n);
+  });
+  // 9-decimal token (devnet test mint): same 1000 WEFT/GB, scaled to the mint.
+  it('adapts to a 9-decimal mint', () => {
+    expect(quotaBytes(1_000_000_000_000n, 9)).toBe(1_000_000_000n); // 1000 WEFT (9-dec) → 1 GB
+    expect(costBaseUnits(1_000_000_000n, 9)).toBe(1_000_000_000_000n); // 1 GB costs 1000 WEFT (9-dec)
   });
 });
 
 describe('node earnings (earn for usage)', () => {
   it('a node earns 700 $WEFT per GB it serves (baseline multipliers)', () => {
     // 1 GB served at baseline reputation (1.0×), no geo/stake bonus → 700 WEFT
-    expect(math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n)).toBe(700_000_000_000n);
+    expect(math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n)).toBe(700_000_000n); // 700 $WEFT @ 6 decimals
   });
   it('earnings scale with served traffic', () => {
     const oneGb = math.trafficReward(1_000_000_000n, 10_000n, 0n, 0n);

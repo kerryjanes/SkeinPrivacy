@@ -29,7 +29,8 @@ export interface Status {
   links: { oneHop: string; multiHop: string };
 }
 
-const fmtWeft = (base: bigint): string => (Number(base) / 1e9).toFixed(6);
+const fmtWeft = (base: bigint, decimals: number): string =>
+  (Number(base) / 10 ** decimals).toFixed(6);
 
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -37,12 +38,30 @@ function sleep(ms: number): Promise<void> {
 
 export class Controller {
   private lastApplied = '__uninitialized'; // force a first apply
+  /** Reward-mint decimals, read from chain via loadDecimals(). $WEFT is 6 on mainnet
+   *  (pump.fun); a devnet test mint may be 9. Defaults to 6 until loaded. */
+  private decimals = 6;
 
   constructor(
     private cfg: NodeConfig,
     private store: Store,
     private rpc: Rpc,
   ) {}
+
+  /** Fetch the reward mint's decimals once at startup so quota/price/display adapt to
+   *  the actual token (same code on every cluster). Call before the metering loop. */
+  async loadDecimals(): Promise<void> {
+    try {
+      const mi = await this.rpc
+        .getAccountInfo(this.cfg.weftMint as unknown as Parameters<Rpc['getAccountInfo']>[0], {
+          encoding: 'base64',
+        })
+        .send();
+      if (mi.value) this.decimals = Buffer.from(mi.value.data[0], 'base64')[44]; // SPL Mint: decimals @ byte 44
+    } catch {
+      /* keep default 6 */
+    }
+  }
 
   /** Render + reload xray only when the active user set actually changed. */
   reconcile(): void {
@@ -75,7 +94,7 @@ export class Controller {
   private async refreshBalance(u: User): Promise<void> {
     const bal = await escrowBalance(this.rpc, u.wallet, this.cfg.weftMint);
     u.balanceBaseUnits = bal.toString();
-    u.quotaBytes = quotaBytes(bal).toString();
+    u.quotaBytes = quotaBytes(bal, this.decimals).toString();
   }
 
   status(u: User): Status {
@@ -84,11 +103,11 @@ export class Controller {
     return {
       wallet: u.wallet,
       active: u.active,
-      balanceWeft: fmtWeft(BigInt(u.balanceBaseUnits)),
+      balanceWeft: fmtWeft(BigInt(u.balanceBaseUnits), this.decimals),
       balanceBaseUnits: u.balanceBaseUnits,
       quotaBytes: quota.toString(),
       unsettledBytes: unsettled.toString(),
-      owedWeft: fmtWeft(costBaseUnits(unsettled)),
+      owedWeft: fmtWeft(costBaseUnits(unsettled, this.decimals), this.decimals),
       remainingBytes: (quota > unsettled ? quota - unsettled : 0n).toString(),
       links: {
         oneHop: oneHopLink(this.cfg, u.uuid),
@@ -146,7 +165,7 @@ export class Controller {
       this.store.forgetPendingPayment(signature, wallet);
       throw e;
     }
-    const paidBytes = quotaBytes(amount); // bytes that payment covers
+    const paidBytes = quotaBytes(amount, this.decimals); // bytes that payment covers
     const unsettled = BigInt(u.unsettledBytes);
     u.unsettledBytes = (unsettled > paidBytes ? unsettled - paidBytes : 0n).toString();
     await this.refreshBalance(u); // escrow balance dropped by the payment
@@ -179,7 +198,7 @@ export class Controller {
     return {
       users: this.store.all().length,
       servedBytes: served.toString(),
-      earnedWeft: fmtWeft(earned),
+      earnedWeft: fmtWeft(earned, this.decimals),
       earnedBaseUnits: earned.toString(),
     };
   }
