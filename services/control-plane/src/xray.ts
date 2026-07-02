@@ -151,6 +151,20 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
           ]
         : []),
     ],
+    // Health-probe every exit node: the relay hits generate_204 through each user-exit
+    // outbound every 10s. Dead nodes get no ping → the leastPing balancer excludes them,
+    // so traffic is NEVER routed to a node whose exit is down (fixes the EOF). If no exit
+    // node is healthy, the balancer's fallbackTag routes through the relay itself (direct).
+    ...(userExits.length
+      ? {
+          observatory: {
+            subjectSelector: ['user-exit-'],
+            probeUrl: 'https://www.gstatic.com/generate_204',
+            probeInterval: '10s',
+            enableConcurrency: true,
+          },
+        }
+      : {}),
     routing: {
       balancers: userExits.length
         ? [
@@ -158,7 +172,8 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
               tag: userExitBalancerTag,
               selector: ['user-exit-'],
               fallbackTag: 'direct',
-              strategy: { type: 'roundRobin' },
+              // leastPing consults the observatory: unhealthy exits (no ping) are excluded.
+              strategy: { type: 'leastPing' },
             },
           ]
         : [],
