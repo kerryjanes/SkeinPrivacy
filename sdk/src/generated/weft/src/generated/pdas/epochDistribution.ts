@@ -23,7 +23,7 @@ export async function findEpochDistributionPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = '7NMVGmT9opvnw4d16f3hw52hCcHsqtTz4QPzxD2uWPAx' as Address<'7NMVGmT9opvnw4d16f3hw52hCcHsqtTz4QPzxD2uWPAx'>,
+    programAddress = '6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd' as Address<'6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

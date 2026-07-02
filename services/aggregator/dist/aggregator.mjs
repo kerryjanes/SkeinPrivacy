@@ -9803,12 +9803,14 @@ __export(generated_exports, {
   PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR: () => PAY_TRAFFIC_FROM_ESCROW_DISCRIMINATOR,
   POST_EPOCH_DISCRIMINATOR: () => POST_EPOCH_DISCRIMINATOR,
   REGISTER_NODE_DISCRIMINATOR: () => REGISTER_NODE_DISCRIMINATOR,
+  REGISTER_TREE_DISCRIMINATOR: () => REGISTER_TREE_DISCRIMINATOR,
   REGISTRY_DISCRIMINATOR: () => REGISTRY_DISCRIMINATOR,
   REQUEST_UNSTAKE_DISCRIMINATOR: () => REQUEST_UNSTAKE_DISCRIMINATOR,
   SET_CORE_AUTHORITY_DISCRIMINATOR: () => SET_CORE_AUTHORITY_DISCRIMINATOR,
   SET_DISPUTE_AUTHORITY_DISCRIMINATOR: () => SET_DISPUTE_AUTHORITY_DISCRIMINATOR,
   SET_PAUSED_DISCRIMINATOR: () => SET_PAUSED_DISCRIMINATOR,
   SET_POSTER_AUTHORITY_DISCRIMINATOR: () => SET_POSTER_AUTHORITY_DISCRIMINATOR,
+  SET_REGISTRY_COLLECTION_DISCRIMINATOR: () => SET_REGISTRY_COLLECTION_DISCRIMINATOR,
   SHUTDOWN_CORE_DISCRIMINATOR: () => SHUTDOWN_CORE_DISCRIMINATOR,
   WEFT_ERROR__ACCOUNT_NOT_EMPTY: () => WEFT_ERROR__ACCOUNT_NOT_EMPTY,
   WEFT_ERROR__DISPUTE_WINDOW_OPEN: () => WEFT_ERROR__DISPUTE_WINDOW_OPEN,
@@ -9818,10 +9820,12 @@ __export(generated_exports, {
   WEFT_ERROR__INSUFFICIENT_VAULT: () => WEFT_ERROR__INSUFFICIENT_VAULT,
   WEFT_ERROR__INVALID_AVAILABILITY: () => WEFT_ERROR__INVALID_AVAILABILITY,
   WEFT_ERROR__INVALID_CAPABILITIES: () => WEFT_ERROR__INVALID_CAPABILITIES,
+  WEFT_ERROR__INVALID_COLLECTION: () => WEFT_ERROR__INVALID_COLLECTION,
   WEFT_ERROR__INVALID_ESCROW: () => WEFT_ERROR__INVALID_ESCROW,
   WEFT_ERROR__INVALID_GEO: () => WEFT_ERROR__INVALID_GEO,
   WEFT_ERROR__INVALID_LOCK: () => WEFT_ERROR__INVALID_LOCK,
   WEFT_ERROR__INVALID_PROOF: () => WEFT_ERROR__INVALID_PROOF,
+  WEFT_ERROR__INVALID_TREE: () => WEFT_ERROR__INVALID_TREE,
   WEFT_ERROR__INVALID_UNBONDING: () => WEFT_ERROR__INVALID_UNBONDING,
   WEFT_ERROR__INVALID_WINDOW: () => WEFT_ERROR__INVALID_WINDOW,
   WEFT_ERROR__LOCKED: () => WEFT_ERROR__LOCKED,
@@ -9831,6 +9835,8 @@ __export(generated_exports, {
   WEFT_ERROR__SHUTDOWN_BLOCKED: () => WEFT_ERROR__SHUTDOWN_BLOCKED,
   WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED: () => WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED,
   WEFT_ERROR__STILL_UNBONDING: () => WEFT_ERROR__STILL_UNBONDING,
+  WEFT_ERROR__TREE_FULL: () => WEFT_ERROR__TREE_FULL,
+  WEFT_ERROR__TREE_INDEX_MISMATCH: () => WEFT_ERROR__TREE_INDEX_MISMATCH,
   WEFT_ERROR__UNAUTHORIZED: () => WEFT_ERROR__UNAUTHORIZED,
   WEFT_ERROR__ZERO_AMOUNT: () => WEFT_ERROR__ZERO_AMOUNT,
   WEFT_PROGRAM_ADDRESS: () => WEFT_PROGRAM_ADDRESS,
@@ -9839,6 +9845,7 @@ __export(generated_exports, {
   STAKING_CONFIG_DISCRIMINATOR: () => STAKING_CONFIG_DISCRIMINATOR,
   WeftAccount: () => WeftAccount,
   WeftInstruction: () => WeftInstruction,
+  TREE_SHARD_DISCRIMINATOR: () => TREE_SHARD_DISCRIMINATOR,
   UPDATE_NODE_DISCRIMINATOR: () => UPDATE_NODE_DISCRIMINATOR,
   WITHDRAW_ESCROW_DISCRIMINATOR: () => WITHDRAW_ESCROW_DISCRIMINATOR,
   WITHDRAW_UNSTAKED_DISCRIMINATOR: () => WITHDRAW_UNSTAKED_DISCRIMINATOR,
@@ -9850,6 +9857,7 @@ __export(generated_exports, {
   decodeRegistry: () => decodeRegistry,
   decodeStakePosition: () => decodeStakePosition,
   decodeStakingConfig: () => decodeStakingConfig,
+  decodeTreeShard: () => decodeTreeShard,
   fetchAllClaimStatus: () => fetchAllClaimStatus,
   fetchAllDistributor: () => fetchAllDistributor,
   fetchAllEpochDistribution: () => fetchAllEpochDistribution,
@@ -9861,11 +9869,13 @@ __export(generated_exports, {
   fetchAllMaybeRegistry: () => fetchAllMaybeRegistry,
   fetchAllMaybeStakePosition: () => fetchAllMaybeStakePosition,
   fetchAllMaybeStakingConfig: () => fetchAllMaybeStakingConfig,
+  fetchAllMaybeTreeShard: () => fetchAllMaybeTreeShard,
   fetchAllNodeState: () => fetchAllNodeState,
   fetchAllPaymentEscrow: () => fetchAllPaymentEscrow,
   fetchAllRegistry: () => fetchAllRegistry,
   fetchAllStakePosition: () => fetchAllStakePosition,
   fetchAllStakingConfig: () => fetchAllStakingConfig,
+  fetchAllTreeShard: () => fetchAllTreeShard,
   fetchClaimStatus: () => fetchClaimStatus,
   fetchDistributor: () => fetchDistributor,
   fetchEpochDistribution: () => fetchEpochDistribution,
@@ -9877,11 +9887,13 @@ __export(generated_exports, {
   fetchMaybeRegistry: () => fetchMaybeRegistry,
   fetchMaybeStakePosition: () => fetchMaybeStakePosition,
   fetchMaybeStakingConfig: () => fetchMaybeStakingConfig,
+  fetchMaybeTreeShard: () => fetchMaybeTreeShard,
   fetchNodeState: () => fetchNodeState,
   fetchPaymentEscrow: () => fetchPaymentEscrow,
   fetchRegistry: () => fetchRegistry,
   fetchStakePosition: () => fetchStakePosition,
   fetchStakingConfig: () => fetchStakingConfig,
+  fetchTreeShard: () => fetchTreeShard,
   findClaimStatusPda: () => findClaimStatusPda,
   findDistributorPda: () => findDistributorPda,
   findEpochDistributionPda: () => findEpochDistributionPda,
@@ -9892,6 +9904,7 @@ __export(generated_exports, {
   findRegistryPda: () => findRegistryPda,
   findRewardVaultPda: () => findRewardVaultPda,
   findStakingConfigPda: () => findStakingConfigPda,
+  findTreeShardPda: () => findTreeShardPda,
   findVaultPda: () => findVaultPda,
   getClaimDiscriminatorBytes: () => getClaimDiscriminatorBytes,
   getClaimInstruction: () => getClaimInstruction,
@@ -9990,6 +10003,12 @@ __export(generated_exports, {
   getRegisterNodeInstructionDataCodec: () => getRegisterNodeInstructionDataCodec,
   getRegisterNodeInstructionDataDecoder: () => getRegisterNodeInstructionDataDecoder,
   getRegisterNodeInstructionDataEncoder: () => getRegisterNodeInstructionDataEncoder,
+  getRegisterTreeDiscriminatorBytes: () => getRegisterTreeDiscriminatorBytes,
+  getRegisterTreeInstruction: () => getRegisterTreeInstruction,
+  getRegisterTreeInstructionAsync: () => getRegisterTreeInstructionAsync,
+  getRegisterTreeInstructionDataCodec: () => getRegisterTreeInstructionDataCodec,
+  getRegisterTreeInstructionDataDecoder: () => getRegisterTreeInstructionDataDecoder,
+  getRegisterTreeInstructionDataEncoder: () => getRegisterTreeInstructionDataEncoder,
   getRegistryCodec: () => getRegistryCodec,
   getRegistryDecoder: () => getRegistryDecoder,
   getRegistryDiscriminatorBytes: () => getRegistryDiscriminatorBytes,
@@ -10025,6 +10044,12 @@ __export(generated_exports, {
   getSetPosterAuthorityInstructionDataCodec: () => getSetPosterAuthorityInstructionDataCodec,
   getSetPosterAuthorityInstructionDataDecoder: () => getSetPosterAuthorityInstructionDataDecoder,
   getSetPosterAuthorityInstructionDataEncoder: () => getSetPosterAuthorityInstructionDataEncoder,
+  getSetRegistryCollectionDiscriminatorBytes: () => getSetRegistryCollectionDiscriminatorBytes,
+  getSetRegistryCollectionInstruction: () => getSetRegistryCollectionInstruction,
+  getSetRegistryCollectionInstructionAsync: () => getSetRegistryCollectionInstructionAsync,
+  getSetRegistryCollectionInstructionDataCodec: () => getSetRegistryCollectionInstructionDataCodec,
+  getSetRegistryCollectionInstructionDataDecoder: () => getSetRegistryCollectionInstructionDataDecoder,
+  getSetRegistryCollectionInstructionDataEncoder: () => getSetRegistryCollectionInstructionDataEncoder,
   getShutdownCoreDiscriminatorBytes: () => getShutdownCoreDiscriminatorBytes,
   getShutdownCoreInstruction: () => getShutdownCoreInstruction,
   getShutdownCoreInstructionAsync: () => getShutdownCoreInstructionAsync,
@@ -10048,6 +10073,11 @@ __export(generated_exports, {
   getStakingConfigDiscriminatorBytes: () => getStakingConfigDiscriminatorBytes,
   getStakingConfigEncoder: () => getStakingConfigEncoder,
   getStakingConfigSize: () => getStakingConfigSize,
+  getTreeShardCodec: () => getTreeShardCodec,
+  getTreeShardDecoder: () => getTreeShardDecoder,
+  getTreeShardDiscriminatorBytes: () => getTreeShardDiscriminatorBytes,
+  getTreeShardEncoder: () => getTreeShardEncoder,
+  getTreeShardSize: () => getTreeShardSize,
   getUpdateNodeDiscriminatorBytes: () => getUpdateNodeDiscriminatorBytes,
   getUpdateNodeInstruction: () => getUpdateNodeInstruction,
   getUpdateNodeInstructionDataCodec: () => getUpdateNodeInstructionDataCodec,
@@ -10080,11 +10110,13 @@ __export(generated_exports, {
   parsePayTrafficInstruction: () => parsePayTrafficInstruction,
   parsePostEpochInstruction: () => parsePostEpochInstruction,
   parseRegisterNodeInstruction: () => parseRegisterNodeInstruction,
+  parseRegisterTreeInstruction: () => parseRegisterTreeInstruction,
   parseRequestUnstakeInstruction: () => parseRequestUnstakeInstruction,
   parseSetCoreAuthorityInstruction: () => parseSetCoreAuthorityInstruction,
   parseSetDisputeAuthorityInstruction: () => parseSetDisputeAuthorityInstruction,
   parseSetPausedInstruction: () => parseSetPausedInstruction,
   parseSetPosterAuthorityInstruction: () => parseSetPosterAuthorityInstruction,
+  parseSetRegistryCollectionInstruction: () => parseSetRegistryCollectionInstruction,
   parseShutdownCoreInstruction: () => parseShutdownCoreInstruction,
   parseWeftInstruction: () => parseWeftInstruction,
   parseStakeInstruction: () => parseStakeInstruction,
@@ -10992,6 +11024,48 @@ function assertByteArrayHasEnoughBytesForCodec2(codecDescription, expected, byte
     });
   }
 }
+function addEncoderSizePrefix2(encoder, prefix) {
+  const write = ((value, bytes, offset) => {
+    const encoderBytes = encoder.encode(value);
+    offset = prefix.write(encoderBytes.length, bytes, offset);
+    bytes.set(encoderBytes, offset);
+    return offset + encoderBytes.length;
+  });
+  if (isFixedSize2(prefix) && isFixedSize2(encoder)) {
+    return createEncoder2({ ...encoder, fixedSize: prefix.fixedSize + encoder.fixedSize, write });
+  }
+  const prefixMaxSize = isFixedSize2(prefix) ? prefix.fixedSize : prefix.maxSize ?? null;
+  const encoderMaxSize = isFixedSize2(encoder) ? encoder.fixedSize : encoder.maxSize ?? null;
+  const maxSize = prefixMaxSize !== null && encoderMaxSize !== null ? prefixMaxSize + encoderMaxSize : null;
+  return createEncoder2({
+    ...encoder,
+    ...maxSize !== null ? { maxSize } : {},
+    getSizeFromValue: (value) => {
+      const encoderSize = getEncodedSize2(value, encoder);
+      return getEncodedSize2(encoderSize, prefix) + encoderSize;
+    },
+    write
+  });
+}
+function addDecoderSizePrefix2(decoder, prefix) {
+  const read = ((bytes, offset) => {
+    const [bigintSize, decoderOffset] = prefix.read(bytes, offset);
+    const size = Number(bigintSize);
+    offset = decoderOffset;
+    if (offset > 0 || bytes.length > size) {
+      bytes = bytes.slice(offset, offset + size);
+    }
+    assertByteArrayHasEnoughBytesForCodec2("addDecoderSizePrefix", size, bytes);
+    return [decoder.decode(bytes), offset + size];
+  });
+  if (isFixedSize2(prefix) && isFixedSize2(decoder)) {
+    return createDecoder2({ ...decoder, fixedSize: prefix.fixedSize + decoder.fixedSize, read });
+  }
+  const prefixMaxSize = isFixedSize2(prefix) ? prefix.fixedSize : prefix.maxSize ?? null;
+  const decoderMaxSize = isFixedSize2(decoder) ? decoder.fixedSize : decoder.maxSize ?? null;
+  const maxSize = prefixMaxSize !== null && decoderMaxSize !== null ? prefixMaxSize + decoderMaxSize : null;
+  return createDecoder2({ ...decoder, ...maxSize !== null ? { maxSize } : {}, read });
+}
 function toArrayBuffer2(bytes, offset, length) {
   const bytesOffset = bytes.byteOffset + (offset ?? 0);
   const bytesLength = length ?? bytes.byteLength;
@@ -11141,8 +11215,32 @@ var getBase64Encoder = () => {
     });
   }
 };
+var removeNullCharacters = (value) => (
+  // eslint-disable-next-line no-control-regex
+  value.replace(/\u0000/g, "")
+);
 var e7 = globalThis.TextDecoder;
 var o3 = globalThis.TextEncoder;
+var getUtf8Encoder = () => {
+  let textEncoder;
+  return createEncoder2({
+    getSizeFromValue: (value) => (textEncoder ||= new o3()).encode(value).length,
+    write: (value, bytes, offset) => {
+      const bytesToAdd = (textEncoder ||= new o3()).encode(value);
+      bytes.set(bytesToAdd, offset);
+      return offset + bytesToAdd.length;
+    }
+  });
+};
+var getUtf8Decoder = () => {
+  let textDecoder;
+  return createDecoder2({
+    read(bytes, offset) {
+      const value = (textDecoder ||= new e7()).decode(bytes.slice(offset));
+      return [removeNullCharacters(value), bytes.length];
+    }
+  });
+};
 
 // ../../node_modules/.pnpm/@solana+accounts@6.10.0_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
 function decodeAccount(encodedAccount, decoder) {
@@ -12170,7 +12268,10 @@ function getNodeStateEncoder() {
     ["reputation", getU16Encoder2()],
     ["stakeAmount", getU64Encoder2()],
     ["bump", getU8Encoder2()],
-    ["sequence", getU64Encoder2()]
+    ["sequence", getU64Encoder2()],
+    ["assetId", getAddressEncoder2()],
+    ["merkleTree", getAddressEncoder2()],
+    ["leafNonce", getU64Encoder2()]
   ]), (value) => ({ ...value, discriminator: NODE_STATE_DISCRIMINATOR }));
 }
 function getNodeStateDecoder() {
@@ -12188,7 +12289,10 @@ function getNodeStateDecoder() {
     ["reputation", getU16Decoder2()],
     ["stakeAmount", getU64Decoder2()],
     ["bump", getU8Decoder2()],
-    ["sequence", getU64Decoder2()]
+    ["sequence", getU64Decoder2()],
+    ["assetId", getAddressDecoder2()],
+    ["merkleTree", getAddressDecoder2()],
+    ["leafNonce", getU64Decoder2()]
   ]);
 }
 function getNodeStateCodec() {
@@ -12216,7 +12320,7 @@ async function fetchAllMaybeNodeState(rpc, addresses, config) {
   return maybeAccounts.map((maybeAccount) => decodeNodeState(maybeAccount));
 }
 function getNodeStateSize() {
-  return 125;
+  return 197;
 }
 
 // ../../sdk/dist/generated/weft/src/generated/accounts/paymentEscrow.js
@@ -12306,7 +12410,10 @@ function getRegistryEncoder() {
     ["nodeCount", getU64Encoder2()],
     ["paused", getBooleanEncoder2()],
     ["bump", getU8Encoder2()],
-    ["nodeSequence", getU64Encoder2()]
+    ["nodeSequence", getU64Encoder2()],
+    ["collection", getAddressEncoder2()],
+    ["activeTree", getAddressEncoder2()],
+    ["treeCount", getU16Encoder2()]
   ]), (value) => ({ ...value, discriminator: REGISTRY_DISCRIMINATOR }));
 }
 function getRegistryDecoder() {
@@ -12316,7 +12423,10 @@ function getRegistryDecoder() {
     ["nodeCount", getU64Decoder2()],
     ["paused", getBooleanDecoder()],
     ["bump", getU8Decoder2()],
-    ["nodeSequence", getU64Decoder2()]
+    ["nodeSequence", getU64Decoder2()],
+    ["collection", getAddressDecoder2()],
+    ["activeTree", getAddressDecoder2()],
+    ["treeCount", getU16Decoder2()]
   ]);
 }
 function getRegistryCodec() {
@@ -12344,7 +12454,7 @@ async function fetchAllMaybeRegistry(rpc, addresses, config) {
   return maybeAccounts.map((maybeAccount) => decodeRegistry(maybeAccount));
 }
 function getRegistrySize() {
-  return 58;
+  return 124;
 }
 
 // ../../sdk/dist/generated/weft/src/generated/accounts/stakePosition.js
@@ -12481,6 +12591,70 @@ function getStakingConfigSize() {
   return 145;
 }
 
+// ../../sdk/dist/generated/weft/src/generated/accounts/treeShard.js
+var TREE_SHARD_DISCRIMINATOR = new Uint8Array([
+  103,
+  111,
+  212,
+  23,
+  42,
+  107,
+  59,
+  169
+]);
+function getTreeShardDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(TREE_SHARD_DISCRIMINATOR);
+}
+function getTreeShardEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["merkleTree", getAddressEncoder2()],
+    ["index", getU16Encoder2()],
+    ["minted", getU64Encoder2()],
+    ["capacity", getU64Encoder2()],
+    ["full", getBooleanEncoder2()],
+    ["bump", getU8Encoder2()]
+  ]), (value) => ({ ...value, discriminator: TREE_SHARD_DISCRIMINATOR }));
+}
+function getTreeShardDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["merkleTree", getAddressDecoder2()],
+    ["index", getU16Decoder2()],
+    ["minted", getU64Decoder2()],
+    ["capacity", getU64Decoder2()],
+    ["full", getBooleanDecoder()],
+    ["bump", getU8Decoder2()]
+  ]);
+}
+function getTreeShardCodec() {
+  return combineCodec2(getTreeShardEncoder(), getTreeShardDecoder());
+}
+function decodeTreeShard(encodedAccount) {
+  return decodeAccount(encodedAccount, getTreeShardDecoder());
+}
+async function fetchTreeShard(rpc, address3, config) {
+  const maybeAccount = await fetchMaybeTreeShard(rpc, address3, config);
+  assertAccountExists(maybeAccount);
+  return maybeAccount;
+}
+async function fetchMaybeTreeShard(rpc, address3, config) {
+  const maybeAccount = await fetchEncodedAccount(rpc, address3, config);
+  return decodeTreeShard(maybeAccount);
+}
+async function fetchAllTreeShard(rpc, addresses, config) {
+  const maybeAccounts = await fetchAllMaybeTreeShard(rpc, addresses, config);
+  assertAccountsExist(maybeAccounts);
+  return maybeAccounts;
+}
+async function fetchAllMaybeTreeShard(rpc, addresses, config) {
+  const maybeAccounts = await fetchEncodedAccounts(rpc, addresses, config);
+  return maybeAccounts.map((maybeAccount) => decodeTreeShard(maybeAccount));
+}
+function getTreeShardSize() {
+  return 60;
+}
+
 // ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput(inputName, value) {
   if (value === null || value === void 0) {
@@ -12563,7 +12737,7 @@ function isPromiseLike(item) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12577,7 +12751,7 @@ async function findClaimStatusPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12588,7 +12762,7 @@ async function findDistributorPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12600,7 +12774,7 @@ async function findEpochDistributionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrow.js
 async function findEscrowPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12612,7 +12786,7 @@ async function findEscrowPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrowVault.js
 async function findEscrowVaultPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12624,7 +12798,7 @@ async function findEscrowVaultPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/node.js
 async function findNodePda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12637,7 +12811,7 @@ async function findNodePda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/position.js
 async function findPositionPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12650,7 +12824,7 @@ async function findPositionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/registry.js
 async function findRegistryPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
@@ -12659,7 +12833,7 @@ async function findRegistryPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12670,7 +12844,7 @@ async function findRewardVaultPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/stakingConfig.js
 async function findStakingConfigPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12679,9 +12853,21 @@ async function findStakingConfigPda(config = {}) {
   });
 }
 
+// ../../sdk/dist/generated/weft/src/generated/pdas/treeShard.js
+async function findTreeShardPda(seeds, config = {}) {
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  return await getProgramDerivedAddress2({
+    programAddress,
+    seeds: [
+      getBytesEncoder2().encode(new Uint8Array([116, 114, 101, 101])),
+      getU16Encoder2().encode(seeds.index)
+    ]
+  });
+}
+
 // ../../sdk/dist/generated/weft/src/generated/pdas/vault.js
 async function findVaultPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -14159,7 +14345,8 @@ function getRegisterNodeInstructionDataEncoder() {
     ["geo", getU32Encoder2()],
     ["capabilities", getU32Encoder2()],
     ["endpointHash", fixEncoderSize2(getBytesEncoder2(), 32)],
-    ["availability", getU8Encoder2()]
+    ["availability", getU8Encoder2()],
+    ["metadataUri", addEncoderSizePrefix2(getUtf8Encoder(), getU32Encoder2())]
   ]), (value) => ({ ...value, discriminator: REGISTER_NODE_DISCRIMINATOR }));
 }
 function getRegisterNodeInstructionDataDecoder() {
@@ -14169,7 +14356,8 @@ function getRegisterNodeInstructionDataDecoder() {
     ["geo", getU32Decoder2()],
     ["capabilities", getU32Decoder2()],
     ["endpointHash", fixDecoderSize2(getBytesDecoder2(), 32)],
-    ["availability", getU8Decoder2()]
+    ["availability", getU8Decoder2()],
+    ["metadataUri", addDecoderSizePrefix2(getUtf8Decoder(), getU32Decoder2())]
   ]);
 }
 function getRegisterNodeInstructionDataCodec() {
@@ -14180,7 +14368,16 @@ async function getRegisterNodeInstructionAsync(input, config) {
   const originalAccounts = {
     operator: { value: input.operator ?? null, isWritable: true },
     registry: { value: input.registry ?? null, isWritable: true },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
     node: { value: input.node ?? null, isWritable: true },
+    treeConfig: { value: input.treeConfig ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: true },
+    coreCollection: { value: input.coreCollection ?? null, isWritable: true },
+    mplCoreCpiSigner: { value: input.mplCoreCpiSigner ?? null, isWritable: false },
+    logWrapper: { value: input.logWrapper ?? null, isWritable: false },
+    compressionProgram: { value: input.compressionProgram ?? null, isWritable: false },
+    mplCoreProgram: { value: input.mplCoreProgram ?? null, isWritable: false },
+    bubblegumProgram: { value: input.bubblegumProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
@@ -14194,6 +14391,12 @@ async function getRegisterNodeInstructionAsync(input, config) {
       nodeId: getNonNullResolvedInstructionInput("nodeId", args.nodeId)
     });
   }
+  if (!accounts.mplCoreProgram.value) {
+    accounts.mplCoreProgram.value = "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d";
+  }
+  if (!accounts.bubblegumProgram.value) {
+    accounts.bubblegumProgram.value = "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+  }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
@@ -14202,7 +14405,16 @@ async function getRegisterNodeInstructionAsync(input, config) {
     accounts: [
       getAccountMeta("operator", accounts.operator),
       getAccountMeta("registry", accounts.registry),
+      getAccountMeta("treeShard", accounts.treeShard),
       getAccountMeta("node", accounts.node),
+      getAccountMeta("treeConfig", accounts.treeConfig),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("coreCollection", accounts.coreCollection),
+      getAccountMeta("mplCoreCpiSigner", accounts.mplCoreCpiSigner),
+      getAccountMeta("logWrapper", accounts.logWrapper),
+      getAccountMeta("compressionProgram", accounts.compressionProgram),
+      getAccountMeta("mplCoreProgram", accounts.mplCoreProgram),
+      getAccountMeta("bubblegumProgram", accounts.bubblegumProgram),
       getAccountMeta("systemProgram", accounts.systemProgram)
     ],
     data: getRegisterNodeInstructionDataEncoder().encode(args),
@@ -14214,11 +14426,26 @@ function getRegisterNodeInstruction(input, config) {
   const originalAccounts = {
     operator: { value: input.operator ?? null, isWritable: true },
     registry: { value: input.registry ?? null, isWritable: true },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
     node: { value: input.node ?? null, isWritable: true },
+    treeConfig: { value: input.treeConfig ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: true },
+    coreCollection: { value: input.coreCollection ?? null, isWritable: true },
+    mplCoreCpiSigner: { value: input.mplCoreCpiSigner ?? null, isWritable: false },
+    logWrapper: { value: input.logWrapper ?? null, isWritable: false },
+    compressionProgram: { value: input.compressionProgram ?? null, isWritable: false },
+    mplCoreProgram: { value: input.mplCoreProgram ?? null, isWritable: false },
+    bubblegumProgram: { value: input.bubblegumProgram ?? null, isWritable: false },
     systemProgram: { value: input.systemProgram ?? null, isWritable: false }
   };
   const accounts = originalAccounts;
   const args = { ...input };
+  if (!accounts.mplCoreProgram.value) {
+    accounts.mplCoreProgram.value = "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d";
+  }
+  if (!accounts.bubblegumProgram.value) {
+    accounts.bubblegumProgram.value = "BGUMAp9Gq7iTEuizy4pqaxsTyUCBK68MDfK752saRPUY";
+  }
   if (!accounts.systemProgram.value) {
     accounts.systemProgram.value = "11111111111111111111111111111111";
   }
@@ -14227,7 +14454,16 @@ function getRegisterNodeInstruction(input, config) {
     accounts: [
       getAccountMeta("operator", accounts.operator),
       getAccountMeta("registry", accounts.registry),
+      getAccountMeta("treeShard", accounts.treeShard),
       getAccountMeta("node", accounts.node),
+      getAccountMeta("treeConfig", accounts.treeConfig),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("coreCollection", accounts.coreCollection),
+      getAccountMeta("mplCoreCpiSigner", accounts.mplCoreCpiSigner),
+      getAccountMeta("logWrapper", accounts.logWrapper),
+      getAccountMeta("compressionProgram", accounts.compressionProgram),
+      getAccountMeta("mplCoreProgram", accounts.mplCoreProgram),
+      getAccountMeta("bubblegumProgram", accounts.bubblegumProgram),
       getAccountMeta("systemProgram", accounts.systemProgram)
     ],
     data: getRegisterNodeInstructionDataEncoder().encode(args),
@@ -14235,10 +14471,10 @@ function getRegisterNodeInstruction(input, config) {
   });
 }
 function parseRegisterNodeInstruction(instruction) {
-  if (instruction.accounts.length < 4) {
+  if (instruction.accounts.length < 13) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
       actualAccountMetas: instruction.accounts.length,
-      expectedAccountMetas: 4
+      expectedAccountMetas: 13
     });
   }
   let accountIndex = 0;
@@ -14252,10 +14488,138 @@ function parseRegisterNodeInstruction(instruction) {
     accounts: {
       operator: getNextAccount(),
       registry: getNextAccount(),
+      treeShard: getNextAccount(),
       node: getNextAccount(),
+      treeConfig: getNextAccount(),
+      merkleTree: getNextAccount(),
+      coreCollection: getNextAccount(),
+      mplCoreCpiSigner: getNextAccount(),
+      logWrapper: getNextAccount(),
+      compressionProgram: getNextAccount(),
+      mplCoreProgram: getNextAccount(),
+      bubblegumProgram: getNextAccount(),
       systemProgram: getNextAccount()
     },
     data: getRegisterNodeInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/registerTree.js
+var REGISTER_TREE_DISCRIMINATOR = new Uint8Array([
+  22,
+  52,
+  192,
+  74,
+  201,
+  240,
+  87,
+  252
+]);
+function getRegisterTreeDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(REGISTER_TREE_DISCRIMINATOR);
+}
+function getRegisterTreeInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["index", getU16Encoder2()],
+    ["maxDepth", getU32Encoder2()]
+  ]), (value) => ({ ...value, discriminator: REGISTER_TREE_DISCRIMINATOR }));
+}
+function getRegisterTreeInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["index", getU16Decoder2()],
+    ["maxDepth", getU32Decoder2()]
+  ]);
+}
+function getRegisterTreeInstructionDataCodec() {
+  return combineCodec2(getRegisterTreeInstructionDataEncoder(), getRegisterTreeInstructionDataDecoder());
+}
+async function getRegisterTreeInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: false },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  if (!accounts.treeShard.value) {
+    accounts.treeShard.value = await findTreeShardPda({
+      index: getNonNullResolvedInstructionInput("index", args.index)
+    });
+  }
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("treeShard", accounts.treeShard),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getRegisterTreeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getRegisterTreeInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: true },
+    registry: { value: input.registry ?? null, isWritable: true },
+    merkleTree: { value: input.merkleTree ?? null, isWritable: false },
+    treeShard: { value: input.treeShard ?? null, isWritable: true },
+    systemProgram: { value: input.systemProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.systemProgram.value) {
+    accounts.systemProgram.value = "11111111111111111111111111111111";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry),
+      getAccountMeta("merkleTree", accounts.merkleTree),
+      getAccountMeta("treeShard", accounts.treeShard),
+      getAccountMeta("systemProgram", accounts.systemProgram)
+    ],
+    data: getRegisterTreeInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseRegisterTreeInstruction(instruction) {
+  if (instruction.accounts.length < 5) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 5
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      authority: getNextAccount(),
+      registry: getNextAccount(),
+      merkleTree: getNextAccount(),
+      treeShard: getNextAccount(),
+      systemProgram: getNextAccount()
+    },
+    data: getRegisterTreeInstructionDataDecoder().decode(instruction.data)
   };
 }
 
@@ -14788,6 +15152,94 @@ function parseSetPosterAuthorityInstruction(instruction) {
       distributor: getNextAccount()
     },
     data: getSetPosterAuthorityInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
+// ../../sdk/dist/generated/weft/src/generated/instructions/setRegistryCollection.js
+var SET_REGISTRY_COLLECTION_DISCRIMINATOR = new Uint8Array([
+  244,
+  80,
+  202,
+  113,
+  72,
+  108,
+  36,
+  189
+]);
+function getSetRegistryCollectionDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SET_REGISTRY_COLLECTION_DISCRIMINATOR);
+}
+function getSetRegistryCollectionInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["collection", getAddressEncoder2()]
+  ]), (value) => ({ ...value, discriminator: SET_REGISTRY_COLLECTION_DISCRIMINATOR }));
+}
+function getSetRegistryCollectionInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["collection", getAddressDecoder2()]
+  ]);
+}
+function getSetRegistryCollectionInstructionDataCodec() {
+  return combineCodec2(getSetRegistryCollectionInstructionDataEncoder(), getSetRegistryCollectionInstructionDataDecoder());
+}
+async function getSetRegistryCollectionInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.registry.value) {
+    accounts.registry.value = await findRegistryPda();
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetRegistryCollectionInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSetRegistryCollectionInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    authority: { value: input.authority ?? null, isWritable: false },
+    registry: { value: input.registry ?? null, isWritable: true }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("authority", accounts.authority),
+      getAccountMeta("registry", accounts.registry)
+    ],
+    data: getSetRegistryCollectionInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSetRegistryCollectionInstruction(instruction) {
+  if (instruction.accounts.length < 2) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 2
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: { authority: getNextAccount(), registry: getNextAccount() },
+    data: getSetRegistryCollectionInstructionDataDecoder().decode(instruction.data)
   };
 }
 
@@ -15389,7 +15841,7 @@ function parseWithdrawUnstakedInstruction(instruction) {
 }
 
 // ../../sdk/dist/generated/weft/src/generated/programs/weft.js
-var WEFT_PROGRAM_ADDRESS = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr";
+var WEFT_PROGRAM_ADDRESS = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd";
 var WeftAccount;
 (function(WeftAccount2) {
   WeftAccount2[WeftAccount2["ClaimStatus"] = 0] = "ClaimStatus";
@@ -15400,6 +15852,7 @@ var WeftAccount;
   WeftAccount2[WeftAccount2["Registry"] = 5] = "Registry";
   WeftAccount2[WeftAccount2["StakePosition"] = 6] = "StakePosition";
   WeftAccount2[WeftAccount2["StakingConfig"] = 7] = "StakingConfig";
+  WeftAccount2[WeftAccount2["TreeShard"] = 8] = "TreeShard";
 })(WeftAccount || (WeftAccount = {}));
 function identifyWeftAccount(account) {
   const data = "data" in account ? account.data : account;
@@ -15427,6 +15880,9 @@ function identifyWeftAccount(account) {
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([45, 134, 252, 82, 37, 57, 84, 25])), 0)) {
     return WeftAccount.StakingConfig;
   }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([103, 111, 212, 23, 42, 107, 59, 169])), 0)) {
+    return WeftAccount.TreeShard;
+  }
   throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__FAILED_TO_IDENTIFY_ACCOUNT2, {
     accountData: data,
     programName: "weft"
@@ -15446,16 +15902,18 @@ var WeftInstruction;
   WeftInstruction2[WeftInstruction2["PayTrafficFromEscrow"] = 9] = "PayTrafficFromEscrow";
   WeftInstruction2[WeftInstruction2["PostEpoch"] = 10] = "PostEpoch";
   WeftInstruction2[WeftInstruction2["RegisterNode"] = 11] = "RegisterNode";
-  WeftInstruction2[WeftInstruction2["RequestUnstake"] = 12] = "RequestUnstake";
-  WeftInstruction2[WeftInstruction2["SetCoreAuthority"] = 13] = "SetCoreAuthority";
-  WeftInstruction2[WeftInstruction2["SetDisputeAuthority"] = 14] = "SetDisputeAuthority";
-  WeftInstruction2[WeftInstruction2["SetPaused"] = 15] = "SetPaused";
-  WeftInstruction2[WeftInstruction2["SetPosterAuthority"] = 16] = "SetPosterAuthority";
-  WeftInstruction2[WeftInstruction2["ShutdownCore"] = 17] = "ShutdownCore";
-  WeftInstruction2[WeftInstruction2["Stake"] = 18] = "Stake";
-  WeftInstruction2[WeftInstruction2["UpdateNode"] = 19] = "UpdateNode";
-  WeftInstruction2[WeftInstruction2["WithdrawEscrow"] = 20] = "WithdrawEscrow";
-  WeftInstruction2[WeftInstruction2["WithdrawUnstaked"] = 21] = "WithdrawUnstaked";
+  WeftInstruction2[WeftInstruction2["RegisterTree"] = 12] = "RegisterTree";
+  WeftInstruction2[WeftInstruction2["RequestUnstake"] = 13] = "RequestUnstake";
+  WeftInstruction2[WeftInstruction2["SetCoreAuthority"] = 14] = "SetCoreAuthority";
+  WeftInstruction2[WeftInstruction2["SetDisputeAuthority"] = 15] = "SetDisputeAuthority";
+  WeftInstruction2[WeftInstruction2["SetPaused"] = 16] = "SetPaused";
+  WeftInstruction2[WeftInstruction2["SetPosterAuthority"] = 17] = "SetPosterAuthority";
+  WeftInstruction2[WeftInstruction2["SetRegistryCollection"] = 18] = "SetRegistryCollection";
+  WeftInstruction2[WeftInstruction2["ShutdownCore"] = 19] = "ShutdownCore";
+  WeftInstruction2[WeftInstruction2["Stake"] = 20] = "Stake";
+  WeftInstruction2[WeftInstruction2["UpdateNode"] = 21] = "UpdateNode";
+  WeftInstruction2[WeftInstruction2["WithdrawEscrow"] = 22] = "WithdrawEscrow";
+  WeftInstruction2[WeftInstruction2["WithdrawUnstaked"] = 23] = "WithdrawUnstaked";
 })(WeftInstruction || (WeftInstruction = {}));
 function identifyWeftInstruction(instruction) {
   const data = "data" in instruction ? instruction.data : instruction;
@@ -15495,6 +15953,9 @@ function identifyWeftInstruction(instruction) {
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([102, 85, 117, 114, 194, 188, 211, 168])), 0)) {
     return WeftInstruction.RegisterNode;
   }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([22, 52, 192, 74, 201, 240, 87, 252])), 0)) {
+    return WeftInstruction.RegisterTree;
+  }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([44, 154, 110, 253, 160, 202, 54, 34])), 0)) {
     return WeftInstruction.RequestUnstake;
   }
@@ -15509,6 +15970,9 @@ function identifyWeftInstruction(instruction) {
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([130, 140, 117, 42, 27, 24, 88, 71])), 0)) {
     return WeftInstruction.SetPosterAuthority;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([244, 80, 202, 113, 72, 108, 36, 189])), 0)) {
+    return WeftInstruction.SetRegistryCollection;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([123, 138, 136, 220, 227, 54, 2, 41])), 0)) {
     return WeftInstruction.ShutdownCore;
@@ -15611,6 +16075,13 @@ function parseWeftInstruction(instruction) {
         ...parseRegisterNodeInstruction(instruction)
       };
     }
+    case WeftInstruction.RegisterTree: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.RegisterTree,
+        ...parseRegisterTreeInstruction(instruction)
+      };
+    }
     case WeftInstruction.RequestUnstake: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -15644,6 +16115,13 @@ function parseWeftInstruction(instruction) {
       return {
         instructionType: WeftInstruction.SetPosterAuthority,
         ...parseSetPosterAuthorityInstruction(instruction)
+      };
+    }
+    case WeftInstruction.SetRegistryCollection: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.SetRegistryCollection,
+        ...parseSetRegistryCollectionInstruction(instruction)
       };
     }
     case WeftInstruction.ShutdownCore: {
@@ -15697,7 +16175,8 @@ function weftProgram() {
           paymentEscrow: addSelfFetchFunctions(client, getPaymentEscrowCodec()),
           registry: addSelfFetchFunctions(client, getRegistryCodec()),
           stakePosition: addSelfFetchFunctions(client, getStakePositionCodec()),
-          stakingConfig: addSelfFetchFunctions(client, getStakingConfigCodec())
+          stakingConfig: addSelfFetchFunctions(client, getStakingConfigCodec()),
+          treeShard: addSelfFetchFunctions(client, getTreeShardCodec())
         },
         instructions: {
           claim: (input) => addSelfPlanAndSendFunctions(client, getClaimInstructionAsync(input)),
@@ -15712,11 +16191,13 @@ function weftProgram() {
           payTrafficFromEscrow: (input) => addSelfPlanAndSendFunctions(client, getPayTrafficFromEscrowInstructionAsync(input)),
           postEpoch: (input) => addSelfPlanAndSendFunctions(client, getPostEpochInstructionAsync(input)),
           registerNode: (input) => addSelfPlanAndSendFunctions(client, getRegisterNodeInstructionAsync(input)),
+          registerTree: (input) => addSelfPlanAndSendFunctions(client, getRegisterTreeInstructionAsync(input)),
           requestUnstake: (input) => addSelfPlanAndSendFunctions(client, getRequestUnstakeInstructionAsync(input)),
           setCoreAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetCoreAuthorityInstructionAsync(input)),
           setDisputeAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetDisputeAuthorityInstructionAsync(input)),
           setPaused: (input) => addSelfPlanAndSendFunctions(client, getSetPausedInstructionAsync(input)),
           setPosterAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetPosterAuthorityInstructionAsync(input)),
+          setRegistryCollection: (input) => addSelfPlanAndSendFunctions(client, getSetRegistryCollectionInstructionAsync(input)),
           shutdownCore: (input) => addSelfPlanAndSendFunctions(client, getShutdownCoreInstructionAsync(input)),
           stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),
           updateNode: (input) => addSelfPlanAndSendFunctions(client, getUpdateNodeInstruction(input)),
@@ -15734,6 +16215,7 @@ function weftProgram() {
           node: findNodePda,
           stakingConfig: findStakingConfigPda,
           rewardVault: findRewardVaultPda,
+          treeShard: findTreeShardPda,
           vault: findVaultPda
         },
         identifyAccount: identifyWeftAccount,
@@ -15768,6 +16250,10 @@ var WEFT_ERROR__EPOCH_OVERCLAIM = 6019;
 var WEFT_ERROR__ACCOUNT_NOT_EMPTY = 6020;
 var WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED = 6021;
 var WEFT_ERROR__SHUTDOWN_BLOCKED = 6022;
+var WEFT_ERROR__TREE_INDEX_MISMATCH = 6023;
+var WEFT_ERROR__INVALID_TREE = 6024;
+var WEFT_ERROR__TREE_FULL = 6025;
+var WEFT_ERROR__INVALID_COLLECTION = 6026;
 var weftErrorMessages;
 if (process.env["NODE_ENV"] !== "production") {
   weftErrorMessages = {
@@ -15779,10 +16265,12 @@ if (process.env["NODE_ENV"] !== "production") {
     [WEFT_ERROR__INSUFFICIENT_VAULT]: `Reward vault cannot cover the posted obligations`,
     [WEFT_ERROR__INVALID_AVAILABILITY]: `Invalid availability value`,
     [WEFT_ERROR__INVALID_CAPABILITIES]: `Invalid capability flags`,
+    [WEFT_ERROR__INVALID_COLLECTION]: `Registry collection does not match`,
     [WEFT_ERROR__INVALID_ESCROW]: `Escrow account does not match the expected owner, mint, or vault`,
     [WEFT_ERROR__INVALID_GEO]: `Invalid geo value`,
     [WEFT_ERROR__INVALID_LOCK]: `Invalid lock duration`,
     [WEFT_ERROR__INVALID_PROOF]: `Merkle proof is invalid`,
+    [WEFT_ERROR__INVALID_TREE]: `Invalid merkle tree or depth`,
     [WEFT_ERROR__INVALID_UNBONDING]: `Invalid unbonding duration`,
     [WEFT_ERROR__INVALID_WINDOW]: `Invalid settlement window`,
     [WEFT_ERROR__LOCKED]: `Stake is still locked`,
@@ -15792,6 +16280,8 @@ if (process.env["NODE_ENV"] !== "production") {
     [WEFT_ERROR__SHUTDOWN_BLOCKED]: `Core still has active state and cannot be shut down`,
     [WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED]: `Core must be paused before shutdown`,
     [WEFT_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
+    [WEFT_ERROR__TREE_FULL]: `Active tree shard is full`,
+    [WEFT_ERROR__TREE_INDEX_MISMATCH]: `Tree shard index must equal the current tree count`,
     [WEFT_ERROR__UNAUTHORIZED]: `Caller is not authorized`,
     [WEFT_ERROR__ZERO_AMOUNT]: `Amount must be greater than zero`
   };
@@ -15825,6 +16315,7 @@ __export(math_exports, {
   TGE_UNLOCK_BPS: () => TGE_UNLOCK_BPS,
   U64_MAX: () => U64_MAX,
   USER_PRICE_PER_GB: () => USER_PRICE_PER_GB,
+  baseUnitScale: () => baseUnitScale,
   clampGeoBonusBps: () => clampGeoBonusBps,
   clampReputationBps: () => clampReputationBps,
   fromHex: () => fromHex,
@@ -16489,7 +16980,7 @@ var sha512 = /* @__PURE__ */ createHasher(() => new SHA512());
 
 // ../../sdk/dist/math.js
 var BPS = 10000n;
-var ONE_WEFT = 1000000000n;
+var ONE_WEFT = 1000000n;
 var USER_PRICE_PER_GB = 1000n * ONE_WEFT;
 var NODE_REWARD_RATE_PER_GB = 700n * ONE_WEFT;
 var BYTES_PER_GB = 1000000000n;
@@ -16501,6 +16992,11 @@ var STAKING_BONUS_THRESHOLD = 10000n * ONE_WEFT;
 var SPLIT_NODES_BPS = 7000n;
 var SPLIT_BURN_BPS = 2000n;
 var U64_MAX = 2n ** 64n - 1n;
+function baseUnitScale(decimals) {
+  if (decimals < 6)
+    throw new Error(`reward mint decimals ${decimals} < 6 unsupported`);
+  return 10n ** BigInt(decimals - 6);
+}
 function clamp(x, lo, hi) {
   return x < lo ? lo : x > hi ? hi : x;
 }
@@ -18228,7 +18724,9 @@ function buildEpoch(epoch, receipts, nodes, opts = {}) {
 }
 function buildEpochFromByteTotals(epoch, totals, nodes, opts = {}, rejectedReceipts = 0) {
   const geoTable = opts.geoTable ?? EMPTY_GEO_TABLE;
-  const minStake = opts.minStakeToEarn ?? DEFAULT_MIN_STAKE_TO_EARN;
+  const scale = math_exports.baseUnitScale(opts.decimals ?? 6);
+  const stakingThreshold = math_exports.STAKING_BONUS_THRESHOLD * scale;
+  const minStake = opts.minStakeToEarn ?? DEFAULT_MIN_STAKE_TO_EARN * scale;
   const nodeByKey = /* @__PURE__ */ new Map();
   for (const n of nodes) nodeByKey.set(key(n.operator, n.nodeId), n);
   const rewards = [];
@@ -18244,7 +18742,7 @@ function buildEpochFromByteTotals(epoch, totals, nodes, opts = {}, rejectedRecei
       continue;
     }
     const geoBonus = geoBonusBps(geoTable, info.geo);
-    const stakingBonus = Number(math_exports.stakingBonusForStake(info.stake));
+    const stakingBonus = info.stake >= stakingThreshold ? Number(math_exports.STAKING_BONUS_BPS) : 0;
     const bootstrapBonus = bootstrapBonusFor(info, opts.bootstrap, epoch);
     const uncappedReward = math_exports.trafficRewardWithBootstrap(
       bytes,
@@ -18254,7 +18752,7 @@ function buildEpochFromByteTotals(epoch, totals, nodes, opts = {}, rejectedRecei
       bootstrapBonus
     );
     const cap = nodeShareCap(bytes);
-    const reward = uncappedReward > cap ? cap : uncappedReward;
+    const reward = (uncappedReward > cap ? cap : uncappedReward) * scale;
     if (reward === 0n) {
       skipped.push({ operator, nodeId, bytes, reason: "zero-reward" });
       continue;
@@ -19063,11 +19561,12 @@ function createAggregatorServer(deps) {
 // src/payout.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 var TokenPayout = class {
-  constructor(rpcUrl, wsUrl, keypairPath, mint) {
+  constructor(rpcUrl, wsUrl, keypairPath, mint, decimals) {
     this.rpcUrl = rpcUrl;
     this.wsUrl = wsUrl;
     this.keypairPath = keypairPath;
     this.mint = mint;
+    this.decimals = decimals;
   }
   async payer() {
     return createKeyPairSignerFromBytes(
@@ -19119,7 +19618,7 @@ var TokenPayout = class {
       destination: destinationAta,
       authority: payer,
       amount,
-      decimals: 9
+      decimals: this.decimals
     });
     const { value: bh } = await rpc.getLatestBlockhash().send();
     const msg = pipe(
@@ -19225,6 +19724,15 @@ function trustedTotalsConfigured() {
     process.env.WEFT_TRUSTED_TOTALS || process.env.WEFT_TRUSTED_OPERATOR || process.env.WEFT_TRUSTED_NODE_ID || process.env.WEFT_TRUSTED_BYTES
   );
 }
+async function fetchRewardMintDecimals(rpc) {
+  const [distributor] = await generated_exports.findDistributorPda();
+  const di = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
+  if (!di.value) return 6;
+  const mint = generated_exports.getDistributorDecoder().decode(Buffer.from(di.value.data[0], "base64")).rewardMint;
+  const mi = await rpc.getAccountInfo(mint, { encoding: "base64" }).send();
+  if (!mi.value) return 6;
+  return Buffer.from(mi.value.data[0], "base64")[44];
+}
 async function main() {
   const cluster = process.env.WEFT_CLUSTER ?? "devnet";
   const mainnet = cluster.startsWith("mainnet");
@@ -19264,7 +19772,8 @@ async function main() {
   const trustedTotals = parseTrustedTotals();
   const receiptsByEpoch = /* @__PURE__ */ new Map();
   receiptsByEpoch.set(epoch.toString(), receipts);
-  const opts = { minStakeToEarn, maxBytesPerEpoch };
+  const rewardDecimals = await fetchRewardMintDecimals(rpc);
+  const opts = { minStakeToEarn, maxBytesPerEpoch, decimals: rewardDecimals };
   const build = trustedTotals.length > 0 ? buildEpochFromByteTotals(epoch, trustedTotals, nodes, opts) : buildEpoch(epoch, receipts, nodes, opts);
   console.log(
     `[aggregator] epoch ${epoch}: ${build.numNodes} nodes, ${build.totalReward} base units, root ${build.root || "(empty)"}`
@@ -19289,7 +19798,7 @@ async function main() {
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
   if (!distInfo.value) throw new Error("distributor not initialized");
   const d = generated_exports.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], "base64"));
-  const payout = payoutKeypairPath ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint) : void 0;
+  const payout = payoutKeypairPath ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals) : void 0;
   const highestKnownEpoch = store.maxEpoch();
   let nextAutoEpoch = (highestKnownEpoch !== null && highestKnownEpoch > BigInt(d.currentEpoch) ? highestKnownEpoch : BigInt(d.currentEpoch)) + 1n;
   const server = createAggregatorServer({
