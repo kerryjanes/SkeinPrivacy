@@ -116,7 +116,7 @@ export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet):
 
     if (req.method === 'GET' && url.pathname === '/price') {
       return send(res, 200, {
-        weftPerGb: Number(math.USER_PRICE_PER_GB) / 1e9,
+        weftPerGb: Number(math.USER_PRICE_PER_GB / math.ONE_WEFT), // whole $WEFT per GB (decimals-independent)
         mint: cfg.weftMint,
         host: cfg.host,
         modes: ['1hop', 'multihop'],
