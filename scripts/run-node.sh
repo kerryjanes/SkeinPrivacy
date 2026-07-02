@@ -36,7 +36,7 @@ stop_node() {
   os=$(uname -s)
   echo "→ stopping Weft node…"
   if [ "$os" = "Linux" ]; then
-    for unit_name in weft-node-cp weft-node-frpc weft-node-xray; do
+    for unit_name in weft-node-cp weft-node-frpc weft-node-xray weft-node-watchdog; do
       sudo systemctl disable --now "$unit_name" 2>/dev/null || true
       if [ "$purge" = "--purge" ]; then sudo rm -f "/etc/systemd/system/$unit_name.service"; fi
     done
@@ -45,7 +45,7 @@ stop_node() {
     local launch_agents="$HOME/Library/LaunchAgents"
     local uid
     uid="$(id -u)"
-    for label in xray frpc cp; do
+    for label in xray frpc cp watchdog; do
       launchctl bootout "gui/$uid/com.weft.node.$label" 2>/dev/null || true
       launchctl unload -w "$launch_agents/com.weft.node.$label.plist" 2>/dev/null || true
       if [ "$purge" = "--purge" ]; then rm -f "$launch_agents/com.weft.node.$label.plist"; fi
@@ -276,6 +276,42 @@ WEFT_RELAY_TOKEN=${RELAY_TOKEN}
 WEFT_RELAY_PROFILE_URL=https://${RELAY}:8089/relay/node-profile
 ENV
 
+echo "→ install exit self-heal watchdog…"
+# Restart=always only heals crashed processes. The common silent failure is the process
+# staying up while the exit dies — e.g. the host IP changes (sleep/wake, Wi-Fi switch, DHCP)
+# and the pinned egress IP goes stale, so Xray can't reach the internet (users get EOF).
+# The watchdog re-detects the live egress IP; if it drifted from the pin, it rewrites node.env
+# and restarts the node so the exit comes back on its own.
+cat > "$SK/watchdog.sh" <<'WD'
+#!/bin/sh
+SK="__SK__"; ENVF="$SK/node.env"
+live_egress() {
+  ip route get 1.1.1.1 2>/dev/null | grep -oE 'src [0-9.]+' | awk '{print $2}' | head -1 && return 0
+  IF=$(route -n get 1.1.1.1 2>/dev/null | awk '/interface:/{print $2}' | head -1)
+  [ -n "$IF" ] && ipconfig getifaddr "$IF" 2>/dev/null
+}
+heal() {
+  CUR="$1"
+  if grep -q '^WEFT_XRAY_SEND_THROUGH=' "$ENVF" 2>/dev/null; then
+    (sed -i "s|^WEFT_XRAY_SEND_THROUGH=.*|WEFT_XRAY_SEND_THROUGH=$CUR|" "$ENVF" 2>/dev/null) \
+      || sed -i '' "s|^WEFT_XRAY_SEND_THROUGH=.*|WEFT_XRAY_SEND_THROUGH=$CUR|" "$ENVF"
+  fi
+  (systemctl restart weft-node-cp weft-node-xray 2>/dev/null) \
+    || { launchctl kickstart -k "gui/$(id -u)/com.weft.node.cp" 2>/dev/null; \
+         launchctl kickstart -k "gui/$(id -u)/com.weft.node.xray" 2>/dev/null; }
+  echo "[watchdog] egress healed → $CUR"
+}
+while :; do
+  sleep 60
+  CUR="$(live_egress)"
+  PIN="$(grep -E '^WEFT_XRAY_SEND_THROUGH=' "$ENVF" 2>/dev/null | cut -d= -f2)"
+  # A pinned egress that no longer matches the live IP is the stale-exit case → heal.
+  [ -n "$PIN" ] && [ -n "$CUR" ] && [ "$PIN" != "$CUR" ] && heal "$CUR"
+done
+WD
+sed -i "s|__SK__|$SK|g" "$SK/watchdog.sh" 2>/dev/null || sed -i '' "s|__SK__|$SK|g" "$SK/watchdog.sh"
+chmod +x "$SK/watchdog.sh"
+
 echo "→ install persistent services (survive reboot + auto-restart)…"
 if [ "$OS" = "Linux" ]; then
   unit() { sudo tee "/etc/systemd/system/$1.service" >/dev/null; }
@@ -307,11 +343,21 @@ Restart=always
 RestartSec=3
 [Install]
 WantedBy=multi-user.target" | unit weft-node-cp
+  echo "[Unit]
+Description=Weft node — exit self-heal watchdog
+After=network-online.target
+[Service]
+ExecStart=/bin/sh ${SK}/watchdog.sh
+Restart=always
+RestartSec=10
+[Install]
+WantedBy=multi-user.target" | unit weft-node-watchdog
   sudo systemctl daemon-reload
-  sudo systemctl enable weft-node-cp weft-node-frpc weft-node-xray >/dev/null 2>&1 || true
+  sudo systemctl enable weft-node-cp weft-node-frpc weft-node-xray weft-node-watchdog >/dev/null 2>&1 || true
   # restart (not just --now) so a re-run actually re-applies config changes (SNI, port, keys).
   sudo systemctl restart weft-node-cp     # writes xray.json + restarts xray
   sudo systemctl restart weft-node-frpc
+  sudo systemctl restart weft-node-watchdog
 else
   LA="$HOME/Library/LaunchAgents"; mkdir -p "$LA"
   # unload-then-load so a re-run actually restarts the service with the new config (SNI, port, keys).
@@ -319,6 +365,7 @@ else
   printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.xray</string><key>ProgramArguments</key><array><string>%s</string><string>run</string><string>-c</string><string>%s/xray.json</string></array><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$XRAY" "$SK" | plist xray
   printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.frpc</string><key>ProgramArguments</key><array><string>%s/frpc</string><string>-c</string><string>%s/frpc.toml</string></array><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$SK" "$SK" | plist frpc
   printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.cp</string><key>ProgramArguments</key><array><string>%s</string><string>%s/control-plane.mjs</string></array><key>EnvironmentVariables</key><dict><key>WEFT_ENVFILE</key><string>%s/node.env</string></dict><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$NODE" "$SK" "$SK" | plist cp
+  printf '<?xml version="1.0"?><!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"><plist version="1.0"><dict><key>Label</key><string>com.weft.node.watchdog</string><key>ProgramArguments</key><array><string>/bin/sh</string><string>%s/watchdog.sh</string></array><key>KeepAlive</key><true/><key>RunAtLoad</key><true/></dict></plist>' "$SK" | plist watchdog
 fi
 
 cat <<DONE
