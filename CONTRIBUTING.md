@@ -7,7 +7,7 @@ fixes, new features, docs, and tooling.
 
 ```sh
 git clone https://github.com/kerryjanes/WeftNetwork.git
-cd Weft
+cd WeftNetwork
 pnpm install            # JS workspaces (services, sdk, desktop)
 cargo build --release   # host crates
 cargo test --workspace  # run the test suite
