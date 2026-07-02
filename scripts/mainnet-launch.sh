@@ -91,8 +91,12 @@ cat <<EOF
 
   Next (backend + verify):
     1. ./scripts/mainnet-cutover.sh ${WEFT_MINT}      # point relay VPS at mainnet + CA, restart
-    2. Fund the reward vault once buyback \$WEFT lands in the treasury:
-         WEFT_MINT=${WEFT_MINT} pnpm --filter @weft/registry-provision <fund step>
+    2. Fund the node-payout wallet once buyback \$WEFT lands in the treasury (admin ATA).
+       Node rewards are paid directly from DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq:
+         spl-token transfer ${WEFT_MINT} <amount> DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq \\
+           --fund-recipient --url "\$WEFT_RPC_URL" --owner "\$WEFT_KEYPAIR"
+       (It can't overpay: transfers are capped at its balance, so an underfunded wallet
+        just pauses withdrawals — never goes negative.)
     3. Verify: curl https://vpn.weftnetwork.net:8089/price  (mint=${WEFT_MINT}, faucet=false)
        and load https://weftnetwork.net/app — distributor now resolves the token.
 ====================================================================
