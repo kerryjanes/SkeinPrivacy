@@ -52,14 +52,10 @@ export function registerExitProfile(cfg: NodeConfig, input: unknown, now = Date.
   if (typeof p.sid !== 'string' || !SID_RE.test(p.sid)) throw new Error('invalid profile sid');
   if (typeof p.sni !== 'string' || p.sni.length < 3) throw new Error('invalid profile sni');
   const profiles = readStore(cfg.relayProfilePath);
-  const incomingServed = BigInt(String(p.servedBytesLifetime ?? 0));
   const existing = profiles[key({ host: p.host, port })];
-  const existingServed = BigInt(existing?.servedBytesLifetime ?? '0');
-  const lastReported = BigInt(existing?.lastReportedServedBytes ?? existing?.servedBytesLifetime ?? '0');
-  const servedBytesLifetime =
-    existing && incomingServed < lastReported
-      ? existingServed + incomingServed
-      : existingServed + (incomingServed > lastReported ? incomingServed - lastReported : 0n);
+  // The node self-report registers identity + liveness ONLY. Reward bytes are NOT taken
+  // from the node's own (double-counting, untrusted) counter — they come from the relay's
+  // outbound measurement (applyRelayExitBytes), which reconciles with user billing.
   const profile: ExitProfile = {
     host: p.host,
     port,
@@ -68,13 +64,38 @@ export function registerExitProfile(cfg: NodeConfig, input: unknown, now = Date.
     sid: p.sid,
     sni: p.sni,
     geo: Number(p.geo ?? 0),
-    servedBytesLifetime: servedBytesLifetime.toString(),
-    lastReportedServedBytes: incomingServed.toString(),
+    servedBytesLifetime: existing?.servedBytesLifetime ?? '0',
     updatedAt: now,
   };
   profiles[key(profile)] = profile;
   writeStore(cfg.relayProfilePath, profiles);
   return profile;
+}
+
+/**
+ * Increment each exit node's authoritative served-bytes from relay-measured outbound deltas
+ * (keyed by exit port). This is the reward basis: bytes are counted once, at the relay, on the
+ * same traffic users are billed for, so `Σ(per-node served) == user consumption` — the debit
+ * and credit counters reconcile exactly. Handles multi-node sessions (round-robin) correctly:
+ * each node accrues exactly the bytes the balancer routed through it.
+ */
+export function applyRelayExitBytes(
+  cfg: NodeConfig,
+  deltas: Map<number, bigint>,
+  now = Date.now(),
+): void {
+  if (deltas.size === 0) return;
+  const profiles = readStore(cfg.relayProfilePath);
+  let changed = false;
+  for (const [port, delta] of deltas) {
+    if (delta <= 0n) continue;
+    const existing = profiles[`${cfg.host}:${port}`];
+    if (!existing) continue; // node not registered yet — it registers first, then accrues
+    existing.servedBytesLifetime = (BigInt(existing.servedBytesLifetime) + delta).toString();
+    existing.updatedAt = now;
+    changed = true;
+  }
+  if (changed) writeStore(cfg.relayProfilePath, profiles);
 }
 
 export function liveExitProfiles(cfg: NodeConfig, now = Date.now()): ExitProfile[] {

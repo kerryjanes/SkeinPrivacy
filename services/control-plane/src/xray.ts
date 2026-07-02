@@ -95,7 +95,15 @@ export function renderConfig(cfg: NodeConfig, activeUsers: User[]): unknown {
     stats: {},
     policy: {
       levels: { '0': { statsUserUplink: true, statsUserDownlink: true } },
-      system: { statsInboundUplink: true, statsInboundDownlink: true },
+      system: {
+        statsInboundUplink: true,
+        statsInboundDownlink: true,
+        // Per-exit-node byte counters (outbound>>>user-exit-PORT). These are measured at
+        // the relay, on the same forwarded bytes users are billed for, so node rewards
+        // reconcile exactly with user debits: Σ(per-node exit bytes) == user consumption.
+        statsOutboundUplink: true,
+        statsOutboundDownlink: true,
+      },
     },
     inbounds: [
       {
@@ -205,6 +213,40 @@ export function parseUsage(raw: string): Map<string, bigint> {
     const email = s.name.split('>>>')[1];
     if (!email) continue;
     out.set(email, (out.get(email) ?? 0n) + BigInt(s.value ?? '0'));
+  }
+  return out;
+}
+
+/**
+ * Per-exit-node forwarded traffic since the last call (uplink+downlink), keyed by exit port.
+ * Measured at the relay's balancer outbounds (`outbound>>>user-exit-PORT`) — the SAME forwarded
+ * bytes the user is billed for at the inbound, so `Σ(per-node exit) == user consumption`. This is
+ * the authoritative reward basis (each node earns for exactly the bytes routed through it).
+ */
+export function pollExitUsage(cfg: NodeConfig): Map<number, bigint> {
+  let raw: string;
+  try {
+    raw = execFileSync(
+      cfg.xrayBin,
+      ['api', 'statsquery', `--server=${cfg.xrayApi}`, '-pattern', 'outbound>>>user-exit-', '-reset'],
+      { encoding: 'utf8' },
+    );
+  } catch {
+    return new Map();
+  }
+  return parseExitUsage(raw);
+}
+
+/** Parse `outbound>>>user-exit-PORT>>>traffic>>>uplink|downlink` into byte totals keyed by port. */
+export function parseExitUsage(raw: string): Map<number, bigint> {
+  const out = new Map<number, bigint>();
+  const parsed = JSON.parse(raw || '{}') as { stat?: { name: string; value?: string }[] };
+  for (const s of parsed.stat ?? []) {
+    const tag = s.name.split('>>>')[1] ?? '';
+    if (!tag.startsWith('user-exit-')) continue;
+    const port = Number(tag.slice('user-exit-'.length));
+    if (!Number.isFinite(port)) continue;
+    out.set(port, (out.get(port) ?? 0n) + BigInt(s.value ?? '0'));
   }
   return out;
 }

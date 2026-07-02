@@ -4,7 +4,12 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { weft } from '@weft/sdk';
 import { loadConfig } from '../src/config.js';
-import { liveExitProfilesWithPorts, registerExitProfile } from '../src/exitProfiles.js';
+import {
+  applyRelayExitBytes,
+  liveExitProfiles,
+  liveExitProfilesWithPorts,
+  registerExitProfile,
+} from '../src/exitProfiles.js';
 import { math } from '@weft/sdk';
 import { costBaseUnits, decodePayTraffic, quotaBytes } from '../src/chain.js';
 import { Controller } from '../src/controller.js';
@@ -109,53 +114,45 @@ describe('node earnings (earn for usage)', () => {
 });
 
 describe('relay exit profile stats', () => {
-  it('stores served lifetime bytes for reward settlement', () => {
+  const nodeInput = () => ({
+    host: cfg.host,
+    port: 20026,
+    uuid: cfg.founderUuid,
+    realityPub: cfg.realityPublicKey,
+    sid: cfg.shortId,
+    sni: cfg.sni,
+    geo: cfg.geo,
+  });
+
+  it('ignores node self-reported bytes — reward bytes come from the relay, not the node', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
     try {
       const profile = registerExitProfile(
         { ...cfg, relayProfilePath: join(dir, 'profiles.json') },
-        {
-          host: cfg.host,
-          port: 20026,
-          uuid: cfg.founderUuid,
-          realityPub: cfg.realityPublicKey,
-          sid: cfg.shortId,
-          sni: cfg.sni,
-          geo: cfg.geo,
-          servedBytesLifetime: '12345',
-        },
+        { ...nodeInput(), servedBytesLifetime: '12345' },
       );
-      expect(profile.servedBytesLifetime).toBe('12345');
+      // The node's own counter is untrusted/double-counting; registration only records
+      // identity + liveness. Served bytes start at 0 and accrue from relay measurement.
+      expect(profile.servedBytesLifetime).toBe('0');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }
   });
 
-  it('keeps served lifetime cumulative when a Windows node counter resets', () => {
+  it('accrues reward bytes from relay-measured per-node exit deltas (reconciled with billing)', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
     try {
       const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json') };
-      const input = {
-        host: cfg.host,
-        port: 20026,
-        uuid: cfg.founderUuid,
-        realityPub: cfg.realityPublicKey,
-        sid: cfg.shortId,
-        sni: cfg.sni,
-        geo: cfg.geo,
-      };
-      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '1000' }).servedBytesLifetime).toBe(
-        '1000',
-      );
-      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '1200' }).servedBytesLifetime).toBe(
-        '1200',
-      );
-      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '40' }).servedBytesLifetime).toBe(
-        '1240',
-      );
-      expect(registerExitProfile(profileCfg, { ...input, servedBytesLifetime: '90' }).servedBytesLifetime).toBe(
-        '1290',
-      );
+      registerExitProfile(profileCfg, nodeInput()); // node comes online (served 0)
+      // relay measured 1000 forwarded to this node's exit port, then 240 more
+      applyRelayExitBytes(profileCfg, new Map([[20026, 1000n]]));
+      applyRelayExitBytes(profileCfg, new Map([[20026, 240n]]));
+      const p = liveExitProfiles(profileCfg).find((x) => x.port === 20026);
+      expect(p?.servedBytesLifetime).toBe('1240');
+      // a re-registration (liveness heartbeat) must not reset the relay-measured total
+      registerExitProfile(profileCfg, { ...nodeInput(), servedBytesLifetime: '999999' });
+      const p2 = liveExitProfiles(profileCfg).find((x) => x.port === 20026);
+      expect(p2?.servedBytesLifetime).toBe('1240');
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

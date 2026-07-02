@@ -13,9 +13,9 @@ import type { NodeConfig } from './config.js';
 import type { Store, User } from './store.js';
 import { math } from '@weft/sdk';
 import { costBaseUnits, escrowBalance, quotaBytes, verifyPayTraffic, type Rpc } from './chain.js';
-import { exitProfileSignature } from './exitProfiles.js';
+import { applyRelayExitBytes, exitProfileSignature } from './exitProfiles.js';
 import { multiHopLink, oneHopLink } from './links.js';
-import { applyConfig, pollUsage } from './xray.js';
+import { applyConfig, pollExitUsage, pollUsage } from './xray.js';
 
 export interface Status {
   wallet: string;
@@ -188,13 +188,14 @@ export class Controller {
     earnedWeft: string;
     earnedBaseUnits: string;
   } {
-    // Reward ONLY on traffic users actually paid for (billed bytes), never the raw node
-    // Xray counter — that also counts operator self-test traffic and both tunnel legs, so
-    // it exceeds what users paid and would drain emissions (insolvent). Node rewards must
-    // stay ≤ the 70% node share of user payments; billing basis == reward basis guarantees it.
-    const served = this.store
+    // Operator-facing ESTIMATE only. The authoritative reward basis is the relay's
+    // per-node outbound measurement (exit-profiles via applyRelayExitBytes), which
+    // reconciles with user billing — NOT this local counter. Shown on /node/stats.
+    const servedByUsers = this.store
       .all()
       .reduce((sum, u) => sum + BigInt(u.servedBytesLifetime ?? '0'), 0n);
+    const rawNodeServed = BigInt(this.store.nodeServedBytesLifetime());
+    const served = servedByUsers > rawNodeServed ? servedByUsers : rawNodeServed;
     // baseline multipliers: reputation 1.0× (10000 bps), no geo/stake bonus
     const earned = math.trafficReward(served, 10_000n, 0n, 0n);
     return {
@@ -222,8 +223,11 @@ export class Controller {
     this.reconcile();
   }
 
-  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray. */
+  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray.
+   *  On a relay (balancer with user-exit outbounds) also attribute forwarded bytes per exit
+   *  node — the reward basis that reconciles with the user debits metered here. */
   async tick(): Promise<void> {
     await this.applyUsage(pollUsage(this.cfg));
+    applyRelayExitBytes(this.cfg, pollExitUsage(this.cfg));
   }
 }
