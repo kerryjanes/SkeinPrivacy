@@ -188,11 +188,13 @@ export class Controller {
     earnedWeft: string;
     earnedBaseUnits: string;
   } {
-    const servedByUsers = this.store
+    // Reward ONLY on traffic users actually paid for (billed bytes), never the raw node
+    // Xray counter — that also counts operator self-test traffic and both tunnel legs, so
+    // it exceeds what users paid and would drain emissions (insolvent). Node rewards must
+    // stay ≤ the 70% node share of user payments; billing basis == reward basis guarantees it.
+    const served = this.store
       .all()
       .reduce((sum, u) => sum + BigInt(u.servedBytesLifetime ?? '0'), 0n);
-    const rawNodeServed = BigInt(this.store.nodeServedBytesLifetime());
-    const served = servedByUsers > rawNodeServed ? servedByUsers : rawNodeServed;
     // baseline multipliers: reputation 1.0× (10000 bps), no geo/stake bonus
     const earned = math.trafficReward(served, 10_000n, 0n, 0n);
     return {
