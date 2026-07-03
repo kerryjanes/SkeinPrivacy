@@ -1,12 +1,14 @@
 packages:
   - 'sdk'
   - 'services/aggregator'
+  - 'services/buyback-burn'
   - 'services/control-plane'
   - 'services/indexer'
   - 'services/registry-provision'
 
 # esbuild (via tsx/vitest) ships a native binary and needs its install script.
 allowBuilds:
+  bigint-buffer: false
   bufferutil: false
   esbuild: true
   utf-8-validate: false

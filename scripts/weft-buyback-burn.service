@@ -1,0 +1,15 @@
+[Unit]
+Description=Weft SOL buyback & burn worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=/etc/weft/buyback.env
+ExecStart=/usr/bin/node /opt/weft/buyback-burn.mjs
+Restart=on-failure
+RestartSec=15
+User=root
+
+[Install]
+WantedBy=multi-user.target
