@@ -1,7 +1,6 @@
 #!/usr/bin/env -S tsx
 import { address } from '@solana/kit';
 import {
-  TOKEN_PROGRAM_ADDRESS,
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstruction,
 } from '@solana-program/token';
@@ -39,29 +38,60 @@ if (existing.value) {
   process.exit(0);
 }
 
-// Guard: the reward mint must be a real, classic-SPL mint. The entire flow (treasury
-// ATA, reward vault, direct node payouts, cabinet) derives token accounts with the
-// classic Token program and initialize_core defaults token_program to it — a Token-2022
-// mint would produce wrong ATAs / fail init. Abort clearly before any state is created.
-const CLASSIC_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+// Guard: detect the reward mint's owning token program (classic SPL or Token-2022 —
+// pump.fun now mints Token-2022) and use it everywhere. Token-2022 is accepted ONLY if
+// it carries no economic-breaking extension (transfer fee, transfer hook, permanent
+// delegate, default-frozen, interest, non-transferable, confidential) — those silently
+// break settlement/burn/payout. Metadata extensions are fine. Abort before any state.
+const CLASSIC_TOKEN_PROGRAM = address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+const TOKEN_2022_PROGRAM = address('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
 const mintInfo = await conn.rpc.getAccountInfo(mint, { encoding: 'base64' }).send();
 if (!mintInfo.value) {
   throw new Error(`WEFT_MINT ${rewardMint} is not an account on ${env.cluster}`);
 }
-if (mintInfo.value.owner !== CLASSIC_TOKEN_PROGRAM) {
+const mintOwner = mintInfo.value.owner;
+if (mintOwner !== CLASSIC_TOKEN_PROGRAM && mintOwner !== TOKEN_2022_PROGRAM) {
   throw new Error(
-    `WEFT_MINT ${rewardMint} is owned by ${mintInfo.value.owner}, not the SPL Token ` +
-      `program (${CLASSIC_TOKEN_PROGRAM}). This launch path is classic-SPL-only (a Token-2022 ` +
-      `mint would need code changes). Aborting before any state is created.`,
+    `WEFT_MINT ${rewardMint} is owned by ${mintOwner}, which is neither the SPL Token ` +
+      `program nor Token-2022. Aborting before any state is created.`,
   );
 }
+const tokenProgram = mintOwner === TOKEN_2022_PROGRAM ? TOKEN_2022_PROGRAM : CLASSIC_TOKEN_PROGRAM;
 const mintBytes = Buffer.from(mintInfo.value.data[0], 'base64');
 if (mintBytes.length < 82) {
   throw new Error(
     `WEFT_MINT ${rewardMint} is not a valid SPL mint on ${env.cluster} (data too short)`,
   );
 }
-console.log(`[init] reward mint ${rewardMint}: owner=SPL Token, decimals=${mintBytes[44]}`);
+if (tokenProgram === TOKEN_2022_PROGRAM) {
+  const DANGEROUS = new Set([
+    'transferFeeConfig',
+    'transferHook',
+    'permanentDelegate',
+    'defaultAccountState',
+    'confidentialTransferMint',
+    'confidentialTransferFeeConfig',
+    'interestBearingConfig',
+    'nonTransferable',
+    'pausable',
+  ]);
+  const parsed = await conn.rpc.getAccountInfo(mint, { encoding: 'jsonParsed' }).send();
+  const info = (parsed.value?.data as { parsed?: { info?: { extensions?: Array<{ extension: string }> } } })
+    ?.parsed?.info;
+  const exts = (info?.extensions ?? []).map((e) => e.extension);
+  const bad = exts.filter((e) => DANGEROUS.has(e));
+  if (bad.length > 0) {
+    throw new Error(
+      `WEFT_MINT ${rewardMint} is a Token-2022 mint with unsupported extension(s): ${bad.join(', ')}. ` +
+        `These break settlement/burn/payout math. Aborting before any state is created.`,
+    );
+  }
+  console.log(
+    `[init] reward mint ${rewardMint}: owner=Token-2022, decimals=${mintBytes[44]}, extensions=[${exts.join(', ')}]`,
+  );
+} else {
+  console.log(`[init] reward mint ${rewardMint}: owner=SPL Token (classic), decimals=${mintBytes[44]}`);
+}
 
 // Resolve the treasury token account (explicit override, else the owner's ATA) and
 // create it idempotently so initialize_core can load it as an existing TokenAccount.
@@ -71,7 +101,7 @@ let treasury = process.env.WEFT_TREASURY_TOKEN_ACCOUNT
       await findAssociatedTokenPda({
         owner: treasuryOwner,
         mint,
-        tokenProgram: TOKEN_PROGRAM_ADDRESS,
+        tokenProgram,
       })
     )[0];
 
@@ -82,7 +112,7 @@ if (!treasuryInfo.value) {
     ata: treasury,
     owner: treasuryOwner,
     mint,
-    tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    tokenProgram,
   });
   const ataSig = await send(conn, authority, [createAta]);
   console.log(`[init] treasury ATA ${treasury} created for owner ${treasuryOwner} (${ataSig})`);
@@ -96,6 +126,7 @@ const ix = await weft.getInitializeCoreInstructionAsync({
   posterAuthority: address(posterAuthority),
   disputeAuthority: address(disputeAuthority),
   treasury,
+  tokenProgram,
   unbondingSeconds,
   disputeWindowSeconds,
   clawbackWindowSeconds,

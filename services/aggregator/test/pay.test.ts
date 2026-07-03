@@ -18,6 +18,7 @@ function config(): PayConfig {
     rewardMint: makeSigner().address,
     rewardVault: makeSigner().address,
     treasury: makeSigner().address,
+    tokenProgram: 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address,
     label: 'Weft VPN traffic',
   };
 }

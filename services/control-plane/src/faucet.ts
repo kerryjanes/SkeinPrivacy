@@ -17,6 +17,7 @@ import {
   setTransactionMessageFeePayerSigner,
   setTransactionMessageLifetimeUsingBlockhash,
   signTransactionMessageWithSigners,
+  type Address,
 } from '@solana/kit';
 import {
   findAssociatedTokenPda,
@@ -29,7 +30,13 @@ import { getTransferSolInstruction } from '@solana-program/system';
 const lastDrip = new Map<string, number>();
 const lastSolDrip = new Map<string, number>();
 
+// The devnet test mint may be classic SPL or Token-2022 (mirroring pump.fun). Read the
+// owning program + decimals from the mint account instead of assuming either.
+const TOKEN_2022_PROGRAM_ADDRESS = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address;
+
 export class Faucet {
+  private mintCache?: { tokenProgram: Address; decimals: number };
+
   constructor(
     private rpcUrl: string,
     private wsUrl: string,
@@ -52,6 +59,22 @@ export class Faucet {
     return { faucet, rpc, sendAndConfirm };
   }
 
+  /** The mint's owning token program + decimals, read from chain once and cached. */
+  private async mintInfo(
+    rpc: ReturnType<typeof createSolanaRpc>,
+  ): Promise<{ tokenProgram: Address; decimals: number }> {
+    if (this.mintCache) return this.mintCache;
+    const info = await rpc.getAccountInfo(address(this.mint), { encoding: 'base64' }).send();
+    if (!info.value) throw new Error(`faucet mint ${this.mint} not found`);
+    const tokenProgram =
+      info.value.owner === TOKEN_2022_PROGRAM_ADDRESS
+        ? TOKEN_2022_PROGRAM_ADDRESS
+        : TOKEN_PROGRAM_ADDRESS;
+    const decimals = Buffer.from(info.value.data[0], 'base64')[44]; // SPL Mint: decimals @ byte 44
+    this.mintCache = { tokenProgram, decimals };
+    return this.mintCache;
+  }
+
   /** Transfer `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx sig. */
   async drip(wallet: string): Promise<{ signature: string; amount: string }> {
     const now = Date.now();
@@ -63,29 +86,34 @@ export class Faucet {
     const { faucet, rpc, sendAndConfirm } = await this.ctx();
     const mint = address(this.mint);
     const owner = address(wallet);
+    const { tokenProgram, decimals } = await this.mintInfo(rpc);
     const [sourceAta] = await findAssociatedTokenPda({
       owner: faucet.address,
       mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      tokenProgram,
     });
     const [destinationAta] = await findAssociatedTokenPda({
       owner,
       mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      tokenProgram,
     });
     const createAta = await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer: faucet,
       owner,
       mint,
+      tokenProgram,
     });
-    const transfer = getTransferCheckedInstruction({
-      source: sourceAta,
-      mint,
-      destination: destinationAta,
-      authority: faucet,
-      amount: this.amount,
-      decimals: 9,
-    });
+    const transfer = getTransferCheckedInstruction(
+      {
+        source: sourceAta,
+        mint,
+        destination: destinationAta,
+        authority: faucet,
+        amount: this.amount,
+        decimals,
+      },
+      { programAddress: tokenProgram },
+    );
     const { value: bh } = await rpc.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),

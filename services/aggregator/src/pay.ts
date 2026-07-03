@@ -4,7 +4,7 @@
 // reward-mint ATA is derived; the vault/treasury come from the on-chain
 // `Distributor`.
 
-import { TOKEN_PROGRAM_ADDRESS, findAssociatedTokenPda } from '@solana-program/token';
+import { findAssociatedTokenPda } from '@solana-program/token';
 import {
   appendTransactionMessageInstruction,
   createNoopSigner,
@@ -23,6 +23,9 @@ export interface PayConfig {
   rewardMint: Address;
   rewardVault: Address;
   treasury: Address;
+  // The reward mint's owning token program (classic SPL or Token-2022), read from
+  // the mint account at runtime. Threaded into every ATA + settlement instruction.
+  tokenProgram: Address;
   label: string;
 }
 
@@ -71,13 +74,14 @@ export async function buildDepositEscrowTransaction(
   const [ownerTokenAccount] = await findAssociatedTokenPda({
     owner: account,
     mint: config.rewardMint,
-    tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    tokenProgram: config.tokenProgram,
   });
 
   const ix = await weft.getDepositEscrowInstructionAsync({
     owner,
     rewardMint: config.rewardMint,
     ownerTokenAccount,
+    tokenProgram: config.tokenProgram,
     amount,
   });
 
@@ -103,6 +107,7 @@ export async function buildPayTrafficFromEscrowTransaction(
     rewardMint: config.rewardMint,
     rewardVault: config.rewardVault,
     treasury: config.treasury,
+    tokenProgram: config.tokenProgram,
     amount,
   });
 
@@ -123,7 +128,7 @@ export async function buildPayTrafficTransaction(
   const [payerTokenAccount] = await findAssociatedTokenPda({
     owner: account,
     mint: config.rewardMint,
-    tokenProgram: TOKEN_PROGRAM_ADDRESS,
+    tokenProgram: config.tokenProgram,
   });
 
   const ix = await weft.getPayTrafficInstructionAsync({
@@ -132,6 +137,7 @@ export async function buildPayTrafficTransaction(
     payerTokenAccount,
     rewardVault: config.rewardVault,
     treasury: config.treasury,
+    tokenProgram: config.tokenProgram,
     amount,
   });
 

@@ -86,18 +86,26 @@ function trustedTotalsConfigured(): boolean {
   );
 }
 
-/** Read the reward mint's decimals from chain (distributor → reward_mint → mint account).
- *  Falls back to 6 (mainnet $WEFT) if the core isn't initialized. */
-async function fetchRewardMintDecimals(rpc: ReturnType<typeof createSolanaRpc>): Promise<number> {
+const CLASSIC_TOKEN_PROGRAM = address('TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA');
+const TOKEN_2022_PROGRAM = address('TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb');
+
+/** Read the reward mint's decimals + owning token program from chain
+ *  (distributor → reward_mint → mint account). pump.fun now mints Token-2022;
+ *  every ATA + settlement instruction must use the mint's real owner program.
+ *  Falls back to classic-SPL 6-decimal $WEFT if the core isn't initialized. */
+async function fetchRewardMintInfo(
+  rpc: ReturnType<typeof createSolanaRpc>,
+): Promise<{ decimals: number; tokenProgram: Address }> {
   const [distributor] = await weft.findDistributorPda();
   const di = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
-  if (!di.value) return 6;
+  if (!di.value) return { decimals: 6, tokenProgram: CLASSIC_TOKEN_PROGRAM };
   const mint = weft
     .getDistributorDecoder()
     .decode(Buffer.from(di.value.data[0], 'base64')).rewardMint;
   const mi = await rpc.getAccountInfo(mint, { encoding: 'base64' }).send();
-  if (!mi.value) return 6;
-  return Buffer.from(mi.value.data[0], 'base64')[44]; // SPL Mint: decimals at byte 44
+  if (!mi.value) return { decimals: 6, tokenProgram: CLASSIC_TOKEN_PROGRAM };
+  const tokenProgram = mi.value.owner === TOKEN_2022_PROGRAM ? TOKEN_2022_PROGRAM : CLASSIC_TOKEN_PROGRAM;
+  return { decimals: Buffer.from(mi.value.data[0], 'base64')[44], tokenProgram }; // decimals at byte 44
 }
 
 async function main(): Promise<void> {
@@ -149,7 +157,7 @@ async function main(): Promise<void> {
   receiptsByEpoch.set(epoch.toString(), receipts);
   // Read the reward mint's decimals from chain so reward math adapts to the token
   // (6 on mainnet's pump.fun $WEFT, 9 on a devnet test mint) — same code either way.
-  const rewardDecimals = await fetchRewardMintDecimals(rpc);
+  const { decimals: rewardDecimals, tokenProgram } = await fetchRewardMintInfo(rpc);
   const opts: BuildOptions = { minStakeToEarn, maxBytesPerEpoch, decimals: rewardDecimals };
   const build =
     trustedTotals.length > 0
@@ -186,7 +194,7 @@ async function main(): Promise<void> {
   if (!distInfo.value) throw new Error('distributor not initialized');
   const d = weft.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], 'base64'));
   const payout = payoutKeypairPath
-    ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals)
+    ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals, tokenProgram)
     : undefined;
   const highestKnownEpoch = store.maxEpoch();
   let nextAutoEpoch =
@@ -203,6 +211,7 @@ async function main(): Promise<void> {
       rewardMint: d.rewardMint,
       rewardVault: d.rewardVault,
       treasury: d.treasury,
+      tokenProgram,
       label: 'Weft VPN traffic',
     },
     getBlockhash: async () => (await rpc.getLatestBlockhash().send()).value,

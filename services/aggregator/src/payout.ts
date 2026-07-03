@@ -18,7 +18,6 @@ import {
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstructionAsync,
   getTransferCheckedInstruction,
-  TOKEN_PROGRAM_ADDRESS,
 } from '@solana-program/token';
 
 export interface PayoutBackend {
@@ -33,6 +32,10 @@ export class TokenPayout implements PayoutBackend {
     private keypairPath: string,
     private mint: Address,
     private decimals: number,
+    // The mint's owning token program (classic SPL or Token-2022), read from the
+    // mint account at runtime. Every ATA + transfer must use it or land on the
+    // wrong account / wrong program.
+    private tokenProgram: Address,
   ) {}
 
   private async payer() {
@@ -47,7 +50,7 @@ export class TokenPayout implements PayoutBackend {
     const [sourceAta] = await findAssociatedTokenPda({
       owner: payer.address,
       mint: this.mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      tokenProgram: this.tokenProgram,
     });
     try {
       const { value } = await rpc.getTokenAccountBalance(sourceAta).send();
@@ -69,26 +72,30 @@ export class TokenPayout implements PayoutBackend {
     const [sourceAta] = await findAssociatedTokenPda({
       owner: payer.address,
       mint: this.mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      tokenProgram: this.tokenProgram,
     });
     const [destinationAta] = await findAssociatedTokenPda({
       owner,
       mint: this.mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      tokenProgram: this.tokenProgram,
     });
     const createAta = await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer,
       owner,
       mint: this.mint,
+      tokenProgram: this.tokenProgram,
     });
-    const transfer = getTransferCheckedInstruction({
-      source: sourceAta,
-      mint: this.mint,
-      destination: destinationAta,
-      authority: payer,
-      amount,
-      decimals: this.decimals,
-    });
+    const transfer = getTransferCheckedInstruction(
+      {
+        source: sourceAta,
+        mint: this.mint,
+        destination: destinationAta,
+        authority: payer,
+        amount,
+        decimals: this.decimals,
+      },
+      { programAddress: this.tokenProgram },
+    );
     const { value: bh } = await rpc.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),

@@ -28,6 +28,8 @@ import {
   getAccount,
   getAssociatedTokenAddressSync,
   getMint,
+  TOKEN_PROGRAM_ID,
+  TOKEN_2022_PROGRAM_ID,
 } from '@solana/spl-token';
 
 const SOL_MINT = 'So11111111111111111111111111111111111111112';
@@ -84,6 +86,9 @@ const payoutWallet = nodeBps > 0 ? new PublicKey(env('WEFT_PAYOUT_WALLET')) : nu
 if (nodeBps < 0 || nodeBps > 10_000) throw new Error('WEFT_BUYBACK_NODE_BPS must be 0..10000');
 
 const connection = new Connection(rpcUrl, 'confirmed');
+// The reward mint may be classic SPL or Token-2022 (pump.fun mints Token-2022). Resolved
+// from the mint account owner in main() before any cycle runs; used for every ATA/burn/transfer.
+let tokenProgram = TOKEN_PROGRAM_ID;
 
 // ---- persistent stats (bigint stored as strings) ----
 interface Store {
@@ -159,9 +164,9 @@ async function jupSwapAndSend(quote: unknown): Promise<string> {
 
 // ---- balances / split ----
 async function ownedWeft(): Promise<bigint> {
-  const ata = getAssociatedTokenAddressSync(mint, buyback.publicKey);
+  const ata = getAssociatedTokenAddressSync(mint, buyback.publicKey, false, tokenProgram);
   try {
-    return (await getAccount(connection, ata)).amount;
+    return (await getAccount(connection, ata, undefined, tokenProgram)).amount;
   } catch {
     return 0n;
   }
@@ -174,24 +179,44 @@ async function splitAndBurn(
   if (bal <= 0n) return { burned: 0n, toNodes: 0n };
   const toNodes = payoutWallet ? (bal * BigInt(nodeBps)) / 10_000n : 0n;
   const toBurn = bal - toNodes;
-  const srcAta = getAssociatedTokenAddressSync(mint, buyback.publicKey);
+  const srcAta = getAssociatedTokenAddressSync(mint, buyback.publicKey, false, tokenProgram);
   const ixs = [];
   if (toNodes > 0n && payoutWallet) {
-    const destAta = getAssociatedTokenAddressSync(mint, payoutWallet);
+    const destAta = getAssociatedTokenAddressSync(mint, payoutWallet, false, tokenProgram);
     ixs.push(
       createAssociatedTokenAccountIdempotentInstruction(
         buyback.publicKey,
         destAta,
         payoutWallet,
         mint,
+        tokenProgram,
       ),
     );
     ixs.push(
-      createTransferCheckedInstruction(srcAta, mint, destAta, buyback.publicKey, toNodes, decimals),
+      createTransferCheckedInstruction(
+        srcAta,
+        mint,
+        destAta,
+        buyback.publicKey,
+        toNodes,
+        decimals,
+        [],
+        tokenProgram,
+      ),
     );
   }
   if (toBurn > 0n) {
-    ixs.push(createBurnCheckedInstruction(srcAta, mint, buyback.publicKey, toBurn, decimals));
+    ixs.push(
+      createBurnCheckedInstruction(
+        srcAta,
+        mint,
+        buyback.publicKey,
+        toBurn,
+        decimals,
+        [],
+        tokenProgram,
+      ),
+    );
   }
   if (ixs.length === 0) return { burned: 0n, toNodes: 0n };
   const { blockhash } = await connection.getLatestBlockhash('confirmed');
@@ -241,11 +266,15 @@ async function main(): Promise<void> {
     log('disabled — set WEFT_BUYBACK_ENABLE=1 to run. Exiting.');
     return;
   }
-  const decimals = (await getMint(connection, mint)).decimals;
+  // Detect the mint's owning token program (classic SPL vs Token-2022) once at startup.
+  const mintOwner = (await connection.getAccountInfo(mint))?.owner;
+  if (mintOwner?.equals(TOKEN_2022_PROGRAM_ID)) tokenProgram = TOKEN_2022_PROGRAM_ID;
+  const decimals = (await getMint(connection, mint, undefined, tokenProgram)).decimals;
   const bal = (await connection.getBalance(buyback.publicKey)) / LAMPORTS_PER_SOL;
   log(
     `worker up: wallet ${buyback.publicKey.toBase58()} (${bal.toFixed(4)} SOL), mint ${mint.toBase58()} ` +
-      `(${decimals} dec), split ${nodeBps / 100}% nodes / ${burnBps / 100}% burn, every ${intervalMs}ms`,
+      `(${decimals} dec, ${tokenProgram.equals(TOKEN_2022_PROGRAM_ID) ? 'Token-2022' : 'SPL'}), ` +
+      `split ${nodeBps / 100}% nodes / ${burnBps / 100}% burn, every ${intervalMs}ms`,
   );
   await cycle(decimals).catch((e) => console.error('[buyback] cycle error:', (e as Error).message));
   setInterval(() => {

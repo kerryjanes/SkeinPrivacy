@@ -1,6 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
+import type { Address } from '@solana/kit';
 import { ed25519 } from '@noble/curves/ed25519';
+
+const TEST_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address;
 
 import { createAggregatorServer } from '../src/server';
 import { EpochStore, PayoutStore } from '../src/store';
@@ -51,6 +54,7 @@ describe('aggregator HTTP receipt ingest', () => {
         rewardMint: client.address,
         rewardVault: client.address,
         treasury: client.address,
+        tokenProgram: TEST_TOKEN_PROGRAM,
         label: 'test',
       },
       getBlockhash: async () =>
@@ -134,6 +138,7 @@ describe('aggregator HTTP receipt ingest', () => {
         rewardMint: operator.address,
         rewardVault: operator.address,
         treasury: operator.address,
+        tokenProgram: TEST_TOKEN_PROGRAM,
         label: 'test',
       },
       getBlockhash: async () =>
@@ -184,6 +189,7 @@ describe('aggregator HTTP receipt ingest', () => {
         rewardMint: operator.address,
         rewardVault: operator.address,
         treasury: operator.address,
+        tokenProgram: TEST_TOKEN_PROGRAM,
         label: 'test',
       },
       getBlockhash: async () =>
@@ -234,6 +240,7 @@ describe('aggregator HTTP receipt ingest', () => {
         rewardMint: operator.address,
         rewardVault: operator.address,
         treasury: operator.address,
+        tokenProgram: TEST_TOKEN_PROGRAM,
         label: 'test',
       },
       getBlockhash: async () =>
@@ -319,6 +326,7 @@ describe('aggregator HTTP receipt ingest', () => {
         rewardMint: operator.address,
         rewardVault: operator.address,
         treasury: operator.address,
+        tokenProgram: TEST_TOKEN_PROGRAM,
         label: 'test',
       },
       getBlockhash: async () =>
