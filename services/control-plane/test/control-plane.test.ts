@@ -256,13 +256,13 @@ describe('personal links', () => {
     expect(l).toContain('flow=xtls-rprx-vision');
     expect(l).toContain(`sni=${cfg.sni}`);
     expect(l).toContain(`pbk=${cfg.realityPublicKey}`);
-    expect(l).toContain('#Weft-1hop');
+    expect(l).toContain(encodeURIComponent('🇪🇺 Weft · Fast'));
   });
   it('multihop targets the Tor port and omits the vision flow', () => {
     const l = multiHopLink(cfg, 'abc-uuid');
     expect(l).toContain(`:${cfg.hopnPort}?`);
     expect(l).not.toContain('flow=');
-    expect(l).toContain('#Weft-multihop');
+    expect(l).toContain(encodeURIComponent('🇪🇺 Weft · Private'));
   });
 });
 
@@ -344,7 +344,7 @@ describe('xray config render', () => {
           tag: 'user-exit-balancer',
           selector: ['user-exit-'],
           fallbackTag: 'direct',
-          strategy: { type: 'roundRobin' },
+          strategy: { type: 'leastPing' },
         },
       ]);
       expect(c.routing.rules.find((r: any) => r.inboundTag?.includes('hop1'))).toEqual({

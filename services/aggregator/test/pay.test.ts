@@ -66,6 +66,29 @@ describe('Solana Pay traffic payments', () => {
     expect(settle.message).toBe(cfg.label);
   });
 
+  // Regression guard for the launch failure: pump.fun minted a Token-2022 token but the
+  // clients hardcoded the classic Token program. Every settlement builder must thread the
+  // reward mint's owning token program from PayConfig — never fall back to classic.
+  it('threads the reward mint token program (Token-2022) into every settlement instruction', async () => {
+    const account = makeSigner().address as Address;
+    const T22 = 'TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb' as Address;
+    const CLASSIC = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address;
+    const cfg: PayConfig = { ...config(), tokenProgram: T22 };
+    const t22Bytes = Buffer.from(addrEnc.encode(T22) as Uint8Array);
+    const classicBytes = Buffer.from(addrEnc.encode(CLASSIC) as Uint8Array);
+    const builders = [
+      buildDepositEscrowTransaction,
+      buildPayTrafficFromEscrowTransaction,
+      buildPayTrafficTransaction,
+    ];
+    for (const build of builders) {
+      const { transaction } = await build(account, 1_000_000n, cfg, FAKE_BLOCKHASH);
+      const bytes = Buffer.from(transaction, 'base64');
+      expect(bytes.includes(t22Bytes)).toBe(true); // Token-2022 program is referenced
+      expect(bytes.includes(classicBytes)).toBe(false); // classic program is NOT wrongly used
+    }
+  });
+
   it('encodes the requested amount in the pay_traffic instruction', async () => {
     const payer = makeSigner();
     const cfg = config();
