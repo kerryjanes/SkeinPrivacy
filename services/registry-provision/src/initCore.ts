@@ -2,7 +2,6 @@
 import { address } from '@solana/kit';
 import {
   TOKEN_PROGRAM_ADDRESS,
-  fetchMaybeMint,
   findAssociatedTokenPda,
   getCreateAssociatedTokenIdempotentInstruction,
 } from '@solana-program/token';
@@ -40,15 +39,27 @@ if (existing.value) {
   process.exit(0);
 }
 
-// Guard: the reward mint must be a real SPL mint before we wire the whole protocol
-// to it. Prints decimals/supply so a mistyped CA is caught before initialization.
-const mintAcct = await fetchMaybeMint(conn.rpc, mint);
-if (!mintAcct.exists) {
-  throw new Error(`WEFT_MINT ${rewardMint} is not a mint account on ${env.cluster}`);
+// Guard: the reward mint must be a real, classic-SPL mint. The entire flow (treasury
+// ATA, reward vault, direct node payouts, cabinet) derives token accounts with the
+// classic Token program and initialize_core defaults token_program to it — a Token-2022
+// mint would produce wrong ATAs / fail init. Abort clearly before any state is created.
+const CLASSIC_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA';
+const mintInfo = await conn.rpc.getAccountInfo(mint, { encoding: 'base64' }).send();
+if (!mintInfo.value) {
+  throw new Error(`WEFT_MINT ${rewardMint} is not an account on ${env.cluster}`);
 }
-console.log(
-  `[init] reward mint ${rewardMint}: decimals=${mintAcct.data.decimals}, supply=${mintAcct.data.supply}`,
-);
+if (mintInfo.value.owner !== CLASSIC_TOKEN_PROGRAM) {
+  throw new Error(
+    `WEFT_MINT ${rewardMint} is owned by ${mintInfo.value.owner}, not the SPL Token ` +
+      `program (${CLASSIC_TOKEN_PROGRAM}). This launch path is classic-SPL-only (a Token-2022 ` +
+      `mint would need code changes). Aborting before any state is created.`,
+  );
+}
+const mintBytes = Buffer.from(mintInfo.value.data[0], 'base64');
+if (mintBytes.length < 82) {
+  throw new Error(`WEFT_MINT ${rewardMint} is not a valid SPL mint on ${env.cluster} (data too short)`);
+}
+console.log(`[init] reward mint ${rewardMint}: owner=SPL Token, decimals=${mintBytes[44]}`);
 
 // Resolve the treasury token account (explicit override, else the owner's ATA) and
 // create it idempotently so initialize_core can load it as an existing TokenAccount.

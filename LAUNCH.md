@@ -29,8 +29,11 @@ CA=<pump.fun mint>
 ./scripts/mainnet-cutover.sh "$CA" --yes
 ```
 
-Both are idempotent — safe to re-run if a step half-fails. Launch spend is only cNFT
-tree rent + fees (< 0.1 SOL); the 4.4 SOL program deposit stays recoverable.
+Both are idempotent — safe to re-run if a step half-fails. Launch spend is ~0.23 SOL
+(the cNFT merkle-tree rent ~0.22 is non-recoverable; collection + treasury ATA + fees are
+the rest). The 4.4 SOL program deposit stays fully recoverable. `mainnet-launch.sh` must
+run before `mainnet-cutover.sh` (the aggregator won't boot without the initialized
+distributor — the cutover checks for it and refuses otherwise).
 
 ## Post-launch funding (before nodes withdraw)
 

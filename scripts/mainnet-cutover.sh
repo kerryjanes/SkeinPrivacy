@@ -39,6 +39,15 @@ RPC_HTTP="${RPC_HTTP:-https://api.mainnet-beta.solana.com}"
 RPC_WS="$(printf '%s' "${RPC_HTTP}" | sed -E 's|^https://|wss://|; s|^http://|ws://|')"
 RPC_MASKED="$(printf '%s' "${RPC_HTTP}" | sed -E 's/(api-key=)[^&]+/\1***/')"
 
+# The aggregator refuses to boot without an initialized distributor and would crash-loop.
+# Ensure mainnet-launch.sh has already initialized on-chain state before we restart it.
+DISTRIBUTOR="9dXdQzPiwANiVJVmU7nbQySMD1VDhdPBbnDjPZNN2GDU"
+if ! solana account "${DISTRIBUTOR}" --url "${RPC_HTTP}" >/dev/null 2>&1; then
+  echo "ERROR: distributor ${DISTRIBUTOR} not found on mainnet." >&2
+  echo "       Run ./scripts/mainnet-launch.sh <CA> first, then re-run this cutover." >&2
+  exit 1
+fi
+
 cat <<EOF
 
 ===================== WEFT MAINNET CUTOVER =====================
@@ -78,6 +87,12 @@ setkv "${WORK}/node.env" WEFT_RPC "${RPC_HTTP}"
 setkv "${WORK}/node.env" WEFT_WS "${RPC_WS}"
 setkv "${WORK}/node.env" WEFT_MINT "${MINT}"
 setkv "${WORK}/node.env" WEFT_FAUCET_KEYPAIR ""
+# On mainnet the control-plane hard-requires these (they only fell back on devnet). Values
+# mirror the live Xray config on the VPS — verified identical, so VLESS links keep working.
+setkv "${WORK}/node.env" WEFT_REALITY_PBK "ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw"
+setkv "${WORK}/node.env" WEFT_REALITY_PRIV "YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE"
+setkv "${WORK}/node.env" WEFT_SID "4ce4af1305de920f"
+setkv "${WORK}/node.env" WEFT_FOUNDER_UUID "b5ced6eb-0cba-4001-9679-65f8ba69e74b"
 
 # aggregator.env
 setkv "${WORK}/aggregator.env" WEFT_CLUSTER "mainnet-beta"
