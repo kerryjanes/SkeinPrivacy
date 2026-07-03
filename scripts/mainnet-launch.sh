@@ -11,9 +11,12 @@
 #                       registry at them.
 # Both steps are idempotent: re-running after a partial launch resumes cleanly.
 #
-# The program itself is already deployed on mainnet (6riawCPV..., authority 9AY1on6);
-# this script does NOT deploy or upgrade it. Non-recoverable spend here is ~0.23 SOL —
-# mostly the cNFT merkle-tree rent (~0.22) + tx fees. The frontend reads the mint from the distributor
+# PREREQUISITE: the weft program must already be DEPLOYED on mainnet under the current
+# declare_id! (the original 6riawCPV was closed; a rebrand relaunch deploys a fresh id first —
+# see LAUNCH.md). This script does NOT deploy or upgrade the program; it only initializes state.
+# The reward mint (CA) may be classic SPL or Token-2022 — initCore detects the mint's owner
+# program at runtime and threads it through. Non-recoverable spend here is ~0.23 SOL — mostly
+# the cNFT merkle-tree rent (~0.22) + tx fees. The frontend reads the mint from the distributor
 # at runtime, so no rebuild is needed after this runs — only the control-plane needs its
 # WEFT_MINT set to the CA (see scripts/mainnet-cutover.sh).
 set -euo pipefail

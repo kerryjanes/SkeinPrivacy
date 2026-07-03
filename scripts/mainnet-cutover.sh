@@ -14,6 +14,7 @@
 # injected server-side; it is never written into this committed script.
 set -euo pipefail
 
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 HOST="${WEFT_VPS:-root@13.140.2.111}"
 MINT="${1:-${WEFT_MINT:-}}"
 YES=0
@@ -41,7 +42,15 @@ RPC_MASKED="$(printf '%s' "${RPC_HTTP}" | sed -E 's/(api-key=)[^&]+/\1***/')"
 
 # The aggregator refuses to boot without an initialized distributor and would crash-loop.
 # Ensure mainnet-launch.sh has already initialized on-chain state before we restart it.
-DISTRIBUTOR="9dXdQzPiwANiVJVmU7nbQySMD1VDhdPBbnDjPZNN2GDU"
+# The distributor PDA is DERIVED from the program id (via the SDK), so it stays correct if
+# the id is ever rotated — never hardcode it.
+DISTRIBUTOR="$(cd "${ROOT}" && pnpm --filter @weft/registry-provision exec tsx \
+  src/printDistributor.ts 2>/dev/null | tail -1)"
+if [[ -z "${DISTRIBUTOR}" ]]; then
+  echo "ERROR: could not derive the distributor PDA from @weft/sdk (run 'pnpm install && pnpm -r build' first)." >&2
+  exit 1
+fi
+echo "[cutover] distributor PDA (derived from program id): ${DISTRIBUTOR}"
 if ! solana account "${DISTRIBUTOR}" --url "${RPC_HTTP}" >/dev/null 2>&1; then
   echo "ERROR: distributor ${DISTRIBUTOR} not found on mainnet." >&2
   echo "       Run ./scripts/mainnet-launch.sh <CA> first, then re-run this cutover." >&2

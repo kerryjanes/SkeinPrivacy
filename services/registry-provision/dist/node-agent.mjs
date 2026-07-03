@@ -5165,7 +5165,7 @@ function transformEncoder(encoder, unmap) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_typescript@6.0.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
 function assertValidBaseString(alphabet4, testValue, givenValue = testValue) {
   if (!testValue.match(new RegExp(`^[${alphabet4}]*$`))) {
     throw new SolanaError(SOLANA_ERROR__CODECS__INVALID_STRING_FOR_BASE, {
@@ -5280,7 +5280,7 @@ function assertVerificationCapabilityIsAvailable() {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+addresses@6.10.0_typescript@6.0.3/node_modules/@solana/addresses/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+addresses@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/addresses/dist/index.node.mjs
 var memoizedBase58Encoder;
 var memoizedBase58Decoder;
 function getMemoizedBase58Encoder() {
@@ -5834,7 +5834,7 @@ function mergeRoles(roleA, roleB) {
   return roleA | roleB;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
 function isBlockhash(putativeBlockhash) {
   return isAddress(putativeBlockhash);
 }
@@ -5859,7 +5859,7 @@ function commitmentComparator(a, b) {
   return getCommitmentScore(a) < getCommitmentScore(b) ? -1 : 1;
 }
 
-// ../../node_modules/.pnpm/@solana+transaction-messages@6.10.0_typescript@6.0.3/node_modules/@solana/transaction-messages/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transaction-messages@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/transaction-messages/dist/index.node.mjs
 function isTransactionMessageWithBlockhashLifetime(transactionMessage) {
   return "lifetimeConstraint" in transactionMessage && typeof transactionMessage.lifetimeConstraint.blockhash === "string" && typeof transactionMessage.lifetimeConstraint.lastValidBlockHeight === "bigint" && isBlockhash(transactionMessage.lifetimeConstraint.blockhash);
 }
@@ -6816,7 +6816,7 @@ function getAbortablePromise(promise, abortSignal) {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+keys@6.10.0_typescript@6.0.3/node_modules/@solana/keys/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+keys@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/keys/dist/index.node.mjs
 var ED25519_ALGORITHM_IDENTIFIER = (
   // Resist the temptation to convert this to a simple string; As of version 133.0.3, Firefox
   // requires the object form of `AlgorithmIdentifier` and will throw a `DOMException` otherwise.
@@ -6917,7 +6917,7 @@ async function createKeyPairFromBytes(bytes, extractable = false) {
   return { privateKey, publicKey };
 }
 
-// ../../node_modules/.pnpm/@solana+transactions@6.10.0_typescript@6.0.3/node_modules/@solana/transactions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transactions@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/transactions/dist/index.node.mjs
 function getSignaturesToEncode(signaturesMap) {
   const signatures = Object.values(signaturesMap);
   if (signatures.length === 0) {
@@ -7632,7 +7632,7 @@ function isJsonRpcPayload(payload) {
   return "jsonrpc" in payload && payload.jsonrpc === "2.0" && "method" in payload && typeof payload.method === "string" && "params" in payload;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-transformers@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-transformers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-transformers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-transformers/dist/index.node.mjs
 function downcastNodeToNumberIfBigint(value) {
   return typeof value === "bigint" ? (
     // FIXME(solana-labs/solana/issues/30341) Create a data type to represent u64 in the Solana
@@ -7957,7 +7957,7 @@ function getDefaultResponseTransformerForSolanaRpcSubscriptions(config) {
   };
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-api@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-api/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-api@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-api/dist/index.node.mjs
 function createSolanaRpcApi(config) {
   return createJsonRpcApi({
     requestTransformer: getDefaultRequestTransformerForSolanaRpc(config),
@@ -8225,7 +8225,7 @@ function createHttpTransportForSolanaRpc(config) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+rpc@6.10.0_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners2 } from "events";
 
 // ../../node_modules/.pnpm/@solana+fast-stable-stringify@6.10.0_typescript@6.0.3/node_modules/@solana/fast-stable-stringify/dist/index.node.mjs
@@ -8302,7 +8302,7 @@ function index_default(val) {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+rpc@6.10.0_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
 function createSolanaJsonRpcIntegerOverflowError(methodName, keyPath, value) {
   let argumentLabel = "";
   if (typeof keyPath[0] === "number") {
@@ -8727,7 +8727,7 @@ async function executeRpcPubSubSubscriptionPlan({
   };
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions-api@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-subscriptions-api/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions-api@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-subscriptions-api/dist/index.node.mjs
 function createSolanaRpcSubscriptionsApi_INTERNAL(config) {
   const requestTransformer = getDefaultRequestTransformerForSolanaRpc(config);
   const responseTransformer = getDefaultResponseTransformerForSolanaRpcSubscriptions({
@@ -8920,7 +8920,7 @@ function getAllowedNumericKeypaths2() {
   return memoizedKeypaths2;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0_ee0442e0c235a80de42e49fcb190a952/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners5 } from "events";
 
 // ../../node_modules/.pnpm/@solana+rpc-subscriptions-channel-websocket@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions-channel-websocket/dist/index.node.mjs
@@ -9071,7 +9071,7 @@ function createWebSocketChannel({
   });
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0_ee0442e0c235a80de42e49fcb190a952/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
 function createSolanaJsonRpcIntegerOverflowError2(methodName, keyPath, value) {
   let argumentLabel = "";
   if (typeof keyPath[0] === "number") {
@@ -9364,7 +9364,7 @@ function createSolanaRpcSubscriptionsFromTransport(transport) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+signers@6.10.0_typescript@6.0.3/node_modules/@solana/signers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+signers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/signers/dist/index.node.mjs
 function deduplicateSigners(signers) {
   const deduplicated = {};
   signers.forEach((signer) => {
@@ -9519,7 +9519,7 @@ async function signModifyingAndPartialTransactionSigners(transaction, modifyingS
 }
 var o2 = globalThis.TextEncoder;
 
-// ../../node_modules/.pnpm/@solana+transaction-confirmation@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/transaction-confirmation/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transaction-confirmation@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdeco_13df4652baa13a6663be50ef50212093/node_modules/@solana/transaction-confirmation/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners6 } from "events";
 var e6 = class extends globalThis.AbortController {
   constructor(...t) {
@@ -9677,7 +9677,7 @@ async function waitForRecentTransactionConfirmation(config) {
   );
 }
 
-// ../../node_modules/.pnpm/@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/kit/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+kit@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/kit/dist/index.node.mjs
 var LOADING_STATE2 = Object.freeze({
   data: void 0,
   error: void 0,
@@ -11112,7 +11112,7 @@ function transformDecoder2(decoder, map) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_typescript@5.9.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
 function assertValidBaseString3(alphabet4, testValue, givenValue = testValue) {
   if (!testValue.match(new RegExp(`^[${alphabet4}]*$`))) {
     throw new SolanaError2(SOLANA_ERROR__CODECS__INVALID_STRING_FOR_BASE2, {
@@ -11231,7 +11231,7 @@ var getUtf8Decoder = () => {
   });
 };
 
-// ../../node_modules/.pnpm/@solana+accounts@6.10.0_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+accounts@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
 function decodeAccount(encodedAccount, decoder) {
   try {
     if ("exists" in encodedAccount && !encodedAccount.exists) {
@@ -11287,7 +11287,7 @@ function assertDigestCapabilityIsAvailable2() {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+addresses@6.10.0_typescript@5.9.3/node_modules/@solana/addresses/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+addresses@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/addresses/dist/index.node.mjs
 var memoizedBase58Encoder2;
 var memoizedBase58Decoder2;
 function getMemoizedBase58Encoder2() {
@@ -11877,7 +11877,7 @@ function getStructDecoder2(fields) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+options@6.10.0_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+options@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
 var some = (value) => ({ __option: "Some", value });
 var none = () => ({ __option: "None" });
 var isOption = (input) => !!(input && typeof input === "object" && "__option" in input && (input.__option === "Some" && "value" in input || input.__option === "None"));
@@ -11991,7 +11991,7 @@ function toConfigurableDescriptors(descriptors) {
   return result;
 }
 
-// ../../node_modules/.pnpm/@solana+programs@6.10.0_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+programs@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
 function isProgramError(error, transactionMessage, programAddress, code) {
   if (!isSolanaError2(error, SOLANA_ERROR__INSTRUCTION_ERROR__CUSTOM2)) {
     return false;
@@ -12003,7 +12003,7 @@ function isProgramError(error, transactionMessage, programAddress, code) {
   return typeof code === "undefined" || error.context.code === code;
 }
 
-// ../../node_modules/.pnpm/@solana+signers@6.10.0_typescript@5.9.3/node_modules/@solana/signers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+signers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/signers/dist/index.node.mjs
 function isTransactionModifyingSigner2(value) {
   return "modifyAndSignTransactions" in value && typeof value.modifyAndSignTransactions === "function";
 }
@@ -12644,7 +12644,7 @@ function getTreeShardSize() {
   return 60;
 }
 
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput(inputName, value) {
   if (value === null || value === void 0) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL2, {
@@ -12726,7 +12726,7 @@ function isPromiseLike(item) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12740,7 +12740,7 @@ async function findClaimStatusPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12751,7 +12751,7 @@ async function findDistributorPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12763,7 +12763,7 @@ async function findEpochDistributionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrow.js
 async function findEscrowPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12775,7 +12775,7 @@ async function findEscrowPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrowVault.js
 async function findEscrowVaultPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12787,7 +12787,7 @@ async function findEscrowVaultPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/node.js
 async function findNodePda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12800,7 +12800,7 @@ async function findNodePda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/position.js
 async function findPositionPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12813,7 +12813,7 @@ async function findPositionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/registry.js
 async function findRegistryPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
@@ -12822,7 +12822,7 @@ async function findRegistryPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12833,7 +12833,7 @@ async function findRewardVaultPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/stakingConfig.js
 async function findStakingConfigPda(config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12844,7 +12844,7 @@ async function findStakingConfigPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/treeShard.js
 async function findTreeShardPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12856,7 +12856,7 @@ async function findTreeShardPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/vault.js
 async function findVaultPda(seeds, config = {}) {
-  const { programAddress = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr" } = config;
+  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -15830,7 +15830,7 @@ function parseWithdrawUnstakedInstruction(instruction) {
 }
 
 // ../../sdk/dist/generated/weft/src/generated/programs/weft.js
-var WEFT_PROGRAM_ADDRESS = "HFt8Bm7r7JJtLN6RDUytVW9XZuDxpidZnGzDJ6SWcJQr";
+var WEFT_PROGRAM_ADDRESS = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd";
 var WeftAccount;
 (function(WeftAccount2) {
   WeftAccount2[WeftAccount2["ClaimStatus"] = 0] = "ClaimStatus";
@@ -16286,7 +16286,7 @@ function isWeftError(error, transactionMessage, code) {
 }
 
 // ../../sdk/dist/math.js
-var ONE_WEFT = 1000000000n;
+var ONE_WEFT = 1000000n;
 var USER_PRICE_PER_GB = 1000n * ONE_WEFT;
 var NODE_REWARD_RATE_PER_GB = 700n * ONE_WEFT;
 var STAKING_BONUS_THRESHOLD = 10000n * ONE_WEFT;
@@ -16379,17 +16379,10 @@ async function mintAccountsFromChain(rpc, metadataUri = NODE_METADATA_URI) {
   const reg = generated_exports.getRegistryDecoder().decode(Buffer.from(info.value.data[0], "base64"));
   const ZERO = "11111111111111111111111111111111";
   if (reg.collection === ZERO || reg.activeTree === ZERO || reg.treeCount === 0) {
-    throw new Error(
-      "Node registry NFT tree is not provisioned yet \u2014 run `nft:provision` first."
-    );
+    throw new Error("Node registry NFT tree is not provisioned yet \u2014 run `nft:provision` first.");
   }
   const [treeShard] = await generated_exports.findTreeShardPda({ index: Number(reg.treeCount) - 1 });
-  return mintAccounts(
-    treeShard,
-    reg.activeTree,
-    reg.collection,
-    metadataUri
-  );
+  return mintAccounts(treeShard, reg.activeTree, reg.collection, metadataUri);
 }
 
 // src/registerNode.ts

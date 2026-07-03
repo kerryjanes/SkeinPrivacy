@@ -5320,7 +5320,7 @@ function transformEncoder(encoder, unmap) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_typescript@6.0.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
 function assertValidBaseString(alphabet4, testValue, givenValue = testValue) {
   if (!testValue.match(new RegExp(`^[${alphabet4}]*$`))) {
     throw new SolanaError(SOLANA_ERROR__CODECS__INVALID_STRING_FOR_BASE, {
@@ -5435,7 +5435,7 @@ function assertVerificationCapabilityIsAvailable() {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+addresses@6.10.0_typescript@6.0.3/node_modules/@solana/addresses/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+addresses@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/addresses/dist/index.node.mjs
 var memoizedBase58Encoder;
 var memoizedBase58Decoder;
 function getMemoizedBase58Encoder() {
@@ -5993,7 +5993,7 @@ function upgradeRoleToSigner(role) {
   return role | IS_SIGNER_BITMASK;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
 function isBlockhash(putativeBlockhash) {
   return isAddress(putativeBlockhash);
 }
@@ -6018,7 +6018,7 @@ function commitmentComparator(a, b) {
   return getCommitmentScore(a) < getCommitmentScore(b) ? -1 : 1;
 }
 
-// ../../node_modules/.pnpm/@solana+transaction-messages@6.10.0_typescript@6.0.3/node_modules/@solana/transaction-messages/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transaction-messages@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/transaction-messages/dist/index.node.mjs
 function isTransactionMessageWithBlockhashLifetime(transactionMessage) {
   return "lifetimeConstraint" in transactionMessage && typeof transactionMessage.lifetimeConstraint.blockhash === "string" && typeof transactionMessage.lifetimeConstraint.lastValidBlockHeight === "bigint" && isBlockhash(transactionMessage.lifetimeConstraint.blockhash);
 }
@@ -6975,7 +6975,7 @@ function getAbortablePromise(promise, abortSignal) {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+keys@6.10.0_typescript@6.0.3/node_modules/@solana/keys/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+keys@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/keys/dist/index.node.mjs
 var ED25519_ALGORITHM_IDENTIFIER = (
   // Resist the temptation to convert this to a simple string; As of version 133.0.3, Firefox
   // requires the object form of `AlgorithmIdentifier` and will throw a `DOMException` otherwise.
@@ -7076,7 +7076,7 @@ async function createKeyPairFromBytes(bytes, extractable = false) {
   return { privateKey, publicKey };
 }
 
-// ../../node_modules/.pnpm/@solana+transactions@6.10.0_typescript@6.0.3/node_modules/@solana/transactions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transactions@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/transactions/dist/index.node.mjs
 function getSignaturesToEncode(signaturesMap) {
   const signatures = Object.values(signaturesMap);
   if (signatures.length === 0) {
@@ -7791,7 +7791,7 @@ function isJsonRpcPayload(payload) {
   return "jsonrpc" in payload && payload.jsonrpc === "2.0" && "method" in payload && typeof payload.method === "string" && "params" in payload;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-transformers@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-transformers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-transformers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-transformers/dist/index.node.mjs
 function downcastNodeToNumberIfBigint(value) {
   return typeof value === "bigint" ? (
     // FIXME(solana-labs/solana/issues/30341) Create a data type to represent u64 in the Solana
@@ -8116,7 +8116,7 @@ function getDefaultResponseTransformerForSolanaRpcSubscriptions(config) {
   };
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-api@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-api/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-api@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-api/dist/index.node.mjs
 function createSolanaRpcApi(config) {
   return createJsonRpcApi({
     requestTransformer: getDefaultRequestTransformerForSolanaRpc(config),
@@ -8384,7 +8384,7 @@ function createHttpTransportForSolanaRpc(config) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+rpc@6.10.0_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners2 } from "events";
 
 // ../../node_modules/.pnpm/@solana+fast-stable-stringify@6.10.0_typescript@6.0.3/node_modules/@solana/fast-stable-stringify/dist/index.node.mjs
@@ -8461,7 +8461,7 @@ function index_default(val) {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+rpc@6.10.0_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
 function createSolanaJsonRpcIntegerOverflowError(methodName, keyPath, value) {
   let argumentLabel = "";
   if (typeof keyPath[0] === "number") {
@@ -8886,7 +8886,7 @@ async function executeRpcPubSubSubscriptionPlan({
   };
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions-api@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-subscriptions-api/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions-api@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-subscriptions-api/dist/index.node.mjs
 function createSolanaRpcSubscriptionsApi_INTERNAL(config) {
   const requestTransformer = getDefaultRequestTransformerForSolanaRpc(config);
   const responseTransformer = getDefaultResponseTransformerForSolanaRpcSubscriptions({
@@ -9079,7 +9079,7 @@ function getAllowedNumericKeypaths2() {
   return memoizedKeypaths2;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0_ee0442e0c235a80de42e49fcb190a952/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners5 } from "events";
 
 // ../../node_modules/.pnpm/@solana+rpc-subscriptions-channel-websocket@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions-channel-websocket/dist/index.node.mjs
@@ -9230,7 +9230,7 @@ function createWebSocketChannel({
   });
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0_ee0442e0c235a80de42e49fcb190a952/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
 function createSolanaJsonRpcIntegerOverflowError2(methodName, keyPath, value) {
   let argumentLabel = "";
   if (typeof keyPath[0] === "number") {
@@ -9523,7 +9523,7 @@ function createSolanaRpcSubscriptionsFromTransport(transport) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+signers@6.10.0_typescript@6.0.3/node_modules/@solana/signers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+signers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/signers/dist/index.node.mjs
 function deduplicateSigners(signers) {
   const deduplicated = {};
   signers.forEach((signer) => {
@@ -9678,7 +9678,7 @@ async function signModifyingAndPartialTransactionSigners(transaction, modifyingS
 }
 var o2 = globalThis.TextEncoder;
 
-// ../../node_modules/.pnpm/@solana+transaction-confirmation@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/transaction-confirmation/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transaction-confirmation@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdeco_13df4652baa13a6663be50ef50212093/node_modules/@solana/transaction-confirmation/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners6 } from "events";
 var e6 = class extends globalThis.AbortController {
   constructor(...t) {
@@ -9836,7 +9836,7 @@ async function waitForRecentTransactionConfirmation(config) {
   );
 }
 
-// ../../node_modules/.pnpm/@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/kit/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+kit@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/kit/dist/index.node.mjs
 var LOADING_STATE2 = Object.freeze({
   data: void 0,
   error: void 0,
@@ -11268,7 +11268,7 @@ function transformDecoder2(decoder, map) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_typescript@5.9.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
 function assertValidBaseString3(alphabet4, testValue, givenValue = testValue) {
   if (!testValue.match(new RegExp(`^[${alphabet4}]*$`))) {
     throw new SolanaError2(SOLANA_ERROR__CODECS__INVALID_STRING_FOR_BASE2, {
@@ -11387,7 +11387,7 @@ var getUtf8Decoder = () => {
   });
 };
 
-// ../../node_modules/.pnpm/@solana+accounts@6.10.0_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+accounts@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
 function decodeAccount(encodedAccount, decoder) {
   try {
     if ("exists" in encodedAccount && !encodedAccount.exists) {
@@ -11443,7 +11443,7 @@ function assertDigestCapabilityIsAvailable2() {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+addresses@6.10.0_typescript@5.9.3/node_modules/@solana/addresses/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+addresses@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/addresses/dist/index.node.mjs
 var memoizedBase58Encoder2;
 var memoizedBase58Decoder2;
 function getMemoizedBase58Encoder2() {
@@ -12033,7 +12033,7 @@ function getStructDecoder2(fields) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+options@6.10.0_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+options@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
 var some = (value) => ({ __option: "Some", value });
 var none = () => ({ __option: "None" });
 var isOption = (input) => !!(input && typeof input === "object" && "__option" in input && (input.__option === "Some" && "value" in input || input.__option === "None"));
@@ -12147,7 +12147,7 @@ function toConfigurableDescriptors(descriptors) {
   return result;
 }
 
-// ../../node_modules/.pnpm/@solana+programs@6.10.0_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+programs@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
 function isProgramError(error, transactionMessage, programAddress, code) {
   if (!isSolanaError2(error, SOLANA_ERROR__INSTRUCTION_ERROR__CUSTOM2)) {
     return false;
@@ -12159,7 +12159,7 @@ function isProgramError(error, transactionMessage, programAddress, code) {
   return typeof code === "undefined" || error.context.code === code;
 }
 
-// ../../node_modules/.pnpm/@solana+signers@6.10.0_typescript@5.9.3/node_modules/@solana/signers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+signers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/signers/dist/index.node.mjs
 function isTransactionModifyingSigner2(value) {
   return "modifyAndSignTransactions" in value && typeof value.modifyAndSignTransactions === "function";
 }
@@ -12800,7 +12800,7 @@ function getTreeShardSize() {
   return 60;
 }
 
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput(inputName, value) {
   if (value === null || value === void 0) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL2, {
@@ -17108,7 +17108,14 @@ function relayOnlinePorts(cfg2) {
     const auth = Buffer.from(`${cfg2.frpsUser}:${cfg2.frpsPass}`).toString("base64");
     const raw = execFileSync(
       "curl",
-      ["-fsS", "--max-time", "2", "-H", `Authorization: Basic ${auth}`, `${cfg2.frpsApi}/api/proxy/tcp`],
+      [
+        "-fsS",
+        "--max-time",
+        "2",
+        "-H",
+        `Authorization: Basic ${auth}`,
+        `${cfg2.frpsApi}/api/proxy/tcp`
+      ],
       { encoding: "utf8" }
     );
     const j = JSON.parse(raw);
@@ -17357,7 +17364,14 @@ function pollExitUsage(cfg2) {
   try {
     raw = execFileSync2(
       cfg2.xrayBin,
-      ["api", "statsquery", `--server=${cfg2.xrayApi}`, "-pattern", "outbound>>>user-exit-", "-reset"],
+      [
+        "api",
+        "statsquery",
+        `--server=${cfg2.xrayApi}`,
+        "-pattern",
+        "outbound>>>user-exit-",
+        "-reset"
+      ],
       { encoding: "utf8" }
     );
   } catch {
@@ -17553,7 +17567,7 @@ var Controller = class {
 // src/faucet.ts
 import { readFileSync as readFileSync3 } from "node:fs";
 
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput2(inputName, value) {
   if (value === null || value === void 0) {
     throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL, {
@@ -17591,7 +17605,7 @@ function isResolvedInstructionAccountSigner2(value) {
   return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
 }
 
-// ../../node_modules/.pnpm/@solana-program+system@0.12.2_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/system/dist/src/index.mjs
+// ../../node_modules/.pnpm/@solana-program+system@0.12.2_@solana+kit@6.10.0_bufferutil@4.1.0_fastestsmallesttexten_4acb1ceeefb0ad5ea0434a1b4daae8f3/node_modules/@solana-program/system/dist/src/index.mjs
 var TRANSFER_SOL_DISCRIMINATOR = 2;
 function getTransferSolInstructionDataEncoder() {
   return transformEncoder(
@@ -17642,7 +17656,7 @@ if (process.env["NODE_ENV"] !== "production") {
   };
 }
 
-// ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/token/dist/src/index.mjs
+// ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_fastestsmallesttextenc_609498eda2bc4f90cefaf5d9bc3b3804/node_modules/@solana-program/token/dist/src/index.mjs
 async function findAssociatedTokenPda(seeds, config = {}) {
   const {
     programAddress = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
@@ -17798,6 +17812,7 @@ if (process.env["NODE_ENV"] !== "production") {
 // src/faucet.ts
 var lastDrip = /* @__PURE__ */ new Map();
 var lastSolDrip = /* @__PURE__ */ new Map();
+var TOKEN_2022_PROGRAM_ADDRESS = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
 var Faucet = class {
   constructor(rpcUrl, wsUrl, keypairPath, mint, amount, solLamports, cooldownMs = 6 * 60 * 60 * 1e3) {
     this.rpcUrl = rpcUrl;
@@ -17808,6 +17823,7 @@ var Faucet = class {
     this.solLamports = solLamports;
     this.cooldownMs = cooldownMs;
   }
+  mintCache;
   async ctx() {
     const faucet2 = await createKeyPairSignerFromBytes(
       Uint8Array.from(JSON.parse(readFileSync3(this.keypairPath, "utf8")))
@@ -17818,6 +17834,16 @@ var Faucet = class {
       rpcSubscriptions: createSolanaRpcSubscriptions(this.wsUrl)
     });
     return { faucet: faucet2, rpc: rpc2, sendAndConfirm };
+  }
+  /** The mint's owning token program + decimals, read from chain once and cached. */
+  async mintInfo(rpc2) {
+    if (this.mintCache) return this.mintCache;
+    const info = await rpc2.getAccountInfo(address(this.mint), { encoding: "base64" }).send();
+    if (!info.value) throw new Error(`faucet mint ${this.mint} not found`);
+    const tokenProgram = info.value.owner === TOKEN_2022_PROGRAM_ADDRESS ? TOKEN_2022_PROGRAM_ADDRESS : TOKEN_PROGRAM_ADDRESS;
+    const decimals = Buffer.from(info.value.data[0], "base64")[44];
+    this.mintCache = { tokenProgram, decimals };
+    return this.mintCache;
   }
   /** Transfer `amount` test $WEFT to `wallet` (creating its ATA if needed). Returns the tx sig. */
   async drip(wallet) {
@@ -17830,29 +17856,34 @@ var Faucet = class {
     const { faucet: faucet2, rpc: rpc2, sendAndConfirm } = await this.ctx();
     const mint = address(this.mint);
     const owner = address(wallet);
+    const { tokenProgram, decimals } = await this.mintInfo(rpc2);
     const [sourceAta] = await findAssociatedTokenPda({
       owner: faucet2.address,
       mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS
+      tokenProgram
     });
     const [destinationAta] = await findAssociatedTokenPda({
       owner,
       mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS
+      tokenProgram
     });
     const createAta = await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer: faucet2,
       owner,
-      mint
-    });
-    const transfer = getTransferCheckedInstruction({
-      source: sourceAta,
       mint,
-      destination: destinationAta,
-      authority: faucet2,
-      amount: this.amount,
-      decimals: 9
+      tokenProgram
     });
+    const transfer = getTransferCheckedInstruction(
+      {
+        source: sourceAta,
+        mint,
+        destination: destinationAta,
+        authority: faucet2,
+        amount: this.amount,
+        decimals
+      },
+      { programAddress: tokenProgram }
+    );
     const { value: bh } = await rpc2.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),
@@ -17893,7 +17924,10 @@ var Faucet = class {
       commitment: "confirmed"
     });
     lastSolDrip.set(wallet, now);
-    return { signature: getSignatureFromTransaction(signed), lamports: this.solLamports.toString() };
+    return {
+      signature: getSignatureFromTransaction(signed),
+      lamports: this.solLamports.toString()
+    };
   }
 };
 
@@ -18088,7 +18122,9 @@ async function profileHeartbeat() {
     } catch (e8) {
       console.error("relay profile publish error:", e8.message);
     }
-    await new Promise((r) => setTimeout(r, Math.min(3e4, Math.max(5e3, cfg.exitProfileTtlMs / 2))));
+    await new Promise(
+      (r) => setTimeout(r, Math.min(3e4, Math.max(5e3, cfg.exitProfileTtlMs / 2)))
+    );
   }
 }
 async function loop() {

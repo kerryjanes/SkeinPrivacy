@@ -5164,7 +5164,7 @@ function transformEncoder(encoder, unmap) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_typescript@6.0.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
 function assertValidBaseString(alphabet4, testValue, givenValue = testValue) {
   if (!testValue.match(new RegExp(`^[${alphabet4}]*$`))) {
     throw new SolanaError(SOLANA_ERROR__CODECS__INVALID_STRING_FOR_BASE, {
@@ -5279,7 +5279,7 @@ function assertVerificationCapabilityIsAvailable() {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+addresses@6.10.0_typescript@6.0.3/node_modules/@solana/addresses/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+addresses@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/addresses/dist/index.node.mjs
 var memoizedBase58Encoder;
 var memoizedBase58Decoder;
 function getMemoizedBase58Encoder() {
@@ -5837,7 +5837,7 @@ function upgradeRoleToSigner(role) {
   return role | IS_SIGNER_BITMASK;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
 function isBlockhash(putativeBlockhash) {
   return isAddress(putativeBlockhash);
 }
@@ -5862,7 +5862,7 @@ function commitmentComparator(a, b) {
   return getCommitmentScore(a) < getCommitmentScore(b) ? -1 : 1;
 }
 
-// ../../node_modules/.pnpm/@solana+transaction-messages@6.10.0_typescript@6.0.3/node_modules/@solana/transaction-messages/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transaction-messages@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/transaction-messages/dist/index.node.mjs
 function isTransactionMessageWithBlockhashLifetime(transactionMessage) {
   return "lifetimeConstraint" in transactionMessage && typeof transactionMessage.lifetimeConstraint.blockhash === "string" && typeof transactionMessage.lifetimeConstraint.lastValidBlockHeight === "bigint" && isBlockhash(transactionMessage.lifetimeConstraint.blockhash);
 }
@@ -6822,7 +6822,7 @@ function getAbortablePromise(promise, abortSignal) {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+keys@6.10.0_typescript@6.0.3/node_modules/@solana/keys/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+keys@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/keys/dist/index.node.mjs
 var ED25519_ALGORITHM_IDENTIFIER = (
   // Resist the temptation to convert this to a simple string; As of version 133.0.3, Firefox
   // requires the object form of `AlgorithmIdentifier` and will throw a `DOMException` otherwise.
@@ -6923,7 +6923,7 @@ async function createKeyPairFromBytes(bytes, extractable = false) {
   return { privateKey, publicKey };
 }
 
-// ../../node_modules/.pnpm/@solana+transactions@6.10.0_typescript@6.0.3/node_modules/@solana/transactions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transactions@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/transactions/dist/index.node.mjs
 function getSignaturesToEncode(signaturesMap) {
   const signatures = Object.values(signaturesMap);
   if (signatures.length === 0) {
@@ -7638,7 +7638,7 @@ function isJsonRpcPayload(payload) {
   return "jsonrpc" in payload && payload.jsonrpc === "2.0" && "method" in payload && typeof payload.method === "string" && "params" in payload;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-transformers@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-transformers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-transformers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-transformers/dist/index.node.mjs
 function downcastNodeToNumberIfBigint(value) {
   return typeof value === "bigint" ? (
     // FIXME(solana-labs/solana/issues/30341) Create a data type to represent u64 in the Solana
@@ -7963,7 +7963,7 @@ function getDefaultResponseTransformerForSolanaRpcSubscriptions(config) {
   };
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-api@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-api/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-api@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-api/dist/index.node.mjs
 function createSolanaRpcApi(config) {
   return createJsonRpcApi({
     requestTransformer: getDefaultRequestTransformerForSolanaRpc(config),
@@ -8231,7 +8231,7 @@ function createHttpTransportForSolanaRpc(config) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+rpc@6.10.0_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners2 } from "events";
 
 // ../../node_modules/.pnpm/@solana+fast-stable-stringify@6.10.0_typescript@6.0.3/node_modules/@solana/fast-stable-stringify/dist/index.node.mjs
@@ -8308,7 +8308,7 @@ function index_default(val) {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+rpc@6.10.0_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc/dist/index.node.mjs
 function createSolanaJsonRpcIntegerOverflowError(methodName, keyPath, value) {
   let argumentLabel = "";
   if (typeof keyPath[0] === "number") {
@@ -8733,7 +8733,7 @@ async function executeRpcPubSubSubscriptionPlan({
   };
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions-api@6.10.0_typescript@6.0.3/node_modules/@solana/rpc-subscriptions-api/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions-api@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-subscriptions-api/dist/index.node.mjs
 function createSolanaRpcSubscriptionsApi_INTERNAL(config) {
   const requestTransformer = getDefaultRequestTransformerForSolanaRpc(config);
   const responseTransformer = getDefaultResponseTransformerForSolanaRpcSubscriptions({
@@ -8926,7 +8926,7 @@ function getAllowedNumericKeypaths2() {
   return memoizedKeypaths2;
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0_ee0442e0c235a80de42e49fcb190a952/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners5 } from "events";
 
 // ../../node_modules/.pnpm/@solana+rpc-subscriptions-channel-websocket@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions-channel-websocket/dist/index.node.mjs
@@ -9077,7 +9077,7 @@ function createWebSocketChannel({
   });
 }
 
-// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+rpc-subscriptions@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0_ee0442e0c235a80de42e49fcb190a952/node_modules/@solana/rpc-subscriptions/dist/index.node.mjs
 function createSolanaJsonRpcIntegerOverflowError2(methodName, keyPath, value) {
   let argumentLabel = "";
   if (typeof keyPath[0] === "number") {
@@ -9370,7 +9370,7 @@ function createSolanaRpcSubscriptionsFromTransport(transport) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+signers@6.10.0_typescript@6.0.3/node_modules/@solana/signers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+signers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/signers/dist/index.node.mjs
 function deduplicateSigners(signers) {
   const deduplicated = {};
   signers.forEach((signer) => {
@@ -9533,7 +9533,7 @@ async function signModifyingAndPartialTransactionSigners(transaction, modifyingS
 }
 var o2 = globalThis.TextEncoder;
 
-// ../../node_modules/.pnpm/@solana+transaction-confirmation@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/transaction-confirmation/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+transaction-confirmation@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdeco_13df4652baa13a6663be50ef50212093/node_modules/@solana/transaction-confirmation/dist/index.node.mjs
 import { setMaxListeners as setMaxListeners6 } from "events";
 var e6 = class extends globalThis.AbortController {
   constructor(...t) {
@@ -9691,7 +9691,7 @@ async function waitForRecentTransactionConfirmation(config) {
   );
 }
 
-// ../../node_modules/.pnpm/@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/kit/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+kit@6.10.0_bufferutil@4.1.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3_utf-8-validate@6.0.6/node_modules/@solana/kit/dist/index.node.mjs
 var LOADING_STATE2 = Object.freeze({
   data: void 0,
   error: void 0,
@@ -11123,7 +11123,7 @@ function transformDecoder2(decoder, map) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_typescript@5.9.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+codecs-strings@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/codecs-strings/dist/index.node.mjs
 function assertValidBaseString3(alphabet4, testValue, givenValue = testValue) {
   if (!testValue.match(new RegExp(`^[${alphabet4}]*$`))) {
     throw new SolanaError2(SOLANA_ERROR__CODECS__INVALID_STRING_FOR_BASE2, {
@@ -11242,7 +11242,7 @@ var getUtf8Decoder = () => {
   });
 };
 
-// ../../node_modules/.pnpm/@solana+accounts@6.10.0_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+accounts@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/accounts/dist/index.node.mjs
 function decodeAccount(encodedAccount, decoder) {
   try {
     if ("exists" in encodedAccount && !encodedAccount.exists) {
@@ -11298,7 +11298,7 @@ function assertDigestCapabilityIsAvailable2() {
   }
 }
 
-// ../../node_modules/.pnpm/@solana+addresses@6.10.0_typescript@5.9.3/node_modules/@solana/addresses/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+addresses@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/addresses/dist/index.node.mjs
 var memoizedBase58Encoder2;
 var memoizedBase58Decoder2;
 function getMemoizedBase58Encoder2() {
@@ -11888,7 +11888,7 @@ function getStructDecoder2(fields) {
   });
 }
 
-// ../../node_modules/.pnpm/@solana+options@6.10.0_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+options@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/options/dist/index.node.mjs
 var some = (value) => ({ __option: "Some", value });
 var none = () => ({ __option: "None" });
 var isOption = (input) => !!(input && typeof input === "object" && "__option" in input && (input.__option === "Some" && "value" in input || input.__option === "None"));
@@ -12002,7 +12002,7 @@ function toConfigurableDescriptors(descriptors) {
   return result;
 }
 
-// ../../node_modules/.pnpm/@solana+programs@6.10.0_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+programs@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/programs/dist/index.node.mjs
 function isProgramError(error, transactionMessage, programAddress, code) {
   if (!isSolanaError2(error, SOLANA_ERROR__INSTRUCTION_ERROR__CUSTOM2)) {
     return false;
@@ -12014,7 +12014,7 @@ function isProgramError(error, transactionMessage, programAddress, code) {
   return typeof code === "undefined" || error.context.code === code;
 }
 
-// ../../node_modules/.pnpm/@solana+signers@6.10.0_typescript@5.9.3/node_modules/@solana/signers/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+signers@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/signers/dist/index.node.mjs
 function isTransactionModifyingSigner2(value) {
   return "modifyAndSignTransactions" in value && typeof value.modifyAndSignTransactions === "function";
 }
@@ -12655,7 +12655,7 @@ function getTreeShardSize() {
   return 60;
 }
 
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@5.9.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput(inputName, value) {
   if (value === null || value === void 0) {
     throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL2, {
@@ -18968,7 +18968,7 @@ var PayoutStore = class {
 import { createServer } from "node:http";
 import { randomBytes as randomBytes2 } from "node:crypto";
 
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
+// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
 function getNonNullResolvedInstructionInput2(inputName, value) {
   if (value === null || value === void 0) {
     throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL, {
@@ -19006,7 +19006,7 @@ function isResolvedInstructionAccountSigner2(value) {
   return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
 }
 
-// ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_typescript@6.0.3_utf-8-validate@6.0.6_/node_modules/@solana-program/token/dist/src/index.mjs
+// ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_fastestsmallesttextenc_609498eda2bc4f90cefaf5d9bc3b3804/node_modules/@solana-program/token/dist/src/index.mjs
 async function findAssociatedTokenPda(seeds, config = {}) {
   const {
     programAddress = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
@@ -19182,12 +19182,13 @@ async function buildDepositEscrowTransaction(account, amount, config, latestBloc
   const [ownerTokenAccount] = await findAssociatedTokenPda({
     owner: account,
     mint: config.rewardMint,
-    tokenProgram: TOKEN_PROGRAM_ADDRESS
+    tokenProgram: config.tokenProgram
   });
   const ix = await generated_exports.getDepositEscrowInstructionAsync({
     owner,
     rewardMint: config.rewardMint,
     ownerTokenAccount,
+    tokenProgram: config.tokenProgram,
     amount
   });
   return buildSingleInstructionTransaction(account, config, latestBlockhash, ix);
@@ -19201,6 +19202,7 @@ async function buildPayTrafficFromEscrowTransaction(account, amount, config, lat
     rewardMint: config.rewardMint,
     rewardVault: config.rewardVault,
     treasury: config.treasury,
+    tokenProgram: config.tokenProgram,
     amount
   });
   return buildSingleInstructionTransaction(account, config, latestBlockhash, ix);
@@ -19210,7 +19212,7 @@ async function buildPayTrafficTransaction(account, amount, config, latestBlockha
   const [payerTokenAccount] = await findAssociatedTokenPda({
     owner: account,
     mint: config.rewardMint,
-    tokenProgram: TOKEN_PROGRAM_ADDRESS
+    tokenProgram: config.tokenProgram
   });
   const ix = await generated_exports.getPayTrafficInstructionAsync({
     payer,
@@ -19218,6 +19220,7 @@ async function buildPayTrafficTransaction(account, amount, config, latestBlockha
     payerTokenAccount,
     rewardVault: config.rewardVault,
     treasury: config.treasury,
+    tokenProgram: config.tokenProgram,
     amount
   });
   return buildSingleInstructionTransaction(account, config, latestBlockhash, ix);
@@ -19561,12 +19564,13 @@ function createAggregatorServer(deps) {
 // src/payout.ts
 import { readFileSync as readFileSync2 } from "node:fs";
 var TokenPayout = class {
-  constructor(rpcUrl, wsUrl, keypairPath, mint, decimals) {
+  constructor(rpcUrl, wsUrl, keypairPath, mint, decimals, tokenProgram) {
     this.rpcUrl = rpcUrl;
     this.wsUrl = wsUrl;
     this.keypairPath = keypairPath;
     this.mint = mint;
     this.decimals = decimals;
+    this.tokenProgram = tokenProgram;
   }
   async payer() {
     return createKeyPairSignerFromBytes(
@@ -19579,7 +19583,7 @@ var TokenPayout = class {
     const [sourceAta] = await findAssociatedTokenPda({
       owner: payer.address,
       mint: this.mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS
+      tokenProgram: this.tokenProgram
     });
     try {
       const { value } = await rpc.getTokenAccountBalance(sourceAta).send();
@@ -19600,26 +19604,30 @@ var TokenPayout = class {
     const [sourceAta] = await findAssociatedTokenPda({
       owner: payer.address,
       mint: this.mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS
+      tokenProgram: this.tokenProgram
     });
     const [destinationAta] = await findAssociatedTokenPda({
       owner,
       mint: this.mint,
-      tokenProgram: TOKEN_PROGRAM_ADDRESS
+      tokenProgram: this.tokenProgram
     });
     const createAta = await getCreateAssociatedTokenIdempotentInstructionAsync({
       payer,
       owner,
-      mint: this.mint
-    });
-    const transfer = getTransferCheckedInstruction({
-      source: sourceAta,
       mint: this.mint,
-      destination: destinationAta,
-      authority: payer,
-      amount,
-      decimals: this.decimals
+      tokenProgram: this.tokenProgram
     });
+    const transfer = getTransferCheckedInstruction(
+      {
+        source: sourceAta,
+        mint: this.mint,
+        destination: destinationAta,
+        authority: payer,
+        amount,
+        decimals: this.decimals
+      },
+      { programAddress: this.tokenProgram }
+    );
     const { value: bh } = await rpc.getLatestBlockhash().send();
     const msg = pipe(
       createTransactionMessage({ version: 0 }),
@@ -19715,7 +19723,9 @@ function parseTrustedTotals() {
   const bytes = process.env.WEFT_TRUSTED_BYTES;
   if (!operator && !nodeId && !bytes) return [];
   if (!operator || !nodeId || !bytes) {
-    throw new Error("WEFT_TRUSTED_OPERATOR, WEFT_TRUSTED_NODE_ID, and WEFT_TRUSTED_BYTES are required together");
+    throw new Error(
+      "WEFT_TRUSTED_OPERATOR, WEFT_TRUSTED_NODE_ID, and WEFT_TRUSTED_BYTES are required together"
+    );
   }
   return [{ operator: address(operator), nodeId: BigInt(nodeId), bytes: BigInt(bytes) }];
 }
@@ -19724,14 +19734,17 @@ function trustedTotalsConfigured() {
     process.env.WEFT_TRUSTED_TOTALS || process.env.WEFT_TRUSTED_OPERATOR || process.env.WEFT_TRUSTED_NODE_ID || process.env.WEFT_TRUSTED_BYTES
   );
 }
-async function fetchRewardMintDecimals(rpc) {
+var CLASSIC_TOKEN_PROGRAM = address("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+var TOKEN_2022_PROGRAM = address("TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb");
+async function fetchRewardMintInfo(rpc) {
   const [distributor] = await generated_exports.findDistributorPda();
   const di = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
-  if (!di.value) return 6;
+  if (!di.value) return { decimals: 6, tokenProgram: CLASSIC_TOKEN_PROGRAM };
   const mint = generated_exports.getDistributorDecoder().decode(Buffer.from(di.value.data[0], "base64")).rewardMint;
   const mi = await rpc.getAccountInfo(mint, { encoding: "base64" }).send();
-  if (!mi.value) return 6;
-  return Buffer.from(mi.value.data[0], "base64")[44];
+  if (!mi.value) return { decimals: 6, tokenProgram: CLASSIC_TOKEN_PROGRAM };
+  const tokenProgram = mi.value.owner === TOKEN_2022_PROGRAM ? TOKEN_2022_PROGRAM : CLASSIC_TOKEN_PROGRAM;
+  return { decimals: Buffer.from(mi.value.data[0], "base64")[44], tokenProgram };
 }
 async function main() {
   const cluster = process.env.WEFT_CLUSTER ?? "devnet";
@@ -19772,7 +19785,7 @@ async function main() {
   const trustedTotals = parseTrustedTotals();
   const receiptsByEpoch = /* @__PURE__ */ new Map();
   receiptsByEpoch.set(epoch.toString(), receipts);
-  const rewardDecimals = await fetchRewardMintDecimals(rpc);
+  const { decimals: rewardDecimals, tokenProgram } = await fetchRewardMintInfo(rpc);
   const opts = { minStakeToEarn, maxBytesPerEpoch, decimals: rewardDecimals };
   const build = trustedTotals.length > 0 ? buildEpochFromByteTotals(epoch, trustedTotals, nodes, opts) : buildEpoch(epoch, receipts, nodes, opts);
   console.log(
@@ -19798,7 +19811,7 @@ async function main() {
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
   if (!distInfo.value) throw new Error("distributor not initialized");
   const d = generated_exports.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], "base64"));
-  const payout = payoutKeypairPath ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals) : void 0;
+  const payout = payoutKeypairPath ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals, tokenProgram) : void 0;
   const highestKnownEpoch = store.maxEpoch();
   let nextAutoEpoch = (highestKnownEpoch !== null && highestKnownEpoch > BigInt(d.currentEpoch) ? highestKnownEpoch : BigInt(d.currentEpoch)) + 1n;
   const server = createAggregatorServer({
@@ -19810,6 +19823,7 @@ async function main() {
       rewardMint: d.rewardMint,
       rewardVault: d.rewardVault,
       treasury: d.treasury,
+      tokenProgram,
       label: "Weft VPN traffic"
     },
     getBlockhash: async () => (await rpc.getLatestBlockhash().send()).value,
@@ -19861,10 +19875,14 @@ async function main() {
   if (autoSettle) {
     console.log(`[aggregator] auto settlement enabled every ${autoSettleMs}ms`);
     setTimeout(() => {
-      void autoSettleOnce().catch((e8) => console.error("[aggregator] auto settlement error:", e8.message));
+      void autoSettleOnce().catch(
+        (e8) => console.error("[aggregator] auto settlement error:", e8.message)
+      );
     }, 5e3).unref();
     setInterval(() => {
-      void autoSettleOnce().catch((e8) => console.error("[aggregator] auto settlement error:", e8.message));
+      void autoSettleOnce().catch(
+        (e8) => console.error("[aggregator] auto settlement error:", e8.message)
+      );
     }, autoSettleMs).unref();
   }
 }
