@@ -161,14 +161,14 @@ anchor build
 
 ## Main Scripts
 
-| Path | Purpose |
-| --- | --- |
-| `scripts/run-node.sh` | Run a home 1-hop node on macOS/Linux. |
-| `scripts/run-node.cmd` | Run a home 1-hop node from Windows Command Prompt. |
-| `scripts/run-node.ps1` | Windows PowerShell implementation used by `run-node.cmd`. |
-| `scripts/stop-node.sh` | Legacy stop helper; `./weft-node.sh stop` is preferred. |
-| `scripts/deploy-node.sh` | Deploy a VPS infrastructure node. |
-| `scripts/test-home-exit.sh` | Local/devnet home-exit test helper. |
+| Path                        | Purpose                                                   |
+| --------------------------- | --------------------------------------------------------- |
+| `scripts/run-node.sh`       | Run a home 1-hop node on macOS/Linux.                     |
+| `scripts/run-node.cmd`      | Run a home 1-hop node from Windows Command Prompt.        |
+| `scripts/run-node.ps1`      | Windows PowerShell implementation used by `run-node.cmd`. |
+| `scripts/stop-node.sh`      | Legacy stop helper; `./weft-node.sh stop` is preferred.  |
+| `scripts/deploy-node.sh`    | Deploy a VPS infrastructure node.                         |
+| `scripts/test-home-exit.sh` | Local/devnet home-exit test helper.                       |
 
 ## License
 

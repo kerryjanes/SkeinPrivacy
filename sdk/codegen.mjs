@@ -12,9 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const idlDir = join(here, '..', 'target', 'idl');
 const outDir = join(here, 'src', 'generated');
 
-const idls = existsSync(idlDir)
-  ? readdirSync(idlDir).filter((f) => f === 'weft.json')
-  : [];
+const idls = existsSync(idlDir) ? readdirSync(idlDir).filter((f) => f === 'weft.json') : [];
 
 if (idls.length === 0) {
   console.log('[codama] No weft IDL in target/idl yet — nothing to generate.');

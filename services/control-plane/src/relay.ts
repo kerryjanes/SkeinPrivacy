@@ -13,7 +13,10 @@ const hashEndpoint = (ep: string): string => createHash('sha256').update(ep).dig
 const toHex = (u: ArrayLike<number>): string =>
   Array.from(u, (b) => b.toString(16).padStart(2, '0')).join('');
 
-export function filterRegisteredEndpointHashes(hashes: string[], registered: Set<string>): string[] {
+export function filterRegisteredEndpointHashes(
+  hashes: string[],
+  registered: Set<string>,
+): string[] {
   return hashes.filter((hash) => registered.has(hash));
 }
 
@@ -71,6 +74,10 @@ export async function liveEndpointHashes(cfg: NodeConfig): Promise<string[]> {
   return filterRegisteredEndpointHashes(liveHashes, await registeredEndpointHashes(cfg));
 }
 
-export async function isRegisteredEndpoint(cfg: NodeConfig, host: string, port: number): Promise<boolean> {
+export async function isRegisteredEndpoint(
+  cfg: NodeConfig,
+  host: string,
+  port: number,
+): Promise<boolean> {
   return (await registeredEndpointHashes(cfg)).has(hashEndpoint(`${host}:${port}`));
 }

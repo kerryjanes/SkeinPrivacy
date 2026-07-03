@@ -139,7 +139,13 @@ export class PayoutStore {
     return BigInt(this.data.paid[payoutKey(operator, nodeId)] ?? '0');
   }
 
-  record(operator: string, nodeId: bigint, amount: bigint, signature: string, now = Date.now()): void {
+  record(
+    operator: string,
+    nodeId: bigint,
+    amount: bigint,
+    signature: string,
+    now = Date.now(),
+  ): void {
     if (amount <= 0n) return;
     const key = payoutKey(operator, nodeId);
     this.data.paid[key] = (BigInt(this.data.paid[key] ?? '0') + amount).toString();

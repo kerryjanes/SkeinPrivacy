@@ -2,7 +2,12 @@ import type { TransactionSigner } from '@solana/kit';
 import { weft } from '@weft/sdk';
 
 import { send, type Connection } from './kit';
-import { BUBBLEGUM_PROGRAM, MPL_CORE_PROGRAM, mintAccountsFromChain, NODE_METADATA_URI } from './nft';
+import {
+  BUBBLEGUM_PROGRAM,
+  MPL_CORE_PROGRAM,
+  mintAccountsFromChain,
+  NODE_METADATA_URI,
+} from './nft';
 
 export interface NodeParams {
   nodeId: bigint;

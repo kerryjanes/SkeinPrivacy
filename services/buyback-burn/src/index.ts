@@ -59,7 +59,8 @@ async function confirmSig(conn: Connection, sig: string, timeoutMs = 90_000): Pr
         return;
       }
     }
-    if (Date.now() - start > timeoutMs) throw new Error(`tx ${sig} not confirmed in ${timeoutMs}ms`);
+    if (Date.now() - start > timeoutMs)
+      throw new Error(`tx ${sig} not confirmed in ${timeoutMs}ms`);
     await new Promise((r) => setTimeout(r, 1500));
   }
 }
@@ -78,8 +79,7 @@ const burnBps = 10_000 - nodeBps; // remainder burned
 const slippageBps = Number(env('WEFT_BUYBACK_SLIPPAGE_BPS', '150'));
 const jupBase = env('WEFT_JUP_API', 'https://lite-api.jup.ag/swap/v1');
 const storePath = env('WEFT_BUYBACK_STORE', '/var/lib/weft/buyback.json');
-const payoutWallet =
-  nodeBps > 0 ? new PublicKey(env('WEFT_PAYOUT_WALLET')) : null; // DEg6vvw node-payout pool
+const payoutWallet = nodeBps > 0 ? new PublicKey(env('WEFT_PAYOUT_WALLET')) : null; // DEg6vvw node-payout pool
 
 if (nodeBps < 0 || nodeBps > 10_000) throw new Error('WEFT_BUYBACK_NODE_BPS must be 0..10000');
 

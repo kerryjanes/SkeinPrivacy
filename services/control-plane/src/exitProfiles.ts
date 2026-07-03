@@ -38,7 +38,11 @@ function writeStore(path: string, profiles: Record<string, ExitProfile>): void {
   renameSync(tmp, path);
 }
 
-export function registerExitProfile(cfg: NodeConfig, input: unknown, now = Date.now()): ExitProfile {
+export function registerExitProfile(
+  cfg: NodeConfig,
+  input: unknown,
+  now = Date.now(),
+): ExitProfile {
   const p = input as Partial<ExitProfileInput>;
   if (p.host !== cfg.host) throw new Error('profile host must match relay host');
   const port = p.port;
@@ -130,10 +134,19 @@ function relayOnlinePorts(cfg: NodeConfig): Set<number> | null {
     const auth = Buffer.from(`${cfg.frpsUser}:${cfg.frpsPass}`).toString('base64');
     const raw = execFileSync(
       'curl',
-      ['-fsS', '--max-time', '2', '-H', `Authorization: Basic ${auth}`, `${cfg.frpsApi}/api/proxy/tcp`],
+      [
+        '-fsS',
+        '--max-time',
+        '2',
+        '-H',
+        `Authorization: Basic ${auth}`,
+        `${cfg.frpsApi}/api/proxy/tcp`,
+      ],
       { encoding: 'utf8' },
     );
-    const j = JSON.parse(raw) as { proxies?: { status?: string; conf?: { remotePort?: number } }[] };
+    const j = JSON.parse(raw) as {
+      proxies?: { status?: string; conf?: { remotePort?: number } }[];
+    };
     return new Set(
       (j.proxies ?? [])
         .filter((p) => p.status === 'online' && Number.isInteger(p.conf?.remotePort))
@@ -144,7 +157,10 @@ function relayOnlinePorts(cfg: NodeConfig): Set<number> | null {
   }
 }
 
-export async function publishOwnExitProfile(cfg: NodeConfig, servedBytesLifetime = 0n): Promise<void> {
+export async function publishOwnExitProfile(
+  cfg: NodeConfig,
+  servedBytesLifetime = 0n,
+): Promise<void> {
   if (!cfg.relayProfileUrl) return;
   const body: ExitProfileInput = {
     host: cfg.host,

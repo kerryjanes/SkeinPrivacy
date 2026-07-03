@@ -127,6 +127,9 @@ export class Faucet {
       commitment: 'confirmed',
     });
     lastSolDrip.set(wallet, now);
-    return { signature: getSignatureFromTransaction(signed), lamports: this.solLamports.toString() };
+    return {
+      signature: getSignatureFromTransaction(signed),
+      lamports: this.solLamports.toString(),
+    };
   }
 }

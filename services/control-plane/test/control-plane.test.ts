@@ -161,7 +161,11 @@ describe('relay exit profile stats', () => {
   it('drops a stale profile even while the matching frp relay port is online', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
     try {
-      const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json'), exitProfileTtlMs: 1 };
+      const profileCfg = {
+        ...cfg,
+        relayProfilePath: join(dir, 'profiles.json'),
+        exitProfileTtlMs: 1,
+      };
       registerExitProfile(
         profileCfg,
         {
@@ -186,7 +190,11 @@ describe('relay exit profile stats', () => {
   it('keeps a fresh profile live only when the matching frp relay port is online', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
     try {
-      const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json'), exitProfileTtlMs: 60_000 };
+      const profileCfg = {
+        ...cfg,
+        relayProfilePath: join(dir, 'profiles.json'),
+        exitProfileTtlMs: 60_000,
+      };
       registerExitProfile(
         profileCfg,
         {
@@ -211,7 +219,11 @@ describe('relay exit profile stats', () => {
   it('drops even a fresh profile when the relay reports its frp port offline', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-profile-'));
     try {
-      const profileCfg = { ...cfg, relayProfilePath: join(dir, 'profiles.json'), exitProfileTtlMs: 60_000 };
+      const profileCfg = {
+        ...cfg,
+        relayProfilePath: join(dir, 'profiles.json'),
+        exitProfileTtlMs: 60_000,
+      };
       registerExitProfile(profileCfg, {
         host: cfg.host,
         port: 20026,
@@ -230,9 +242,9 @@ describe('relay exit profile stats', () => {
   });
 
   it('only exposes live endpoint hashes that are registered on-chain', () => {
-    expect(filterRegisteredEndpointHashes(['registered', 'stale'], new Set(['registered']))).toEqual([
-      'registered',
-    ]);
+    expect(
+      filterRegisteredEndpointHashes(['registered', 'stale'], new Set(['registered'])),
+    ).toEqual(['registered']);
   });
 });
 
@@ -276,7 +288,9 @@ describe('xray config render', () => {
   });
   it('blocks UDP on Tor multihop so clients fall back to TCP', () => {
     const c = renderConfig(cfg, [user()]) as any;
-    expect(c.outbounds.some((o: any) => o.tag === 'block' && o.protocol === 'blackhole')).toBe(true);
+    expect(c.outbounds.some((o: any) => o.tag === 'block' && o.protocol === 'blackhole')).toBe(
+      true,
+    );
     expect(c.routing.rules).toContainEqual({
       type: 'field',
       inboundTag: ['hopN'],
@@ -366,9 +380,7 @@ describe('settlement verification', () => {
     return b58(new Uint8Array(bytes));
   }
   function payTrafficFromEscrowData(amount: bigint): string {
-    const bytes = weft
-      .getPayTrafficFromEscrowInstructionDataEncoder()
-      .encode({ amount });
+    const bytes = weft.getPayTrafficFromEscrowInstructionDataEncoder().encode({ amount });
     return b58(new Uint8Array(bytes));
   }
 

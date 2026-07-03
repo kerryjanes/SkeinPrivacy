@@ -1,27 +1,106 @@
 {
   "rewards": [
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "reward": "700000000" },
-    { "bytes": "5000000000", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "reward": "12600000000" },
-    { "bytes": "2500000000", "reputationBps": 3000, "geoBonusBps": 9000, "stakingBonusBps": 9000, "reward": "1575000000" },
-    { "bytes": "0", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "reward": "0" },
-    { "bytes": "123456789", "reputationBps": 14237, "geoBonusBps": 1234, "stakingBonusBps": 2000, "reward": "165862100" },
-    { "bytes": "1000000000000", "reputationBps": 12000, "geoBonusBps": 2500, "stakingBonusBps": 0, "reward": "1050000000000" }
+    {
+      "bytes": "1000000000",
+      "reputationBps": 10000,
+      "geoBonusBps": 0,
+      "stakingBonusBps": 0,
+      "reward": "700000000"
+    },
+    {
+      "bytes": "5000000000",
+      "reputationBps": 20000,
+      "geoBonusBps": 5000,
+      "stakingBonusBps": 2000,
+      "reward": "12600000000"
+    },
+    {
+      "bytes": "2500000000",
+      "reputationBps": 3000,
+      "geoBonusBps": 9000,
+      "stakingBonusBps": 9000,
+      "reward": "1575000000"
+    },
+    {
+      "bytes": "0",
+      "reputationBps": 20000,
+      "geoBonusBps": 5000,
+      "stakingBonusBps": 2000,
+      "reward": "0"
+    },
+    {
+      "bytes": "123456789",
+      "reputationBps": 14237,
+      "geoBonusBps": 1234,
+      "stakingBonusBps": 2000,
+      "reward": "165862100"
+    },
+    {
+      "bytes": "1000000000000",
+      "reputationBps": 12000,
+      "geoBonusBps": 2500,
+      "stakingBonusBps": 0,
+      "reward": "1050000000000"
+    }
   ],
   "bootstrap": [
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 0, "reward": "700000000" },
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 5000, "reward": "1050000000" },
-    { "bytes": "1000000000", "reputationBps": 20000, "geoBonusBps": 5000, "stakingBonusBps": 2000, "bootstrapBonusBps": 5000, "reward": "3780000000" },
-    { "bytes": "1000000000", "reputationBps": 10000, "geoBonusBps": 0, "stakingBonusBps": 0, "bootstrapBonusBps": 99999, "reward": "1400000000" }
+    {
+      "bytes": "1000000000",
+      "reputationBps": 10000,
+      "geoBonusBps": 0,
+      "stakingBonusBps": 0,
+      "bootstrapBonusBps": 0,
+      "reward": "700000000"
+    },
+    {
+      "bytes": "1000000000",
+      "reputationBps": 10000,
+      "geoBonusBps": 0,
+      "stakingBonusBps": 0,
+      "bootstrapBonusBps": 5000,
+      "reward": "1050000000"
+    },
+    {
+      "bytes": "1000000000",
+      "reputationBps": 20000,
+      "geoBonusBps": 5000,
+      "stakingBonusBps": 2000,
+      "bootstrapBonusBps": 5000,
+      "reward": "3780000000"
+    },
+    {
+      "bytes": "1000000000",
+      "reputationBps": 10000,
+      "geoBonusBps": 0,
+      "stakingBonusBps": 0,
+      "bootstrapBonusBps": 99999,
+      "reward": "1400000000"
+    }
   ],
   "tge": [
-    { "allocation": "150000000000000", "tgeBps": 2500, "tge": "37500000000000", "vesting": "112500000000000" },
+    {
+      "allocation": "150000000000000",
+      "tgeBps": 2500,
+      "tge": "37500000000000",
+      "vesting": "112500000000000"
+    },
     { "allocation": "1000000", "tgeBps": 2500, "tge": "250000", "vesting": "750000" },
     { "allocation": "3", "tgeBps": 2500, "tge": "0", "vesting": "3" },
     { "allocation": "1000", "tgeBps": 10000, "tge": "1000", "vesting": "0" }
   ],
   "allocLeaves": [
-    { "distributor": "0101010101010101010101010101010101010101010101010101010101010101", "claimant": "0202020202020202020202020202020202020202020202020202020202020202", "amount": "1000000", "leaf": "bceec1f2445a7389bb9bd1430b30a7fff2cdbffa4886a46decd1f196ad4d1424" },
-    { "distributor": "0303030303030303030303030303030303030303030303030303030303030303", "claimant": "0404040404040404040404040404040404040404040404040404040404040404", "amount": "18446744073709551615", "leaf": "1673ab384952a96000be92e9883e6dfddb05bc399d6c2c090c44aeed3de38657" }
+    {
+      "distributor": "0101010101010101010101010101010101010101010101010101010101010101",
+      "claimant": "0202020202020202020202020202020202020202020202020202020202020202",
+      "amount": "1000000",
+      "leaf": "bceec1f2445a7389bb9bd1430b30a7fff2cdbffa4886a46decd1f196ad4d1424"
+    },
+    {
+      "distributor": "0303030303030303030303030303030303030303030303030303030303030303",
+      "claimant": "0404040404040404040404040404040404040404040404040404040404040404",
+      "amount": "18446744073709551615",
+      "leaf": "1673ab384952a96000be92e9883e6dfddb05bc399d6c2c090c44aeed3de38657"
+    }
   ],
   "splits": [
     { "amount": "1000000", "nodes": "700000", "burn": "200000", "treasury": "100000" },
@@ -32,20 +111,85 @@
     { "amount": "123456789", "nodes": "86419752", "burn": "24691357", "treasury": "12345680" }
   ],
   "leaves": [
-    { "epoch": 42, "operator": "0202020202020202020202020202020202020202020202020202020202020202", "nodeId": "7", "amount": "123456", "leaf": "cea5f73a341abd012da25e67633b67f133416f1c5d045b877b8b9602bd8424f1" },
-    { "epoch": 1, "operator": "0000000000000000000000000000000000000000000000000000000000000000", "nodeId": "0", "amount": "1", "leaf": "2b4f95bdc0b7e8631bef3bbe2f1d079fbe2327b34743c07b3b8552d375c2fae5" },
-    { "epoch": 600, "operator": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "nodeId": "18446744073709551615", "amount": "18446744073709551615", "leaf": "6e720d5bb05938609053daa336ec463864ea18d50b09ad53e464e7be168d1182" },
-    { "epoch": 7, "operator": "0909090909090909090909090909090909090909090909090909090909090909", "nodeId": "10", "amount": "300000", "leaf": "dc3ee8861dae532a5f52f8689539893cf10c4f66eca5be9d93e16764a193bc9a" }
+    {
+      "epoch": 42,
+      "operator": "0202020202020202020202020202020202020202020202020202020202020202",
+      "nodeId": "7",
+      "amount": "123456",
+      "leaf": "cea5f73a341abd012da25e67633b67f133416f1c5d045b877b8b9602bd8424f1"
+    },
+    {
+      "epoch": 1,
+      "operator": "0000000000000000000000000000000000000000000000000000000000000000",
+      "nodeId": "0",
+      "amount": "1",
+      "leaf": "2b4f95bdc0b7e8631bef3bbe2f1d079fbe2327b34743c07b3b8552d375c2fae5"
+    },
+    {
+      "epoch": 600,
+      "operator": "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
+      "nodeId": "18446744073709551615",
+      "amount": "18446744073709551615",
+      "leaf": "6e720d5bb05938609053daa336ec463864ea18d50b09ad53e464e7be168d1182"
+    },
+    {
+      "epoch": 7,
+      "operator": "0909090909090909090909090909090909090909090909090909090909090909",
+      "nodeId": "10",
+      "amount": "300000",
+      "leaf": "dc3ee8861dae532a5f52f8689539893cf10c4f66eca5be9d93e16764a193bc9a"
+    }
   ],
   "tree": {
     "epoch": 7,
     "root": "c7186917125b065831d26c0b8cf7d30bd43d6d3d7e74d9629c2880e3ac6878f4",
     "entries": [
-      { "operator": "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a", "nodeId": "10", "amount": "300000", "proof": ["22f5d53a4632335444b25d05f6fb7d099c2aa75b4caf54dc7125b5bdd5b1a675", "52a5894c460beba6993deb73abf249542efbea44711c1514984d6e12a18d275e", "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"] },
-      { "operator": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b", "nodeId": "11", "amount": "200000", "proof": ["45784ebf7c9e07769a59119fb7dfd33638680f0b09fee77a16196a9c85fce4b6", "52a5894c460beba6993deb73abf249542efbea44711c1514984d6e12a18d275e", "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"] },
-      { "operator": "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c", "nodeId": "12", "amount": "150000", "proof": ["542213fd73de8d116b748ac490cf5eda9b3b9422e2ca7dc943006bf5a6f27169", "071fda9736ade2118466cee941bf414fede1a40eb2f85219128b0dde4f5da7da", "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"] },
-      { "operator": "0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d", "nodeId": "13", "amount": "50000", "proof": ["f1a995e842e1bd7708252aad89bdc03e573b4044269da3149d0f9504147897fa", "071fda9736ade2118466cee941bf414fede1a40eb2f85219128b0dde4f5da7da", "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"] },
-      { "operator": "0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e", "nodeId": "14", "amount": "25000", "proof": ["091902c90227b505c30555f13cb390fe6797fd88b7df792a7b7c21236cea31a4"] }
+      {
+        "operator": "0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a0a",
+        "nodeId": "10",
+        "amount": "300000",
+        "proof": [
+          "22f5d53a4632335444b25d05f6fb7d099c2aa75b4caf54dc7125b5bdd5b1a675",
+          "52a5894c460beba6993deb73abf249542efbea44711c1514984d6e12a18d275e",
+          "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"
+        ]
+      },
+      {
+        "operator": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "nodeId": "11",
+        "amount": "200000",
+        "proof": [
+          "45784ebf7c9e07769a59119fb7dfd33638680f0b09fee77a16196a9c85fce4b6",
+          "52a5894c460beba6993deb73abf249542efbea44711c1514984d6e12a18d275e",
+          "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"
+        ]
+      },
+      {
+        "operator": "0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c0c",
+        "nodeId": "12",
+        "amount": "150000",
+        "proof": [
+          "542213fd73de8d116b748ac490cf5eda9b3b9422e2ca7dc943006bf5a6f27169",
+          "071fda9736ade2118466cee941bf414fede1a40eb2f85219128b0dde4f5da7da",
+          "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"
+        ]
+      },
+      {
+        "operator": "0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d0d",
+        "nodeId": "13",
+        "amount": "50000",
+        "proof": [
+          "f1a995e842e1bd7708252aad89bdc03e573b4044269da3149d0f9504147897fa",
+          "071fda9736ade2118466cee941bf414fede1a40eb2f85219128b0dde4f5da7da",
+          "061f89f66af50bf58c12a8405bf4331295da3ba570840354b6a1d5bfd3d1f630"
+        ]
+      },
+      {
+        "operator": "0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e0e",
+        "nodeId": "14",
+        "amount": "25000",
+        "proof": ["091902c90227b505c30555f13cb390fe6797fd88b7df792a7b7c21236cea31a4"]
+      }
     ]
   }
 }

@@ -57,7 +57,9 @@ if (mintInfo.value.owner !== CLASSIC_TOKEN_PROGRAM) {
 }
 const mintBytes = Buffer.from(mintInfo.value.data[0], 'base64');
 if (mintBytes.length < 82) {
-  throw new Error(`WEFT_MINT ${rewardMint} is not a valid SPL mint on ${env.cluster} (data too short)`);
+  throw new Error(
+    `WEFT_MINT ${rewardMint} is not a valid SPL mint on ${env.cluster} (data too short)`,
+  );
 }
 console.log(`[init] reward mint ${rewardMint}: owner=SPL Token, decimals=${mintBytes[44]}`);
 
@@ -65,7 +67,13 @@ console.log(`[init] reward mint ${rewardMint}: owner=SPL Token, decimals=${mintB
 // create it idempotently so initialize_core can load it as an existing TokenAccount.
 let treasury = process.env.WEFT_TREASURY_TOKEN_ACCOUNT
   ? address(process.env.WEFT_TREASURY_TOKEN_ACCOUNT)
-  : (await findAssociatedTokenPda({ owner: treasuryOwner, mint, tokenProgram: TOKEN_PROGRAM_ADDRESS }))[0];
+  : (
+      await findAssociatedTokenPda({
+        owner: treasuryOwner,
+        mint,
+        tokenProgram: TOKEN_PROGRAM_ADDRESS,
+      })
+    )[0];
 
 const treasuryInfo = await conn.rpc.getAccountInfo(treasury, { encoding: 'base64' }).send();
 if (!treasuryInfo.value) {

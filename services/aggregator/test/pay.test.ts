@@ -44,9 +44,7 @@ describe('Solana Pay traffic payments', () => {
     expect(message).toBe(cfg.label);
     const bytes = Buffer.from(transaction, 'base64');
     // the settlement program id appears among the transaction's static keys
-    const programBytes = Buffer.from(
-      addrEnc.encode(weft.WEFT_PROGRAM_ADDRESS) as Uint8Array,
-    );
+    const programBytes = Buffer.from(addrEnc.encode(weft.WEFT_PROGRAM_ADDRESS) as Uint8Array);
     expect(bytes.includes(programBytes)).toBe(true);
   });
 
@@ -60,9 +58,7 @@ describe('Solana Pay traffic payments', () => {
       cfg,
       FAKE_BLOCKHASH,
     );
-    const programBytes = Buffer.from(
-      addrEnc.encode(weft.WEFT_PROGRAM_ADDRESS) as Uint8Array,
-    );
+    const programBytes = Buffer.from(addrEnc.encode(weft.WEFT_PROGRAM_ADDRESS) as Uint8Array);
     expect(Buffer.from(deposit.transaction, 'base64').includes(programBytes)).toBe(true);
     expect(Buffer.from(settle.transaction, 'base64').includes(programBytes)).toBe(true);
     expect(deposit.message).toBe(cfg.label);
@@ -105,8 +101,8 @@ describe('Solana Pay traffic payments', () => {
     expect(weft.getDepositEscrowInstructionDataDecoder().decode(deposit.data).amount).toBe(
       2_345_678n,
     );
-    expect(
-      weft.getPayTrafficFromEscrowInstructionDataDecoder().decode(settle.data).amount,
-    ).toBe(3_456_789n);
+    expect(weft.getPayTrafficFromEscrowInstructionDataDecoder().decode(settle.data).amount).toBe(
+      3_456_789n,
+    );
   });
 });

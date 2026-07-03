@@ -87,15 +87,8 @@ export async function mintAccountsFromChain(
   const reg = weft.getRegistryDecoder().decode(Buffer.from(info.value.data[0], 'base64'));
   const ZERO = '11111111111111111111111111111111';
   if (reg.collection === ZERO || reg.activeTree === ZERO || reg.treeCount === 0) {
-    throw new Error(
-      'Node registry NFT tree is not provisioned yet — run `nft:provision` first.',
-    );
+    throw new Error('Node registry NFT tree is not provisioned yet — run `nft:provision` first.');
   }
   const [treeShard] = await weft.findTreeShardPda({ index: Number(reg.treeCount) - 1 });
-  return mintAccounts(
-    treeShard,
-    reg.activeTree as Address,
-    reg.collection as Address,
-    metadataUri,
-  );
+  return mintAccounts(treeShard, reg.activeTree as Address, reg.collection as Address, metadataUri);
 }

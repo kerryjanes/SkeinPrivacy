@@ -40,7 +40,16 @@ describe('epoch store persistence', () => {
           buildEpochFromByteTotals(
             epoch,
             [{ operator, nodeId: 7n, bytes: 1_000_000n }],
-            [{ operator, nodeId: 7n, endpointHash: 'abc', reputationBps: 10_000, geo: 0, stake: 0n }],
+            [
+              {
+                operator,
+                nodeId: 7n,
+                endpointHash: 'abc',
+                reputationBps: 10_000,
+                geo: 0,
+                stake: 0n,
+              },
+            ],
             { minStakeToEarn: 0n },
           ),
         );

@@ -5,16 +5,16 @@ except the two launch commands is already prefilled. At go, run 2 commands, then
 
 ## State (prefilled — done)
 
-| Piece | Value | Status |
-|---|---|---|
-| Program | `6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd` | Deployed on mainnet, authority = admin, **uninitialized**. Same `.so` as source (sha `44f42b3a…`). Do NOT redeploy. |
-| Admin / deploy authority | `9AY1on6okCYep7uKVTmJQbGHa7uqv5sQ4AwfuJhEkqJw` | Key at `~/.config/solana/weft-admin.json`. ~2.1 SOL on mainnet (launch needs < 0.1). Never copied to the VPS. |
-| Program rent deposit | 4.40671704 SOL locked in ProgramData | **Recoverable** anytime via `solana program close` (see Recovery). |
-| Frontend | https://weftnetwork.net (+ /app) | Mainnet build live; reads mint/vault/treasury/decimals from the on-chain distributor at runtime → **no rebuild at launch**. Faucet + keypair-login hidden. |
-| Relay VPS | `root@13.140.2.111` | control-plane, aggregator, caddy, frps running (still devnet until cutover). |
-| Poster + node-payout wallet | `DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq` | `/etc/weft/authority.json` on the VPS. Posts epochs + pays nodes directly. |
-| Treasury | admin's ATA for the CA | Created automatically by `core:init`. Buyback $WEFT lands here. |
-| RPC | Helius mainnet | Key read at runtime from `~/Documents/helius/config.json` (never committed). |
+| Piece                       | Value                                          | Status                                                                                                                                                     |
+| --------------------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Program                     | `6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd` | Deployed on mainnet, authority = admin, **uninitialized**. Same `.so` as source (sha `44f42b3a…`). Do NOT redeploy.                                        |
+| Admin / deploy authority    | `9AY1on6okCYep7uKVTmJQbGHa7uqv5sQ4AwfuJhEkqJw` | Key at `~/.config/solana/weft-admin.json`. ~2.1 SOL on mainnet (launch needs < 0.1). Never copied to the VPS.                                             |
+| Program rent deposit        | 4.40671704 SOL locked in ProgramData           | **Recoverable** anytime via `solana program close` (see Recovery).                                                                                         |
+| Frontend                    | https://weftnetwork.net (+ /app)              | Mainnet build live; reads mint/vault/treasury/decimals from the on-chain distributor at runtime → **no rebuild at launch**. Faucet + keypair-login hidden. |
+| Relay VPS                   | `root@13.140.2.111`                            | control-plane, aggregator, caddy, frps running (still devnet until cutover).                                                                               |
+| Poster + node-payout wallet | `DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq` | `/etc/weft/authority.json` on the VPS. Posts epochs + pays nodes directly.                                                                                |
+| Treasury                    | admin's ATA for the CA                         | Created automatically by `core:init`. Buyback $WEFT lands here.                                                                                           |
+| RPC                         | Helius mainnet                                 | Key read at runtime from `~/Documents/helius/config.json` (never committed).                                                                               |
 
 ## Launch (on `go`, with the CA)
 
@@ -46,7 +46,7 @@ spl-token transfer "$CA" <amount> DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq \
 ```
 
 Solvency is safe by construction: payouts are capped at the wallet's balance, so an
-underfunded wallet only *pauses* withdrawals — it can never overpay or go negative.
+underfunded wallet only _pauses_ withdrawals — it can never overpay or go negative.
 
 ## Verify (after both commands)
 

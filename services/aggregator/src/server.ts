@@ -106,7 +106,11 @@ function buildWithdrawMessage(challenge: Omit<WithdrawChallenge, 'message'>): st
   ].join('\n');
 }
 
-function verifyWithdrawalSignature(operator: string, message: string, signatureBase64: string): boolean {
+function verifyWithdrawalSignature(
+  operator: string,
+  message: string,
+  signatureBase64: string,
+): boolean {
   const publicKey = new Uint8Array(addressEncoder.encode(address(operator) as Address));
   const signature = Buffer.from(signatureBase64, 'base64');
   if (signature.length !== 64) return false;
@@ -269,11 +273,18 @@ export function createAggregatorServer(deps: ServerDeps): Server {
           }
           const nodeId = body.nodeId ? BigInt(body.nodeId).toString() : '';
           const challenge = withdrawChallenges.get(challengeKey(operator, nodeId));
-          if (!challenge || challenge.message !== body.message || Date.now() > challenge.expiresAt) {
+          if (
+            !challenge ||
+            challenge.message !== body.message ||
+            Date.now() > challenge.expiresAt
+          ) {
             json(401, { error: 'withdraw signature challenge expired or missing' });
             return;
           }
-          if (!body.signature || !verifyWithdrawalSignature(operator, body.message, body.signature)) {
+          if (
+            !body.signature ||
+            !verifyWithdrawalSignature(operator, body.message, body.signature)
+          ) {
             json(401, { error: 'invalid withdraw signature' });
             return;
           }

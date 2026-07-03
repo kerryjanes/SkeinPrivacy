@@ -52,7 +52,9 @@ async function profileHeartbeat(): Promise<void> {
       // eslint-disable-next-line no-console
       console.error('relay profile publish error:', (e as Error).message);
     }
-    await new Promise((r) => setTimeout(r, Math.min(30000, Math.max(5000, cfg.exitProfileTtlMs / 2))));
+    await new Promise((r) =>
+      setTimeout(r, Math.min(30000, Math.max(5000, cfg.exitProfileTtlMs / 2))),
+    );
   }
 }
 

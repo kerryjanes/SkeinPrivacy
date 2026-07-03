@@ -53,10 +53,11 @@ describe('aggregator HTTP receipt ingest', () => {
         treasury: client.address,
         label: 'test',
       },
-      getBlockhash: async () => ({
-        blockhash: '11111111111111111111111111111111',
-        lastValidBlockHeight: 1n,
-      }) as never,
+      getBlockhash: async () =>
+        ({
+          blockhash: '11111111111111111111111111111111',
+          lastValidBlockHeight: 1n,
+        }) as never,
       onReceipts: async (epoch, accepted) => {
         seenEpoch = epoch;
         seenReceipts = accepted.length;
@@ -88,7 +89,12 @@ describe('aggregator HTTP receipt ingest', () => {
 
     expect(res.status).toBe(200);
     expect(body.accepted).toBe(1);
-    expect(body.result).toEqual({ root: 'abc', totalReward: '123', numNodes: 1, postedSignature: null });
+    expect(body.result).toEqual({
+      root: 'abc',
+      totalReward: '123',
+      numNodes: 1,
+      postedSignature: null,
+    });
     expect(seenEpoch).toBe(1n);
     expect(seenReceipts).toBe(1);
   });
@@ -130,22 +136,30 @@ describe('aggregator HTTP receipt ingest', () => {
         treasury: operator.address,
         label: 'test',
       },
-      getBlockhash: async () => ({
-        blockhash: '11111111111111111111111111111111',
-        lastValidBlockHeight: 1n,
-      }) as never,
+      getBlockhash: async () =>
+        ({
+          blockhash: '11111111111111111111111111111111',
+          lastValidBlockHeight: 1n,
+        }) as never,
     });
     const base = await listen(server);
 
     const res = await fetch(`${base}/claimable?operator=${operator.address}`);
     const body = (await res.json()) as {
       totalAmount: string;
-      nodes: Array<{ nodeId: string; totalAmount: string; claims: Array<{ epoch: string; amount: string }> }>;
+      nodes: Array<{
+        nodeId: string;
+        totalAmount: string;
+        claims: Array<{ epoch: string; amount: string }>;
+      }>;
     };
 
     expect(res.status).toBe(200);
     expect(body.nodes.map((n) => n.nodeId)).toEqual(['11', '12']);
-    expect(body.nodes.find((n) => n.nodeId === '11')?.claims.map((c) => c.epoch)).toEqual(['8', '7']);
+    expect(body.nodes.find((n) => n.nodeId === '11')?.claims.map((c) => c.epoch)).toEqual([
+      '8',
+      '7',
+    ]);
     expect(BigInt(body.totalAmount)).toBeGreaterThan(0n);
   });
 
@@ -172,10 +186,11 @@ describe('aggregator HTTP receipt ingest', () => {
         treasury: operator.address,
         label: 'test',
       },
-      getBlockhash: async () => ({
-        blockhash: '11111111111111111111111111111111',
-        lastValidBlockHeight: 1n,
-      }) as never,
+      getBlockhash: async () =>
+        ({
+          blockhash: '11111111111111111111111111111111',
+          lastValidBlockHeight: 1n,
+        }) as never,
     });
     const base = await listen(server);
 
@@ -221,10 +236,11 @@ describe('aggregator HTTP receipt ingest', () => {
         treasury: operator.address,
         label: 'test',
       },
-      getBlockhash: async () => ({
-        blockhash: '11111111111111111111111111111111',
-        lastValidBlockHeight: 1n,
-      }) as never,
+      getBlockhash: async () =>
+        ({
+          blockhash: '11111111111111111111111111111111',
+          lastValidBlockHeight: 1n,
+        }) as never,
     });
     const base = await listen(server);
 
@@ -305,10 +321,11 @@ describe('aggregator HTTP receipt ingest', () => {
         treasury: operator.address,
         label: 'test',
       },
-      getBlockhash: async () => ({
-        blockhash: '11111111111111111111111111111111',
-        lastValidBlockHeight: 1n,
-      }) as never,
+      getBlockhash: async () =>
+        ({
+          blockhash: '11111111111111111111111111111111',
+          lastValidBlockHeight: 1n,
+        }) as never,
     });
     const base = await listen(server);
     const challengeRes = await fetch(`${base}/withdraw-earned/challenge`, {

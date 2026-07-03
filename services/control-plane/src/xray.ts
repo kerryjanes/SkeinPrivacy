@@ -243,7 +243,14 @@ export function pollExitUsage(cfg: NodeConfig): Map<number, bigint> {
   try {
     raw = execFileSync(
       cfg.xrayBin,
-      ['api', 'statsquery', `--server=${cfg.xrayApi}`, '-pattern', 'outbound>>>user-exit-', '-reset'],
+      [
+        'api',
+        'statsquery',
+        `--server=${cfg.xrayApi}`,
+        '-pattern',
+        'outbound>>>user-exit-',
+        '-reset',
+      ],
       { encoding: 'utf8' },
     );
   } catch {

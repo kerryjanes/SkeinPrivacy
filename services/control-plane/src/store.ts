@@ -85,7 +85,12 @@ export class Store {
     this.save();
   }
 
-  completePayment(signature: string, wallet: string, amountBaseUnits: bigint, now = Date.now()): void {
+  completePayment(
+    signature: string,
+    wallet: string,
+    amountBaseUnits: bigint,
+    now = Date.now(),
+  ): void {
     const existing = this.payment(signature);
     if (!existing || existing.wallet !== wallet || existing.status !== 'pending') {
       throw new Error('payment signature was not reserved by this wallet');

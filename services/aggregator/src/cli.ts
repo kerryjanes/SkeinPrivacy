@@ -70,7 +70,9 @@ function parseTrustedTotals(): ByteTotal[] {
   const bytes = process.env.WEFT_TRUSTED_BYTES;
   if (!operator && !nodeId && !bytes) return [];
   if (!operator || !nodeId || !bytes) {
-    throw new Error('WEFT_TRUSTED_OPERATOR, WEFT_TRUSTED_NODE_ID, and WEFT_TRUSTED_BYTES are required together');
+    throw new Error(
+      'WEFT_TRUSTED_OPERATOR, WEFT_TRUSTED_NODE_ID, and WEFT_TRUSTED_BYTES are required together',
+    );
   }
   return [{ operator: address(operator) as Address, nodeId: BigInt(nodeId), bytes: BigInt(bytes) }];
 }
@@ -78,9 +80,9 @@ function parseTrustedTotals(): ByteTotal[] {
 function trustedTotalsConfigured(): boolean {
   return Boolean(
     process.env.WEFT_TRUSTED_TOTALS ||
-      process.env.WEFT_TRUSTED_OPERATOR ||
-      process.env.WEFT_TRUSTED_NODE_ID ||
-      process.env.WEFT_TRUSTED_BYTES,
+    process.env.WEFT_TRUSTED_OPERATOR ||
+    process.env.WEFT_TRUSTED_NODE_ID ||
+    process.env.WEFT_TRUSTED_BYTES,
   );
 }
 
@@ -90,7 +92,9 @@ async function fetchRewardMintDecimals(rpc: ReturnType<typeof createSolanaRpc>):
   const [distributor] = await weft.findDistributorPda();
   const di = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
   if (!di.value) return 6;
-  const mint = weft.getDistributorDecoder().decode(Buffer.from(di.value.data[0], 'base64')).rewardMint;
+  const mint = weft
+    .getDistributorDecoder()
+    .decode(Buffer.from(di.value.data[0], 'base64')).rewardMint;
   const mi = await rpc.getAccountInfo(mint, { encoding: 'base64' }).send();
   if (!mi.value) return 6;
   return Buffer.from(mi.value.data[0], 'base64')[44]; // SPL Mint: decimals at byte 44
@@ -118,7 +122,8 @@ async function main(): Promise<void> {
     : undefined;
   const autoSettle = process.env.WEFT_AUTO_SETTLE === '1';
   const autoSettleMs = Number(process.env.WEFT_AUTO_SETTLE_MS ?? '600000');
-  const relayProfilePath = process.env.WEFT_RELAY_PROFILE_PATH ?? '/var/lib/weft/exit-profiles.json';
+  const relayProfilePath =
+    process.env.WEFT_RELAY_PROFILE_PATH ?? '/var/lib/weft/exit-profiles.json';
   const settledProfilePath =
     process.env.WEFT_SETTLED_PROFILE_BYTES ?? '/var/lib/weft/settled-profile-bytes.json';
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? '/var/lib/weft/reward-epochs.json';
@@ -179,9 +184,7 @@ async function main(): Promise<void> {
   const [distributor] = await weft.findDistributorPda();
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
   if (!distInfo.value) throw new Error('distributor not initialized');
-  const d = weft
-    .getDistributorDecoder()
-    .decode(Buffer.from(distInfo.value.data[0], 'base64'));
+  const d = weft.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], 'base64'));
   const payout = payoutKeypairPath
     ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals)
     : undefined;
@@ -253,10 +256,14 @@ async function main(): Promise<void> {
   if (autoSettle) {
     console.log(`[aggregator] auto settlement enabled every ${autoSettleMs}ms`);
     setTimeout(() => {
-      void autoSettleOnce().catch((e) => console.error('[aggregator] auto settlement error:', e.message));
+      void autoSettleOnce().catch((e) =>
+        console.error('[aggregator] auto settlement error:', e.message),
+      );
     }, 5000).unref();
     setInterval(() => {
-      void autoSettleOnce().catch((e) => console.error('[aggregator] auto settlement error:', e.message));
+      void autoSettleOnce().catch((e) =>
+        console.error('[aggregator] auto settlement error:', e.message),
+      );
     }, autoSettleMs).unref();
   }
 }

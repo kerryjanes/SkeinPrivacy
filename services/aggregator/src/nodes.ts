@@ -3,7 +3,12 @@
 // does not index Bubblegum V2, so `NodeState` — not DAS — is the directory of
 // record for reputation and stake.
 
-import { createSolanaRpc, getBase58Decoder, type Address, type Base58EncodedBytes } from '@solana/kit';
+import {
+  createSolanaRpc,
+  getBase58Decoder,
+  type Address,
+  type Base58EncodedBytes,
+} from '@solana/kit';
 import { weft } from '@weft/sdk';
 
 import type { NodeInfo } from './rewards';

@@ -18,15 +18,15 @@ The per-node service that makes Weft access **token-gated**. It runs on each nod
 
 ## HTTP API
 
-| Route                                 | What                                                       |
-| ------------------------------------- | ---------------------------------------------------------- |
-| `POST /provision {wallet}`            | mint/refresh the wallet's personal links + budget status   |
-| `GET /status?wallet=…`                | current quota / used / remaining (same shape as provision) |
-| `POST /settle {wallet, signature}`    | register a verified settlement, clear the metered tab       |
-| `GET /node/stats`                     | this node's total served bytes → `$WEFT` earned           |
-| `GET /price`                          | price/GB, mint, host, modes, faucet availability           |
-| `POST /faucet {wallet}` (devnet only) | transfer test `$WEFT` from a funded devnet faucet wallet  |
-| `POST /faucet-sol {wallet}` (devnet only) | transfer devnet `SOL` for wallet transaction fees      |
+| Route                                     | What                                                       |
+| ----------------------------------------- | ---------------------------------------------------------- |
+| `POST /provision {wallet}`                | mint/refresh the wallet's personal links + budget status   |
+| `GET /status?wallet=…`                    | current quota / used / remaining (same shape as provision) |
+| `POST /settle {wallet, signature}`        | register a verified settlement, clear the metered tab      |
+| `GET /node/stats`                         | this node's total served bytes → `$WEFT` earned           |
+| `GET /price`                              | price/GB, mint, host, modes, faucet availability           |
+| `POST /faucet {wallet}` (devnet only)     | transfer test `$WEFT` from a funded devnet faucet wallet  |
+| `POST /faucet-sol {wallet}` (devnet only) | transfer devnet `SOL` for wallet transaction fees          |
 
 ## Config (env, with launch-node defaults)
 
