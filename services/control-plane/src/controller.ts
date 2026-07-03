@@ -16,7 +16,6 @@ import { costBaseUnits, escrowBalance, quotaBytes, verifyPayTraffic, type Rpc } 
 import { applyRelayExitBytes, exitProfileSignature } from './exitProfiles.js';
 import { multiHopLink, oneHopLink } from './links.js';
 import { applyConfig, pollExitUsage, pollUsage } from './xray.js';
-import type { SolPay } from './solpay.js';
 
 export interface Status {
   wallet: string;
@@ -47,7 +46,6 @@ export class Controller {
     private cfg: NodeConfig,
     private store: Store,
     private rpc: Rpc,
-    private solPay?: SolPay, // optional SOL payment path; undefined => escrow-only (unchanged)
   ) {}
 
   /** Fetch the reward mint's decimals once at startup so quota/price/display adapt to
@@ -96,10 +94,7 @@ export class Controller {
   private async refreshBalance(u: User): Promise<void> {
     const bal = await escrowBalance(this.rpc, u.wallet, this.cfg.weftMint);
     u.balanceBaseUnits = bal.toString();
-    // Escrow quota + any SOL-prepaid allowance. solPay is undefined unless the SOL path is
-    // enabled, so this is exactly the escrow quota in the default (launch) configuration.
-    const solBytes = this.solPay?.prepaidBytes(u.wallet) ?? 0n;
-    u.quotaBytes = (quotaBytes(bal, this.decimals) + solBytes).toString();
+    u.quotaBytes = quotaBytes(bal, this.decimals).toString();
   }
 
   status(u: User): Status {
@@ -232,13 +227,6 @@ export class Controller {
    *  On a relay (balancer with user-exit outbounds) also attribute forwarded bytes per exit
    *  node — the reward basis that reconciles with the user debits metered here. */
   async tick(): Promise<void> {
-    if (this.solPay) {
-      try {
-        await this.solPay.poll(this.rpc);
-      } catch (e) {
-        console.error('[solpay] poll error:', (e as Error).message);
-      }
-    }
     await this.applyUsage(pollUsage(this.cfg));
     applyRelayExitBytes(this.cfg, pollExitUsage(this.cfg));
   }

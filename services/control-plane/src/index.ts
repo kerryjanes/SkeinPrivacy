@@ -20,26 +20,13 @@ if (envFile) {
 }
 import { rpc } from './chain.js';
 import { Controller } from './controller.js';
-import { SolPay } from './solpay.js';
 import { publishOwnExitProfile } from './exitProfiles.js';
 import { Faucet } from './faucet.js';
 import { startServer } from './server.js';
 
 const cfg = loadConfig();
 const store = new Store(cfg.storePath);
-
-// Optional SOL payment path. Off unless WEFT_SOL_PAYMENTS=1 with a collection wallet set —
-// when off, solPay is undefined and the controller uses escrow quota only (launch default).
-const solPay =
-  process.env.WEFT_SOL_PAYMENTS === '1' && process.env.WEFT_SOL_COLLECTION
-    ? new SolPay({
-        collection: process.env.WEFT_SOL_COLLECTION,
-        pricePerGbLamports: BigInt(process.env.WEFT_SOL_PRICE_PER_GB_LAMPORTS ?? '10000000'), // 0.01 SOL/GB
-        minLamports: BigInt(process.env.WEFT_SOL_MIN_LAMPORTS ?? '1000000'), // 0.001 SOL
-        storePath: process.env.WEFT_SOL_STORE ?? '/var/lib/weft/solpay.json',
-      })
-    : undefined;
-const ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl), solPay);
+const ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl));
 const faucet = cfg.faucetKeypairPath
   ? new Faucet(
       cfg.rpcUrl,
