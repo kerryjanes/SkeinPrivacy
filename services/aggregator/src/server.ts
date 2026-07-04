@@ -9,9 +9,7 @@
 //   POST /receipts?epoch=N {receipts}    → ingest dual-signed traffic receipts (M6)
 
 import { createServer, type Server } from 'node:http';
-import { randomBytes } from 'node:crypto';
-import { ed25519 } from '@noble/curves/ed25519';
-import { address, getAddressEncoder, type Address } from '@solana/kit';
+import { address, type Address } from '@solana/kit';
 
 import {
   buildDepositEscrowTransaction,
@@ -22,11 +20,7 @@ import {
   type PayConfig,
 } from './pay';
 import { selectReceiptsForEpoch, type TrafficReceipt } from './receipts';
-import type { EpochStore, PayoutStore } from './store';
-import type { PayoutBackend } from './payout';
-
-const WITHDRAW_CHALLENGE_TTL_MS = 5 * 60 * 1000;
-const addressEncoder = getAddressEncoder();
+import type { EpochStore } from './store';
 
 export interface ServerDeps {
   store: EpochStore;
@@ -34,15 +28,25 @@ export interface ServerDeps {
   getBlockhash: () => Promise<Blockhashish>;
   /** Called with the verified, deduped receipts ingested for an epoch (M6 → M4). */
   onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => Promise<unknown> | unknown;
-  payoutStore?: PayoutStore;
-  payout?: PayoutBackend;
-  payoutReserve?: bigint;
+  /** Bearer token required on POST /receipts (relay → aggregator). Unset = open (dev only). */
+  receiptsToken?: string;
 }
+
+const MAX_BODY_BYTES = 2 * 1024 * 1024; // 2 MB — bounds per-request memory (M1)
 
 function readBody(req: import('node:http').IncomingMessage): Promise<string> {
   return new Promise((resolve, reject) => {
     let data = '';
-    req.on('data', (c) => (data += c));
+    let size = 0;
+    req.on('data', (c) => {
+      size += (c as Buffer).length;
+      if (size > MAX_BODY_BYTES) {
+        req.destroy();
+        reject(new Error('request body too large'));
+        return;
+      }
+      data += c;
+    });
     req.on('end', () => resolve(data));
     req.on('error', reject);
   });
@@ -63,63 +67,7 @@ function parseReceipt(raw: unknown): TrafficReceipt {
   };
 }
 
-function earnedSummary(store: EpochStore, payouts: PayoutStore | undefined, operator: string) {
-  const summary = store.claimable(operator);
-  const nodes = summary.nodes.map((node) => {
-    const paid = payouts?.paid(operator, node.nodeId) ?? 0n;
-    const withdrawable = node.totalAmount > paid ? node.totalAmount - paid : 0n;
-    return {
-      nodeId: node.nodeId,
-      earned: node.totalAmount,
-      paid,
-      withdrawable,
-    };
-  });
-  return {
-    operator,
-    totalEarned: nodes.reduce((sum, node) => sum + node.earned, 0n),
-    totalPaid: nodes.reduce((sum, node) => sum + node.paid, 0n),
-    withdrawable: nodes.reduce((sum, node) => sum + node.withdrawable, 0n),
-    nodes,
-  };
-}
-
-interface WithdrawChallenge {
-  operator: string;
-  nodeId: string;
-  nonce: string;
-  expiresAt: number;
-  message: string;
-}
-
-function challengeKey(operator: string, nodeId: string): string {
-  return `${operator}:${nodeId || 'all'}`;
-}
-
-function buildWithdrawMessage(challenge: Omit<WithdrawChallenge, 'message'>): string {
-  return [
-    'Weft earned withdrawal',
-    `operator: ${challenge.operator}`,
-    `nodeId: ${challenge.nodeId || 'all'}`,
-    `nonce: ${challenge.nonce}`,
-    `expiresAt: ${challenge.expiresAt}`,
-  ].join('\n');
-}
-
-function verifyWithdrawalSignature(
-  operator: string,
-  message: string,
-  signatureBase64: string,
-): boolean {
-  const publicKey = new Uint8Array(addressEncoder.encode(address(operator) as Address));
-  const signature = Buffer.from(signatureBase64, 'base64');
-  if (signature.length !== 64) return false;
-  return ed25519.verify(signature, Buffer.from(message, 'utf8'), publicKey);
-}
-
 export function createAggregatorServer(deps: ServerDeps): Server {
-  const withdrawChallenges = new Map<string, WithdrawChallenge>();
-
   return createServer((req, res) => {
     void (async () => {
       try {
@@ -203,123 +151,6 @@ export function createAggregatorServer(deps: ServerDeps): Server {
           return;
         }
 
-        if (url.pathname === '/earned' && req.method === 'GET') {
-          const operator = url.searchParams.get('operator') ?? '';
-          const summary = earnedSummary(deps.store, deps.payoutStore, operator);
-          json(200, {
-            operator: summary.operator,
-            totalEarned: summary.totalEarned.toString(),
-            totalPaid: summary.totalPaid.toString(),
-            withdrawable: summary.withdrawable.toString(),
-            nodes: summary.nodes.map((node) => ({
-              nodeId: node.nodeId.toString(),
-              earned: node.earned.toString(),
-              paid: node.paid.toString(),
-              withdrawable: node.withdrawable.toString(),
-            })),
-          });
-          return;
-        }
-
-        if (url.pathname === '/withdraw-earned/challenge' && req.method === 'POST') {
-          if (!deps.payout || !deps.payoutStore) {
-            json(404, { error: 'earned payout disabled' });
-            return;
-          }
-          const body = JSON.parse((await readBody(req)) || '{}') as {
-            operator?: string;
-            nodeId?: string;
-          };
-          const operator = body.operator ? String(address(body.operator)) : '';
-          if (!operator) {
-            json(400, { error: 'operator required' });
-            return;
-          }
-          const nodeId = body.nodeId ? BigInt(body.nodeId).toString() : '';
-          const expiresAt = Date.now() + WITHDRAW_CHALLENGE_TTL_MS;
-          const challenge: Omit<WithdrawChallenge, 'message'> = {
-            operator,
-            nodeId,
-            nonce: randomBytes(16).toString('hex'),
-            expiresAt,
-          };
-          const full = { ...challenge, message: buildWithdrawMessage(challenge) };
-          withdrawChallenges.set(challengeKey(operator, nodeId), full);
-          json(200, {
-            operator,
-            nodeId,
-            message: full.message,
-            nonce: full.nonce,
-            expiresAt: full.expiresAt,
-          });
-          return;
-        }
-
-        if (url.pathname === '/withdraw-earned' && req.method === 'POST') {
-          if (!deps.payout || !deps.payoutStore) {
-            json(404, { error: 'earned payout disabled' });
-            return;
-          }
-          const body = JSON.parse((await readBody(req)) || '{}') as {
-            operator?: string;
-            nodeId?: string;
-            message?: string;
-            signature?: string;
-          };
-          const operator = body.operator ? String(address(body.operator)) : '';
-          if (!operator) {
-            json(400, { error: 'operator required' });
-            return;
-          }
-          const nodeId = body.nodeId ? BigInt(body.nodeId).toString() : '';
-          const challenge = withdrawChallenges.get(challengeKey(operator, nodeId));
-          if (
-            !challenge ||
-            challenge.message !== body.message ||
-            Date.now() > challenge.expiresAt
-          ) {
-            json(401, { error: 'withdraw signature challenge expired or missing' });
-            return;
-          }
-          if (
-            !body.signature ||
-            !verifyWithdrawalSignature(operator, body.message, body.signature)
-          ) {
-            json(401, { error: 'invalid withdraw signature' });
-            return;
-          }
-          withdrawChallenges.delete(challengeKey(operator, nodeId));
-
-          const onlyNodeId = nodeId ? BigInt(nodeId) : null;
-          const summary = earnedSummary(deps.store, deps.payoutStore, operator);
-          const payableNodes = summary.nodes.filter(
-            (node) => node.withdrawable > 0n && (onlyNodeId === null || node.nodeId === onlyNodeId),
-          );
-          const amount = payableNodes.reduce((sum, node) => sum + node.withdrawable, 0n);
-          if (amount <= 0n) {
-            json(400, { error: 'nothing to withdraw' });
-            return;
-          }
-          const reserve = deps.payoutReserve ?? 0n;
-          const available = await deps.payout.availableBalance();
-          if (available < amount + reserve) {
-            json(503, {
-              error: 'payout wallet balance cannot cover withdrawal plus reserve',
-              available: available.toString(),
-              required: (amount + reserve).toString(),
-              amount: amount.toString(),
-              reserve: reserve.toString(),
-            });
-            return;
-          }
-          const { signature } = await deps.payout.pay(operator, amount);
-          for (const node of payableNodes) {
-            deps.payoutStore.record(operator, node.nodeId, node.withdrawable, signature);
-          }
-          json(200, { signature, amount: amount.toString() });
-          return;
-        }
-
         if (url.pathname === '/pay/traffic' && req.method === 'GET') {
           json(200, payLabel(deps.payConfig));
           return;
@@ -392,6 +223,13 @@ export function createAggregatorServer(deps: ServerDeps): Server {
         }
 
         if (url.pathname === '/receipts' && req.method === 'POST') {
+          // Receipts move node rewards — only trusted relays may post. Without auth an anonymous
+          // caller could overwrite an epoch build (erasing honest operators' proofs) or push a
+          // bogus epoch. The token is a shared secret between the relay boxes and the aggregator.
+          if (deps.receiptsToken && req.headers['authorization'] !== `Bearer ${deps.receiptsToken}`) {
+            json(401, { error: 'unauthorized' });
+            return;
+          }
           const epoch = BigInt(url.searchParams.get('epoch') ?? '-1');
           if (epoch < 0n) {
             json(400, { error: 'missing epoch' });

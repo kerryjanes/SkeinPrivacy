@@ -2544,7 +2544,7 @@ var require_websocket = __commonJS({
     var http = __require("http");
     var net = __require("net");
     var tls = __require("tls");
-    var { randomBytes: randomBytes3, createHash: createHash2 } = __require("crypto");
+    var { randomBytes: randomBytes2, createHash: createHash2 } = __require("crypto");
     var { Duplex, Readable } = __require("stream");
     var { URL: URL2 } = __require("url");
     var PerMessageDeflate2 = require_permessage_deflate();
@@ -3082,7 +3082,7 @@ var require_websocket = __commonJS({
         }
       }
       const defaultPort = isSecure ? 443 : 80;
-      const key2 = randomBytes3(16).toString("base64");
+      const key2 = randomBytes2(16).toString("base64");
       const request = isSecure ? https.request : http.request;
       const protocolSet = /* @__PURE__ */ new Set();
       let perMessageDeflate;
@@ -3976,7 +3976,7 @@ var require_websocket_server = __commonJS({
 });
 
 // src/cli.ts
-import { existsSync as existsSync3, readFileSync as readFileSync4 } from "node:fs";
+import { existsSync as existsSync3, readFileSync as readFileSync3 } from "node:fs";
 
 // ../../node_modules/.pnpm/@solana+errors@6.10.0_typescript@6.0.3/node_modules/@solana/errors/dist/index.node.mjs
 var SOLANA_ERROR__BLOCK_HEIGHT_EXCEEDED = 1;
@@ -5822,7 +5822,6 @@ var AccountRole = /* @__PURE__ */ ((AccountRole22) => {
   0] = "READONLY";
   return AccountRole22;
 })(AccountRole || {});
-var IS_SIGNER_BITMASK = 2;
 var IS_WRITABLE_BITMASK = 1;
 function isSignerRole(role) {
   return role >= 2;
@@ -5832,9 +5831,6 @@ function isWritableRole(role) {
 }
 function mergeRoles(roleA, roleB) {
   return roleA | roleB;
-}
-function upgradeRoleToSigner(role) {
-  return role | IS_SIGNER_BITMASK;
 }
 
 // ../../node_modules/.pnpm/@solana+rpc-types@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/rpc-types/dist/index.node.mjs
@@ -6913,10 +6909,10 @@ async function createKeyPairFromBytes(bytes, extractable = false) {
     ),
     createPrivateKeyFromBytes(bytes.slice(0, 32), extractable)
   ]);
-  const randomBytes3 = new Uint8Array(32);
-  crypto.getRandomValues(randomBytes3);
-  const signedData = await signBytes(privateKey, randomBytes3);
-  const isValid = await verifySignature(publicKey, signedData, randomBytes3);
+  const randomBytes2 = new Uint8Array(32);
+  crypto.getRandomValues(randomBytes2);
+  const signedData = await signBytes(privateKey, randomBytes2);
+  const isValid = await verifySignature(publicKey, signedData, randomBytes2);
   if (!isValid) {
     throw new SolanaError(SOLANA_ERROR__KEYS__PUBLIC_KEY_MUST_MATCH_PRIVATE_KEY);
   }
@@ -11983,9 +11979,9 @@ var AccountRole2 = /* @__PURE__ */ ((AccountRole22) => {
   0] = "READONLY";
   return AccountRole22;
 })(AccountRole2 || {});
-var IS_SIGNER_BITMASK2 = 2;
-function upgradeRoleToSigner2(role) {
-  return role | IS_SIGNER_BITMASK2;
+var IS_SIGNER_BITMASK = 2;
+function upgradeRoleToSigner(role) {
+  return role | IS_SIGNER_BITMASK;
 }
 
 // ../../node_modules/.pnpm/@solana+plugin-core@6.10.0_typescript@5.9.3/node_modules/@solana/plugin-core/dist/index.node.mjs
@@ -12684,7 +12680,7 @@ function getAccountMetaFactory(programAddress, optionalAccountStrategy) {
     const isSigner = isResolvedInstructionAccountSigner(account.value);
     return Object.freeze({
       address: getAddressFromResolvedInstructionAccount(inputName, account.value),
-      role: isSigner ? upgradeRoleToSigner2(writableRole) : writableRole,
+      role: isSigner ? upgradeRoleToSigner(writableRole) : writableRole,
       ...isSigner ? { signer: account.value } : {}
     });
   };
@@ -18218,7 +18214,7 @@ function eddsa(Point, cHash, eddsaOpts = {}) {
   });
   const { prehash } = eddsaOpts;
   const { BASE, Fp: Fp2, Fn: Fn2 } = Point;
-  const randomBytes3 = eddsaOpts.randomBytes || randomBytes;
+  const randomBytes2 = eddsaOpts.randomBytes || randomBytes;
   const adjustScalarBytes2 = eddsaOpts.adjustScalarBytes || ((bytes) => bytes);
   const domain = eddsaOpts.domain || ((data, ctx, phflag) => {
     _abool2(phflag, "phflag");
@@ -18300,7 +18296,7 @@ function eddsa(Point, cHash, eddsaOpts = {}) {
     signature: 2 * _size,
     seed: _size
   };
-  function randomSecretKey(seed = randomBytes3(lengths.seed)) {
+  function randomSecretKey(seed = randomBytes2(lengths.seed)) {
     return _abytes2(seed, lengths.seed, "seed");
   }
   function keygen(seed) {
@@ -18858,12 +18854,23 @@ var EpochStore = class {
   constructor(path = "") {
     this.path = path;
     if (!path || !existsSync(path)) return;
-    const rows = JSON.parse(readFileSync(path, "utf8"), (_key, value) => {
-      if (value && typeof value === "object" && typeof value.__bigint === "string") {
-        return BigInt(value.__bigint);
+    let rows;
+    try {
+      rows = JSON.parse(readFileSync(path, "utf8"), (_key, value) => {
+        if (value && typeof value === "object" && typeof value.__bigint === "string") {
+          return BigInt(value.__bigint);
+        }
+        return value;
+      });
+    } catch (e8) {
+      const quarantine = `${path}.corrupt-${process.pid}`;
+      try {
+        renameSync(path, quarantine);
+      } catch {
       }
-      return value;
-    });
+      console.error(`[aggregator] epoch store unreadable (${e8.message}); quarantined to ${quarantine}`);
+      return;
+    }
     for (const row of rows) this.byEpoch.set(row.epoch.toString(), row);
   }
   byEpoch = /* @__PURE__ */ new Map();
@@ -18927,84 +18934,9 @@ var EpochStore = class {
     renameSync(tmp, this.path);
   }
 };
-function payoutKey(operator, nodeId) {
-  return `${operator}:${nodeId}`;
-}
-var PayoutStore = class {
-  constructor(path = "") {
-    this.path = path;
-    this.data = path && existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { paid: {}, records: [] };
-    if (!this.data.paid) this.data.paid = {};
-    if (!this.data.records) this.data.records = [];
-  }
-  data;
-  paid(operator, nodeId) {
-    return BigInt(this.data.paid[payoutKey(operator, nodeId)] ?? "0");
-  }
-  record(operator, nodeId, amount, signature, now = Date.now()) {
-    if (amount <= 0n) return;
-    const key2 = payoutKey(operator, nodeId);
-    this.data.paid[key2] = (BigInt(this.data.paid[key2] ?? "0") + amount).toString();
-    this.data.records.push({
-      operator,
-      nodeId: nodeId.toString(),
-      amount: amount.toString(),
-      signature,
-      createdAt: now
-    });
-    this.save();
-  }
-  save() {
-    if (!this.path) return;
-    const dir = dirname(this.path);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    const tmp = `${this.path}.tmp`;
-    writeFileSync(tmp, JSON.stringify(this.data, null, 2));
-    renameSync(tmp, this.path);
-  }
-};
 
 // src/server.ts
 import { createServer } from "node:http";
-import { randomBytes as randomBytes2 } from "node:crypto";
-
-// ../../node_modules/.pnpm/@solana+program-client-core@6.10.0_fastestsmallesttextencoderdecoder@1.0.22_typescript@6.0.3/node_modules/@solana/program-client-core/dist/index.node.mjs
-function getNonNullResolvedInstructionInput2(inputName, value) {
-  if (value === null || value === void 0) {
-    throw new SolanaError(SOLANA_ERROR__PROGRAM_CLIENTS__RESOLVED_INSTRUCTION_INPUT_MUST_BE_NON_NULL, {
-      inputName
-    });
-  }
-  return value;
-}
-function getAddressFromResolvedInstructionAccount2(inputName, value) {
-  const nonNullValue = getNonNullResolvedInstructionInput2(inputName, value);
-  if (typeof value === "object" && "address" in nonNullValue) {
-    return nonNullValue.address;
-  }
-  if (Array.isArray(nonNullValue)) {
-    return nonNullValue[0];
-  }
-  return nonNullValue;
-}
-function getAccountMetaFactory2(programAddress, optionalAccountStrategy) {
-  return (inputName, account) => {
-    if (!account.value) {
-      if (optionalAccountStrategy === "omitted") return;
-      return Object.freeze({ address: programAddress, role: AccountRole.READONLY });
-    }
-    const writableRole = account.isWritable ? AccountRole.WRITABLE : AccountRole.READONLY;
-    const isSigner = isResolvedInstructionAccountSigner2(account.value);
-    return Object.freeze({
-      address: getAddressFromResolvedInstructionAccount2(inputName, account.value),
-      role: isSigner ? upgradeRoleToSigner(writableRole) : writableRole,
-      ...isSigner ? { signer: account.value } : {}
-    });
-  };
-}
-function isResolvedInstructionAccountSigner2(value) {
-  return !!value && typeof value === "object" && "address" in value && typeof value.address === "string" && isTransactionSigner(value);
-}
 
 // ../../node_modules/.pnpm/@solana-program+token@0.14.0_@solana+kit@6.10.0_bufferutil@4.1.0_fastestsmallesttextenc_609498eda2bc4f90cefaf5d9bc3b3804/node_modules/@solana-program/token/dist/src/index.mjs
 async function findAssociatedTokenPda(seeds, config = {}) {
@@ -19020,92 +18952,6 @@ async function findAssociatedTokenPda(seeds, config = {}) {
     ]
   });
 }
-var CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR = 1;
-function getCreateAssociatedTokenIdempotentInstructionDataEncoder() {
-  return transformEncoder(getStructEncoder([["discriminator", getU8Encoder()]]), (value) => ({
-    ...value,
-    discriminator: CREATE_ASSOCIATED_TOKEN_IDEMPOTENT_DISCRIMINATOR
-  }));
-}
-async function getCreateAssociatedTokenIdempotentInstructionAsync(input, config) {
-  const programAddress = config?.programAddress ?? ASSOCIATED_TOKEN_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    payer: { value: input.payer ?? null, isWritable: true },
-    ata: { value: input.ata ?? null, isWritable: true },
-    owner: { value: input.owner ?? null, isWritable: false },
-    mint: { value: input.mint ?? null, isWritable: false },
-    systemProgram: { value: input.systemProgram ?? null, isWritable: false },
-    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  if (!accounts.tokenProgram.value) {
-    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-  }
-  if (!accounts.ata.value) {
-    accounts.ata.value = await findAssociatedTokenPda({
-      owner: getAddressFromResolvedInstructionAccount2("owner", accounts.owner.value),
-      tokenProgram: getAddressFromResolvedInstructionAccount2("tokenProgram", accounts.tokenProgram.value),
-      mint: getAddressFromResolvedInstructionAccount2("mint", accounts.mint.value)
-    });
-  }
-  if (!accounts.systemProgram.value) {
-    accounts.systemProgram.value = "11111111111111111111111111111111";
-  }
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("payer", accounts.payer),
-      getAccountMeta("ata", accounts.ata),
-      getAccountMeta("owner", accounts.owner),
-      getAccountMeta("mint", accounts.mint),
-      getAccountMeta("systemProgram", accounts.systemProgram),
-      getAccountMeta("tokenProgram", accounts.tokenProgram)
-    ],
-    data: getCreateAssociatedTokenIdempotentInstructionDataEncoder().encode({}),
-    programAddress
-  });
-}
-var TRANSFER_CHECKED_DISCRIMINATOR = 12;
-function getTransferCheckedInstructionDataEncoder() {
-  return transformEncoder(
-    getStructEncoder([
-      ["discriminator", getU8Encoder()],
-      ["amount", getU64Encoder()],
-      ["decimals", getU8Encoder()]
-    ]),
-    (value) => ({ ...value, discriminator: TRANSFER_CHECKED_DISCRIMINATOR })
-  );
-}
-function getTransferCheckedInstruction(input, config) {
-  const programAddress = config?.programAddress ?? TOKEN_PROGRAM_ADDRESS;
-  const originalAccounts = {
-    source: { value: input.source ?? null, isWritable: true },
-    mint: { value: input.mint ?? null, isWritable: false },
-    destination: { value: input.destination ?? null, isWritable: true },
-    authority: { value: input.authority ?? null, isWritable: false }
-  };
-  const accounts = originalAccounts;
-  const args = { ...input };
-  const remainingAccounts = (args.multiSigners ?? []).map((signer) => ({
-    address: signer.address,
-    role: AccountRole.READONLY_SIGNER,
-    signer
-  }));
-  const getAccountMeta = getAccountMetaFactory2(programAddress, "programId");
-  return Object.freeze({
-    accounts: [
-      getAccountMeta("source", accounts.source),
-      getAccountMeta("mint", accounts.mint),
-      getAccountMeta("destination", accounts.destination),
-      getAccountMeta("authority", accounts.authority),
-      ...remainingAccounts
-    ],
-    data: getTransferCheckedInstructionDataEncoder().encode(args),
-    programAddress
-  });
-}
-var ASSOCIATED_TOKEN_PROGRAM_ADDRESS = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL";
-var TOKEN_PROGRAM_ADDRESS = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
 var ASSOCIATED_TOKEN_ERROR__INVALID_OWNER = 0;
 var associatedTokenErrorMessages;
 if (process.env["NODE_ENV"] !== "production") {
@@ -19227,12 +19073,20 @@ async function buildPayTrafficTransaction(account, amount, config, latestBlockha
 }
 
 // src/server.ts
-var WITHDRAW_CHALLENGE_TTL_MS = 5 * 60 * 1e3;
-var addressEncoder = getAddressEncoder();
+var MAX_BODY_BYTES = 2 * 1024 * 1024;
 function readBody(req) {
   return new Promise((resolve, reject) => {
     let data = "";
-    req.on("data", (c) => data += c);
+    let size = 0;
+    req.on("data", (c) => {
+      size += c.length;
+      if (size > MAX_BODY_BYTES) {
+        req.destroy();
+        reject(new Error("request body too large"));
+        return;
+      }
+      data += c;
+    });
     req.on("end", () => resolve(data));
     req.on("error", reject);
   });
@@ -19251,46 +19105,7 @@ function parseReceipt(raw) {
     relaySig: String(r.relaySig)
   };
 }
-function earnedSummary(store, payouts, operator) {
-  const summary = store.claimable(operator);
-  const nodes = summary.nodes.map((node) => {
-    const paid = payouts?.paid(operator, node.nodeId) ?? 0n;
-    const withdrawable = node.totalAmount > paid ? node.totalAmount - paid : 0n;
-    return {
-      nodeId: node.nodeId,
-      earned: node.totalAmount,
-      paid,
-      withdrawable
-    };
-  });
-  return {
-    operator,
-    totalEarned: nodes.reduce((sum, node) => sum + node.earned, 0n),
-    totalPaid: nodes.reduce((sum, node) => sum + node.paid, 0n),
-    withdrawable: nodes.reduce((sum, node) => sum + node.withdrawable, 0n),
-    nodes
-  };
-}
-function challengeKey(operator, nodeId) {
-  return `${operator}:${nodeId || "all"}`;
-}
-function buildWithdrawMessage(challenge) {
-  return [
-    "Weft earned withdrawal",
-    `operator: ${challenge.operator}`,
-    `nodeId: ${challenge.nodeId || "all"}`,
-    `nonce: ${challenge.nonce}`,
-    `expiresAt: ${challenge.expiresAt}`
-  ].join("\n");
-}
-function verifyWithdrawalSignature(operator, message, signatureBase64) {
-  const publicKey = new Uint8Array(addressEncoder.encode(address(operator)));
-  const signature = Buffer.from(signatureBase64, "base64");
-  if (signature.length !== 64) return false;
-  return ed25519.verify(signature, Buffer.from(message, "utf8"), publicKey);
-}
 function createAggregatorServer(deps) {
-  const withdrawChallenges = /* @__PURE__ */ new Map();
   return createServer((req, res) => {
     void (async () => {
       try {
@@ -19368,104 +19183,6 @@ function createAggregatorServer(deps) {
           });
           return;
         }
-        if (url.pathname === "/earned" && req.method === "GET") {
-          const operator = url.searchParams.get("operator") ?? "";
-          const summary = earnedSummary(deps.store, deps.payoutStore, operator);
-          json(200, {
-            operator: summary.operator,
-            totalEarned: summary.totalEarned.toString(),
-            totalPaid: summary.totalPaid.toString(),
-            withdrawable: summary.withdrawable.toString(),
-            nodes: summary.nodes.map((node) => ({
-              nodeId: node.nodeId.toString(),
-              earned: node.earned.toString(),
-              paid: node.paid.toString(),
-              withdrawable: node.withdrawable.toString()
-            }))
-          });
-          return;
-        }
-        if (url.pathname === "/withdraw-earned/challenge" && req.method === "POST") {
-          if (!deps.payout || !deps.payoutStore) {
-            json(404, { error: "earned payout disabled" });
-            return;
-          }
-          const body = JSON.parse(await readBody(req) || "{}");
-          const operator = body.operator ? String(address(body.operator)) : "";
-          if (!operator) {
-            json(400, { error: "operator required" });
-            return;
-          }
-          const nodeId = body.nodeId ? BigInt(body.nodeId).toString() : "";
-          const expiresAt = Date.now() + WITHDRAW_CHALLENGE_TTL_MS;
-          const challenge = {
-            operator,
-            nodeId,
-            nonce: randomBytes2(16).toString("hex"),
-            expiresAt
-          };
-          const full = { ...challenge, message: buildWithdrawMessage(challenge) };
-          withdrawChallenges.set(challengeKey(operator, nodeId), full);
-          json(200, {
-            operator,
-            nodeId,
-            message: full.message,
-            nonce: full.nonce,
-            expiresAt: full.expiresAt
-          });
-          return;
-        }
-        if (url.pathname === "/withdraw-earned" && req.method === "POST") {
-          if (!deps.payout || !deps.payoutStore) {
-            json(404, { error: "earned payout disabled" });
-            return;
-          }
-          const body = JSON.parse(await readBody(req) || "{}");
-          const operator = body.operator ? String(address(body.operator)) : "";
-          if (!operator) {
-            json(400, { error: "operator required" });
-            return;
-          }
-          const nodeId = body.nodeId ? BigInt(body.nodeId).toString() : "";
-          const challenge = withdrawChallenges.get(challengeKey(operator, nodeId));
-          if (!challenge || challenge.message !== body.message || Date.now() > challenge.expiresAt) {
-            json(401, { error: "withdraw signature challenge expired or missing" });
-            return;
-          }
-          if (!body.signature || !verifyWithdrawalSignature(operator, body.message, body.signature)) {
-            json(401, { error: "invalid withdraw signature" });
-            return;
-          }
-          withdrawChallenges.delete(challengeKey(operator, nodeId));
-          const onlyNodeId = nodeId ? BigInt(nodeId) : null;
-          const summary = earnedSummary(deps.store, deps.payoutStore, operator);
-          const payableNodes = summary.nodes.filter(
-            (node) => node.withdrawable > 0n && (onlyNodeId === null || node.nodeId === onlyNodeId)
-          );
-          const amount = payableNodes.reduce((sum, node) => sum + node.withdrawable, 0n);
-          if (amount <= 0n) {
-            json(400, { error: "nothing to withdraw" });
-            return;
-          }
-          const reserve = deps.payoutReserve ?? 0n;
-          const available = await deps.payout.availableBalance();
-          if (available < amount + reserve) {
-            json(503, {
-              error: "payout wallet balance cannot cover withdrawal plus reserve",
-              available: available.toString(),
-              required: (amount + reserve).toString(),
-              amount: amount.toString(),
-              reserve: reserve.toString()
-            });
-            return;
-          }
-          const { signature } = await deps.payout.pay(operator, amount);
-          for (const node of payableNodes) {
-            deps.payoutStore.record(operator, node.nodeId, node.withdrawable, signature);
-          }
-          json(200, { signature, amount: amount.toString() });
-          return;
-        }
         if (url.pathname === "/pay/traffic" && req.method === "GET") {
           json(200, payLabel(deps.payConfig));
           return;
@@ -19534,6 +19251,10 @@ function createAggregatorServer(deps) {
           return;
         }
         if (url.pathname === "/receipts" && req.method === "POST") {
+          if (deps.receiptsToken && req.headers["authorization"] !== `Bearer ${deps.receiptsToken}`) {
+            json(401, { error: "unauthorized" });
+            return;
+          }
           const epoch = BigInt(url.searchParams.get("epoch") ?? "-1");
           if (epoch < 0n) {
             json(400, { error: "missing epoch" });
@@ -19561,91 +19282,9 @@ function createAggregatorServer(deps) {
   });
 }
 
-// src/payout.ts
-import { readFileSync as readFileSync2 } from "node:fs";
-var TokenPayout = class {
-  constructor(rpcUrl, wsUrl, keypairPath, mint, decimals, tokenProgram) {
-    this.rpcUrl = rpcUrl;
-    this.wsUrl = wsUrl;
-    this.keypairPath = keypairPath;
-    this.mint = mint;
-    this.decimals = decimals;
-    this.tokenProgram = tokenProgram;
-  }
-  async payer() {
-    return createKeyPairSignerFromBytes(
-      Uint8Array.from(JSON.parse(readFileSync2(this.keypairPath, "utf8")))
-    );
-  }
-  async availableBalance() {
-    const payer = await this.payer();
-    const rpc = createSolanaRpc(this.rpcUrl);
-    const [sourceAta] = await findAssociatedTokenPda({
-      owner: payer.address,
-      mint: this.mint,
-      tokenProgram: this.tokenProgram
-    });
-    try {
-      const { value } = await rpc.getTokenAccountBalance(sourceAta).send();
-      return BigInt(value.amount);
-    } catch {
-      return 0n;
-    }
-  }
-  async pay(recipient, amount) {
-    if (amount <= 0n) throw new Error("withdraw amount must be positive");
-    const payer = await this.payer();
-    const rpc = createSolanaRpc(this.rpcUrl);
-    const sendAndConfirm = sendAndConfirmTransactionFactory({
-      rpc,
-      rpcSubscriptions: createSolanaRpcSubscriptions(this.wsUrl)
-    });
-    const owner = address(recipient);
-    const [sourceAta] = await findAssociatedTokenPda({
-      owner: payer.address,
-      mint: this.mint,
-      tokenProgram: this.tokenProgram
-    });
-    const [destinationAta] = await findAssociatedTokenPda({
-      owner,
-      mint: this.mint,
-      tokenProgram: this.tokenProgram
-    });
-    const createAta = await getCreateAssociatedTokenIdempotentInstructionAsync({
-      payer,
-      owner,
-      mint: this.mint,
-      tokenProgram: this.tokenProgram
-    });
-    const transfer = getTransferCheckedInstruction(
-      {
-        source: sourceAta,
-        mint: this.mint,
-        destination: destinationAta,
-        authority: payer,
-        amount,
-        decimals: this.decimals
-      },
-      { programAddress: this.tokenProgram }
-    );
-    const { value: bh } = await rpc.getLatestBlockhash().send();
-    const msg = pipe(
-      createTransactionMessage({ version: 0 }),
-      (m) => setTransactionMessageFeePayerSigner(payer, m),
-      (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
-      (m) => appendTransactionMessageInstructions([createAta, transfer], m)
-    );
-    const signed = await signTransactionMessageWithSigners(msg);
-    await sendAndConfirm(signed, {
-      commitment: "confirmed"
-    });
-    return { signature: getSignatureFromTransaction(signed) };
-  }
-};
-
 // src/profileTotals.ts
 import { createHash } from "node:crypto";
-import { existsSync as existsSync2, mkdirSync as mkdirSync2, readFileSync as readFileSync3, renameSync as renameSync2, writeFileSync as writeFileSync2 } from "node:fs";
+import { existsSync as existsSync2, mkdirSync as mkdirSync2, readFileSync as readFileSync2, renameSync as renameSync2, writeFileSync as writeFileSync2 } from "node:fs";
 import { dirname as dirname2 } from "node:path";
 function endpoint(profile) {
   return `${profile.host}:${profile.port}`;
@@ -19655,7 +19294,7 @@ function endpointHashHex(endpointValue) {
 }
 function readSettledProfileBytes(path) {
   if (!existsSync2(path)) return {};
-  return JSON.parse(readFileSync3(path, "utf8"));
+  return JSON.parse(readFileSync2(path, "utf8"));
 }
 function writeSettledProfileBytes(path, data) {
   const dir = dirname2(path);
@@ -19666,7 +19305,7 @@ function writeSettledProfileBytes(path, data) {
 }
 function readRelayProfiles(path) {
   if (!existsSync2(path)) return [];
-  return Object.values(JSON.parse(readFileSync3(path, "utf8")));
+  return Object.values(JSON.parse(readFileSync2(path, "utf8")));
 }
 function buildProfileByteTotals(profiles, nodes, settled) {
   const nodeByEndpointHash = /* @__PURE__ */ new Map();
@@ -19695,7 +19334,7 @@ function buildProfileByteTotals(profiles, nodes, settled) {
 // src/cli.ts
 function parseReceipts(path) {
   if (!existsSync3(path)) return [];
-  const raw = JSON.parse(readFileSync4(path, "utf8"));
+  const raw = JSON.parse(readFileSync3(path, "utf8"));
   return raw.map((r) => ({
     client: r.client,
     operator: r.operator,
@@ -19767,19 +19406,16 @@ async function main() {
   const relayProfilePath = process.env.WEFT_RELAY_PROFILE_PATH ?? "/var/lib/weft/exit-profiles.json";
   const settledProfilePath = process.env.WEFT_SETTLED_PROFILE_BYTES ?? "/var/lib/weft/settled-profile-bytes.json";
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? "/var/lib/weft/reward-epochs.json";
-  const payoutStorePath = process.env.WEFT_PAYOUT_STORE ?? "/var/lib/weft/payouts.json";
-  const payoutKeypairPath = process.env.WEFT_PAYOUT_KEYPAIR;
-  const payoutReserve = BigInt(process.env.WEFT_PAYOUT_RESERVE ?? "0");
+  const receiptsToken = process.env.WEFT_RECEIPTS_TOKEN ?? "";
   if (mainnet && trustedTotalsConfigured()) {
     throw new Error("WEFT_TRUSTED_* totals are devnet-only and must be unset on mainnet");
   }
-  if (mainnet && !payoutKeypairPath) {
-    throw new Error("WEFT_PAYOUT_KEYPAIR must be set explicitly for mainnet earned withdrawals");
+  if (mainnet && !receiptsToken) {
+    throw new Error("WEFT_RECEIPTS_TOKEN must be set explicitly for mainnet (relay \u2192 aggregator auth)");
   }
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
   const store = new EpochStore(epochStorePath);
-  const payoutStore = new PayoutStore(payoutStorePath);
   const nodes = await fetchNodeInfos(rpc);
   const receipts = parseReceipts(receiptsPath);
   const trustedTotals = parseTrustedTotals();
@@ -19795,7 +19431,7 @@ async function main() {
     store.put(build);
   }
   const poster = posterPath ? await createKeyPairSignerFromBytes(
-    Uint8Array.from(JSON.parse(readFileSync4(posterPath, "utf8")))
+    Uint8Array.from(JSON.parse(readFileSync3(posterPath, "utf8")))
   ) : null;
   async function maybePost(b) {
     if (!poster || b.numNodes === 0) return null;
@@ -19811,14 +19447,16 @@ async function main() {
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
   if (!distInfo.value) throw new Error("distributor not initialized");
   const d = generated_exports.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], "base64"));
-  const payout = payoutKeypairPath ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals, tokenProgram) : void 0;
-  const highestKnownEpoch = store.maxEpoch();
-  let nextAutoEpoch = (highestKnownEpoch !== null && highestKnownEpoch > BigInt(d.currentEpoch) ? highestKnownEpoch : BigInt(d.currentEpoch)) + 1n;
+  async function fetchCurrentEpoch() {
+    const info = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
+    if (!info.value) throw new Error("distributor not initialized");
+    return BigInt(
+      generated_exports.getDistributorDecoder().decode(Buffer.from(info.value.data[0], "base64")).currentEpoch
+    );
+  }
   const server = createAggregatorServer({
     store,
-    payoutStore,
-    payout,
-    payoutReserve,
+    receiptsToken: receiptsToken || void 0,
     payConfig: {
       rewardMint: d.rewardMint,
       rewardVault: d.rewardVault,
@@ -19845,32 +19483,36 @@ async function main() {
   });
   server.listen(port);
   console.log(`[aggregator] serving proofs + Solana Pay on :${port}`);
+  let autoSettleRunning = false;
   async function autoSettleOnce() {
     if (!poster) return;
-    const profiles = readRelayProfiles(relayProfilePath);
-    const latestNodes = await fetchNodeInfos(rpc);
-    const settled = readSettledProfileBytes(settledProfilePath);
-    const { totals, nextSettled } = buildProfileByteTotals(profiles, latestNodes, settled);
-    if (totals.length === 0) return;
-    const next = buildEpochFromByteTotals(nextAutoEpoch, totals, latestNodes, opts);
-    if (next.numNodes === 0) {
-      writeSettledProfileBytes(settledProfilePath, nextSettled);
-      return;
-    }
-    store.put(next);
-    writeSettledProfileBytes(settledProfilePath, nextSettled);
-    let postedSignature = null;
+    if (autoSettleRunning) return;
+    autoSettleRunning = true;
     try {
-      postedSignature = await maybePost(next);
+      const profiles = readRelayProfiles(relayProfilePath);
+      const latestNodes = await fetchNodeInfos(rpc);
+      const settled = readSettledProfileBytes(settledProfilePath);
+      const { totals, nextSettled } = buildProfileByteTotals(profiles, latestNodes, settled);
+      if (totals.length === 0) return;
+      const epochToPost = await fetchCurrentEpoch() + 1n;
+      const next = buildEpochFromByteTotals(epochToPost, totals, latestNodes, opts);
+      if (next.numNodes === 0) {
+        writeSettledProfileBytes(settledProfilePath, nextSettled);
+        return;
+      }
+      store.put(next);
+      const sig = await postEpoch({ rpc, rpcSubscriptions, poster }, next);
+      writeSettledProfileBytes(settledProfilePath, nextSettled);
+      console.log(
+        `[aggregator] auto-settled epoch ${next.epoch}: ${next.numNodes} nodes, ${next.totalReward} base units, tx ${sig}`
+      );
     } catch (e8) {
       console.error(
-        `[aggregator] stored off-chain epoch ${next.epoch}; on-chain post failed: ${e8.message}`
+        `[aggregator] auto settlement failed; cursor not advanced, will retry: ${e8.message}`
       );
+    } finally {
+      autoSettleRunning = false;
     }
-    console.log(
-      `[aggregator] auto-settled epoch ${next.epoch}: ${next.numNodes} nodes, ${next.totalReward} base units, tx ${postedSignature}`
-    );
-    nextAutoEpoch += 1n;
   }
   if (autoSettle) {
     console.log(`[aggregator] auto settlement enabled every ${autoSettleMs}ms`);

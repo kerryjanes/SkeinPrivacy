@@ -16,9 +16,8 @@ import { weft } from '@weft/sdk';
 import { buildEpoch, buildEpochFromByteTotals, type BuildOptions, type ByteTotal } from './rewards';
 import { fetchNodeInfos } from './nodes';
 import { postEpoch } from './poster';
-import { EpochStore, PayoutStore } from './store';
+import { EpochStore } from './store';
 import { createAggregatorServer } from './server';
-import { TokenPayout } from './payout';
 import type { TrafficReceipt } from './receipts';
 import {
   buildProfileByteTotals,
@@ -135,20 +134,17 @@ async function main(): Promise<void> {
   const settledProfilePath =
     process.env.WEFT_SETTLED_PROFILE_BYTES ?? '/var/lib/weft/settled-profile-bytes.json';
   const epochStorePath = process.env.WEFT_EPOCH_STORE ?? '/var/lib/weft/reward-epochs.json';
-  const payoutStorePath = process.env.WEFT_PAYOUT_STORE ?? '/var/lib/weft/payouts.json';
-  const payoutKeypairPath = process.env.WEFT_PAYOUT_KEYPAIR;
-  const payoutReserve = BigInt(process.env.WEFT_PAYOUT_RESERVE ?? '0');
+  const receiptsToken = process.env.WEFT_RECEIPTS_TOKEN ?? '';
   if (mainnet && trustedTotalsConfigured()) {
     throw new Error('WEFT_TRUSTED_* totals are devnet-only and must be unset on mainnet');
   }
-  if (mainnet && !payoutKeypairPath) {
-    throw new Error('WEFT_PAYOUT_KEYPAIR must be set explicitly for mainnet earned withdrawals');
+  if (mainnet && !receiptsToken) {
+    throw new Error('WEFT_RECEIPTS_TOKEN must be set explicitly for mainnet (relay → aggregator auth)');
   }
 
   const rpc = createSolanaRpc(rpcUrl);
   const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
   const store = new EpochStore(epochStorePath);
-  const payoutStore = new PayoutStore(payoutStorePath);
 
   const nodes = await fetchNodeInfos(rpc);
   const receipts = parseReceipts(receiptsPath);
@@ -193,20 +189,21 @@ async function main(): Promise<void> {
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
   if (!distInfo.value) throw new Error('distributor not initialized');
   const d = weft.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], 'base64'));
-  const payout = payoutKeypairPath
-    ? new TokenPayout(rpcUrl, wsUrl, payoutKeypairPath, d.rewardMint, rewardDecimals, tokenProgram)
-    : undefined;
-  const highestKnownEpoch = store.maxEpoch();
-  let nextAutoEpoch =
-    (highestKnownEpoch !== null && highestKnownEpoch > BigInt(d.currentEpoch)
-      ? highestKnownEpoch
-      : BigInt(d.currentEpoch)) + 1n;
+
+  // The next epoch to settle is always derived from on-chain truth (distributor.current_epoch + 1),
+  // never from a local counter or the persisted store — so a corrupt/poisoned store can't push the
+  // epoch forward, and a failed post retries the same epoch instead of leaving a permanent gap.
+  async function fetchCurrentEpoch(): Promise<bigint> {
+    const info = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
+    if (!info.value) throw new Error('distributor not initialized');
+    return BigInt(
+      weft.getDistributorDecoder().decode(Buffer.from(info.value.data[0], 'base64')).currentEpoch,
+    );
+  }
 
   const server = createAggregatorServer({
     store,
-    payoutStore,
-    payout,
-    payoutReserve,
+    receiptsToken: receiptsToken || undefined,
     payConfig: {
       rewardMint: d.rewardMint,
       rewardVault: d.rewardVault,
@@ -234,32 +231,44 @@ async function main(): Promise<void> {
   server.listen(port);
   console.log(`[aggregator] serving proofs + Solana Pay on :${port}`);
 
+  let autoSettleRunning = false;
   async function autoSettleOnce(): Promise<void> {
     if (!poster) return;
-    const profiles = readRelayProfiles(relayProfilePath);
-    const latestNodes = await fetchNodeInfos(rpc);
-    const settled = readSettledProfileBytes(settledProfilePath);
-    const { totals, nextSettled } = buildProfileByteTotals(profiles, latestNodes, settled);
-    if (totals.length === 0) return;
-    const next = buildEpochFromByteTotals(nextAutoEpoch, totals, latestNodes, opts);
-    if (next.numNodes === 0) {
-      writeSettledProfileBytes(settledProfilePath, nextSettled);
-      return;
-    }
-    store.put(next);
-    writeSettledProfileBytes(settledProfilePath, nextSettled);
-    let postedSignature: string | null = null;
+    if (autoSettleRunning) return; // no overlapping runs — a slow post must not double-count bytes
+    autoSettleRunning = true;
     try {
-      postedSignature = await maybePost(next);
+      const profiles = readRelayProfiles(relayProfilePath);
+      const latestNodes = await fetchNodeInfos(rpc);
+      const settled = readSettledProfileBytes(settledProfilePath);
+      const { totals, nextSettled } = buildProfileByteTotals(profiles, latestNodes, settled);
+      if (totals.length === 0) return;
+      const epochToPost = (await fetchCurrentEpoch()) + 1n;
+      const next = buildEpochFromByteTotals(epochToPost, totals, latestNodes, opts);
+      if (next.numNodes === 0) {
+        // No rewardable node for these bytes → no reward is owed, so advancing the cursor is safe.
+        writeSettledProfileBytes(settledProfilePath, nextSettled);
+        return;
+      }
+      // Persist proofs, then post the root, then advance the byte cursor — in that order. If the
+      // post fails or the process dies before it lands, the cursor is untouched, so the next run
+      // re-derives the same epoch (current+1) from the same cursor and replays identically: no
+      // bytes are ever forfeited and no epoch gap opens. The only irreducible window — a crash
+      // between on-chain confirmation and the cursor write — is bounded by post_epoch's vault
+      // solvency guard and the per-epoch ClaimStatus, which cap any double-count and forbid
+      // double-claims.
+      store.put(next);
+      const sig = await postEpoch({ rpc, rpcSubscriptions, poster }, next);
+      writeSettledProfileBytes(settledProfilePath, nextSettled);
+      console.log(
+        `[aggregator] auto-settled epoch ${next.epoch}: ${next.numNodes} nodes, ${next.totalReward} base units, tx ${sig}`,
+      );
     } catch (e) {
       console.error(
-        `[aggregator] stored off-chain epoch ${next.epoch}; on-chain post failed: ${(e as Error).message}`,
+        `[aggregator] auto settlement failed; cursor not advanced, will retry: ${(e as Error).message}`,
       );
+    } finally {
+      autoSettleRunning = false;
     }
-    console.log(
-      `[aggregator] auto-settled epoch ${next.epoch}: ${next.numNodes} nodes, ${next.totalReward} base units, tx ${postedSignature}`,
-    );
-    nextAutoEpoch += 1n;
   }
 
   if (autoSettle) {

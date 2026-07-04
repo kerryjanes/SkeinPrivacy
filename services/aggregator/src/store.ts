@@ -28,12 +28,26 @@ export class EpochStore {
 
   constructor(private path = '') {
     if (!path || !existsSync(path)) return;
-    const rows = JSON.parse(readFileSync(path, 'utf8'), (_key, value) => {
-      if (value && typeof value === 'object' && typeof value.__bigint === 'string') {
-        return BigInt(value.__bigint);
+    let rows: EpochBuild[];
+    try {
+      rows = JSON.parse(readFileSync(path, 'utf8'), (_key, value) => {
+        if (value && typeof value === 'object' && typeof value.__bigint === 'string') {
+          return BigInt(value.__bigint);
+        }
+        return value;
+      }) as EpochBuild[];
+    } catch (e) {
+      // A corrupt store must not crash-loop boot: quarantine it and start empty. Epoch
+      // builds are reconstructable from receipts/relay profiles on the next settle.
+      const quarantine = `${path}.corrupt-${process.pid}`;
+      try {
+        renameSync(path, quarantine);
+      } catch {
+        /* best effort */
       }
-      return value;
-    }) as EpochBuild[];
+      console.error(`[aggregator] epoch store unreadable (${(e as Error).message}); quarantined to ${quarantine}`);
+      return;
+    }
     for (const row of rows) this.byEpoch.set(row.epoch.toString(), row);
   }
 
@@ -102,69 +116,6 @@ export class EpochStore {
         2,
       ),
     );
-    renameSync(tmp, this.path);
-  }
-}
-
-export interface PayoutRecord {
-  operator: string;
-  nodeId: string;
-  amount: string;
-  signature: string;
-  createdAt: number;
-}
-
-export interface PayoutData {
-  paid: Record<string, string>;
-  records: PayoutRecord[];
-}
-
-function payoutKey(operator: string, nodeId: bigint): string {
-  return `${operator}:${nodeId}`;
-}
-
-export class PayoutStore {
-  private data: PayoutData;
-
-  constructor(private path = '') {
-    this.data =
-      path && existsSync(path)
-        ? (JSON.parse(readFileSync(path, 'utf8')) as PayoutData)
-        : { paid: {}, records: [] };
-    if (!this.data.paid) this.data.paid = {};
-    if (!this.data.records) this.data.records = [];
-  }
-
-  paid(operator: string, nodeId: bigint): bigint {
-    return BigInt(this.data.paid[payoutKey(operator, nodeId)] ?? '0');
-  }
-
-  record(
-    operator: string,
-    nodeId: bigint,
-    amount: bigint,
-    signature: string,
-    now = Date.now(),
-  ): void {
-    if (amount <= 0n) return;
-    const key = payoutKey(operator, nodeId);
-    this.data.paid[key] = (BigInt(this.data.paid[key] ?? '0') + amount).toString();
-    this.data.records.push({
-      operator,
-      nodeId: nodeId.toString(),
-      amount: amount.toString(),
-      signature,
-      createdAt: now,
-    });
-    this.save();
-  }
-
-  private save(): void {
-    if (!this.path) return;
-    const dir = dirname(this.path);
-    if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
-    const tmp = `${this.path}.tmp`;
-    writeFileSync(tmp, JSON.stringify(this.data, null, 2));
     renameSync(tmp, this.path);
   }
 }

@@ -1,12 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import type { Server } from 'node:http';
 import type { Address } from '@solana/kit';
-import { ed25519 } from '@noble/curves/ed25519';
 
 const TEST_TOKEN_PROGRAM = 'TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA' as Address;
 
 import { createAggregatorServer } from '../src/server';
-import { EpochStore, PayoutStore } from '../src/store';
+import { EpochStore } from '../src/store';
 import { buildEpochFromByteTotals } from '../src/rewards';
 import { makeReceipt, makeSigner } from './helpers';
 
@@ -20,10 +19,6 @@ function listen(s: Server): Promise<string> {
       resolve(`http://127.0.0.1:${addr.port}`);
     });
   });
-}
-
-function signMessageBase64(message: string, secretKey: Uint8Array): string {
-  return Buffer.from(ed25519.sign(Buffer.from(message, 'utf8'), secretKey)).toString('base64');
 }
 
 afterEach(async () => {
@@ -168,192 +163,41 @@ describe('aggregator HTTP receipt ingest', () => {
     expect(BigInt(body.totalAmount)).toBeGreaterThan(0n);
   });
 
-  it('summarizes earned rewards net of off-chain payouts', async () => {
-    const operator = makeSigner();
-    const store = new EpochStore();
-    const payouts = new PayoutStore();
-    store.put(
-      buildEpochFromByteTotals(
-        9n,
-        [{ operator: operator.address, nodeId: 11n, bytes: 1_000_000_000n }],
-        [{ operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n }],
-        { minStakeToEarn: 0n },
-      ),
-    );
-    payouts.record(operator.address, 11n, 100n, 'sig-1', 1);
-
+  it('rejects unauthenticated /receipts when a receipts token is configured', async () => {
+    let ingested = false;
     server = createAggregatorServer({
-      store,
-      payoutStore: payouts,
+      store: new EpochStore(),
+      receiptsToken: 'relay-secret',
       payConfig: {
-        rewardMint: operator.address,
-        rewardVault: operator.address,
-        treasury: operator.address,
+        rewardMint: makeSigner().address,
+        rewardVault: makeSigner().address,
+        treasury: makeSigner().address,
         tokenProgram: TEST_TOKEN_PROGRAM,
         label: 'test',
       },
       getBlockhash: async () =>
-        ({
-          blockhash: '11111111111111111111111111111111',
-          lastValidBlockHeight: 1n,
-        }) as never,
+        ({ blockhash: '11111111111111111111111111111111', lastValidBlockHeight: 1n }) as never,
+      onReceipts: async () => {
+        ingested = true;
+        return { root: '', totalReward: '0', numNodes: 0, postedSignature: null };
+      },
     });
     const base = await listen(server);
 
-    const res = await fetch(`${base}/earned?operator=${operator.address}`);
-    const body = (await res.json()) as {
-      totalEarned: string;
-      totalPaid: string;
-      withdrawable: string;
-      nodes: Array<{ nodeId: string; earned: string; paid: string; withdrawable: string }>;
-    };
-
-    expect(res.status).toBe(200);
-    expect(body.nodes).toHaveLength(1);
-    expect(BigInt(body.totalEarned)).toBe(700n * 1_000_000n);
-    expect(body.totalPaid).toBe('100');
-    expect(body.withdrawable).toBe((700n * 1_000_000n - 100n).toString());
-    expect(body.nodes[0]).toMatchObject({ nodeId: '11', paid: '100' });
-  });
-
-  it('requires an operator-signed challenge before withdrawing earned rewards', async () => {
-    const operator = makeSigner();
-    const store = new EpochStore();
-    const payouts = new PayoutStore();
-    store.put(
-      buildEpochFromByteTotals(
-        10n,
-        [{ operator: operator.address, nodeId: 11n, bytes: 1_000_000_000n }],
-        [{ operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n }],
-        { minStakeToEarn: 0n },
-      ),
-    );
-
-    server = createAggregatorServer({
-      store,
-      payoutStore: payouts,
-      payout: {
-        availableBalance: async () => 1_000_000_000_000_000n,
-        pay: async (recipient, amount) => ({ signature: `paid-${recipient}-${amount}` }),
-      },
-      payConfig: {
-        rewardMint: operator.address,
-        rewardVault: operator.address,
-        treasury: operator.address,
-        tokenProgram: TEST_TOKEN_PROGRAM,
-        label: 'test',
-      },
-      getBlockhash: async () =>
-        ({
-          blockhash: '11111111111111111111111111111111',
-          lastValidBlockHeight: 1n,
-        }) as never,
-    });
-    const base = await listen(server);
-
-    const unsigned = await fetch(`${base}/withdraw-earned`, {
+    const noAuth = await fetch(`${base}/receipts?epoch=1`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ operator: operator.address }),
+      body: JSON.stringify({ receipts: [] }),
     });
-    expect(unsigned.status).toBe(401);
+    expect(noAuth.status).toBe(401);
+    expect(ingested).toBe(false);
 
-    const challengeRes = await fetch(`${base}/withdraw-earned/challenge`, {
+    const authed = await fetch(`${base}/receipts?epoch=1`, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ operator: operator.address }),
+      headers: { 'content-type': 'application/json', authorization: 'Bearer relay-secret' },
+      body: JSON.stringify({ receipts: [] }),
     });
-    const challenge = (await challengeRes.json()) as {
-      message: string;
-      expiresAt: number;
-      nonce: string;
-    };
-    expect(challengeRes.status).toBe(200);
-    expect(challenge.message).toContain(`operator: ${operator.address}`);
-    expect(challenge.message).toContain('nodeId: all');
-
-    const invalid = await fetch(`${base}/withdraw-earned`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        operator: operator.address,
-        message: challenge.message,
-        signature: Buffer.alloc(64).toString('base64'),
-      }),
-    });
-    expect(invalid.status).toBe(401);
-
-    const signature = signMessageBase64(challenge.message, operator.secretKey);
-    const res = await fetch(`${base}/withdraw-earned`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ operator: operator.address, message: challenge.message, signature }),
-    });
-    const body = (await res.json()) as { signature: string; amount: string };
-
-    expect(res.status).toBe(200);
-    expect(body.amount).toBe((700n * 1_000_000n).toString());
-    expect(body.signature).toContain('paid-');
-    expect(payouts.paid(operator.address, 11n)).toBe(700n * 1_000_000n);
-  });
-
-  it('refuses earned withdrawals when payout wallet balance cannot cover amount plus reserve', async () => {
-    const operator = makeSigner();
-    const store = new EpochStore();
-    const payouts = new PayoutStore();
-    store.put(
-      buildEpochFromByteTotals(
-        11n,
-        [{ operator: operator.address, nodeId: 11n, bytes: 1_000_000_000n }],
-        [{ operator: operator.address, nodeId: 11n, reputationBps: 10_000, geo: 0, stake: 0n }],
-        { minStakeToEarn: 0n },
-      ),
-    );
-    let paid = false;
-
-    server = createAggregatorServer({
-      store,
-      payoutStore: payouts,
-      payoutReserve: 10n,
-      payout: {
-        availableBalance: async () => 500n * 1_000_000n, // < 700 WEFT earned → cannot cover
-        pay: async () => {
-          paid = true;
-          return { signature: 'should-not-pay' };
-        },
-      } as never,
-      payConfig: {
-        rewardMint: operator.address,
-        rewardVault: operator.address,
-        treasury: operator.address,
-        tokenProgram: TEST_TOKEN_PROGRAM,
-        label: 'test',
-      },
-      getBlockhash: async () =>
-        ({
-          blockhash: '11111111111111111111111111111111',
-          lastValidBlockHeight: 1n,
-        }) as never,
-    });
-    const base = await listen(server);
-    const challengeRes = await fetch(`${base}/withdraw-earned/challenge`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ operator: operator.address }),
-    });
-    const challenge = (await challengeRes.json()) as { message: string };
-    const signature = signMessageBase64(challenge.message, operator.secretKey);
-
-    const res = await fetch(`${base}/withdraw-earned`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ operator: operator.address, message: challenge.message, signature }),
-    });
-    const body = (await res.json()) as { error?: string };
-
-    expect(res.status).toBe(503);
-    expect(body.error).toMatch(/payout wallet balance/i);
-    expect(paid).toBe(false);
-    expect(payouts.paid(operator.address, 11n)).toBe(0n);
+    expect(authed.status).toBe(200);
+    expect(ingested).toBe(true);
   });
 });
