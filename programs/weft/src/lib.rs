@@ -38,6 +38,11 @@ pub const MIN_LOCK_SECONDS: i64 = 0;
 pub const MAX_LOCK_SECONDS: i64 = 4 * 365 * 24 * 3_600;
 /// Maximum allowed merkle-tree depth (2^30 leaves) for a node cNFT tree shard.
 pub const MAX_TREE_DEPTH: u32 = 30;
+/// Maximum stake fraction a single dispute may seize (25%). Bounds slashing so no one
+/// signature — nor a buggy or compromised slash authority — can wipe a node's whole stake.
+/// Escalation needs repeated, individually-recorded disputes; the reputational penalty is
+/// the soft-first signal that always applies.
+pub const MAX_SLASH_BPS: u32 = 2_500;
 
 #[program]
 pub mod weft {
@@ -369,7 +374,7 @@ pub struct InitializeCore<'info> {
     pub poster_authority: UncheckedAccount<'info>,
     /// CHECK: authority allowed to dispute fraudulent bandwidth leaves.
     pub dispute_authority: UncheckedAccount<'info>,
-    #[account(mut)]
+    #[account(mut, token::mint = reward_mint)]
     pub treasury: InterfaceAccount<'info, TokenAccount>,
     #[account(init, payer = authority, space = 8 + Registry::INIT_SPACE, seeds = [REGISTRY_SEED], bump)]
     pub registry: Account<'info, Registry>,
@@ -729,6 +734,11 @@ pub struct DeregisterNode<'info> {
 
 impl DeregisterNode<'_> {
     fn deregister_node(&mut self) -> Result<()> {
+        // Closing the NodeState PDA would strand any still-staked tokens: WithdrawUnstaked
+        // requires this same PDA by seed, so a node deregistered with a live stake position
+        // could never withdraw again. Require the stake fully wound down first
+        // (request_unstake → unbonding → withdraw_unstaked leaves node.stake_amount == 0).
+        require!(self.node.stake_amount == 0, WeftError::StakeNotWithdrawn);
         self.registry.node_count = self.registry.node_count.saturating_sub(1);
         Ok(())
     }
@@ -1358,7 +1368,11 @@ impl Claim<'_> {
     ) -> Result<()> {
         let now = Clock::get()?.unix_timestamp;
         require!(
-            now >= self.epoch_distribution.posted_at + self.distributor.dispute_window_seconds,
+            now >= self
+                .epoch_distribution
+                .posted_at
+                .checked_add(self.distributor.dispute_window_seconds)
+                .ok_or(WeftError::MathOverflow)?,
             WeftError::DisputeWindowOpen
         );
         let leaf = hash_reward_leaf(epoch, &self.operator.key().to_bytes(), node_id, amount);
@@ -1455,7 +1469,12 @@ impl Dispute<'_> {
             bump,
         });
         if slash_amount > 0 {
-            let slashed = slash_amount.min(self.position.amount);
+            // Bound every seizure to MAX_SLASH_BPS of the position so one dispute can never take
+            // the whole stake; the reputational penalty below is the soft-first signal.
+            let max_slash = ((self.position.amount as u128)
+                .saturating_mul(MAX_SLASH_BPS as u128)
+                / (BPS as u128)) as u64;
+            let slashed = slash_amount.min(self.position.amount).min(max_slash);
             if slashed > 0 {
                 let id = node_id.to_le_bytes();
                 let seeds: &[&[&[u8]]] = &[&[
@@ -1729,4 +1748,6 @@ pub enum WeftError {
     TreeFull,
     #[msg("Registry collection does not match")]
     InvalidCollection,
+    #[msg("Stake must be fully withdrawn before the node can be deregistered")]
+    StakeNotWithdrawn,
 }
