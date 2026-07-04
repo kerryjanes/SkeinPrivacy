@@ -209,7 +209,7 @@ $Node = Get-Content -LiteralPath $NodeJson -Raw | ConvertFrom-Json
 
 $Relay = Get-EnvOrDefault "WEFT_RELAY" "$($Node.relay)"
 $RelayPort = Get-EnvOrDefault "WEFT_RELAY_PORT" "7000"
-$RelayToken = Get-EnvOrDefault "WEFT_RELAY_TOKEN" "a40b1ab498a37ba6bbaa70791ac62287"
+$RelayToken = Get-EnvOrDefault "WEFT_RELAY_TOKEN" "SET_WEFT_RELAY_TOKEN"
 $Sni = Get-EnvOrDefault "WEFT_SNI" "ya.ru"
 $Cluster = Get-EnvOrDefault "WEFT_CLUSTER" "devnet"
 $Rpc = Get-EnvOrDefault "WEFT_RPC" "https://api.devnet.solana.com"

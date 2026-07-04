@@ -154,7 +154,7 @@ RELAY="${WEFT_RELAY:-$RELAY}"
 RELAY_PORT="${WEFT_RELAY_PORT:-7000}"
 # The public launch relay is open (like a Tor relay) — its token is not a secret. Baked in so a node
 # operator just runs the script; override WEFT_RELAY_TOKEN only when running a private relay.
-RELAY_TOKEN="${WEFT_RELAY_TOKEN:-a40b1ab498a37ba6bbaa70791ac62287}"
+RELAY_TOKEN="${WEFT_RELAY_TOKEN:-SET_WEFT_RELAY_TOKEN}"
 SNI="${WEFT_SNI:-ya.ru}"
 CLUSTER="${WEFT_CLUSTER:-devnet}"
 RPC="${WEFT_RPC:-https://api.devnet.solana.com}"

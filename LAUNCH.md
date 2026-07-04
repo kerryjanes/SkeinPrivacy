@@ -10,8 +10,19 @@
 
 The old id `6riawCPV…` is dead. A relaunch first: new program keypair → `declare_id!` + `Anchor.toml`
 → `anchor build --ignore-keys` → regenerate **both** SDKs → `pnpm -r build` → **rebuild + recommit
-the operator bundles** (`services/*/dist/*.mjs`, curled from GitHub raw) → deploy the program to
-mainnet → rebuild the cabinet from mainnet env. Grep the tree for the old id before deploying.
+the operator bundles** (`services/*/dist/*.mjs`, curled from GitHub raw) → deploy the program with
+`./scripts/deploy-program.sh mainnet-beta` (echoes cluster + id + admin balance, typed confirm) →
+rebuild the cabinet from mainnet env. Grep the tree for the old id before deploying.
+
+Generate the relay secrets once (Reality identity + relay/receipts tokens), kept out of the repo:
+
+```bash
+node scripts/gen-relay-secrets.mjs > ~/.config/weft/relay-secrets.env
+chmod 600 ~/.config/weft/relay-secrets.env
+```
+
+The VPS Xray Reality identity must be rotated to these fresh values at rebrand — the old committed
+key is burned.
 
 ## State to prefill
 
@@ -22,7 +33,7 @@ mainnet → rebuild the cabinet from mainnet env. Grep the tree for the old id b
 | Reward token (CA)           | pump.fun mint — **classic SPL or Token-2022**  | `core:init` detects the mint's owner program at runtime; rejects fee/hook extensions.    |
 | Frontend                    | https://weftnetwork.net (+ /app)              | Reads mint/vault/treasury/decimals from the Distributor at runtime → no rebuild at launch. |
 | Relay VPS                   | `root@13.140.2.111`                            | control-plane, aggregator, xray (still devnet until cutover).                             |
-| Poster + node-payout wallet | `DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq` | `/etc/weft/authority.json` on the VPS. Posts epochs + pays nodes.                        |
+| Epoch poster wallet         | `DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq` | `/etc/weft/authority.json` on the VPS. Posts epoch roots (nodes claim rewards on-chain). |
 | RPC                         | Helius mainnet                                 | Key read at runtime from `~/Documents/helius/config.json` (never committed).             |
 
 ## Launch (on `go`, with the CA — program already deployed)
@@ -44,17 +55,13 @@ Both are idempotent. Launch spend ~0.23 SOL (cNFT merkle-tree rent ~0.22 is non-
 `mainnet-launch.sh` must run before `mainnet-cutover.sh` (the aggregator won't boot without the
 initialized distributor; the cutover checks for it and refuses otherwise).
 
-## Post-launch funding (before nodes withdraw)
+## Node rewards (no manual funding)
 
-Node rewards are paid directly from the payout wallet. Forward $WEFT to it:
-
-```bash
-spl-token transfer "$CA" <amount> DEg6vvwNmkhaV9aTUaEUbhCG5AbFKNvGq8egiqScF1nq \
-  --fund-recipient --url "$WEFT_RPC_URL" --owner ~/.config/solana/weft-admin.json
-```
-
-Payouts are capped at the wallet's balance — an underfunded wallet only _pauses_ withdrawals,
-never overpays or goes negative.
+Node rewards are the 70% of every payment that lands in the on-chain reward vault. Nodes claim their
+share directly from the vault in the cabinet's **rewards** panel (a merkle proof → on-chain `claim`;
+the node pays a few lamports of SOL for the tx). Nothing to fund — the vault fills from real traffic
+payments, and `post_epoch` refuses to post an epoch the vault can't cover, so payouts are solvent by
+construction and a node can never be paid twice (the per-epoch `ClaimStatus` PDA is single-use).
 
 ## Verify (after both commands)
 

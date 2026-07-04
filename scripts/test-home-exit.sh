@@ -11,7 +11,7 @@ set -euo pipefail
 WORK="${WEFT_TEST_DIR:-$HOME/.weft-home-exit-test}"
 RELAY="${WEFT_RELAY:-vpn.weftnetwork.net}"
 RELAY_PORT="${WEFT_RELAY_PORT:-7000}"
-RELAY_TOKEN="${WEFT_RELAY_TOKEN:-a40b1ab498a37ba6bbaa70791ac62287}"
+RELAY_TOKEN="${WEFT_RELAY_TOKEN:-SET_WEFT_RELAY_TOKEN}"
 SNI="${WEFT_SNI:-ya.ru}"
 # Keep this separate from the normal home-node port (14430) so the E2E test can run
 # while a development node is already installed/running on this machine.

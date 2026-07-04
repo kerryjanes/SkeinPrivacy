@@ -94,10 +94,12 @@ if [[ -d "${WEB_DIR}" ]]; then
       || fail "mainnet cabinet bundle did not embed VITE_WEFT_CLUSTER=mainnet-beta"
     rg -n 'VITE_WEFT_RPC_URL:"https://api\.mainnet-beta\.solana\.com"' cabinet/dist/assets >/dev/null \
       || fail "mainnet cabinet bundle did not embed the explicit mainnet RPC URL"
-    rg -n 'ALLOW_DEV_CONNECT = !IS_MAINNET' cabinet/src/lib/config.ts >/dev/null \
-      || fail "dev keypair connect is not gated on !IS_MAINNET"
-    rg -n '!\s*IS_MAINNET &&' cabinet/src/panels/Access.tsx >/dev/null \
-      || fail "dev faucet buttons are not gated on !IS_MAINNET"
+    # Dev affordances are gated on !PRODUCTION_UI (a superset of !IS_MAINNET: on mainnet
+    # PRODUCTION_UI is always on, so the keypair-paste login + faucet buttons are hidden).
+    rg -n 'ALLOW_DEV_CONNECT = !PRODUCTION_UI' cabinet/src/lib/config.ts >/dev/null \
+      || fail "dev keypair connect is not gated on !PRODUCTION_UI"
+    rg -n '!PRODUCTION_UI' cabinet/src/panels/Access.tsx >/dev/null \
+      || fail "dev faucet buttons are not gated on !PRODUCTION_UI"
   )
   echo "OK: mainnet cabinet env + dev-only UI gates"
 else

@@ -40,6 +40,23 @@ RPC_HTTP="${RPC_HTTP:-https://api.mainnet-beta.solana.com}"
 RPC_WS="$(printf '%s' "${RPC_HTTP}" | sed -E 's|^https://|wss://|; s|^http://|ws://|')"
 RPC_MASKED="$(printf '%s' "${RPC_HTTP}" | sed -E 's/(api-key=)[^&]+/\1***/')"
 
+# --- relay secrets (Reality identity + tokens) from a LOCAL uncommitted file — never the repo ---
+# The Reality private key and founder UUID are node secrets; the relay/receipts tokens gate the
+# relay + aggregator. They are generated fresh (scripts/gen-relay-secrets.mjs) and live only here.
+RELAY_SECRETS="${WEFT_RELAY_SECRETS:-${HOME}/.config/weft/relay-secrets.env}"
+if [[ ! -f "${RELAY_SECRETS}" ]]; then
+  echo "ERROR: relay secrets file ${RELAY_SECRETS} not found." >&2
+  echo "       Generate it once with: node scripts/gen-relay-secrets.mjs > \"${RELAY_SECRETS}\"" >&2
+  echo "       It must define WEFT_REALITY_PBK/PRIV, WEFT_SID, WEFT_FOUNDER_UUID," >&2
+  echo "       WEFT_RELAY_TOKEN, WEFT_RECEIPTS_TOKEN." >&2
+  exit 1
+fi
+# shellcheck disable=SC1090
+set -a; source "${RELAY_SECRETS}"; set +a
+for v in WEFT_REALITY_PBK WEFT_REALITY_PRIV WEFT_SID WEFT_FOUNDER_UUID WEFT_RELAY_TOKEN WEFT_RECEIPTS_TOKEN; do
+  [[ -n "${!v:-}" ]] || { echo "ERROR: ${v} missing from ${RELAY_SECRETS}" >&2; exit 1; }
+done
+
 # The aggregator refuses to boot without an initialized distributor and would crash-loop.
 # Ensure mainnet-launch.sh has already initialized on-chain state before we restart it.
 # The distributor PDA is DERIVED from the program id (via the SDK), so it stays correct if
@@ -96,18 +113,25 @@ setkv "${WORK}/node.env" WEFT_RPC "${RPC_HTTP}"
 setkv "${WORK}/node.env" WEFT_WS "${RPC_WS}"
 setkv "${WORK}/node.env" WEFT_MINT "${MINT}"
 setkv "${WORK}/node.env" WEFT_FAUCET_KEYPAIR ""
-# On mainnet the control-plane hard-requires these (they only fell back on devnet). Values
-# mirror the live Xray config on the VPS — verified identical, so VLESS links keep working.
-setkv "${WORK}/node.env" WEFT_REALITY_PBK "ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw"
-setkv "${WORK}/node.env" WEFT_REALITY_PRIV "YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE"
-setkv "${WORK}/node.env" WEFT_SID "4ce4af1305de920f"
-setkv "${WORK}/node.env" WEFT_FOUNDER_UUID "b5ced6eb-0cba-4001-9679-65f8ba69e74b"
+# On mainnet the control-plane hard-requires these. Injected from the local secrets file above —
+# never committed. The VPS Xray config must be rendered from the SAME values (the control-plane
+# does this on restart), so rotating here rotates the live node identity.
+setkv "${WORK}/node.env" WEFT_REALITY_PBK "${WEFT_REALITY_PBK}"
+setkv "${WORK}/node.env" WEFT_REALITY_PRIV "${WEFT_REALITY_PRIV}"
+setkv "${WORK}/node.env" WEFT_SID "${WEFT_SID}"
+setkv "${WORK}/node.env" WEFT_FOUNDER_UUID "${WEFT_FOUNDER_UUID}"
+setkv "${WORK}/node.env" WEFT_RELAY_TOKEN "${WEFT_RELAY_TOKEN}"
 
 # aggregator.env
 setkv "${WORK}/aggregator.env" WEFT_CLUSTER "mainnet-beta"
 setkv "${WORK}/aggregator.env" WEFT_RPC "${RPC_HTTP}"
 setkv "${WORK}/aggregator.env" WEFT_RPC_WS "${RPC_WS}"
+setkv "${WORK}/aggregator.env" WEFT_RECEIPTS_TOKEN "${WEFT_RECEIPTS_TOKEN}"
 
+echo "[cutover] NOTE: the VPS must already run the NEW program-id build. The aggregator derives the"
+echo "[cutover]       distributor from the baked program id; a stale bundle points at a dead"
+echo "[cutover]       distributor and will crash-loop. Update the VPS code (git pull + pnpm build, or"
+echo "[cutover]       re-fetch the committed bundles) BEFORE this cutover if the id was rotated."
 echo "[cutover] installing env + restarting services"
 scp -q "${WORK}/node.env" "${HOST}:/tmp/node.env.new"
 scp -q "${WORK}/aggregator.env" "${HOST}:/tmp/aggregator.env.new"
@@ -132,9 +156,19 @@ if [[ "${KEEP_STORES}" != "1" ]]; then
 fi
 
 systemctl restart weft-control-plane weft-aggregator
-sleep 3
+sleep 4
 echo "--- service state ---"
 systemctl is-active weft-control-plane weft-aggregator || true
+# Fail loudly if the aggregator didn't come up — the usual cause is a STALE program-id build on the
+# VPS (it derives a distributor that doesn't exist on mainnet and crash-loops). Catch it here rather
+# than declare a "successful" cutover with dead settlement.
+if ! systemctl is-active --quiet weft-aggregator; then
+  echo "ERROR: weft-aggregator is not active after restart." >&2
+  echo "       Most likely the VPS runs a STALE program-id build (dead distributor). Update the VPS" >&2
+  echo "       to the new-id build and restart before retrying the cutover." >&2
+  journalctl -u weft-aggregator -n 25 --no-pager || true
+  exit 1
+fi
 echo "--- /price ---"
 curl -s --max-time 8 http://127.0.0.1:8088/price || echo "(control-plane /price not ready yet)"
 echo ""
@@ -142,4 +176,5 @@ REMOTE
 
 echo ""
 echo "[cutover] done. Expected: /price shows mint=${MINT}, faucet=false."
-echo "[cutover] Reminder: fund payout wallet DEg6vvw...F1nq with mainnet \$WEFT (buyback) before node withdrawals."
+echo "[cutover] Node rewards are claimed on-chain from the reward vault (funded by the 70% split) —"
+echo "[cutover] no payout wallet to top up. Confirm the aggregator posts epochs after first traffic."
