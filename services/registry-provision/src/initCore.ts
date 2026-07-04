@@ -86,18 +86,26 @@ if (tokenProgram === TOKEN_2022_PROGRAM) {
     'scaledUiAmountConfig',
   ]);
   const parsed = await conn.rpc.getAccountInfo(mint, { encoding: 'jsonParsed' }).send();
-  const info = (parsed.value?.data as { parsed?: { info?: { extensions?: Array<{ extension: string }> } } })
-    ?.parsed?.info;
-  // Fail CLOSED: if the RPC returned no parsed extension list (base64 fallback, or no jsonParsed
-  // support for Token-2022), we cannot prove the mint is extension-free — a fee/hook mint would
-  // slip through and silently break the economics. Abort and demand a jsonParsed-capable RPC.
-  if (!info || !Array.isArray(info.extensions)) {
+  const data = parsed.value?.data as
+    | { parsed?: { type?: string; info?: { extensions?: Array<{ extension: string }> } } }
+    | [string, string]
+    | undefined;
+  // Fail CLOSED only when the RPC could NOT parse the mint (base64 fallback / no jsonParsed
+  // support for Token-2022): then we cannot see the extensions and a fee/hook mint would slip
+  // through and silently break the economics. A mint that parses as type=="mint" but carries NO
+  // `extensions` field is a bare Token-2022 mint (account space == base 82 bytes) — the SAFEST
+  // possible case — and must be accepted, not rejected. Only the unparseable case aborts.
+  const parsedMint =
+    data && !Array.isArray(data) && data.parsed?.type === 'mint' ? data.parsed : undefined;
+  if (!parsedMint) {
     throw new Error(
       `Could not read Token-2022 extensions for ${rewardMint} — the RPC returned no jsonParsed ` +
-        `data. Use a jsonParsed-capable RPC (e.g. Helius) and retry. Aborting before any state.`,
+        `mint data. Use a jsonParsed-capable RPC (e.g. Helius) and retry. Aborting before any state.`,
     );
   }
-  const exts = info.extensions.map((e) => e.extension);
+  const exts = Array.isArray(parsedMint.info?.extensions)
+    ? parsedMint.info!.extensions.map((e) => e.extension)
+    : [];
   const bad = exts.filter((e) => DANGEROUS.has(e));
   if (bad.length > 0) {
     throw new Error(
