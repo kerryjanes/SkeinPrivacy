@@ -79,6 +79,7 @@ export class Controller {
 
   /** Apply whatever the store says on boot (so a restart re-syncs xray to the saved state). */
   bootstrap(): void {
+    this.store.sweepStalePendings(60 * 60 * 1000); // drop abandoned settle reservations >1h old
     this.reconcile();
     if (this.lastApplied === '__uninitialized') {
       // no active users → still need a valid config with just the founder present
@@ -120,6 +121,7 @@ export class Controller {
   /** Create the user if new, refresh their quota from chain, and return their personal links. */
   async provision(wallet: string): Promise<Status> {
     let u = this.store.get(wallet);
+    const isNew = !u;
     if (!u) {
       u = {
         wallet,
@@ -135,6 +137,13 @@ export class Controller {
     }
     await this.refreshBalance(u);
     u.active = this.computeActive(u);
+    // Don't persist a brand-new wallet that has never funded escrow — otherwise anyone can mint
+    // unbounded persisted users, each an RPC + disk write on every metering tick. A wallet becomes
+    // durable state only once it has a prepaid balance; a zero-escrow probe gets an ephemeral link
+    // that carries no quota anyway.
+    if (isNew && BigInt(u.balanceBaseUnits) === 0n) {
+      return this.status(u);
+    }
     this.store.put(u);
     this.reconcile();
     return this.status(u);
@@ -144,7 +153,12 @@ export class Controller {
   async settle(wallet: string, signature: string): Promise<Status> {
     const u = this.store.get(wallet);
     if (!u) throw new Error('unknown wallet — provision first');
-    this.store.beginPayment(signature, wallet);
+    const prior = this.store.payment(signature);
+    if (prior?.status === 'processed') {
+      // already applied on an earlier call — idempotent success, never clear the tab twice
+      return this.status(u);
+    }
+    this.store.beginPayment(signature, wallet); // reserve (or re-adopt a pending left by a crash)
     let amount = 0n;
     try {
       let lastError: unknown;
@@ -170,8 +184,12 @@ export class Controller {
     u.unsettledBytes = (unsettled > paidBytes ? unsettled - paidBytes : 0n).toString();
     await this.refreshBalance(u); // escrow balance dropped by the payment
     u.active = this.computeActive(u);
-    this.store.put(u);
-    this.store.completePayment(signature, wallet, amount);
+    // One atomic write clears the tab AND marks the signature processed — no crash window where the
+    // tab is reduced but the payment still looks unspent (re-drive would double-clear) or vice versa.
+    // A concurrent double-submit returns false here and applies nothing.
+    if (!this.store.applySettlement(u, signature, amount)) {
+      return this.status(this.store.get(wallet) ?? u);
+    }
     this.reconcile();
     return this.status(u);
   }
@@ -209,7 +227,8 @@ export class Controller {
   async applyUsage(usage: Map<string, bigint>): Promise<void> {
     const rawDelta = [...usage.values()].reduce((sum, delta) => sum + delta, 0n);
     this.store.addNodeServedBytes(rawDelta);
-    for (const u of this.store.all()) {
+    const users = this.store.all();
+    for (const u of users) {
       const delta = usage.get(u.email) ?? 0n;
       if (delta > 0n) {
         u.unsettledBytes = (BigInt(u.unsettledBytes) + delta).toString();
@@ -218,8 +237,8 @@ export class Controller {
       }
       await this.refreshBalance(u);
       u.active = this.computeActive(u);
-      this.store.put(u);
     }
+    this.store.putMany(users); // single write for the whole cohort — keeps the tick O(N), not O(N²)
     this.reconcile();
   }
 

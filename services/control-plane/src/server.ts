@@ -49,6 +49,11 @@ function bearer(req: IncomingMessage): string {
 }
 
 export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet): void {
+  // /relay/live is public and polled by every cabinet; cache the on-chain + frps lookup briefly so
+  // it can't be turned into an RPC-exhaustion lever (matches the indexer's 10s directory cache).
+  const LIVE_TTL_MS = 10_000;
+  let liveCache: { at: number; hashes: string[] } | null = null;
+
   const server = createServer((req, res) => {
     void handle(req, res).catch((e) => send(res, 400, { error: String(e?.message ?? e) }));
   });
@@ -93,7 +98,11 @@ export function startServer(cfg: NodeConfig, ctrl: Controller, faucet?: Faucet):
 
     if (req.method === 'GET' && url.pathname === '/relay/live') {
       // endpointHashes of nodes carrying traffic right now (for the cabinet's "live nodes" filter)
-      return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg) });
+      const now = Date.now();
+      if (!liveCache || now - liveCache.at > LIVE_TTL_MS) {
+        liveCache = { at: now, hashes: await liveEndpointHashes(cfg) };
+      }
+      return send(res, 200, { endpointHashes: liveCache.hashes });
     }
 
     if (req.method === 'POST' && url.pathname === '/relay/node-profile') {

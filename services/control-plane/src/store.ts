@@ -35,9 +35,25 @@ export interface StoreData {
 export class Store {
   private data: StoreData;
   constructor(private path: string) {
-    this.data = existsSync(path)
-      ? (JSON.parse(readFileSync(path, 'utf8')) as StoreData)
-      : { users: {}, payments: {} };
+    let loaded: StoreData | null = null;
+    if (existsSync(path)) {
+      try {
+        loaded = JSON.parse(readFileSync(path, 'utf8')) as StoreData;
+      } catch (e) {
+        // A corrupt store must not crash-loop the node: quarantine it and start clean. Users
+        // re-provision (quota re-derives from on-chain escrow); only in-flight unsettled tabs reset.
+        const quarantine = `${path}.corrupt-${process.pid}`;
+        try {
+          renameSync(path, quarantine);
+        } catch {
+          /* best effort */
+        }
+        console.error(
+          `[control-plane] user store unreadable (${(e as Error).message}); quarantined to ${quarantine}`,
+        );
+      }
+    }
+    this.data = loaded ?? { users: {}, payments: {} };
     if (!this.data.users) this.data.users = {};
     if (!this.data.payments) this.data.payments = {};
     if (this.data.nodeServedBytesLifetime === undefined) this.data.nodeServedBytesLifetime = '0';
@@ -66,6 +82,13 @@ export class Store {
     this.save();
   }
 
+  /** Persist several users in a single file write. The metering loop mutates every user each
+   *  tick; writing once (not per user) keeps that O(N), not O(N²). */
+  putMany(users: User[]): void {
+    for (const u of users) this.data.users[u.wallet] = u;
+    this.save();
+  }
+
   payment(signature: string): PaymentRecord | undefined {
     return this.data.payments[signature];
   }
@@ -73,7 +96,9 @@ export class Store {
   beginPayment(signature: string, wallet: string, now = Date.now()): void {
     const existing = this.payment(signature);
     if (existing) {
-      throw new Error('payment signature already submitted');
+      if (existing.wallet !== wallet) throw new Error('payment signature already submitted');
+      if (existing.status === 'processed') throw new Error('payment already processed');
+      return; // pending for this wallet (e.g. a prior crash) — re-driving is safe, verify is idempotent
     }
     this.data.payments[signature] = {
       wallet,
@@ -85,16 +110,17 @@ export class Store {
     this.save();
   }
 
-  completePayment(
-    signature: string,
-    wallet: string,
-    amountBaseUnits: bigint,
-    now = Date.now(),
-  ): void {
+  /**
+   * Atomically clear a settled tab and mark its signature processed in ONE write. Because the tab
+   * reduction and the "processed" flip land together, a crash can never leave a tab reduced with the
+   * signature still pending (a re-drive would double-reduce it) nor a payment stuck pending after the
+   * tab was cleared (the user paying on-chain for nothing). No-ops (returns false) if the signature
+   * is not a pending reservation for this wallet — so a concurrent double-submit applies exactly once.
+   */
+  applySettlement(user: User, signature: string, amountBaseUnits: bigint, now = Date.now()): boolean {
     const existing = this.payment(signature);
-    if (!existing || existing.wallet !== wallet || existing.status !== 'pending') {
-      throw new Error('payment signature was not reserved by this wallet');
-    }
+    if (!existing || existing.wallet !== user.wallet || existing.status !== 'pending') return false;
+    this.data.users[user.wallet] = user;
     this.data.payments[signature] = {
       ...existing,
       amountBaseUnits: amountBaseUnits.toString(),
@@ -102,6 +128,7 @@ export class Store {
       processedAt: now,
     };
     this.save();
+    return true;
   }
 
   forgetPendingPayment(signature: string, wallet: string): void {
@@ -110,6 +137,19 @@ export class Store {
       delete this.data.payments[signature];
       this.save();
     }
+  }
+
+  /** Boot-time hygiene: drop pending reservations that never completed and are older than maxAgeMs
+   *  (an abandoned settle attempt). Processed records are kept forever as the dedup ledger. */
+  sweepStalePendings(maxAgeMs: number, now = Date.now()): void {
+    let changed = false;
+    for (const [sig, rec] of Object.entries(this.data.payments)) {
+      if (rec.status === 'pending' && now - rec.createdAt > maxAgeMs) {
+        delete this.data.payments[sig];
+        changed = true;
+      }
+    }
+    if (changed) this.save();
   }
 
   save(): void {

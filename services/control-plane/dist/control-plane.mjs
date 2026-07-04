@@ -4004,17 +4004,12 @@ function loadConfig() {
   }
   return {
     host: env("WEFT_HOST", "vpn.weftnetwork.net"),
-    realityPublicKey: requiredForMainnet(
-      cluster,
-      "WEFT_REALITY_PBK",
-      "ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw"
-    ),
-    realityPrivateKey: requiredForMainnet(
-      cluster,
-      "WEFT_REALITY_PRIV",
-      "YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE"
-    ),
-    shortId: requiredForMainnet(cluster, "WEFT_SID", "4ce4af1305de920f"),
+    // Reality identity + founder credential are SECRETS — never a real committed default. Each
+    // deployment injects them from its own uncommitted secrets file (see scripts/mainnet-cutover.sh);
+    // the devnet fallbacks below are obvious non-working placeholders so a leaked repo grants nothing.
+    realityPublicKey: requiredForMainnet(cluster, "WEFT_REALITY_PBK", "SET_WEFT_REALITY_PBK"),
+    realityPrivateKey: requiredForMainnet(cluster, "WEFT_REALITY_PRIV", "SET_WEFT_REALITY_PRIV"),
+    shortId: requiredForMainnet(cluster, "WEFT_SID", "0000000000000000"),
     sni: env("WEFT_SNI", "ya.ru"),
     geo: Number(env("WEFT_GEO", "0")),
     hop1Port: Number(env("WEFT_HOP1_PORT", "443")),
@@ -4024,7 +4019,7 @@ function loadConfig() {
     founderUuid: requiredForMainnet(
       cluster,
       "WEFT_FOUNDER_UUID",
-      "b5ced6eb-0cba-4001-9679-65f8ba69e74b"
+      "00000000-0000-4000-8000-000000000000"
     ),
     xrayConfigPath: env("WEFT_XRAY_CONFIG", "/usr/local/etc/xray/config.json"),
     xrayApi: env("WEFT_XRAY_API", "127.0.0.1:10085"),
@@ -4051,7 +4046,7 @@ function loadConfig() {
     frpsApi: env("WEFT_FRPS_API", ""),
     frpsUser: env("WEFT_FRPS_USER", ""),
     frpsPass: env("WEFT_FRPS_PASS", ""),
-    relayToken: env("WEFT_RELAY_TOKEN", "a40b1ab498a37ba6bbaa70791ac62287"),
+    relayToken: requiredForMainnet(cluster, "WEFT_RELAY_TOKEN", "SET_WEFT_RELAY_TOKEN"),
     relayProfilePath: env("WEFT_RELAY_PROFILE_PATH", "/var/lib/weft/exit-profiles.json"),
     relayProfileUrl: env("WEFT_RELAY_PROFILE_URL", ""),
     exitProfileTtlMs: Number(env("WEFT_EXIT_PROFILE_TTL_MS", "120000"))
@@ -4064,7 +4059,22 @@ import { dirname } from "node:path";
 var Store = class {
   constructor(path) {
     this.path = path;
-    this.data = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { users: {}, payments: {} };
+    let loaded = null;
+    if (existsSync(path)) {
+      try {
+        loaded = JSON.parse(readFileSync(path, "utf8"));
+      } catch (e8) {
+        const quarantine = `${path}.corrupt-${process.pid}`;
+        try {
+          renameSync(path, quarantine);
+        } catch {
+        }
+        console.error(
+          `[control-plane] user store unreadable (${e8.message}); quarantined to ${quarantine}`
+        );
+      }
+    }
+    this.data = loaded ?? { users: {}, payments: {} };
     if (!this.data.users) this.data.users = {};
     if (!this.data.payments) this.data.payments = {};
     if (this.data.nodeServedBytesLifetime === void 0) this.data.nodeServedBytesLifetime = "0";
@@ -4088,13 +4098,21 @@ var Store = class {
     this.data.users[user.wallet] = user;
     this.save();
   }
+  /** Persist several users in a single file write. The metering loop mutates every user each
+   *  tick; writing once (not per user) keeps that O(N), not O(N²). */
+  putMany(users) {
+    for (const u of users) this.data.users[u.wallet] = u;
+    this.save();
+  }
   payment(signature) {
     return this.data.payments[signature];
   }
   beginPayment(signature, wallet, now = Date.now()) {
     const existing = this.payment(signature);
     if (existing) {
-      throw new Error("payment signature already submitted");
+      if (existing.wallet !== wallet) throw new Error("payment signature already submitted");
+      if (existing.status === "processed") throw new Error("payment already processed");
+      return;
     }
     this.data.payments[signature] = {
       wallet,
@@ -4105,11 +4123,17 @@ var Store = class {
     };
     this.save();
   }
-  completePayment(signature, wallet, amountBaseUnits, now = Date.now()) {
+  /**
+   * Atomically clear a settled tab and mark its signature processed in ONE write. Because the tab
+   * reduction and the "processed" flip land together, a crash can never leave a tab reduced with the
+   * signature still pending (a re-drive would double-reduce it) nor a payment stuck pending after the
+   * tab was cleared (the user paying on-chain for nothing). No-ops (returns false) if the signature
+   * is not a pending reservation for this wallet — so a concurrent double-submit applies exactly once.
+   */
+  applySettlement(user, signature, amountBaseUnits, now = Date.now()) {
     const existing = this.payment(signature);
-    if (!existing || existing.wallet !== wallet || existing.status !== "pending") {
-      throw new Error("payment signature was not reserved by this wallet");
-    }
+    if (!existing || existing.wallet !== user.wallet || existing.status !== "pending") return false;
+    this.data.users[user.wallet] = user;
     this.data.payments[signature] = {
       ...existing,
       amountBaseUnits: amountBaseUnits.toString(),
@@ -4117,6 +4141,7 @@ var Store = class {
       processedAt: now
     };
     this.save();
+    return true;
   }
   forgetPendingPayment(signature, wallet) {
     const existing = this.payment(signature);
@@ -4124,6 +4149,18 @@ var Store = class {
       delete this.data.payments[signature];
       this.save();
     }
+  }
+  /** Boot-time hygiene: drop pending reservations that never completed and are older than maxAgeMs
+   *  (an abandoned settle attempt). Processed records are kept forever as the dedup ledger. */
+  sweepStalePendings(maxAgeMs, now = Date.now()) {
+    let changed = false;
+    for (const [sig, rec] of Object.entries(this.data.payments)) {
+      if (rec.status === "pending" && now - rec.createdAt > maxAgeMs) {
+        delete this.data.payments[sig];
+        changed = true;
+      }
+    }
+    if (changed) this.save();
   }
   save() {
     const dir = dirname(this.path);
@@ -17431,6 +17468,7 @@ var Controller = class {
   }
   /** Apply whatever the store says on boot (so a restart re-syncs xray to the saved state). */
   bootstrap() {
+    this.store.sweepStalePendings(60 * 60 * 1e3);
     this.reconcile();
     if (this.lastApplied === "__uninitialized") {
       applyConfig(this.cfg, []);
@@ -17467,6 +17505,7 @@ var Controller = class {
   /** Create the user if new, refresh their quota from chain, and return their personal links. */
   async provision(wallet) {
     let u = this.store.get(wallet);
+    const isNew = !u;
     if (!u) {
       u = {
         wallet,
@@ -17483,6 +17522,9 @@ var Controller = class {
     }
     await this.refreshBalance(u);
     u.active = this.computeActive(u);
+    if (isNew && BigInt(u.balanceBaseUnits) === 0n) {
+      return this.status(u);
+    }
     this.store.put(u);
     this.reconcile();
     return this.status(u);
@@ -17491,6 +17533,10 @@ var Controller = class {
   async settle(wallet, signature) {
     const u = this.store.get(wallet);
     if (!u) throw new Error("unknown wallet \u2014 provision first");
+    const prior = this.store.payment(signature);
+    if (prior?.status === "processed") {
+      return this.status(u);
+    }
     this.store.beginPayment(signature, wallet);
     let amount = 0n;
     try {
@@ -17517,8 +17563,9 @@ var Controller = class {
     u.unsettledBytes = (unsettled > paidBytes ? unsettled - paidBytes : 0n).toString();
     await this.refreshBalance(u);
     u.active = this.computeActive(u);
-    this.store.put(u);
-    this.store.completePayment(signature, wallet, amount);
+    if (!this.store.applySettlement(u, signature, amount)) {
+      return this.status(this.store.get(wallet) ?? u);
+    }
     this.reconcile();
     return this.status(u);
   }
@@ -17543,7 +17590,8 @@ var Controller = class {
   async applyUsage(usage) {
     const rawDelta = [...usage.values()].reduce((sum, delta) => sum + delta, 0n);
     this.store.addNodeServedBytes(rawDelta);
-    for (const u of this.store.all()) {
+    const users = this.store.all();
+    for (const u of users) {
       const delta = usage.get(u.email) ?? 0n;
       if (delta > 0n) {
         u.unsettledBytes = (BigInt(u.unsettledBytes) + delta).toString();
@@ -17551,8 +17599,8 @@ var Controller = class {
       }
       await this.refreshBalance(u);
       u.active = this.computeActive(u);
-      this.store.put(u);
     }
+    this.store.putMany(users);
     this.reconcile();
   }
   /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray.
@@ -18021,6 +18069,8 @@ function bearer(req) {
   return h.startsWith("Bearer ") ? h.slice("Bearer ".length) : "";
 }
 function startServer(cfg2, ctrl2, faucet2) {
+  const LIVE_TTL_MS = 1e4;
+  let liveCache = null;
   const server = createServer((req, res) => {
     void handle(req, res).catch((e8) => send(res, 400, { error: String(e8?.message ?? e8) }));
   });
@@ -18056,7 +18106,11 @@ function startServer(cfg2, ctrl2, faucet2) {
       return send(res, 200, await faucet2.dripSol(wallet));
     }
     if (req.method === "GET" && url.pathname === "/relay/live") {
-      return send(res, 200, { endpointHashes: await liveEndpointHashes(cfg2) });
+      const now = Date.now();
+      if (!liveCache || now - liveCache.at > LIVE_TTL_MS) {
+        liveCache = { at: now, hashes: await liveEndpointHashes(cfg2) };
+      }
+      return send(res, 200, { endpointHashes: liveCache.hashes });
     }
     if (req.method === "POST" && url.pathname === "/relay/node-profile") {
       if (bearer(req) !== cfg2.relayToken) return send(res, 401, { error: "unauthorized" });
@@ -18111,6 +18165,26 @@ var faucet = cfg.faucetKeypairPath ? new Faucet(
   cfg.faucetSolLamports,
   cfg.faucetCooldownMs
 ) : void 0;
+async function assertMintMatchesDistributor() {
+  const [distributor] = await generated_exports.findDistributorPda();
+  let di;
+  try {
+    di = await rpc(cfg.rpcUrl).getAccountInfo(distributor, { encoding: "base64" }).send();
+  } catch (e8) {
+    console.error("[control-plane] could not verify WEFT_MINT vs distributor:", e8.message);
+    return;
+  }
+  if (!di.value) return;
+  const onchainMint = String(
+    generated_exports.getDistributorDecoder().decode(Buffer.from(di.value.data[0], "base64")).rewardMint
+  );
+  if (onchainMint !== cfg.weftMint) {
+    throw new Error(
+      `WEFT_MINT ${cfg.weftMint} disagrees with the on-chain distributor reward mint ${onchainMint} \u2014 refusing to meter against the wrong token. Fix WEFT_MINT.`
+    );
+  }
+}
+await assertMintMatchesDistributor();
 await ctrl.loadDecimals();
 ctrl.bootstrap();
 startServer(cfg, ctrl, faucet);

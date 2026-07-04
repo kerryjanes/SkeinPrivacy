@@ -63,6 +63,15 @@ if (mintBytes.length < 82) {
     `WEFT_MINT ${rewardMint} is not a valid SPL mint on ${env.cluster} (data too short)`,
   );
 }
+// Reward math (USER_PRICE_PER_GB, baseUnitScale, the 70/20/10 split) is calibrated for a mint with
+// at least 6 decimals — pump.fun's standing default. A lower-decimal mint would distort every
+// amount; refuse it before any state exists rather than settle wrong numbers later.
+const mintDecimals = mintBytes[44];
+if (mintDecimals < 6) {
+  throw new Error(
+    `WEFT_MINT ${rewardMint} has ${mintDecimals} decimals; Weft economics require >= 6. Aborting.`,
+  );
+}
 if (tokenProgram === TOKEN_2022_PROGRAM) {
   const DANGEROUS = new Set([
     'transferFeeConfig',
@@ -74,11 +83,21 @@ if (tokenProgram === TOKEN_2022_PROGRAM) {
     'interestBearingConfig',
     'nonTransferable',
     'pausable',
+    'scaledUiAmountConfig',
   ]);
   const parsed = await conn.rpc.getAccountInfo(mint, { encoding: 'jsonParsed' }).send();
   const info = (parsed.value?.data as { parsed?: { info?: { extensions?: Array<{ extension: string }> } } })
     ?.parsed?.info;
-  const exts = (info?.extensions ?? []).map((e) => e.extension);
+  // Fail CLOSED: if the RPC returned no parsed extension list (base64 fallback, or no jsonParsed
+  // support for Token-2022), we cannot prove the mint is extension-free — a fee/hook mint would
+  // slip through and silently break the economics. Abort and demand a jsonParsed-capable RPC.
+  if (!info || !Array.isArray(info.extensions)) {
+    throw new Error(
+      `Could not read Token-2022 extensions for ${rewardMint} — the RPC returned no jsonParsed ` +
+        `data. Use a jsonParsed-capable RPC (e.g. Helius) and retry. Aborting before any state.`,
+    );
+  }
+  const exts = info.extensions.map((e) => e.extension);
   const bad = exts.filter((e) => DANGEROUS.has(e));
   if (bad.length > 0) {
     throw new Error(
@@ -87,10 +106,10 @@ if (tokenProgram === TOKEN_2022_PROGRAM) {
     );
   }
   console.log(
-    `[init] reward mint ${rewardMint}: owner=Token-2022, decimals=${mintBytes[44]}, extensions=[${exts.join(', ')}]`,
+    `[init] reward mint ${rewardMint}: owner=Token-2022, decimals=${mintDecimals}, extensions=[${exts.join(', ')}]`,
   );
 } else {
-  console.log(`[init] reward mint ${rewardMint}: owner=SPL Token (classic), decimals=${mintBytes[44]}`);
+  console.log(`[init] reward mint ${rewardMint}: owner=SPL Token (classic), decimals=${mintDecimals}`);
 }
 
 // Resolve the treasury token account (explicit override, else the owner's ATA) and

@@ -12,7 +12,7 @@
 // Jupiter has no devnet liquidity, so the live swap can only be smoke-tested on mainnet
 // with a small real-SOL amount before the feature is announced.
 
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
 import {
   Connection,
   Keypair,
@@ -115,8 +115,11 @@ function loadStore(): Store {
 }
 const store = loadStore();
 function saveStore() {
+  // Atomic write (temp + rename): a crash mid-write must not corrupt the lifetime-burn stats and
+  // regress the public "total burned" number to zero. Matches every other store in the tree.
+  const tmp = `${storePath}.tmp`;
   writeFileSync(
-    storePath,
+    tmp,
     JSON.stringify(
       {
         cumulativeBurned: store.cumulativeBurned.toString(),
@@ -129,6 +132,7 @@ function saveStore() {
       2,
     ),
   );
+  renameSync(tmp, storePath);
 }
 
 // ---- Jupiter ----
@@ -277,11 +281,13 @@ async function main(): Promise<void> {
       `split ${nodeBps / 100}% nodes / ${burnBps / 100}% burn, every ${intervalMs}ms`,
   );
   await cycle(decimals).catch((e) => console.error('[buyback] cycle error:', (e as Error).message));
+  // No .unref(): the interval is the process's keep-alive. Unref'd, the event loop would empty after
+  // the first cycle and the worker would exit — running once instead of on every interval.
   setInterval(() => {
     void cycle(decimals).catch((e) =>
       console.error('[buyback] cycle error:', (e as Error).message),
     );
-  }, intervalMs).unref();
+  }, intervalMs);
 }
 
 main().catch((e) => {

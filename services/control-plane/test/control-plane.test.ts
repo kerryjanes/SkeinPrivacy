@@ -437,15 +437,18 @@ describe('payment replay ledger', () => {
     const dir = mkdtempSync(join(tmpdir(), 'weft-cp-'));
     try {
       const path = join(dir, 'users.json');
+      const u = user();
       const first = new Store(path);
-      first.beginPayment('tx-sig-1', user().wallet, 1000);
-      first.completePayment('tx-sig-1', user().wallet, 123n, 1001);
+      first.beginPayment('tx-sig-1', u.wallet, 1000);
+      expect(first.applySettlement(u, 'tx-sig-1', 123n, 1001)).toBe(true);
 
       const afterRestart = new Store(path);
       expect(afterRestart.payment('tx-sig-1')?.status).toBe('processed');
-      expect(() => afterRestart.beginPayment('tx-sig-1', user().wallet, 1002)).toThrow(
-        /already submitted/,
+      expect(() => afterRestart.beginPayment('tx-sig-1', u.wallet, 1002)).toThrow(
+        /already processed/,
       );
+      // Re-applying a processed signature is a no-op (no double-clear of the tab).
+      expect(afterRestart.applySettlement(u, 'tx-sig-1', 123n, 1003)).toBe(false);
     } finally {
       rmSync(dir, { recursive: true, force: true });
     }

@@ -23,6 +23,7 @@ import { Controller } from './controller.js';
 import { publishOwnExitProfile } from './exitProfiles.js';
 import { Faucet } from './faucet.js';
 import { startServer } from './server.js';
+import { weft } from '@weft/sdk';
 
 const cfg = loadConfig();
 const store = new Store(cfg.storePath);
@@ -39,6 +40,31 @@ const faucet = cfg.faucetKeypairPath
     )
   : undefined;
 
+// Guard: WEFT_MINT (operator config) must match the on-chain distributor's reward mint. If they
+// disagree, the node would meter quota against the wrong token. Only checked once the distributor
+// exists — a fresh, not-yet-initialized cluster has nothing to compare against.
+async function assertMintMatchesDistributor(): Promise<void> {
+  const [distributor] = await weft.findDistributorPda();
+  let di;
+  try {
+    di = await rpc(cfg.rpcUrl).getAccountInfo(distributor, { encoding: 'base64' }).send();
+  } catch (e) {
+    console.error('[control-plane] could not verify WEFT_MINT vs distributor:', (e as Error).message);
+    return; // don't block boot on a transient RPC error
+  }
+  if (!di.value) return; // distributor not initialized yet — nothing to compare
+  const onchainMint = String(
+    weft.getDistributorDecoder().decode(Buffer.from(di.value.data[0], 'base64')).rewardMint,
+  );
+  if (onchainMint !== cfg.weftMint) {
+    throw new Error(
+      `WEFT_MINT ${cfg.weftMint} disagrees with the on-chain distributor reward mint ${onchainMint} — ` +
+        `refusing to meter against the wrong token. Fix WEFT_MINT.`,
+    );
+  }
+}
+
+await assertMintMatchesDistributor();
 await ctrl.loadDecimals(); // read reward-mint decimals so quota/price adapt to the token
 ctrl.bootstrap(); // sync xray to saved state on boot
 startServer(cfg, ctrl, faucet);

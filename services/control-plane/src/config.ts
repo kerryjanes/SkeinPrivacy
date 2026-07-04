@@ -79,17 +79,12 @@ export function loadConfig(): NodeConfig {
   }
   return {
     host: env('WEFT_HOST', 'vpn.weftnetwork.net'),
-    realityPublicKey: requiredForMainnet(
-      cluster,
-      'WEFT_REALITY_PBK',
-      'ag8kOu7UmNIFxKVdjiasZMc2Vj9OtST3PwcFqh1CmWw',
-    ),
-    realityPrivateKey: requiredForMainnet(
-      cluster,
-      'WEFT_REALITY_PRIV',
-      'YDedl8FY3Y9XFssAk49TLk-Mq6zmwYiDKdwRmaVSIDE',
-    ),
-    shortId: requiredForMainnet(cluster, 'WEFT_SID', '4ce4af1305de920f'),
+    // Reality identity + founder credential are SECRETS — never a real committed default. Each
+    // deployment injects them from its own uncommitted secrets file (see scripts/mainnet-cutover.sh);
+    // the devnet fallbacks below are obvious non-working placeholders so a leaked repo grants nothing.
+    realityPublicKey: requiredForMainnet(cluster, 'WEFT_REALITY_PBK', 'SET_WEFT_REALITY_PBK'),
+    realityPrivateKey: requiredForMainnet(cluster, 'WEFT_REALITY_PRIV', 'SET_WEFT_REALITY_PRIV'),
+    shortId: requiredForMainnet(cluster, 'WEFT_SID', '0000000000000000'),
     sni: env('WEFT_SNI', 'ya.ru'),
     geo: Number(env('WEFT_GEO', '0')),
     hop1Port: Number(env('WEFT_HOP1_PORT', '443')),
@@ -99,7 +94,7 @@ export function loadConfig(): NodeConfig {
     founderUuid: requiredForMainnet(
       cluster,
       'WEFT_FOUNDER_UUID',
-      'b5ced6eb-0cba-4001-9679-65f8ba69e74b',
+      '00000000-0000-4000-8000-000000000000',
     ),
 
     xrayConfigPath: env('WEFT_XRAY_CONFIG', '/usr/local/etc/xray/config.json'),
@@ -126,7 +121,7 @@ export function loadConfig(): NodeConfig {
     frpsApi: env('WEFT_FRPS_API', ''),
     frpsUser: env('WEFT_FRPS_USER', ''),
     frpsPass: env('WEFT_FRPS_PASS', ''),
-    relayToken: env('WEFT_RELAY_TOKEN', 'a40b1ab498a37ba6bbaa70791ac62287'),
+    relayToken: requiredForMainnet(cluster, 'WEFT_RELAY_TOKEN', 'SET_WEFT_RELAY_TOKEN'),
     relayProfilePath: env('WEFT_RELAY_PROFILE_PATH', '/var/lib/weft/exit-profiles.json'),
     relayProfileUrl: env('WEFT_RELAY_PROFILE_URL', ''),
     exitProfileTtlMs: Number(env('WEFT_EXIT_PROFILE_TTL_MS', '120000')),
