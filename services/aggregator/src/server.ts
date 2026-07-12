@@ -21,14 +21,14 @@ import {
 } from './pay';
 import { selectReceiptsForEpoch, type TrafficReceipt } from './receipts';
 import type { EpochStore } from './store';
-import type { Claimer } from './claim';
+import type { CoSigner } from './claim';
 
 export interface ServerDeps {
   store: EpochStore;
   payConfig: PayConfig;
   getBlockhash: () => Promise<Blockhashish>;
-  /** Gasless reward payout (poster-signed). Absent = claims disabled (no poster key). */
-  claimer?: Claimer;
+  /** Poster co-signer for operator-paid reward claims. Absent = claims disabled (no poster key). */
+  coSigner?: CoSigner;
   /** Called with the verified, deduped receipts ingested for an epoch (M6 → M4). */
   onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => Promise<unknown> | unknown;
   /** Bearer token required on POST /receipts (relay → aggregator). Unset = open (dev only). */
@@ -154,33 +154,40 @@ export function createAggregatorServer(deps: ServerDeps): Server {
           return;
         }
 
-        // Gasless reward withdrawal: pay the node its full running ledger total (net of what it
-        // already withdrew, computed on-chain) in ONE poster-signed transaction. The operator signs
-        // nothing and pays no fee. Idempotent — re-calling after a claim pays 0 and is a no-op.
+        // Reward withdrawal (operator-paid). The cabinet builds + operator-signs a claim_rewards tx
+        // (operator = fee payer, poster = empty signer slot) and POSTs the wire here. We bound the
+        // payout to this node's ledger earnings, co-sign with the poster, and submit. The OPERATOR
+        // pays the fee + one-time ATA rent; the poster pays nothing and only ever co-signs a claim it
+        // verified. A tampered/foreign-instruction tx is rejected before the poster signs.
         if (url.pathname === '/claim' && req.method === 'POST') {
-          if (!deps.claimer) {
+          if (!deps.coSigner) {
             json(503, { error: 'reward claims are not enabled on this aggregator' });
             return;
           }
           const body = JSON.parse((await readBody(req)) || '{}') as {
             operator?: string;
             nodeId?: string | number;
+            transaction?: string;
           };
-          if (!body.operator || body.nodeId === undefined || body.nodeId === null) {
-            json(400, { error: 'missing operator or nodeId' });
+          if (!body.operator || body.nodeId === undefined || body.nodeId === null || !body.transaction) {
+            json(400, { error: 'missing operator, nodeId, or transaction' });
             return;
           }
           const nodeId = BigInt(body.nodeId);
-          const earnedTotal = deps.store.earnedForNode(body.operator, nodeId);
-          if (earnedTotal <= 0n) {
+          const maxEarned = deps.store.earnedForNode(body.operator, nodeId);
+          if (maxEarned <= 0n) {
             json(400, { error: 'this node has no earnings to withdraw' });
             return;
           }
           try {
-            const signature = await deps.claimer.claim(body.operator, nodeId, earnedTotal);
-            json(200, { signature, earnedTotal: earnedTotal.toString() });
+            const signature = await deps.coSigner.coSign(body.transaction, {
+              operator: body.operator,
+              nodeId,
+              maxEarned,
+            });
+            json(200, { signature, earnedTotal: maxEarned.toString() });
           } catch (e) {
-            json(500, { error: String((e as Error)?.message ?? e) });
+            json(400, { error: String((e as Error)?.message ?? e) });
           }
           return;
         }

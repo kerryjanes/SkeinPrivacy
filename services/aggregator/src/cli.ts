@@ -16,7 +16,7 @@ import { weft } from '@weft/sdk';
 import { buildEpoch, buildEpochFromByteTotals, type BuildOptions, type ByteTotal } from './rewards';
 import { fetchNodeInfos } from './nodes';
 import { postEpoch } from './poster';
-import { createClaimer } from './claim';
+import { createCoSigner } from './claim';
 import { EpochStore } from './store';
 import { createAggregatorServer } from './server';
 import type { TrafficReceipt } from './receipts';
@@ -194,11 +194,11 @@ async function main(): Promise<void> {
   // The poster/aggregator key also authorizes gasless reward payouts (`claim_rewards`): on an
   // operator's request it pays their running ledger total, net of what they already withdrew, in
   // one transaction the operator neither signs nor pays for.
-  const claimer = posterPath ? await createClaimer(rpcUrl, wsUrl, posterPath) : undefined;
+  const coSigner = posterPath ? await createCoSigner(rpcUrl, posterPath) : undefined;
 
   const server = createAggregatorServer({
     store,
-    claimer,
+    coSigner,
     receiptsToken: receiptsToken || undefined,
     payConfig: {
       rewardMint: d.rewardMint,
