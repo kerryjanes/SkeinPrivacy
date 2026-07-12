@@ -16,7 +16,7 @@ use weft_primitives::{
     split_payment, BPS, REPUTATION_MIN_BPS,
 };
 
-declare_id!("HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md");
+declare_id!("4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3");
 
 pub const REGISTRY_SEED: &[u8] = b"registry";
 pub const NODE_SEED: &[u8] = b"node";
@@ -190,6 +190,15 @@ pub mod weft {
         ctx.accounts.fund_reward_vault(amount)
     }
 
+    /// Gasless node-reward payout. The poster (aggregator) tracks each node's real-time cumulative
+    /// `earned` off-chain; this pays `earned_total - node.withdrawn` from the reward vault straight to
+    /// the operator's token account and advances `withdrawn` — one tx, no epoch, no per-claim PDA, no
+    /// dispute window. Poster-signed only; funds can ONLY land in `node.operator`'s account, so a
+    /// poster call can never redirect a node's rewards. The operator signs nothing (gasless).
+    pub fn claim_rewards(ctx: Context<ClaimRewards>, node_id: u64, earned_total: u64) -> Result<()> {
+        ctx.accounts.claim_rewards(node_id, earned_total)
+    }
+
     pub fn post_epoch(
         ctx: Context<PostEpoch>,
         epoch: u64,
@@ -294,6 +303,10 @@ pub struct NodeState {
     pub merkle_tree: Pubkey,
     /// Leaf index / nonce at mint time (to recompute the leaf / fetch proofs).
     pub leaf_nonce: u64,
+    /// Cumulative rewards already withdrawn by this node (base units). Off-chain the poster
+    /// tracks each node's real-time cumulative `earned`; `claim_rewards` pays out `earned - withdrawn`
+    /// in one tx and advances this. No epochs, no per-claim PDA, no dispute window.
+    pub withdrawn: u64,
 }
 
 #[account]
@@ -627,6 +640,7 @@ impl RegisterNode<'_> {
             asset_id,
             merkle_tree,
             leaf_nonce,
+            withdrawn: 0,
         });
 
         // Mint the node's ownership/identity cNFT into the registry collection,
@@ -1340,6 +1354,77 @@ impl FundRewardVault<'_> {
                 },
             ),
             amount,
+            self.reward_mint.decimals,
+        )
+    }
+}
+
+#[derive(Accounts)]
+#[instruction(node_id: u64)]
+pub struct ClaimRewards<'info> {
+    /// Poster/aggregator — the trusted rewards authority and fee payer. Must equal
+    /// `distributor.poster_authority`.
+    #[account(mut)]
+    pub poster: Signer<'info>,
+    /// CHECK: the node operator. The payout can only reach their token account — enforced by
+    /// `node.operator == operator` and `operator_token_account.authority == operator`.
+    pub operator: UncheckedAccount<'info>,
+    #[account(
+        mut,
+        seeds = [DISTRIBUTOR_SEED],
+        bump = distributor.bump,
+        has_one = reward_mint,
+        has_one = reward_vault,
+        constraint = distributor.poster_authority == poster.key() @ WeftError::Unauthorized,
+    )]
+    pub distributor: Account<'info, Distributor>,
+    #[account(
+        mut,
+        seeds = [NODE_SEED, operator.key().as_ref(), &node_id.to_le_bytes()],
+        bump = node.bump,
+        constraint = node.operator == operator.key() @ WeftError::Unauthorized,
+    )]
+    pub node: Account<'info, NodeState>,
+    pub reward_mint: InterfaceAccount<'info, Mint>,
+    #[account(mut)]
+    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    #[account(mut, token::mint = reward_mint, token::authority = operator)]
+    pub operator_token_account: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+impl ClaimRewards<'_> {
+    fn claim_rewards(&mut self, _node_id: u64, earned_total: u64) -> Result<()> {
+        // earned_total is the poster-attested cumulative lifetime earning. Pay the delta since the
+        // last withdrawal. A stale/lower attestation (earned_total < withdrawn) underflows and is
+        // rejected, so a replay can never double-pay.
+        let payout = earned_total
+            .checked_sub(self.node.withdrawn)
+            .ok_or(WeftError::MathOverflow)?;
+        self.node.withdrawn = earned_total;
+        if payout == 0 {
+            return Ok(());
+        }
+        self.distributor.cumulative_claimed = self
+            .distributor
+            .cumulative_claimed
+            .checked_add(payout)
+            .ok_or(WeftError::MathOverflow)?;
+        // Reward vault authority is the distributor PDA (signs the payout). Insufficient vault
+        // balance makes the transfer fail atomically — the loop stays solvent by construction.
+        let seeds: &[&[&[u8]]] = &[&[DISTRIBUTOR_SEED, &[self.distributor.bump]]];
+        transfer_checked(
+            CpiContext::new_with_signer(
+                self.token_program.key(),
+                TransferChecked {
+                    from: self.reward_vault.to_account_info(),
+                    mint: self.reward_mint.to_account_info(),
+                    to: self.operator_token_account.to_account_info(),
+                    authority: self.distributor.to_account_info(),
+                },
+                seeds,
+            ),
+            payout,
             self.reward_mint.decimals,
         )
     }

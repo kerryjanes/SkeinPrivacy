@@ -16,6 +16,7 @@ import { weft } from '@weft/sdk';
 import { buildEpoch, buildEpochFromByteTotals, type BuildOptions, type ByteTotal } from './rewards';
 import { fetchNodeInfos } from './nodes';
 import { postEpoch } from './poster';
+import { createClaimer } from './claim';
 import { EpochStore } from './store';
 import { createAggregatorServer } from './server';
 import type { TrafficReceipt } from './receipts';
@@ -190,19 +191,14 @@ async function main(): Promise<void> {
   if (!distInfo.value) throw new Error('distributor not initialized');
   const d = weft.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], 'base64'));
 
-  // The next epoch to settle is always derived from on-chain truth (distributor.current_epoch + 1),
-  // never from a local counter or the persisted store — so a corrupt/poisoned store can't push the
-  // epoch forward, and a failed post retries the same epoch instead of leaving a permanent gap.
-  async function fetchCurrentEpoch(): Promise<bigint> {
-    const info = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
-    if (!info.value) throw new Error('distributor not initialized');
-    return BigInt(
-      weft.getDistributorDecoder().decode(Buffer.from(info.value.data[0], 'base64')).currentEpoch,
-    );
-  }
+  // The poster/aggregator key also authorizes gasless reward payouts (`claim_rewards`): on an
+  // operator's request it pays their running ledger total, net of what they already withdrew, in
+  // one transaction the operator neither signs nor pays for.
+  const claimer = posterPath ? await createClaimer(rpcUrl, wsUrl, posterPath) : undefined;
 
   const server = createAggregatorServer({
     store,
+    claimer,
     receiptsToken: receiptsToken || undefined,
     payConfig: {
       rewardMint: d.rewardMint,
@@ -242,33 +238,36 @@ async function main(): Promise<void> {
       const settled = readSettledProfileBytes(settledProfilePath);
       const { totals, nextSettled } = buildProfileByteTotals(profiles, latestNodes, settled);
       if (totals.length === 0) return;
-      // Cap this epoch at what the reward vault can actually pay (balance − rewards already owed
-      // but unclaimed), so post_epoch's solvency guard always passes and settlement never stalls.
+      // Credit rewards into the local cumulative ledger — NOT on-chain. Each node's earnings accrue
+      // in real time here; the node claims the running total on demand (one gasless tx). Bound each
+      // credit by the vault's headroom = balance − (already-credited − already-claimed on-chain), a
+      // solvency backstop (rewards accrue at the same 700/GB the control-plane settles in, so the
+      // vault is ~always ample).
       const distInfo = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
       if (!distInfo.value) throw new Error('distributor not initialized');
       const dist = weft.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], 'base64'));
-      const outstanding = BigInt(dist.cumulativeObligated) - BigInt(dist.cumulativeClaimed);
+      const claimed = BigInt(dist.cumulativeClaimed);
+      const credited = store.totalEarned();
+      const outstanding = credited > claimed ? credited - claimed : 0n;
       const vaultBal = BigInt((await rpc.getTokenAccountBalance(d.rewardVault).send()).value.amount);
       const vaultCap = vaultBal > outstanding ? vaultBal - outstanding : 0n;
-      const epochToPost = BigInt(dist.currentEpoch) + 1n;
-      const next = buildEpochFromByteTotals(epochToPost, totals, latestNodes, { ...opts, vaultCap });
+      const next = buildEpochFromByteTotals(store.nextEpoch(), totals, latestNodes, {
+        ...opts,
+        vaultCap,
+      });
       if (next.numNodes === 0) {
-        // No rewardable node for these bytes → no reward is owed, so advancing the cursor is safe.
+        // No rewardable node for these bytes → nothing owed, so advancing the cursor is safe.
         writeSettledProfileBytes(settledProfilePath, nextSettled);
         return;
       }
-      // Persist proofs, then post the root, then advance the byte cursor — in that order. If the
-      // post fails or the process dies before it lands, the cursor is untouched, so the next run
-      // re-derives the same epoch (current+1) from the same cursor and replays identically: no
-      // bytes are ever forfeited and no epoch gap opens. The only irreducible window — a crash
-      // between on-chain confirmation and the cursor write — is bounded by post_epoch's vault
-      // solvency guard and the per-epoch ClaimStatus, which cap any double-count and forbid
-      // double-claims.
+      // Persist the credit, then advance the byte cursor — in that order. If we die between, the
+      // cursor is untouched and the same bytes re-credit next tick (idempotent by cursor): no reward
+      // is ever forfeited or doubled. No on-chain write here — nobody pays a fee per tick.
       store.put(next);
-      const sig = await postEpoch({ rpc, rpcSubscriptions, poster }, next);
       writeSettledProfileBytes(settledProfilePath, nextSettled);
       console.log(
-        `[aggregator] auto-settled epoch ${next.epoch}: ${next.numNodes} nodes, ${next.totalReward} base units, tx ${sig}`,
+        `[aggregator] credited ${next.numNodes} nodes +${next.totalReward} base units ` +
+          `(ledger epoch ${next.epoch}; ~${outstanding + next.totalReward} owed, vault ${vaultBal})`,
       );
     } catch (e) {
       console.error(

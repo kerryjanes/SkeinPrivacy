@@ -21,11 +21,14 @@ import {
 } from './pay';
 import { selectReceiptsForEpoch, type TrafficReceipt } from './receipts';
 import type { EpochStore } from './store';
+import type { Claimer } from './claim';
 
 export interface ServerDeps {
   store: EpochStore;
   payConfig: PayConfig;
   getBlockhash: () => Promise<Blockhashish>;
+  /** Gasless reward payout (poster-signed). Absent = claims disabled (no poster key). */
+  claimer?: Claimer;
   /** Called with the verified, deduped receipts ingested for an epoch (M6 → M4). */
   onReceipts?: (epoch: bigint, accepted: TrafficReceipt[]) => Promise<unknown> | unknown;
   /** Bearer token required on POST /receipts (relay → aggregator). Unset = open (dev only). */
@@ -148,6 +151,37 @@ export function createAggregatorServer(deps: ServerDeps): Server {
               })),
             })),
           });
+          return;
+        }
+
+        // Gasless reward withdrawal: pay the node its full running ledger total (net of what it
+        // already withdrew, computed on-chain) in ONE poster-signed transaction. The operator signs
+        // nothing and pays no fee. Idempotent — re-calling after a claim pays 0 and is a no-op.
+        if (url.pathname === '/claim' && req.method === 'POST') {
+          if (!deps.claimer) {
+            json(503, { error: 'reward claims are not enabled on this aggregator' });
+            return;
+          }
+          const body = JSON.parse((await readBody(req)) || '{}') as {
+            operator?: string;
+            nodeId?: string | number;
+          };
+          if (!body.operator || body.nodeId === undefined || body.nodeId === null) {
+            json(400, { error: 'missing operator or nodeId' });
+            return;
+          }
+          const nodeId = BigInt(body.nodeId);
+          const earnedTotal = deps.store.earnedForNode(body.operator, nodeId);
+          if (earnedTotal <= 0n) {
+            json(400, { error: 'this node has no earnings to withdraw' });
+            return;
+          }
+          try {
+            const signature = await deps.claimer.claim(body.operator, nodeId, earnedTotal);
+            json(200, { signature, earnedTotal: earnedTotal.toString() });
+          } catch (e) {
+            json(500, { error: String((e as Error)?.message ?? e) });
+          }
           return;
         }
 

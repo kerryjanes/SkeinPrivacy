@@ -74,6 +74,12 @@ export type NodeState = {
   merkleTree: Address;
   /** Leaf index / nonce at mint time (to recompute the leaf / fetch proofs). */
   leafNonce: bigint;
+  /**
+   * Cumulative rewards already withdrawn by this node (base units). Off-chain the poster
+   * tracks each node's real-time cumulative `earned`; `claim_rewards` pays out `earned - withdrawn`
+   * in one tx and advances this. No epochs, no per-claim PDA, no dispute window.
+   */
+  withdrawn: bigint;
 };
 
 export type NodeStateArgs = {
@@ -96,6 +102,12 @@ export type NodeStateArgs = {
   merkleTree: Address;
   /** Leaf index / nonce at mint time (to recompute the leaf / fetch proofs). */
   leafNonce: number | bigint;
+  /**
+   * Cumulative rewards already withdrawn by this node (base units). Off-chain the poster
+   * tracks each node's real-time cumulative `earned`; `claim_rewards` pays out `earned - withdrawn`
+   * in one tx and advances this. No epochs, no per-claim PDA, no dispute window.
+   */
+  withdrawn: number | bigint;
 };
 
 /** Gets the encoder for {@link NodeStateArgs} account data. */
@@ -119,6 +131,7 @@ export function getNodeStateEncoder(): FixedSizeEncoder<NodeStateArgs> {
       ['assetId', getAddressEncoder()],
       ['merkleTree', getAddressEncoder()],
       ['leafNonce', getU64Encoder()],
+      ['withdrawn', getU64Encoder()],
     ]),
     (value) => ({ ...value, discriminator: NODE_STATE_DISCRIMINATOR }),
   );
@@ -144,6 +157,7 @@ export function getNodeStateDecoder(): FixedSizeDecoder<NodeState> {
     ['assetId', getAddressDecoder()],
     ['merkleTree', getAddressDecoder()],
     ['leafNonce', getU64Decoder()],
+    ['withdrawn', getU64Decoder()],
   ]);
 }
 
@@ -203,5 +217,5 @@ export async function fetchAllMaybeNodeState(
 }
 
 export function getNodeStateSize(): number {
-  return 197;
+  return 205;
 }

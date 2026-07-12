@@ -65,6 +65,7 @@ import {
 } from '../accounts';
 import {
   getClaimInstructionAsync,
+  getClaimRewardsInstructionAsync,
   getCloseEmptyStakePositionInstructionAsync,
   getCloseEscrowInstructionAsync,
   getDepositEscrowInstructionAsync,
@@ -90,6 +91,7 @@ import {
   getWithdrawEscrowInstructionAsync,
   getWithdrawUnstakedInstructionAsync,
   parseClaimInstruction,
+  parseClaimRewardsInstruction,
   parseCloseEmptyStakePositionInstruction,
   parseCloseEscrowInstruction,
   parseDepositEscrowInstruction,
@@ -115,6 +117,7 @@ import {
   parseWithdrawEscrowInstruction,
   parseWithdrawUnstakedInstruction,
   type ClaimAsyncInput,
+  type ClaimRewardsAsyncInput,
   type CloseEmptyStakePositionAsyncInput,
   type CloseEscrowAsyncInput,
   type DepositEscrowAsyncInput,
@@ -123,6 +126,7 @@ import {
   type FundRewardVaultAsyncInput,
   type InitializeCoreAsyncInput,
   type ParsedClaimInstruction,
+  type ParsedClaimRewardsInstruction,
   type ParsedCloseEmptyStakePositionInstruction,
   type ParsedCloseEscrowInstruction,
   type ParsedDepositEscrowInstruction,
@@ -181,7 +185,7 @@ import {
 } from '../pdas';
 
 export const WEFT_PROGRAM_ADDRESS =
-  'HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md' as Address<'HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md'>;
+  '4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3' as Address<'4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3'>;
 
 export enum WeftAccount {
   ClaimStatus,
@@ -306,6 +310,7 @@ export function identifyWeftAccount(
 
 export enum WeftInstruction {
   Claim,
+  ClaimRewards,
   CloseEmptyStakePosition,
   CloseEscrow,
   DepositEscrow,
@@ -346,6 +351,17 @@ export function identifyWeftInstruction(
     )
   ) {
     return WeftInstruction.Claim;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([4, 144, 132, 71, 116, 23, 151, 80]),
+      ),
+      0,
+    )
+  ) {
+    return WeftInstruction.ClaimRewards;
   }
   if (
     containsBytes(
@@ -616,9 +632,10 @@ export function identifyWeftInstruction(
 }
 
 export type ParsedWeftInstruction<
-  TProgram extends string = 'HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md',
+  TProgram extends string = '4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3',
 > =
   | ({ instructionType: WeftInstruction.Claim } & ParsedClaimInstruction<TProgram>)
+  | ({ instructionType: WeftInstruction.ClaimRewards } & ParsedClaimRewardsInstruction<TProgram>)
   | ({
       instructionType: WeftInstruction.CloseEmptyStakePosition;
     } & ParsedCloseEmptyStakePositionInstruction<TProgram>)
@@ -678,6 +695,13 @@ export function parseWeftInstruction<TProgram extends string>(
     case WeftInstruction.Claim: {
       assertIsInstructionWithAccounts(instruction);
       return { instructionType: WeftInstruction.Claim, ...parseClaimInstruction(instruction) };
+    }
+    case WeftInstruction.ClaimRewards: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.ClaimRewards,
+        ...parseClaimRewardsInstruction(instruction),
+      };
     }
     case WeftInstruction.CloseEmptyStakePosition: {
       assertIsInstructionWithAccounts(instruction);
@@ -880,6 +904,9 @@ export type WeftPluginInstructions = {
   claim: (
     input: ClaimAsyncInput,
   ) => ReturnType<typeof getClaimInstructionAsync> & SelfPlanAndSendFunctions;
+  claimRewards: (
+    input: ClaimRewardsAsyncInput,
+  ) => ReturnType<typeof getClaimRewardsInstructionAsync> & SelfPlanAndSendFunctions;
   closeEmptyStakePosition: (
     input: CloseEmptyStakePositionAsyncInput,
   ) => ReturnType<typeof getCloseEmptyStakePositionInstructionAsync> & SelfPlanAndSendFunctions;
@@ -958,11 +985,11 @@ export type WeftPluginPdas = {
   distributor: typeof findDistributorPda;
   epochDistribution: typeof findEpochDistributionPda;
   claimStatus: typeof findClaimStatusPda;
+  node: typeof findNodePda;
   position: typeof findPositionPda;
   escrow: typeof findEscrowPda;
   escrowVault: typeof findEscrowVaultPda;
   registry: typeof findRegistryPda;
-  node: typeof findNodePda;
   stakingConfig: typeof findStakingConfigPda;
   rewardVault: typeof findRewardVaultPda;
   treeShard: typeof findTreeShardPda;
@@ -993,6 +1020,8 @@ export function weftProgram() {
         },
         instructions: {
           claim: (input) => addSelfPlanAndSendFunctions(client, getClaimInstructionAsync(input)),
+          claimRewards: (input) =>
+            addSelfPlanAndSendFunctions(client, getClaimRewardsInstructionAsync(input)),
           closeEmptyStakePosition: (input) =>
             addSelfPlanAndSendFunctions(client, getCloseEmptyStakePositionInstructionAsync(input)),
           closeEscrow: (input) =>
@@ -1048,11 +1077,11 @@ export function weftProgram() {
           distributor: findDistributorPda,
           epochDistribution: findEpochDistributionPda,
           claimStatus: findClaimStatusPda,
+          node: findNodePda,
           position: findPositionPda,
           escrow: findEscrowPda,
           escrowVault: findEscrowVaultPda,
           registry: findRegistryPda,
-          node: findNodePda,
           stakingConfig: findStakingConfigPda,
           rewardVault: findRewardVaultPda,
           treeShard: findTreeShardPda,

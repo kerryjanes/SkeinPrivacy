@@ -78,6 +78,32 @@ export class EpochStore {
     return max;
   }
 
+  /** Next local epoch key (epochs are now just monotonic local ledger buckets, never posted
+   *  on-chain — rewards accrue as a running per-node cumulative). */
+  nextEpoch(): bigint {
+    const max = this.maxEpoch();
+    return max === null ? 0n : max + 1n;
+  }
+
+  /** Total lifetime rewards credited across every node/epoch (base units). Used to bound new
+   *  credits to the reward vault's balance so the cumulative owed never exceeds what's funded. */
+  totalEarned(): bigint {
+    let sum = 0n;
+    for (const build of this.byEpoch.values())
+      for (const entry of build.entries) sum += entry.amount;
+    return sum;
+  }
+
+  /** Cumulative reward credited to one (operator,node) across all epochs — the `earned_total`
+   *  the on-chain `claim_rewards` pays out net of what the node has already withdrawn. */
+  earnedForNode(operator: string, nodeId: bigint): bigint {
+    let sum = 0n;
+    for (const build of this.byEpoch.values())
+      for (const entry of build.entries)
+        if (entry.operator === operator && entry.nodeId === nodeId) sum += entry.amount;
+    return sum;
+  }
+
   claimable(operator: string): ClaimableSummary {
     const byNode = new Map<string, ClaimableNode>();
     for (const build of this.byEpoch.values()) {

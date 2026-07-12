@@ -26,7 +26,7 @@ export async function findClaimStatusPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = 'HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md' as Address<'HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md'>,
+    programAddress = '4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3' as Address<'4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

@@ -6,13 +6,13 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-weft = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md"
+weft = "4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3"
 
 [programs.localnet]
-weft = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md"
+weft = "4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3"
 
 [programs.mainnet]
-weft = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md"
+weft = "4SBqDywnY3PuQXPUYbmttwfc5zK1A3uTnXDuMhvhBwN3"
 
 [provider]
 cluster = "localnet"

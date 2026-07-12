@@ -7,6 +7,7 @@
  */
 
 export * from './claim';
+export * from './claimRewards';
 export * from './closeEmptyStakePosition';
 export * from './closeEscrow';
 export * from './depositEscrow';
