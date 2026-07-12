@@ -12742,7 +12742,7 @@ function isPromiseLike(item) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12756,7 +12756,7 @@ async function findClaimStatusPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12767,7 +12767,7 @@ async function findDistributorPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12779,7 +12779,7 @@ async function findEpochDistributionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrow.js
 async function findEscrowPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12791,7 +12791,7 @@ async function findEscrowPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrowVault.js
 async function findEscrowVaultPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12803,7 +12803,7 @@ async function findEscrowVaultPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/node.js
 async function findNodePda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12816,7 +12816,7 @@ async function findNodePda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/position.js
 async function findPositionPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12829,7 +12829,7 @@ async function findPositionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/registry.js
 async function findRegistryPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
@@ -12838,7 +12838,7 @@ async function findRegistryPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12849,7 +12849,7 @@ async function findRewardVaultPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/stakingConfig.js
 async function findStakingConfigPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12860,7 +12860,7 @@ async function findStakingConfigPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/treeShard.js
 async function findTreeShardPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12872,7 +12872,7 @@ async function findTreeShardPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/vault.js
 async function findVaultPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -15973,7 +15973,7 @@ function parseWithdrawUnstakedInstruction(instruction) {
 }
 
 // ../../sdk/dist/generated/weft/src/generated/programs/weft.js
-var WEFT_PROGRAM_ADDRESS = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF";
+var WEFT_PROGRAM_ADDRESS = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md";
 var WeftAccount;
 (function(WeftAccount2) {
   WeftAccount2[WeftAccount2["ClaimStatus"] = 0] = "ClaimStatus";
@@ -19614,6 +19614,13 @@ async function main() {
   const distInfo = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
   if (!distInfo.value) throw new Error("distributor not initialized");
   const d = generated_exports.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], "base64"));
+  async function fetchCurrentEpoch() {
+    const info = await rpc.getAccountInfo(distributor, { encoding: "base64" }).send();
+    if (!info.value) throw new Error("distributor not initialized");
+    return BigInt(
+      generated_exports.getDistributorDecoder().decode(Buffer.from(info.value.data[0], "base64")).currentEpoch
+    );
+  }
   const server = createAggregatorServer({
     store,
     receiptsToken: receiptsToken || void 0,

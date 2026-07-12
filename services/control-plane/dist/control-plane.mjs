@@ -4038,9 +4038,9 @@ function loadConfig() {
       "8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i"
     ),
     settleKeypairPath: env("WEFT_SETTLE_KEYPAIR", ""),
-    settleIntervalMs: Number(env("WEFT_SETTLE_INTERVAL_MS", "60000")),
-    settleMinBytes: BigInt(env("WEFT_SETTLE_MIN_BYTES", "1000000")),
-    // ~1 MB before a settle tx is worth it
+    settleIntervalMs: Number(env("WEFT_SETTLE_MS", "60000")),
+    settleMinBytes: BigInt(env("WEFT_SETTLE_MIN_BYTES", "1048576")),
+    // ~1 MB → avoid dust txs
     faucetKeypairPath,
     faucetAmount: BigInt(env("WEFT_FAUCET_AMOUNT", "1000000000000")),
     // 1000 $WEFT → ~1 GB quota
@@ -6905,6 +6905,9 @@ function compileTransactionMessage4(transactionMessage) {
       version
     });
   }
+}
+function appendTransactionMessageInstruction(instruction, transactionMessage) {
+  return appendTransactionMessageInstructions([instruction], transactionMessage);
 }
 function appendTransactionMessageInstructions(instructions, transactionMessage) {
   return Object.freeze({
@@ -12932,7 +12935,7 @@ function isPromiseLike(item) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12946,7 +12949,7 @@ async function findClaimStatusPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12957,7 +12960,7 @@ async function findDistributorPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12969,7 +12972,7 @@ async function findEpochDistributionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrow.js
 async function findEscrowPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12981,7 +12984,7 @@ async function findEscrowPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrowVault.js
 async function findEscrowVaultPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12993,7 +12996,7 @@ async function findEscrowVaultPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/node.js
 async function findNodePda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -13006,7 +13009,7 @@ async function findNodePda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/position.js
 async function findPositionPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -13019,7 +13022,7 @@ async function findPositionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/registry.js
 async function findRegistryPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
@@ -13028,7 +13031,7 @@ async function findRegistryPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -13039,7 +13042,7 @@ async function findRewardVaultPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/stakingConfig.js
 async function findStakingConfigPda(config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -13050,7 +13053,7 @@ async function findStakingConfigPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/treeShard.js
 async function findTreeShardPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -13062,7 +13065,7 @@ async function findTreeShardPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/vault.js
 async function findVaultPda(seeds, config = {}) {
-  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
+  const { programAddress = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -16163,7 +16166,7 @@ function parseWithdrawUnstakedInstruction(instruction) {
 }
 
 // ../../sdk/dist/generated/weft/src/generated/programs/weft.js
-var WEFT_PROGRAM_ADDRESS = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF";
+var WEFT_PROGRAM_ADDRESS = "HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md";
 var WeftAccount;
 (function(WeftAccount2) {
   WeftAccount2[WeftAccount2["ClaimStatus"] = 0] = "ClaimStatus";
@@ -17589,19 +17592,22 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 var Controller = class {
-  constructor(cfg2, store2, rpc2, settler2) {
+  constructor(cfg2, store2, rpc2) {
     this.cfg = cfg2;
     this.store = store2;
     this.rpc = rpc2;
-    this.settler = settler2;
   }
   lastApplied = "__uninitialized";
   // force a first apply
   /** Reward-mint decimals, read from chain via loadDecimals(). $WEFT is 6 on mainnet
    *  (pump.fun); a devnet test mint may be 9. Defaults to 6 until loaded. */
   decimals = 6;
-  /** Timestamp of the last delegated-settlement sweep (rate-limits billing to settleIntervalMs). */
-  lastSettleSweep = 0;
+  /** Delegated settlement engine (poster key). Absent → auto-settle disabled, manual /settle only. */
+  settler;
+  /** Attach the poster-signed settler so the metering loop can auto-bill escrows. */
+  attachSettler(settler) {
+    this.settler = settler;
+  }
   /** Fetch the reward mint's decimals once at startup so quota/price/display adapt to
    *  the actual token (same code on every cluster). Call before the metering loop. */
   async loadDecimals() {
@@ -17727,6 +17733,41 @@ var Controller = class {
     return this.status(u);
   }
   /**
+   * Delegated settlement pass: for every user carrying accrued (unsettled) traffic, bill it straight
+   * from their prepaid escrow with the poster key — no user signature. This funds the reward vault
+   * continuously (70% of the metered price) so node payouts stay solvent, and keeps access seamless:
+   * the user deposits once and never has to sign a settlement.
+   *
+   * Billing preserves the user's access headroom exactly — settling `amount` drops both the escrow
+   * balance and the unsettled tab by the same byte-equivalent, so `quota - unsettled` is unchanged.
+   * A user only goes OFF once their escrow is genuinely spent (nothing left to bill).
+   */
+  async autoSettle() {
+    if (!this.settler) return;
+    let changed = false;
+    for (const u of this.store.all()) {
+      const unsettled = BigInt(u.unsettledBytes);
+      if (unsettled < this.cfg.settleMinBytes) continue;
+      const escrowBal = await escrowBalance(this.rpc, u.wallet, this.cfg.weftMint);
+      const owed = costBaseUnits(unsettled, this.decimals);
+      const amount = owed < escrowBal ? owed : escrowBal;
+      if (amount <= 0n) continue;
+      try {
+        await this.settler.settle(u.wallet, amount);
+      } catch (e8) {
+        console.error(`[control-plane] auto-settle ${u.wallet} failed: ${e8.message}`);
+        continue;
+      }
+      const settledBytes = quotaBytes(amount, this.decimals);
+      u.unsettledBytes = (unsettled > settledBytes ? unsettled - settledBytes : 0n).toString();
+      await this.refreshBalance(u);
+      u.active = this.computeActive(u);
+      this.store.put(u);
+      changed = true;
+    }
+    if (changed) this.reconcile();
+  }
+  /**
    * What this node has earned: total bytes served across all users → the $WEFT reward the
    * operator is owed. Uses the same `trafficReward` math the aggregator applies on-chain (here at
    * baseline reputation; the on-chain reputation/geo/stake multipliers are applied at settlement).
@@ -17760,55 +17801,12 @@ var Controller = class {
     this.store.putMany(users);
     this.reconcile();
   }
-  /**
-   * Delegated settlement sweep: bill each user's accrued (unsettled) usage straight from their
-   * prepaid escrow via the poster/settlement authority — no owner signature. This funds the reward
-   * vault continuously (70% of the charge) so node earnings accrue as the network is used, and clears
-   * the user's tab so they stay connected while their escrow has balance. Rate-limited to
-   * settleIntervalMs; skips tabs below settleMinBytes to avoid dust transactions.
-   *
-   * Runs inside the (non-overlapping) metering loop, right after balances were refreshed, so
-   * `u.balanceBaseUnits` is current. A failed settle just leaves the tab for the next sweep.
-   */
-  async autoSettle() {
-    if (!this.settler) return;
-    const now = Date.now();
-    if (now - this.lastSettleSweep < this.cfg.settleIntervalMs) return;
-    this.lastSettleSweep = now;
-    const users = this.store.all();
-    let changed = false;
-    for (const u of users) {
-      const unsettled = BigInt(u.unsettledBytes);
-      if (unsettled < this.cfg.settleMinBytes) continue;
-      const balance = BigInt(u.balanceBaseUnits);
-      if (balance === 0n) continue;
-      const owed = costBaseUnits(unsettled, this.decimals);
-      const charge = owed < balance ? owed : balance;
-      if (charge === 0n) continue;
-      try {
-        await this.settler.settleFromEscrow(u.wallet, charge);
-        const paidBytes = quotaBytes(charge, this.decimals);
-        u.unsettledBytes = (unsettled > paidBytes ? unsettled - paidBytes : 0n).toString();
-        await this.refreshBalance(u);
-        u.active = this.computeActive(u);
-        changed = true;
-      } catch (e8) {
-        console.error(`[auto-settle] ${u.wallet}: ${e8 instanceof Error ? e8.message : String(e8)}`);
-      }
-    }
-    if (changed) {
-      this.store.putMany(users);
-      this.reconcile();
-    }
-  }
-  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray, then
-   *  bill accrued usage from escrow (delegated settlement). On a relay (balancer with user-exit
-   *  outbounds) also attribute forwarded bytes per exit node — the reward basis that reconciles with
-   *  the user debits metered here. */
+  /** One metering cycle: fold in usage deltas, refresh balances, flip users, reconcile xray.
+   *  On a relay (balancer with user-exit outbounds) also attribute forwarded bytes per exit
+   *  node — the reward basis that reconciles with the user debits metered here. */
   async tick() {
     await this.applyUsage(pollUsage(this.cfg));
     applyRelayExitBytes(this.cfg, pollExitUsage(this.cfg));
-    await this.autoSettle();
   }
 };
 
@@ -18179,84 +18177,6 @@ var Faucet = class {
   }
 };
 
-// src/settle.ts
-import { readFileSync as readFileSync4 } from "node:fs";
-var TOKEN_2022_PROGRAM_ADDRESS2 = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
-var TOKEN_PROGRAM_ADDRESS2 = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
-var Settler = class {
-  constructor(rpcUrl, wsUrl, keypairPath, mint) {
-    this.keypairPath = keypairPath;
-    this.mint = mint;
-    this.rpc = createSolanaRpc(rpcUrl);
-    this.sendAndConfirm = sendAndConfirmTransactionFactory({
-      rpc: this.rpc,
-      rpcSubscriptions: createSolanaRpcSubscriptions(wsUrl)
-    });
-  }
-  rpc;
-  sendAndConfirm;
-  signerCache;
-  wiring;
-  async signer() {
-    if (!this.signerCache) {
-      this.signerCache = await createKeyPairSignerFromBytes(
-        Uint8Array.from(JSON.parse(readFileSync4(this.keypairPath, "utf8")))
-      );
-    }
-    return this.signerCache;
-  }
-  /** Resolve the distributor PDA, its reward accounts, and the mint's token program — once, cached. */
-  async wire() {
-    if (this.wiring) return this.wiring;
-    const [distributor] = await generated_exports.findDistributorPda();
-    const dist = await generated_exports.fetchDistributor(this.rpc, distributor);
-    const info = await this.rpc.getAccountInfo(address(this.mint), { encoding: "base64" }).send();
-    const tokenProgram = info.value?.owner === TOKEN_2022_PROGRAM_ADDRESS2 ? TOKEN_2022_PROGRAM_ADDRESS2 : TOKEN_PROGRAM_ADDRESS2;
-    this.wiring = {
-      distributor,
-      rewardMint: dist.data.rewardMint,
-      rewardVault: dist.data.rewardVault,
-      treasury: dist.data.treasury,
-      tokenProgram
-    };
-    return this.wiring;
-  }
-  /** The settlement authority address (must equal distributor.poster_authority on chain). */
-  async authority() {
-    return (await this.signer()).address;
-  }
-  /** Bill `amount` (mint base units) of a user's usage straight from their escrow. Returns the sig. */
-  async settleFromEscrow(owner, amount) {
-    const w = await this.wire();
-    const settleAuthority = await this.signer();
-    const [escrow] = await generated_exports.findEscrowPda({ owner: address(owner) });
-    const [escrowVault] = await generated_exports.findEscrowVaultPda({ owner: address(owner) });
-    const ix = generated_exports.getSettleFromEscrowInstruction({
-      settleAuthority,
-      distributor: w.distributor,
-      escrow,
-      escrowVault,
-      rewardMint: w.rewardMint,
-      rewardVault: w.rewardVault,
-      treasury: w.treasury,
-      tokenProgram: w.tokenProgram,
-      amount
-    });
-    const { value: bh } = await this.rpc.getLatestBlockhash().send();
-    const msg = pipe(
-      createTransactionMessage({ version: 0 }),
-      (m) => setTransactionMessageFeePayerSigner(settleAuthority, m),
-      (m) => setTransactionMessageLifetimeUsingBlockhash(bh, m),
-      (m) => appendTransactionMessageInstructions([ix], m)
-    );
-    const signed = await signTransactionMessageWithSigners(msg);
-    await this.sendAndConfirm(signed, {
-      commitment: "confirmed"
-    });
-    return getSignatureFromTransaction(signed);
-  }
-};
-
 // src/server.ts
 import { createServer } from "node:http";
 
@@ -18423,6 +18343,63 @@ function startServer(cfg2, ctrl2, faucet2) {
   });
 }
 
+// src/settlement.ts
+import { readFileSync as readFileSync4 } from "node:fs";
+var TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb";
+var TOKEN_CLASSIC_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+async function createSettler(rpcUrl, wsUrl, keypairPath) {
+  const rpc2 = createSolanaRpc(rpcUrl);
+  const rpcSubscriptions = createSolanaRpcSubscriptions(wsUrl);
+  const poster = await createKeyPairSignerFromBytes(
+    Uint8Array.from(JSON.parse(readFileSync4(keypairPath, "utf8")))
+  );
+  const [distributorPda] = await generated_exports.findDistributorPda();
+  const dist = await generated_exports.fetchDistributor(rpc2, distributorPda);
+  if (dist.data.posterAuthority !== poster.address) {
+    throw new Error(
+      `settle keypair ${poster.address} is not the distributor poster_authority ${dist.data.posterAuthority} \u2014 refusing to auto-settle`
+    );
+  }
+  const rewardMint = dist.data.rewardMint;
+  const rewardVault = dist.data.rewardVault;
+  const treasury = dist.data.treasury;
+  const tokenProgram = await resolveTokenProgram(rpc2, rewardMint);
+  const sendAndConfirm = sendAndConfirmTransactionFactory({ rpc: rpc2, rpcSubscriptions });
+  return {
+    authority: poster.address,
+    async settle(wallet, amount) {
+      const [escrow] = await generated_exports.findEscrowPda({ owner: address(wallet) });
+      const esc = await generated_exports.fetchPaymentEscrow(rpc2, escrow);
+      const ix = await generated_exports.getSettleFromEscrowInstructionAsync({
+        settleAuthority: poster,
+        escrow,
+        escrowVault: esc.data.vault,
+        rewardMint,
+        rewardVault,
+        treasury,
+        tokenProgram,
+        amount
+      });
+      const { value: latestBlockhash } = await rpc2.getLatestBlockhash().send();
+      const message = pipe(
+        createTransactionMessage({ version: 0 }),
+        (m) => setTransactionMessageFeePayerSigner(poster, m),
+        (m) => setTransactionMessageLifetimeUsingBlockhash(latestBlockhash, m),
+        (m) => appendTransactionMessageInstruction(ix, m)
+      );
+      const signed = await signTransactionMessageWithSigners(message);
+      await sendAndConfirm(signed, {
+        commitment: "confirmed"
+      });
+      return getSignatureFromTransaction(signed);
+    }
+  };
+}
+async function resolveTokenProgram(rpc2, mint) {
+  const info = await rpc2.getAccountInfo(mint, { encoding: "base64" }).send();
+  return info.value?.owner === TOKEN_2022_PROGRAM ? TOKEN_2022_PROGRAM : TOKEN_CLASSIC_PROGRAM;
+}
+
 // src/index.ts
 var envFile = process.env.WEFT_ENVFILE;
 if (envFile) {
@@ -18433,8 +18410,7 @@ if (envFile) {
 }
 var cfg = loadConfig();
 var store = new Store(cfg.storePath);
-var settler = cfg.settleKeypairPath ? new Settler(cfg.rpcUrl, cfg.wsUrl, cfg.settleKeypairPath, cfg.weftMint) : void 0;
-var ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl), settler);
+var ctrl = new Controller(cfg, store, rpc(cfg.rpcUrl));
 var faucet = cfg.faucetKeypairPath ? new Faucet(
   cfg.rpcUrl,
   cfg.wsUrl,
@@ -18463,33 +18439,29 @@ async function assertMintMatchesDistributor() {
     );
   }
 }
-async function assertSettleAuthority() {
-  if (!settler) return;
-  const [distributor] = await generated_exports.findDistributorPda();
-  let di;
-  try {
-    di = await rpc(cfg.rpcUrl).getAccountInfo(distributor, { encoding: "base64" }).send();
-  } catch (e8) {
-    console.error("[control-plane] could not verify settle authority:", e8.message);
-    return;
-  }
-  if (!di.value) return;
-  const poster = String(
-    generated_exports.getDistributorDecoder().decode(Buffer.from(di.value.data[0], "base64")).posterAuthority
-  );
-  const authority = String(await settler.authority());
-  if (authority !== poster) {
-    throw new Error(
-      `WEFT_SETTLE_KEYPAIR authority ${authority} is not the distributor poster_authority ${poster} \u2014 settle_from_escrow would be rejected on chain. Fix the key.`
-    );
-  }
-  console.log(`[control-plane] delegated settlement enabled (authority ${authority})`);
-}
 await assertMintMatchesDistributor();
-await assertSettleAuthority();
 await ctrl.loadDecimals();
 ctrl.bootstrap();
+if (cfg.settleKeypairPath) {
+  try {
+    ctrl.attachSettler(await createSettler(cfg.rpcUrl, cfg.wsUrl, cfg.settleKeypairPath));
+    console.log(`[control-plane] delegated settlement enabled every ${cfg.settleIntervalMs}ms`);
+  } catch (e8) {
+    console.error("[control-plane] delegated settlement DISABLED:", e8.message);
+  }
+}
 startServer(cfg, ctrl, faucet);
+async function settleLoop() {
+  if (!cfg.settleKeypairPath) return;
+  for (; ; ) {
+    await new Promise((r) => setTimeout(r, cfg.settleIntervalMs));
+    try {
+      await ctrl.autoSettle();
+    } catch (e8) {
+      console.error("[control-plane] auto-settle pass error:", e8.message);
+    }
+  }
+}
 async function profileHeartbeat() {
   if (!cfg.relayProfileUrl) return;
   for (; ; ) {
@@ -18515,6 +18487,7 @@ async function loop() {
 }
 void profileHeartbeat();
 void loop();
+void settleLoop();
 /*! Bundled license information:
 
 @noble/hashes/esm/utils.js:
