@@ -16,7 +16,7 @@ use weft_primitives::{
     split_payment, BPS, REPUTATION_MIN_BPS,
 };
 
-declare_id!("HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5");
+declare_id!("HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md");
 
 pub const REGISTRY_SEED: &[u8] = b"registry";
 pub const NODE_SEED: &[u8] = b"node";

@@ -25,7 +25,7 @@ export async function findPositionPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = 'HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5' as Address<'HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5'>,
+    programAddress = 'HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md' as Address<'HBLZDwAjPKnmZ6KW1ah4qC7yMTysbpSrC5fUW98cJ1md'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

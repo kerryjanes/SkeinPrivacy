@@ -20,9 +20,11 @@ export const MPL_CORE_CPI_SIGNER = 'CbNY3JiXdXNE9tPNEk1aRZVEkWdj2v7kfJLNQwZZgpXk
 
 /** Canonical off-chain metadata for a node cNFT (per-node name is set on-chain). */
 export const NODE_METADATA_URI = 'https://www.weftnetwork.net/nft/node.json';
-/** Tree depth (2^14 = 16,384 leaves per shard). */
-export const TREE_MAX_DEPTH = 14;
-export const TREE_MAX_BUFFER = 64;
+/** Tree depth (2^14 = 16,384 leaves per shard). Overridable for cheap test trees, e.g. a
+ *  (depth 5, buffer 8) tree costs ~0.015 SOL of rent vs ~0.22 for the full (14, 64). Must be a
+ *  valid SPL account-compression (depth, buffer) pair. */
+export const TREE_MAX_DEPTH = Number(process.env.WEFT_TREE_DEPTH ?? 14);
+export const TREE_MAX_BUFFER = Number(process.env.WEFT_TREE_BUFFER ?? 64);
 
 const addrEnc = getAddressEncoder();
 
