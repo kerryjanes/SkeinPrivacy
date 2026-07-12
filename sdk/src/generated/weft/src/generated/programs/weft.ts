@@ -83,6 +83,7 @@ import {
   getSetPausedInstructionAsync,
   getSetPosterAuthorityInstructionAsync,
   getSetRegistryCollectionInstructionAsync,
+  getSettleFromEscrowInstructionAsync,
   getShutdownCoreInstructionAsync,
   getStakeInstructionAsync,
   getUpdateNodeInstruction,
@@ -107,6 +108,7 @@ import {
   parseSetPausedInstruction,
   parseSetPosterAuthorityInstruction,
   parseSetRegistryCollectionInstruction,
+  parseSettleFromEscrowInstruction,
   parseShutdownCoreInstruction,
   parseStakeInstruction,
   parseUpdateNodeInstruction,
@@ -139,6 +141,7 @@ import {
   type ParsedSetPausedInstruction,
   type ParsedSetPosterAuthorityInstruction,
   type ParsedSetRegistryCollectionInstruction,
+  type ParsedSettleFromEscrowInstruction,
   type ParsedShutdownCoreInstruction,
   type ParsedStakeInstruction,
   type ParsedUpdateNodeInstruction,
@@ -155,6 +158,7 @@ import {
   type SetPausedAsyncInput,
   type SetPosterAuthorityAsyncInput,
   type SetRegistryCollectionAsyncInput,
+  type SettleFromEscrowAsyncInput,
   type ShutdownCoreAsyncInput,
   type StakeAsyncInput,
   type UpdateNodeInput,
@@ -177,7 +181,7 @@ import {
 } from '../pdas';
 
 export const WEFT_PROGRAM_ADDRESS =
-  '6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd' as Address<'6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd'>;
+  'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF' as Address<'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF'>;
 
 export enum WeftAccount {
   ClaimStatus,
@@ -320,6 +324,7 @@ export enum WeftInstruction {
   SetPaused,
   SetPosterAuthority,
   SetRegistryCollection,
+  SettleFromEscrow,
   ShutdownCore,
   Stake,
   UpdateNode,
@@ -542,6 +547,17 @@ export function identifyWeftInstruction(
     containsBytes(
       data,
       fixEncoderSize(getBytesEncoder(), 8).encode(
+        new Uint8Array([133, 156, 159, 225, 55, 206, 255, 88]),
+      ),
+      0,
+    )
+  ) {
+    return WeftInstruction.SettleFromEscrow;
+  }
+  if (
+    containsBytes(
+      data,
+      fixEncoderSize(getBytesEncoder(), 8).encode(
         new Uint8Array([123, 138, 136, 220, 227, 54, 2, 41]),
       ),
       0,
@@ -600,7 +616,7 @@ export function identifyWeftInstruction(
 }
 
 export type ParsedWeftInstruction<
-  TProgram extends string = '6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd',
+  TProgram extends string = 'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF',
 > =
   | ({ instructionType: WeftInstruction.Claim } & ParsedClaimInstruction<TProgram>)
   | ({
@@ -641,6 +657,9 @@ export type ParsedWeftInstruction<
   | ({
       instructionType: WeftInstruction.SetRegistryCollection;
     } & ParsedSetRegistryCollectionInstruction<TProgram>)
+  | ({
+      instructionType: WeftInstruction.SettleFromEscrow;
+    } & ParsedSettleFromEscrowInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.ShutdownCore } & ParsedShutdownCoreInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.Stake } & ParsedStakeInstruction<TProgram>)
   | ({ instructionType: WeftInstruction.UpdateNode } & ParsedUpdateNodeInstruction<TProgram>)
@@ -783,6 +802,13 @@ export function parseWeftInstruction<TProgram extends string>(
         ...parseSetRegistryCollectionInstruction(instruction),
       };
     }
+    case WeftInstruction.SettleFromEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.SettleFromEscrow,
+        ...parseSettleFromEscrowInstruction(instruction),
+      };
+    }
     case WeftInstruction.ShutdownCore: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -908,6 +934,9 @@ export type WeftPluginInstructions = {
   setRegistryCollection: (
     input: SetRegistryCollectionAsyncInput,
   ) => ReturnType<typeof getSetRegistryCollectionInstructionAsync> & SelfPlanAndSendFunctions;
+  settleFromEscrow: (
+    input: SettleFromEscrowAsyncInput,
+  ) => ReturnType<typeof getSettleFromEscrowInstructionAsync> & SelfPlanAndSendFunctions;
   shutdownCore: (
     input: ShutdownCoreAsyncInput,
   ) => ReturnType<typeof getShutdownCoreInstructionAsync> & SelfPlanAndSendFunctions;
@@ -1003,6 +1032,8 @@ export function weftProgram() {
             addSelfPlanAndSendFunctions(client, getSetPosterAuthorityInstructionAsync(input)),
           setRegistryCollection: (input) =>
             addSelfPlanAndSendFunctions(client, getSetRegistryCollectionInstructionAsync(input)),
+          settleFromEscrow: (input) =>
+            addSelfPlanAndSendFunctions(client, getSettleFromEscrowInstructionAsync(input)),
           shutdownCore: (input) =>
             addSelfPlanAndSendFunctions(client, getShutdownCoreInstructionAsync(input)),
           stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),

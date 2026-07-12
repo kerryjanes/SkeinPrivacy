@@ -16,7 +16,7 @@ use weft_primitives::{
     split_payment, BPS, REPUTATION_MIN_BPS,
 };
 
-declare_id!("6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd");
+declare_id!("HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5");
 
 pub const REGISTRY_SEED: &[u8] = b"registry";
 pub const NODE_SEED: &[u8] = b"node";
@@ -174,6 +174,16 @@ pub mod weft {
 
     pub fn pay_traffic_from_escrow(ctx: Context<PayTrafficFromEscrow>, amount: u64) -> Result<()> {
         ctx.accounts.pay_traffic_from_escrow(amount)
+    }
+
+    /// Delegated metered settlement: the `poster_authority` (relay/aggregator) bills a user's accrued
+    /// VPN usage straight from their prepaid escrow — no per-charge owner signature. Bounded to the
+    /// escrow balance and split identically to `pay_traffic_from_escrow` (70% vault / 20% burn / 10%
+    /// treasury). Funds can only move into the protocol splits; the owner's unused balance stays
+    /// withdrawable by the owner alone (`withdraw_escrow`), so escrow sovereignty for unspent funds is
+    /// preserved.
+    pub fn settle_from_escrow(ctx: Context<SettleFromEscrow>, amount: u64) -> Result<()> {
+        ctx.accounts.settle_from_escrow(amount)
     }
 
     pub fn fund_reward_vault(ctx: Context<FundRewardVault>, amount: u64) -> Result<()> {
@@ -1223,6 +1233,70 @@ impl PayTrafficFromEscrow<'_> {
             .checked_add(amount)
             .ok_or(WeftError::MathOverflow)?;
         let owner = self.owner.key();
+        let seeds: &[&[&[u8]]] = &[&[ESCROW_SEED, owner.as_ref(), &[self.escrow.bump]]];
+        split_from_user(
+            amount,
+            self.reward_mint.decimals,
+            self.token_program.key(),
+            self.escrow_vault.to_account_info(),
+            self.reward_mint.to_account_info(),
+            self.reward_vault.to_account_info(),
+            self.treasury.to_account_info(),
+            self.escrow.to_account_info(),
+            Some(seeds),
+        )
+    }
+}
+
+#[derive(Accounts)]
+pub struct SettleFromEscrow<'info> {
+    /// The settlement authority (relay/aggregator) — bills metered usage on the user's behalf. Must
+    /// equal `distributor.poster_authority`; it can only move escrow funds into the protocol splits,
+    /// never to an arbitrary account, and never more than the escrow's own balance.
+    pub settle_authority: Signer<'info>,
+    #[account(
+        seeds = [DISTRIBUTOR_SEED],
+        bump = distributor.bump,
+        has_one = reward_mint,
+        has_one = reward_vault,
+        has_one = treasury,
+        constraint = distributor.poster_authority == settle_authority.key() @ WeftError::Unauthorized,
+    )]
+    pub distributor: Account<'info, Distributor>,
+    #[account(
+        mut,
+        seeds = [ESCROW_SEED, escrow.owner.as_ref()],
+        bump = escrow.bump,
+        constraint = escrow.mint == reward_mint.key() @ WeftError::InvalidEscrow,
+        constraint = escrow.vault == escrow_vault.key() @ WeftError::InvalidEscrow,
+    )]
+    pub escrow: Account<'info, PaymentEscrow>,
+    #[account(mut, token::mint = reward_mint, token::authority = escrow)]
+    pub escrow_vault: InterfaceAccount<'info, TokenAccount>,
+    #[account(mut)]
+    pub reward_mint: InterfaceAccount<'info, Mint>,
+    #[account(mut)]
+    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
+    #[account(mut)]
+    pub treasury: InterfaceAccount<'info, TokenAccount>,
+    pub token_program: Interface<'info, TokenInterface>,
+}
+
+impl SettleFromEscrow<'_> {
+    fn settle_from_escrow(&mut self, amount: u64) -> Result<()> {
+        require!(amount > 0, WeftError::ZeroAmount);
+        require!(self.escrow.balance >= amount, WeftError::InsufficientEscrow);
+        self.escrow.balance = self
+            .escrow
+            .balance
+            .checked_sub(amount)
+            .ok_or(WeftError::MathOverflow)?;
+        self.escrow.total_spent = self
+            .escrow
+            .total_spent
+            .checked_add(amount)
+            .ok_or(WeftError::MathOverflow)?;
+        let owner = self.escrow.owner;
         let seeds: &[&[&[u8]]] = &[&[ESCROW_SEED, owner.as_ref(), &[self.escrow.bump]]];
         split_from_user(
             amount,

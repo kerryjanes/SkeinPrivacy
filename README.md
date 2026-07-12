@@ -12,9 +12,9 @@ existing clients such as **V2Box**, **Happ**, **sing-box**, **Hiddify**, or **St
 
 - **Use VPN access:** connect a wallet, copy a personal VLESS link, import it into a VPN client.
 - **Run a node:** register a node in the cabinet, run the shell script on your device, earn `$WEFT`.
-- **Use 1-hop or multihop:**
-  - **1-hop:** traffic exits through a Weft node. This is the fast mode.
-  - **multihop:** traffic is routed through Tor by infrastructure nodes. This is slower, but more private.
+- **Route via Tor or via user nodes:**
+  - **via Tor:** traffic is routed through the Tor network by infrastructure nodes. Onion routing — no single relay sees both ends.
+  - **via user nodes:** traffic exits directly through a community-run Weft node.
 
 ## Use Weft As A VPN
 
@@ -23,8 +23,8 @@ existing clients such as **V2Box**, **Happ**, **sing-box**, **Hiddify**, or **St
 3. Open the **access** tab.
 4. Add `$WEFT` balance if needed.
 5. Copy one of the main VPN links:
-   - **1-hop:** fast direct exit through a Weft node,
-   - **multihop:** slower Tor-routed mode for stronger privacy.
+   - **via Tor:** routed through the Tor network for onion routing,
+   - **via user nodes:** direct exit through a community-run Weft node.
 6. Import the `vless://` link into V2Box, Happ, sing-box, Hiddify, or Streisand.
 7. Press **Connect** in that client.
 

@@ -242,8 +242,16 @@ async function main(): Promise<void> {
       const settled = readSettledProfileBytes(settledProfilePath);
       const { totals, nextSettled } = buildProfileByteTotals(profiles, latestNodes, settled);
       if (totals.length === 0) return;
-      const epochToPost = (await fetchCurrentEpoch()) + 1n;
-      const next = buildEpochFromByteTotals(epochToPost, totals, latestNodes, opts);
+      // Cap this epoch at what the reward vault can actually pay (balance − rewards already owed
+      // but unclaimed), so post_epoch's solvency guard always passes and settlement never stalls.
+      const distInfo = await rpc.getAccountInfo(distributor, { encoding: 'base64' }).send();
+      if (!distInfo.value) throw new Error('distributor not initialized');
+      const dist = weft.getDistributorDecoder().decode(Buffer.from(distInfo.value.data[0], 'base64'));
+      const outstanding = BigInt(dist.cumulativeObligated) - BigInt(dist.cumulativeClaimed);
+      const vaultBal = BigInt((await rpc.getTokenAccountBalance(d.rewardVault).send()).value.amount);
+      const vaultCap = vaultBal > outstanding ? vaultBal - outstanding : 0n;
+      const epochToPost = BigInt(dist.currentEpoch) + 1n;
+      const next = buildEpochFromByteTotals(epochToPost, totals, latestNodes, { ...opts, vaultCap });
       if (next.numNodes === 0) {
         // No rewardable node for these bytes → no reward is owed, so advancing the cursor is safe.
         writeSettledProfileBytes(settledProfilePath, nextSettled);
@@ -264,7 +272,7 @@ async function main(): Promise<void> {
       );
     } catch (e) {
       console.error(
-        `[aggregator] auto settlement failed; cursor not advanced, will retry: ${(e as Error).message}`,
+        `[aggregator] auto settlement failed; cursor not advanced, will retry: ${(e as Error).message} :: ${((e as { context?: { logs?: string[] } })?.context?.logs ?? (e as { logs?: string[] })?.logs ?? []).join(' | ') || (e as { cause?: { message?: string } })?.cause?.message || JSON.stringify((e as { context?: unknown })?.context ?? {}).slice(0, 800)}`,
       );
     } finally {
       autoSettleRunning = false;

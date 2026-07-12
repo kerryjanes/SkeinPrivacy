@@ -6,8 +6,8 @@ import type { NodeConfig } from './config.js';
 // Client-facing server names (the vless `#fragment`). The 🇪🇺 flag makes Happ/V2Box show a
 // country badge instead of a blank one, and the label reads cleanly. URL-encoded so the
 // emoji + spaces survive import.
-const NAME_1HOP = encodeURIComponent('🇪🇺 Weft · Fast');
-const NAME_MULTIHOP = encodeURIComponent('🇪🇺 Weft · Private');
+const NAME_1HOP = encodeURIComponent('🇪🇺 Weft · Nodes');
+const NAME_MULTIHOP = encodeURIComponent('🇪🇺 Weft · Tor');
 
 export function oneHopLink(cfg: NodeConfig, uuid: string): string {
   const q = new URLSearchParams({

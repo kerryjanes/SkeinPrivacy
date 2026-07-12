@@ -9795,6 +9795,7 @@ __export(generated_exports, {
   REGISTER_TREE_DISCRIMINATOR: () => REGISTER_TREE_DISCRIMINATOR,
   REGISTRY_DISCRIMINATOR: () => REGISTRY_DISCRIMINATOR,
   REQUEST_UNSTAKE_DISCRIMINATOR: () => REQUEST_UNSTAKE_DISCRIMINATOR,
+  SETTLE_FROM_ESCROW_DISCRIMINATOR: () => SETTLE_FROM_ESCROW_DISCRIMINATOR,
   SET_CORE_AUTHORITY_DISCRIMINATOR: () => SET_CORE_AUTHORITY_DISCRIMINATOR,
   SET_DISPUTE_AUTHORITY_DISCRIMINATOR: () => SET_DISPUTE_AUTHORITY_DISCRIMINATOR,
   SET_PAUSED_DISCRIMINATOR: () => SET_PAUSED_DISCRIMINATOR,
@@ -9823,6 +9824,7 @@ __export(generated_exports, {
   WEFT_ERROR__PAUSED: () => WEFT_ERROR__PAUSED,
   WEFT_ERROR__SHUTDOWN_BLOCKED: () => WEFT_ERROR__SHUTDOWN_BLOCKED,
   WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED: () => WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED,
+  WEFT_ERROR__STAKE_NOT_WITHDRAWN: () => WEFT_ERROR__STAKE_NOT_WITHDRAWN,
   WEFT_ERROR__STILL_UNBONDING: () => WEFT_ERROR__STILL_UNBONDING,
   WEFT_ERROR__TREE_FULL: () => WEFT_ERROR__TREE_FULL,
   WEFT_ERROR__TREE_INDEX_MISMATCH: () => WEFT_ERROR__TREE_INDEX_MISMATCH,
@@ -10039,6 +10041,12 @@ __export(generated_exports, {
   getSetRegistryCollectionInstructionDataCodec: () => getSetRegistryCollectionInstructionDataCodec,
   getSetRegistryCollectionInstructionDataDecoder: () => getSetRegistryCollectionInstructionDataDecoder,
   getSetRegistryCollectionInstructionDataEncoder: () => getSetRegistryCollectionInstructionDataEncoder,
+  getSettleFromEscrowDiscriminatorBytes: () => getSettleFromEscrowDiscriminatorBytes,
+  getSettleFromEscrowInstruction: () => getSettleFromEscrowInstruction,
+  getSettleFromEscrowInstructionAsync: () => getSettleFromEscrowInstructionAsync,
+  getSettleFromEscrowInstructionDataCodec: () => getSettleFromEscrowInstructionDataCodec,
+  getSettleFromEscrowInstructionDataDecoder: () => getSettleFromEscrowInstructionDataDecoder,
+  getSettleFromEscrowInstructionDataEncoder: () => getSettleFromEscrowInstructionDataEncoder,
   getShutdownCoreDiscriminatorBytes: () => getShutdownCoreDiscriminatorBytes,
   getShutdownCoreInstruction: () => getShutdownCoreInstruction,
   getShutdownCoreInstructionAsync: () => getShutdownCoreInstructionAsync,
@@ -10106,6 +10114,7 @@ __export(generated_exports, {
   parseSetPausedInstruction: () => parseSetPausedInstruction,
   parseSetPosterAuthorityInstruction: () => parseSetPosterAuthorityInstruction,
   parseSetRegistryCollectionInstruction: () => parseSetRegistryCollectionInstruction,
+  parseSettleFromEscrowInstruction: () => parseSettleFromEscrowInstruction,
   parseShutdownCoreInstruction: () => parseShutdownCoreInstruction,
   parseWeftInstruction: () => parseWeftInstruction,
   parseStakeInstruction: () => parseStakeInstruction,
@@ -12726,7 +12735,7 @@ function isPromiseLike(item) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/claimStatus.js
 async function findClaimStatusPda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12740,7 +12749,7 @@ async function findClaimStatusPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/distributor.js
 async function findDistributorPda(config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12751,7 +12760,7 @@ async function findDistributorPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/epochDistribution.js
 async function findEpochDistributionPda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12763,7 +12772,7 @@ async function findEpochDistributionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrow.js
 async function findEscrowPda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12775,7 +12784,7 @@ async function findEscrowPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/escrowVault.js
 async function findEscrowVaultPda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12787,7 +12796,7 @@ async function findEscrowVaultPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/node.js
 async function findNodePda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12800,7 +12809,7 @@ async function findNodePda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/position.js
 async function findPositionPda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12813,7 +12822,7 @@ async function findPositionPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/registry.js
 async function findRegistryPda(config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [getBytesEncoder2().encode(new Uint8Array([114, 101, 103, 105, 115, 116, 114, 121]))]
@@ -12822,7 +12831,7 @@ async function findRegistryPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/rewardVault.js
 async function findRewardVaultPda(config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12833,7 +12842,7 @@ async function findRewardVaultPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/stakingConfig.js
 async function findStakingConfigPda(config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12844,7 +12853,7 @@ async function findStakingConfigPda(config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/treeShard.js
 async function findTreeShardPda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -12856,7 +12865,7 @@ async function findTreeShardPda(seeds, config = {}) {
 
 // ../../sdk/dist/generated/weft/src/generated/pdas/vault.js
 async function findVaultPda(seeds, config = {}) {
-  const { programAddress = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd" } = config;
+  const { programAddress = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF" } = config;
   return await getProgramDerivedAddress2({
     programAddress,
     seeds: [
@@ -15232,6 +15241,133 @@ function parseSetRegistryCollectionInstruction(instruction) {
   };
 }
 
+// ../../sdk/dist/generated/weft/src/generated/instructions/settleFromEscrow.js
+var SETTLE_FROM_ESCROW_DISCRIMINATOR = new Uint8Array([
+  133,
+  156,
+  159,
+  225,
+  55,
+  206,
+  255,
+  88
+]);
+function getSettleFromEscrowDiscriminatorBytes() {
+  return fixEncoderSize2(getBytesEncoder2(), 8).encode(SETTLE_FROM_ESCROW_DISCRIMINATOR);
+}
+function getSettleFromEscrowInstructionDataEncoder() {
+  return transformEncoder2(getStructEncoder2([
+    ["discriminator", fixEncoderSize2(getBytesEncoder2(), 8)],
+    ["amount", getU64Encoder2()]
+  ]), (value) => ({ ...value, discriminator: SETTLE_FROM_ESCROW_DISCRIMINATOR }));
+}
+function getSettleFromEscrowInstructionDataDecoder() {
+  return getStructDecoder2([
+    ["discriminator", fixDecoderSize2(getBytesDecoder2(), 8)],
+    ["amount", getU64Decoder2()]
+  ]);
+}
+function getSettleFromEscrowInstructionDataCodec() {
+  return combineCodec2(getSettleFromEscrowInstructionDataEncoder(), getSettleFromEscrowInstructionDataDecoder());
+}
+async function getSettleFromEscrowInstructionAsync(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    settleAuthority: { value: input.settleAuthority ?? null, isWritable: false },
+    distributor: { value: input.distributor ?? null, isWritable: false },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.distributor.value) {
+    accounts.distributor.value = await findDistributorPda();
+  }
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("settleAuthority", accounts.settleAuthority),
+      getAccountMeta("distributor", accounts.distributor),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("rewardVault", accounts.rewardVault),
+      getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getSettleFromEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function getSettleFromEscrowInstruction(input, config) {
+  const programAddress = config?.programAddress ?? WEFT_PROGRAM_ADDRESS;
+  const originalAccounts = {
+    settleAuthority: { value: input.settleAuthority ?? null, isWritable: false },
+    distributor: { value: input.distributor ?? null, isWritable: false },
+    escrow: { value: input.escrow ?? null, isWritable: true },
+    escrowVault: { value: input.escrowVault ?? null, isWritable: true },
+    rewardMint: { value: input.rewardMint ?? null, isWritable: true },
+    rewardVault: { value: input.rewardVault ?? null, isWritable: true },
+    treasury: { value: input.treasury ?? null, isWritable: true },
+    tokenProgram: { value: input.tokenProgram ?? null, isWritable: false }
+  };
+  const accounts = originalAccounts;
+  const args = { ...input };
+  if (!accounts.tokenProgram.value) {
+    accounts.tokenProgram.value = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA";
+  }
+  const getAccountMeta = getAccountMetaFactory(programAddress, "programId");
+  return Object.freeze({
+    accounts: [
+      getAccountMeta("settleAuthority", accounts.settleAuthority),
+      getAccountMeta("distributor", accounts.distributor),
+      getAccountMeta("escrow", accounts.escrow),
+      getAccountMeta("escrowVault", accounts.escrowVault),
+      getAccountMeta("rewardMint", accounts.rewardMint),
+      getAccountMeta("rewardVault", accounts.rewardVault),
+      getAccountMeta("treasury", accounts.treasury),
+      getAccountMeta("tokenProgram", accounts.tokenProgram)
+    ],
+    data: getSettleFromEscrowInstructionDataEncoder().encode(args),
+    programAddress
+  });
+}
+function parseSettleFromEscrowInstruction(instruction) {
+  if (instruction.accounts.length < 8) {
+    throw new SolanaError2(SOLANA_ERROR__PROGRAM_CLIENTS__INSUFFICIENT_ACCOUNT_METAS2, {
+      actualAccountMetas: instruction.accounts.length,
+      expectedAccountMetas: 8
+    });
+  }
+  let accountIndex = 0;
+  const getNextAccount = () => {
+    const accountMeta = instruction.accounts[accountIndex];
+    accountIndex += 1;
+    return accountMeta;
+  };
+  return {
+    programAddress: instruction.programAddress,
+    accounts: {
+      settleAuthority: getNextAccount(),
+      distributor: getNextAccount(),
+      escrow: getNextAccount(),
+      escrowVault: getNextAccount(),
+      rewardMint: getNextAccount(),
+      rewardVault: getNextAccount(),
+      treasury: getNextAccount(),
+      tokenProgram: getNextAccount()
+    },
+    data: getSettleFromEscrowInstructionDataDecoder().decode(instruction.data)
+  };
+}
+
 // ../../sdk/dist/generated/weft/src/generated/instructions/shutdownCore.js
 var SHUTDOWN_CORE_DISCRIMINATOR = new Uint8Array([
   123,
@@ -15830,7 +15966,7 @@ function parseWithdrawUnstakedInstruction(instruction) {
 }
 
 // ../../sdk/dist/generated/weft/src/generated/programs/weft.js
-var WEFT_PROGRAM_ADDRESS = "6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd";
+var WEFT_PROGRAM_ADDRESS = "HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF";
 var WeftAccount;
 (function(WeftAccount2) {
   WeftAccount2[WeftAccount2["ClaimStatus"] = 0] = "ClaimStatus";
@@ -15898,11 +16034,12 @@ var WeftInstruction;
   WeftInstruction2[WeftInstruction2["SetPaused"] = 16] = "SetPaused";
   WeftInstruction2[WeftInstruction2["SetPosterAuthority"] = 17] = "SetPosterAuthority";
   WeftInstruction2[WeftInstruction2["SetRegistryCollection"] = 18] = "SetRegistryCollection";
-  WeftInstruction2[WeftInstruction2["ShutdownCore"] = 19] = "ShutdownCore";
-  WeftInstruction2[WeftInstruction2["Stake"] = 20] = "Stake";
-  WeftInstruction2[WeftInstruction2["UpdateNode"] = 21] = "UpdateNode";
-  WeftInstruction2[WeftInstruction2["WithdrawEscrow"] = 22] = "WithdrawEscrow";
-  WeftInstruction2[WeftInstruction2["WithdrawUnstaked"] = 23] = "WithdrawUnstaked";
+  WeftInstruction2[WeftInstruction2["SettleFromEscrow"] = 19] = "SettleFromEscrow";
+  WeftInstruction2[WeftInstruction2["ShutdownCore"] = 20] = "ShutdownCore";
+  WeftInstruction2[WeftInstruction2["Stake"] = 21] = "Stake";
+  WeftInstruction2[WeftInstruction2["UpdateNode"] = 22] = "UpdateNode";
+  WeftInstruction2[WeftInstruction2["WithdrawEscrow"] = 23] = "WithdrawEscrow";
+  WeftInstruction2[WeftInstruction2["WithdrawUnstaked"] = 24] = "WithdrawUnstaked";
 })(WeftInstruction || (WeftInstruction = {}));
 function identifyWeftInstruction(instruction) {
   const data = "data" in instruction ? instruction.data : instruction;
@@ -15962,6 +16099,9 @@ function identifyWeftInstruction(instruction) {
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([244, 80, 202, 113, 72, 108, 36, 189])), 0)) {
     return WeftInstruction.SetRegistryCollection;
+  }
+  if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([133, 156, 159, 225, 55, 206, 255, 88])), 0)) {
+    return WeftInstruction.SettleFromEscrow;
   }
   if (containsBytes2(data, fixEncoderSize2(getBytesEncoder2(), 8).encode(new Uint8Array([123, 138, 136, 220, 227, 54, 2, 41])), 0)) {
     return WeftInstruction.ShutdownCore;
@@ -16113,6 +16253,13 @@ function parseWeftInstruction(instruction) {
         ...parseSetRegistryCollectionInstruction(instruction)
       };
     }
+    case WeftInstruction.SettleFromEscrow: {
+      assertIsInstructionWithAccounts(instruction);
+      return {
+        instructionType: WeftInstruction.SettleFromEscrow,
+        ...parseSettleFromEscrowInstruction(instruction)
+      };
+    }
     case WeftInstruction.ShutdownCore: {
       assertIsInstructionWithAccounts(instruction);
       return {
@@ -16187,6 +16334,7 @@ function weftProgram() {
           setPaused: (input) => addSelfPlanAndSendFunctions(client, getSetPausedInstructionAsync(input)),
           setPosterAuthority: (input) => addSelfPlanAndSendFunctions(client, getSetPosterAuthorityInstructionAsync(input)),
           setRegistryCollection: (input) => addSelfPlanAndSendFunctions(client, getSetRegistryCollectionInstructionAsync(input)),
+          settleFromEscrow: (input) => addSelfPlanAndSendFunctions(client, getSettleFromEscrowInstructionAsync(input)),
           shutdownCore: (input) => addSelfPlanAndSendFunctions(client, getShutdownCoreInstructionAsync(input)),
           stake: (input) => addSelfPlanAndSendFunctions(client, getStakeInstructionAsync(input)),
           updateNode: (input) => addSelfPlanAndSendFunctions(client, getUpdateNodeInstruction(input)),
@@ -16243,6 +16391,7 @@ var WEFT_ERROR__TREE_INDEX_MISMATCH = 6023;
 var WEFT_ERROR__INVALID_TREE = 6024;
 var WEFT_ERROR__TREE_FULL = 6025;
 var WEFT_ERROR__INVALID_COLLECTION = 6026;
+var WEFT_ERROR__STAKE_NOT_WITHDRAWN = 6027;
 var weftErrorMessages;
 if (process.env["NODE_ENV"] !== "production") {
   weftErrorMessages = {
@@ -16268,6 +16417,7 @@ if (process.env["NODE_ENV"] !== "production") {
     [WEFT_ERROR__PAUSED]: `Registry is paused`,
     [WEFT_ERROR__SHUTDOWN_BLOCKED]: `Core still has active state and cannot be shut down`,
     [WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED]: `Core must be paused before shutdown`,
+    [WEFT_ERROR__STAKE_NOT_WITHDRAWN]: `Stake must be fully withdrawn before the node can be deregistered`,
     [WEFT_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
     [WEFT_ERROR__TREE_FULL]: `Active tree shard is full`,
     [WEFT_ERROR__TREE_INDEX_MISMATCH]: `Tree shard index must equal the current tree count`,

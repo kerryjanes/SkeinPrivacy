@@ -57,6 +57,18 @@ EOF
 
 [[ -f target/deploy/weft.so ]] || { echo "ERROR: target/deploy/weft.so missing — run 'anchor build --ignore-keys' first." >&2; exit 1; }
 
+# On mainnet, refuse to deploy at anything but the chosen mainnet program id — the fresh id must
+# be set in declare_id!/Anchor.toml AND match the program keypair, or the program deploys at an
+# address whose declare_id mismatches (DeclaredProgramIdMismatch on every instruction).
+if [[ "${CLUSTER}" == "mainnet-beta" ]]; then
+  : "${WEFT_MAINNET_PROGRAM_ID:?set WEFT_MAINNET_PROGRAM_ID to the fresh mainnet program id before a mainnet deploy}"
+  [[ "${DECLARE_ID}" == "${WEFT_MAINNET_PROGRAM_ID}" ]] \
+    || { echo "ERROR: declare_id ${DECLARE_ID} != WEFT_MAINNET_PROGRAM_ID ${WEFT_MAINNET_PROGRAM_ID}." >&2; exit 1; }
+  KP_ID="$(solana address -k target/deploy/weft-keypair.json 2>/dev/null || true)"
+  [[ "${KP_ID}" == "${DECLARE_ID}" ]] \
+    || { echo "ERROR: program keypair ${KP_ID} != declare_id ${DECLARE_ID} — run 'anchor build --ignore-keys' first." >&2; exit 1; }
+fi
+
 if [[ "${YES}" != "1" ]]; then
   read -r -p "Type DEPLOY-${CLUSTER} to proceed: " CONFIRM
   [[ "${CONFIRM}" == "DEPLOY-${CLUSTER}" ]] || { echo "aborted."; exit 1; }

@@ -68,6 +68,8 @@ export const WEFT_ERROR__INVALID_TREE = 0x1788; // 6024
 export const WEFT_ERROR__TREE_FULL = 0x1789; // 6025
 /** InvalidCollection: Registry collection does not match */
 export const WEFT_ERROR__INVALID_COLLECTION = 0x178a; // 6026
+/** StakeNotWithdrawn: Stake must be fully withdrawn before the node can be deregistered */
+export const WEFT_ERROR__STAKE_NOT_WITHDRAWN = 0x178b; // 6027
 
 export type WeftError =
   | typeof WEFT_ERROR__ACCOUNT_NOT_EMPTY
@@ -92,6 +94,7 @@ export type WeftError =
   | typeof WEFT_ERROR__PAUSED
   | typeof WEFT_ERROR__SHUTDOWN_BLOCKED
   | typeof WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED
+  | typeof WEFT_ERROR__STAKE_NOT_WITHDRAWN
   | typeof WEFT_ERROR__STILL_UNBONDING
   | typeof WEFT_ERROR__TREE_FULL
   | typeof WEFT_ERROR__TREE_INDEX_MISMATCH
@@ -123,6 +126,7 @@ if (process.env['NODE_ENV'] !== 'production') {
     [WEFT_ERROR__PAUSED]: `Registry is paused`,
     [WEFT_ERROR__SHUTDOWN_BLOCKED]: `Core still has active state and cannot be shut down`,
     [WEFT_ERROR__SHUTDOWN_REQUIRES_PAUSED]: `Core must be paused before shutdown`,
+    [WEFT_ERROR__STAKE_NOT_WITHDRAWN]: `Stake must be fully withdrawn before the node can be deregistered`,
     [WEFT_ERROR__STILL_UNBONDING]: `Unbonding window has not elapsed`,
     [WEFT_ERROR__TREE_FULL]: `Active tree shard is full`,
     [WEFT_ERROR__TREE_INDEX_MISMATCH]: `Tree shard index must equal the current tree count`,
