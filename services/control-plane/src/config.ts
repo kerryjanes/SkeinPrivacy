@@ -36,6 +36,11 @@ export interface NodeConfig {
   wsUrl: string;
   weftMint: string;
 
+  // --- delegated settlement: the poster key auto-bills users' escrows for metered usage ---
+  settleKeypairPath: string; // poster_authority keypair; empty = no auto-settle (manual /settle only)
+  settleIntervalMs: number; // how often the control plane auto-bills accrued usage
+  settleMinBytes: bigint; // skip the settle tx until a user has accrued at least this much unsettled
+
   // --- devnet faucet (absent on mainnet) ---
   faucetKeypairPath: string; // empty = faucet disabled
   faucetAmount: bigint; // base units transferred per drip
@@ -114,6 +119,9 @@ export function loadConfig(): NodeConfig {
       'WEFT_MINT',
       '8AYQEuGHXXwndyfLCY4quyNoMxTPxzh2CJv6DwpDaC8i',
     ),
+    settleKeypairPath: env('WEFT_SETTLE_KEYPAIR', ''),
+    settleIntervalMs: Number(env('WEFT_SETTLE_MS', '60000')),
+    settleMinBytes: BigInt(env('WEFT_SETTLE_MIN_BYTES', '1048576')), // ~1 MB → avoid dust txs
     faucetKeypairPath,
     faucetAmount: BigInt(env('WEFT_FAUCET_AMOUNT', '1000000000000')), // 1000 $WEFT → ~1 GB quota
     faucetSolLamports: BigInt(env('WEFT_FAUCET_SOL_LAMPORTS', '50000000')), // 0.05 SOL for fees

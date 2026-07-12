@@ -23,6 +23,7 @@ import { Controller } from './controller.js';
 import { publishOwnExitProfile } from './exitProfiles.js';
 import { Faucet } from './faucet.js';
 import { startServer } from './server.js';
+import { createSettler } from './settlement.js';
 import { weft } from '@weft/sdk';
 
 const cfg = loadConfig();
@@ -67,7 +68,32 @@ async function assertMintMatchesDistributor(): Promise<void> {
 await assertMintMatchesDistributor();
 await ctrl.loadDecimals(); // read reward-mint decimals so quota/price adapt to the token
 ctrl.bootstrap(); // sync xray to saved state on boot
+
+// Delegated settlement: if a poster keypair is configured, the control plane auto-bills users'
+// escrows for metered usage (no user signature). Fail loud on a misconfigured key, but never block
+// boot — without a settler the legacy user-signed /settle path still works.
+if (cfg.settleKeypairPath) {
+  try {
+    ctrl.attachSettler(await createSettler(cfg.rpcUrl, cfg.wsUrl, cfg.settleKeypairPath));
+    console.log(`[control-plane] delegated settlement enabled every ${cfg.settleIntervalMs}ms`);
+  } catch (e) {
+    console.error('[control-plane] delegated settlement DISABLED:', (e as Error).message);
+  }
+}
+
 startServer(cfg, ctrl, faucet);
+
+async function settleLoop(): Promise<void> {
+  if (!cfg.settleKeypairPath) return;
+  for (;;) {
+    await new Promise((r) => setTimeout(r, cfg.settleIntervalMs));
+    try {
+      await ctrl.autoSettle();
+    } catch (e) {
+      console.error('[control-plane] auto-settle pass error:', (e as Error).message);
+    }
+  }
+}
 
 async function profileHeartbeat(): Promise<void> {
   if (!cfg.relayProfileUrl) return;
@@ -97,3 +123,4 @@ async function loop(): Promise<void> {
 }
 void profileHeartbeat();
 void loop();
+void settleLoop();

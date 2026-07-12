@@ -15,6 +15,7 @@ import { math } from '@weft/sdk';
 import { costBaseUnits, escrowBalance, quotaBytes, verifyPayTraffic, type Rpc } from './chain.js';
 import { applyRelayExitBytes, exitProfileSignature } from './exitProfiles.js';
 import { multiHopLink, oneHopLink } from './links.js';
+import type { Settler } from './settlement.js';
 import { applyConfig, pollExitUsage, pollUsage } from './xray.js';
 
 export interface Status {
@@ -42,11 +43,19 @@ export class Controller {
    *  (pump.fun); a devnet test mint may be 9. Defaults to 6 until loaded. */
   private decimals = 6;
 
+  /** Delegated settlement engine (poster key). Absent → auto-settle disabled, manual /settle only. */
+  private settler?: Settler;
+
   constructor(
     private cfg: NodeConfig,
     private store: Store,
     private rpc: Rpc,
   ) {}
+
+  /** Attach the poster-signed settler so the metering loop can auto-bill escrows. */
+  attachSettler(settler: Settler): void {
+    this.settler = settler;
+  }
 
   /** Fetch the reward mint's decimals once at startup so quota/price/display adapt to
    *  the actual token (same code on every cluster). Call before the metering loop. */
@@ -192,6 +201,43 @@ export class Controller {
     }
     this.reconcile();
     return this.status(u);
+  }
+
+  /**
+   * Delegated settlement pass: for every user carrying accrued (unsettled) traffic, bill it straight
+   * from their prepaid escrow with the poster key — no user signature. This funds the reward vault
+   * continuously (70% of the metered price) so node payouts stay solvent, and keeps access seamless:
+   * the user deposits once and never has to sign a settlement.
+   *
+   * Billing preserves the user's access headroom exactly — settling `amount` drops both the escrow
+   * balance and the unsettled tab by the same byte-equivalent, so `quota - unsettled` is unchanged.
+   * A user only goes OFF once their escrow is genuinely spent (nothing left to bill).
+   */
+  async autoSettle(): Promise<void> {
+    if (!this.settler) return;
+    let changed = false;
+    for (const u of this.store.all()) {
+      const unsettled = BigInt(u.unsettledBytes);
+      if (unsettled < this.cfg.settleMinBytes) continue; // let dust accrue; don't spend a tx on it
+      const escrowBal = await escrowBalance(this.rpc, u.wallet, this.cfg.weftMint);
+      const owed = costBaseUnits(unsettled, this.decimals);
+      const amount = owed < escrowBal ? owed : escrowBal; // never bill more than the escrow holds
+      if (amount <= 0n) continue; // no escrow to bill → the access rule takes them OFF on the next tick
+      try {
+        await this.settler.settle(u.wallet, amount);
+      } catch (e) {
+        // Leave the tab intact and retry next pass; never advance local state on a failed bill.
+        console.error(`[control-plane] auto-settle ${u.wallet} failed: ${(e as Error).message}`);
+        continue;
+      }
+      const settledBytes = quotaBytes(amount, this.decimals); // bytes that `amount` paid off
+      u.unsettledBytes = (unsettled > settledBytes ? unsettled - settledBytes : 0n).toString();
+      await this.refreshBalance(u); // escrow dropped by the bill
+      u.active = this.computeActive(u);
+      this.store.put(u);
+      changed = true;
+    }
+    if (changed) this.reconcile();
   }
 
   /**

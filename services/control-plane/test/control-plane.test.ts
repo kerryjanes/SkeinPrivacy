@@ -256,13 +256,13 @@ describe('personal links', () => {
     expect(l).toContain('flow=xtls-rprx-vision');
     expect(l).toContain(`sni=${cfg.sni}`);
     expect(l).toContain(`pbk=${cfg.realityPublicKey}`);
-    expect(l).toContain(encodeURIComponent('🇪🇺 Weft · Fast'));
+    expect(l).toContain(encodeURIComponent('🇪🇺 Weft · Nodes'));
   });
   it('multihop targets the Tor port and omits the vision flow', () => {
     const l = multiHopLink(cfg, 'abc-uuid');
     expect(l).toContain(`:${cfg.hopnPort}?`);
     expect(l).not.toContain('flow=');
-    expect(l).toContain(encodeURIComponent('🇪🇺 Weft · Private'));
+    expect(l).toContain(encodeURIComponent('🇪🇺 Weft · Tor'));
   });
 });
 
