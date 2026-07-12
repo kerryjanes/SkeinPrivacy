@@ -23,7 +23,7 @@ export async function findTreeShardPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = 'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF' as Address<'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF'>,
+    programAddress = 'HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5' as Address<'HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

@@ -181,7 +181,7 @@ import {
 } from '../pdas';
 
 export const WEFT_PROGRAM_ADDRESS =
-  'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF' as Address<'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF'>;
+  'HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5' as Address<'HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5'>;
 
 export enum WeftAccount {
   ClaimStatus,
@@ -616,7 +616,7 @@ export function identifyWeftInstruction(
 }
 
 export type ParsedWeftInstruction<
-  TProgram extends string = 'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF',
+  TProgram extends string = 'HGbkznukZaQfuK7jg5tZrH73CmWXX96tSuhvtz8mxCn5',
 > =
   | ({ instructionType: WeftInstruction.Claim } & ParsedClaimInstruction<TProgram>)
   | ({
