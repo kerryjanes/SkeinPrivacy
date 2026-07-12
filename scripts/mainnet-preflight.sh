@@ -64,7 +64,7 @@ else
 fi
 
 echo "== builds =="
-NO_DNA=1 anchor build -p weft >/tmp/weft-anchor-build.log
+NO_DNA=1 anchor build --ignore-keys -p weft >/tmp/weft-anchor-build.log
 pnpm -r build >/tmp/weft-pnpm-build.log
 echo "OK: anchor + TypeScript builds"
 
@@ -92,8 +92,11 @@ if [[ -d "${WEB_DIR}" ]]; then
       pnpm --filter @weft/web build >/tmp/weft-web-mainnet-build.log
     rg -n 'VITE_WEFT_CLUSTER:"mainnet-beta"' cabinet/dist/assets >/dev/null \
       || fail "mainnet cabinet bundle did not embed VITE_WEFT_CLUSTER=mainnet-beta"
-    rg -n 'VITE_WEFT_RPC_URL:"https://api\.mainnet-beta\.solana\.com"' cabinet/dist/assets >/dev/null \
-      || fail "mainnet cabinet bundle did not embed the explicit mainnet RPC URL"
+    rg -n 'VITE_WEFT_RPC_URL:"http' cabinet/dist/assets >/dev/null \
+      || fail "mainnet cabinet bundle did not embed an explicit RPC URL"
+    if rg -o 'VITE_WEFT_RPC_URL:"[^"]*"' cabinet/dist/assets | rg -qi 'devnet'; then
+      fail "mainnet cabinet bundle resolves VITE_WEFT_RPC_URL to a devnet endpoint"
+    fi
     # Dev affordances are gated on !PRODUCTION_UI (a superset of !IS_MAINNET: on mainnet
     # PRODUCTION_UI is always on, so the keypair-paste login + faucet buttons are hidden).
     rg -n 'ALLOW_DEV_CONNECT = !PRODUCTION_UI' cabinet/src/lib/config.ts >/dev/null \

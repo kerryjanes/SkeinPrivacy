@@ -17,7 +17,7 @@ export async function findRegistryPda(
   config: { programAddress?: Address | undefined } = {},
 ): Promise<ProgramDerivedAddress> {
   const {
-    programAddress = '6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd' as Address<'6riawCPVNE6sjMC6dgqkB2FxjXXFMXzuuy1pQRimk8Yd'>,
+    programAddress = 'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF' as Address<'HV8xFyYckvgMiEep4Fm4x8d826AjVDoGeAsj7x1oAnaF'>,
   } = config;
   return await getProgramDerivedAddress({
     programAddress,

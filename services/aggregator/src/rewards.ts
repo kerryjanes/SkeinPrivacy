@@ -50,6 +50,11 @@ export interface BuildOptions {
   /** Reward-mint decimals (read from the mint). $WEFT math is 6-decimal; a mint with
    *  more decimals (e.g. a 9-decimal devnet test mint) scales up. Default 6 (mainnet). */
   decimals?: number;
+  /** Solvency cap (base units): the reward vault's spendable balance for this epoch. If the
+   *  epoch's computed rewards exceed it, every node's reward is scaled down proportionally so the
+   *  total never exceeds what the vault can pay — post_epoch's on-chain solvency guard would
+   *  otherwise reject the whole epoch and settlement would stall. Omit to disable capping. */
+  vaultCap?: bigint;
 }
 
 export const DEFAULT_MIN_STAKE_TO_EARN = 1_000n * math.ONE_WEFT;
@@ -214,6 +219,28 @@ export function buildEpochFromByteTotals(
       stakingBonusBps: stakingBonus,
       bootstrapBonusBps: Number(bootstrapBonus),
     });
+  }
+
+  // Vault-solvency cap: the reward vault only holds fees actually collected (70% of what users
+  // paid). If the epoch's rewards exceed it — e.g. a node served more bytes than the user's escrow
+  // covered — scale every node's reward down proportionally so the total never exceeds the vault.
+  // Otherwise post_epoch's on-chain solvency guard rejects the whole epoch and nothing ever settles.
+  if (opts.vaultCap != null && opts.vaultCap >= 0n) {
+    const total = rewards.reduce((s, r) => s + r.reward, 0n);
+    if (total > opts.vaultCap) {
+      for (const r of rewards) r.reward = (r.reward * opts.vaultCap) / total;
+      for (let i = rewards.length - 1; i >= 0; i--) {
+        if (rewards[i].reward === 0n) {
+          skipped.push({
+            operator: rewards[i].operator,
+            nodeId: rewards[i].nodeId,
+            bytes: rewards[i].bytes,
+            reason: 'zero-reward',
+          });
+          rewards.splice(i, 1);
+        }
+      }
+    }
   }
 
   // Deterministic order: by operator address, then node id.

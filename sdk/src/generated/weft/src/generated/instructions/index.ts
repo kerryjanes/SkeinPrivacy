@@ -25,6 +25,7 @@ export * from './setDisputeAuthority';
 export * from './setPaused';
 export * from './setPosterAuthority';
 export * from './setRegistryCollection';
+export * from './settleFromEscrow';
 export * from './shutdownCore';
 export * from './stake';
 export * from './updateNode';
