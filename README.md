@@ -1,5 +1,7 @@
 # Weft
 
+CA: 86Eq7y8tnbW53PhTtkVEj7DbQ71mgLDJeL94bsg3pump
+
 Weft is a decentralized VPN on Solana.
 
 Users pay `$WEFT` for traffic. Node operators run exit nodes, carry user traffic, and earn `$WEFT`
