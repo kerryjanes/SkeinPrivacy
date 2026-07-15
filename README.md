@@ -1,6 +1,6 @@
 # Weft
 
-CA: 86Eq7y8tnbW53PhTtkVEj7DbQ71mgLDJeL94bsg3pump
+**CA: 86Eq7y8tnbW53PhTtkVEj7DbQ71mgLDJeL94bsg3pump**
 
 Weft is a decentralized VPN on Solana.
 
